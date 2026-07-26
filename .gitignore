@@ -1,2 +1,10 @@
+DerivedData/
 build/
 .DS_Store
+
+# Read-only reference project; keep it local but never commit it to this repo.
+Lyricify-App-main/
+
+# Xcode-local generated state; keep the project baseline reproducible.
+SpotifyLyrics.xcodeproj/project.xcworkspace/
+SpotifyLyrics.xcodeproj/xcuserdata/
