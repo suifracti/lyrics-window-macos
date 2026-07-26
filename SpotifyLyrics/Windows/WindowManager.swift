@@ -27,6 +27,8 @@ public class WindowManager: ObservableObject {
                 window.level = .floating
                 window.isMovableByWindowBackground = true
                 window.hasShadow = true
+                // Show on all space desktops (All Spaces & Full Screen Apps overlay)
+                window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
                 window.contentView = NSHostingView(rootView: FloatingLyricsView().environmentObject(state))
                 floatingWindow = window
             }
@@ -60,6 +62,7 @@ public class WindowManager: ObservableObject {
                 window.level = .statusBar
                 window.isMovableByWindowBackground = true
                 window.hasShadow = true
+                window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
                 window.contentView = NSHostingView(rootView: CapsulePlayerView().environmentObject(state))
                 capsuleWindow = window
             }
@@ -85,6 +88,7 @@ public class WindowManager: ObservableObject {
                 window.isOpaque = true
                 window.backgroundColor = .black
                 window.level = .modalPanel
+                window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
                 window.contentView = NSHostingView(rootView: FullScreenLyricsView().environmentObject(state))
                 fullScreenWindow = window
             }
