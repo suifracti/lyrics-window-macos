@@ -1,51 +1,53 @@
-# Task Plan: SpotifyLyrics Xcode 构建基线
+# Task Plan: SpotifyLyrics UI Reference Audit
 
 ## Goal
-建立可重复、可验证的标准 Xcode Debug 构建基线，区分旧手工 `build/SpotifyLyrics.app` 与新的 `DerivedData` 产物，并对新产物进行真实窗口验证。
+在 `ui-reference-audit` 分支上完成 Dynamic Lyrics 黑盒、Lyricify 公开资料和当前标准 Xcode 产物的 UI 参考审计，形成独立视觉设计规范与分阶段改造计划；不修改 Swift 源码、Xcode 工程或任何 `.app`。
 
 ## Next Step
-后续产品功能工作应从独立分支开始；本基线 commit 保持不变。
+完成最终文档/状态边界核验，确认只新增审计文档、规划日志和截图资产。
 
 ## Current Phase
-Phase 5 — Documentation and Commit
+Phase 6 — Audit Deliverable and Verification
 
 ## Scope & Boundaries
 - 唯一正式项目：`/Users/apple/backup/sptifylyrics`
 - 黑盒 UI 参考：`/Applications/Dynamic Lyrics.app`（只读）
 - 文档/截图参考：`Lyricify-App-main` 或未来的 `References/Lyricify-App`（只读）
 - 歌词格式参考：未来的 `References/Lyricify-Lyrics-Helper`（只读；不复制或链接代码）
-- 本轮允许写入：`AUDIT.md`、`.gitignore`、`task_plan.md`、`findings.md`、`progress.md`；如 Scheme 缺失，仅修复 Scheme 或工程配置
-- 本轮禁止修改：Swift 产品功能、任何参考目录、任何 `.app`、Spotify/歌词 Provider/SQLite/AI/自动排轴
+- 本轮允许写入：`UI_REFERENCE_AUDIT.md`、审计截图资产目录、`task_plan.md`、`findings.md`、`progress.md`
+- 本轮禁止修改：Swift 源码、`SpotifyLyrics.xcodeproj`、任何 `.app`、`Dynamic Lyrics.app`、`Lyricify-App-main/`、Spotify/歌词 Provider/SQLite/AI/自动排轴
 
 ## Phases
 
-### Phase 1: Environment and Project — complete
-- [x] 输出工作目录、Git 状态和最近五次提交
-- [x] 检查完整 Xcode、默认开发者目录和工程可解析性
-- [x] 审计 `project.pbxproj`、Scheme、Target、Bundle ID、Deployment Target、Build Settings
-- [x] 检查现有 `build/SpotifyLyrics.app` 的来源、Info.plist、架构和源码一致性
+### Phase 1: Scope and Reference Collection — completed
+- [x] 读取 `AUDIT.md` 和基线 commit
+- [x] 创建并切换 `ui-reference-audit` 分支
+- [x] 盘点 Lyricify README/docs/images 与许可/素材边界
+- [x] 读取 Dynamic Lyrics `Info.plist` 和公开资源清单
 
-### Phase 2: Xcode Discovery — complete
-- [x] 输出 `xcode-select -p`
-- [x] 输出 `xcodebuild -version`
-- [x] 使用指定 `DEVELOPER_DIR` 运行 `xcodebuild -list -project SpotifyLyrics.xcodeproj`
-- [x] 确认 Target 与 Scheme 可用
+### Phase 2: Dynamic Lyrics Black-box Audit — completed
+- [x] 观察主窗口、悬浮歌词、顶部胶囊收起/展开、全屏歌词；胶囊具体展开内容标记为未验证
+- [x] 记录窗口尺寸、位置、透明度、圆角、阴影、层级和状态切换
+- [x] 保存关键状态截图；不修改、提取或复用专有素材
 
-### Phase 3: Standard Debug Build — complete
-- [x] 使用指定命令执行真实 Debug `xcodebuild`
-- [x] 记录 `BUILD SUCCEEDED` 日志结尾
-- [x] 记录 Xcode 生成的 `.app` 绝对路径
-- [x] 确认旧 `build/SpotifyLyrics.app` 与新产物分离
+### Phase 3: Current Product UI Audit — completed
+- [x] 退出旧手工进程后启动 DerivedData 标准 `.app`，确认可执行文件路径
+- [x] 记录主窗口、悬浮歌词、顶部胶囊、全屏歌词真实截图和窗口测量
+- [x] 观察歌词层级、设置占比、背景材质和控制区布局
 
-### Phase 4: Runtime UI Audit — complete
-- [x] 启动 DerivedData 中的新 `.app`
-- [x] 验证主窗口、悬浮歌词、顶部胶囊、全屏覆盖歌词
-- [x] 验证辅助窗口关闭与重新打开
+### Phase 4: Comparison Matrix — completed
+- [x] 对照参考对象和当前实现逐项记录差异
+- [x] 明确当前测试面板、卡片背景、胶囊宽度/动画、全屏覆盖和设置占比问题
 
-### Phase 5: Documentation and Commit — complete
-- [x] 将 `DerivedData/` 和 `build/` 加入 `.gitignore`
-- [x] 更新 `AUDIT.md` 记录真实 Xcode 构建和运行时结果
-- [x] 提交 `Establish verified Xcode build baseline`
+### Phase 5: Independent UI Design Plan — completed
+- [x] 提出主窗口、胶囊、悬浮歌词、全屏歌词的独立视觉方案
+- [x] 定义字体、材质、圆角、间距、动画、主题和窗口尺寸规范
+- [x] 建议 SwiftUI/AppKit 组件边界和分阶段改造顺序
+
+### Phase 6: Audit Deliverable and Verification — completed
+- [x] 创建 `UI_REFERENCE_AUDIT.md`
+- [x] 检查没有修改 Swift、Xcode 工程、应用包或参考对象
+- [x] 输出分支、路径、`git status --short` 和 `git diff --stat`
 
 ## Decisions Made
 | Decision | Rationale |
@@ -66,6 +68,8 @@ Phase 5 — Documentation and Commit
 | Computer Use 不接受 `Space` 大写按键名 | 1 | 改用小写 `space`，并重新读取焦点状态 |
 | AX 点击全屏按钮未触发状态变化 | 1 | 依据最新截图改用坐标点击，再用 WindowServer 验证 |
 | 退出已关闭主窗口的应用时 LS 返回 procNotFound | 1 | 不重复退出；随后用 Computer Use 重新启动 DerivedData 产物并验证主窗口 |
+| 同名旧手工进程遮蔽 DerivedData 产物 | 1 | 先通过应用菜单退出 `build/SpotifyLyrics.app`，再启动并用 `ps` 验证 DerivedData 可执行文件路径 |
+| Dynamic Lyrics 二次读取超时 | 1 | 不重复操作；沿用已保存的黑盒截图/WindowServer 证据，并将胶囊具体展开态标为未验证 |
 
 ## Notes
 - 任何无法真实验证的项目必须明确标记为“未验证”，不能推断为完成。

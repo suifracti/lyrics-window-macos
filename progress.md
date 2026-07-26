@@ -171,3 +171,47 @@
 | Computer Use `Space` 大写按键名不存在 | 改用小写 `space` |
 | AX 点击全屏按钮未改变状态 | 改用最新截图坐标点击，并用 WindowServer 核验 |
 | 退出已无 eligible process 的实例返回 `procNotFound` | 忽略该退出提示，重新启动并完成干净主窗口验证 |
+
+## Session: 2026-07-26 — UI Reference Audit
+
+### Phase 1: Scope and Reference Collection
+- **Status:** complete
+- 已读取 `AUDIT.md`，确认基线 commit `e24fbb35ea8247f39d52e3a0772f34c4e8633454`。
+- 已创建并切换到 `ui-reference-audit`；没有在 `main` 上做 UI 工作。
+- 已读取 `Lyricify-App-main/README.md`、`docs/`、`images/` 和歌词格式说明；记录了可参考的信息架构和第三方素材边界。
+- 已读取 Dynamic Lyrics `Info.plist` 和公开资源清单；没有提取或复用资源。
+
+### Phase 2: Dynamic Lyrics Black-box Audit
+- **Status:** complete with explicit limits
+- 已观察主窗口、更多菜单、外部播放状态变化、系统全屏和辅助窗口对象。
+- 已记录主窗口约 `1000×650`、辅助层 `610×200`/`600×78` 及其 layer/位置变化。
+- 已保存 `dynamic-main-initial.png`、`dynamic-main-paused.png`、`dynamic-fullscreen.png` 和 `dynamic-floating.png`。
+- `dynamic-floating.png` 为空白/透明；胶囊具体收起/展开内容和动画时长均标为未验证。
+
+### Phase 3: Current Product UI Audit
+- **Status:** complete
+- 先退出同名旧的 `build/SpotifyLyrics.app` 进程，再启动 DerivedData `.app`；`ps` 实际路径为 `/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics`。
+- 已保存标准 Xcode 产物的主窗口、悬浮歌词、胶囊和全屏截图：`spotifylyrics-main-xcode.png`、`spotifylyrics-floating-xcode.png`、`spotifylyrics-capsule-xcode.png`、`spotifylyrics-fullscreen-xcode.png`。
+- WindowServer 记录：主窗口 `900×621/layer 0`；浮动 `600×180/layer 3`；胶囊 `380×46/layer 25`；全屏覆盖 `2560×1440/layer 8`。
+- 全屏截图确认当前实现是黑色覆盖层和单行蓝色罗马音；胶囊只观察到单一 compact 态。
+- 退出并重新启动 DerivedData 应用，主窗口恢复；没有把进程存在当作 UI 成功证据。
+
+### Phase 4: Comparison Matrix
+- **Status:** complete
+- 已按主窗口、悬浮、胶囊收起/展开、全屏、歌词层级、语言层级、背景材质、控制布局、窗口状态切换九类证据形成逐项差异矩阵。
+
+### Phase 5: Independent UI Design Plan
+- **Status:** complete
+- 已定义 Canvas-first 主窗口、胶囊三态、悬浮歌词、全屏歌词、字体/材质/间距/圆角/主题/窗口尺寸 token。
+- 已给出 SwiftUI/AppKit 组件边界、六阶段改造顺序和每阶段验收标准。
+
+### Phase 6: Audit Deliverable
+- **Status:** complete
+- 已创建 `UI_REFERENCE_AUDIT.md`。
+- 最终核验通过：Git 变更仅包含审计文档、截图资产和规划日志；Swift、Xcode 工程和应用包没有出现在变更范围；已输出 `git status --short` 与 `git diff --stat`。
+
+### Errors
+| Error | Resolution |
+|---|---|
+| 同名旧手工进程导致首次截图身份不够明确 | 通过应用菜单退出旧进程；重新启动 DerivedData 并用 `ps` 验证可执行文件绝对路径 |
+| Dynamic Lyrics 二次 `get_app_state` 超时 | 不重复操作；保留既有黑盒截图/WindowServer 记录，明确胶囊展开态未验证 |

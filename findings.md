@@ -142,3 +142,54 @@
 - WindowServer 实际确认 DerivedData `.app` 的主窗口（900×621/layer 0）、悬浮歌词（600×180/layer 3）、顶部胶囊（380×46/layer 25）和全屏覆盖歌词（2560×1440/layer 8）。
 - 悬浮歌词、顶部胶囊和全屏覆盖歌词均完成打开→关闭→重新打开验证；主窗口完成 `Cmd+W` 关闭→重新启动验证。
 - 这只是已有 Mock UI 的 Xcode 产物基线，不代表 Spotify、歌词 Provider、SQLite、AI 或自动排轴已实现。
+
+## 2026-07-26 UI Reference Audit — Initial Public Reference Findings
+
+### Branch and boundaries
+- 当前分支已创建并切换为 `ui-reference-audit`，基点为 `e24fbb35ea8247f39d52e3a0772f34c4e8633454`。
+- `Dynamic Lyrics.app` 只读黑盒；不修改、签名、Patch、反编译或提取专有素材。
+- `Lyricify-App-main/` 只读 README、docs、images 和公开说明；不复制源码、品牌名称、图标或图片到正式产品。
+
+### Lyricify public repository inventory
+- README 明确将 Lyricify 4 描述为 Spotify 的自动滚动歌词和附加功能，并列出 Dynamic Lyrics Island、Magic Strip、动态专辑封面等产品概念。
+- README 公开展示了歌词显示、Dynamic Lyrics Island、桌面歌词、竖屏、全屏、移动端 UI、演唱高亮和多行显示等截图入口。
+- Lyricify 4 文档公开描述：歌词界面、桌面歌词、全屏界面、可自定义字体、性能/质量特效开关、歌词来源/搜索/导入/编辑和时间轴偏移。这些仅作为产品行为和信息架构参考，不作为当前 UI 的实现证据。
+- 文档说明 `Lyricify-Lyrics-Helper` 的歌词处理库使用 Apache License 2.0；本轮不克隆或复制其代码。
+- README 及文档中的产品/品牌图标、截图和专有配色不进入 SpotifyLyrics 设计资产。
+
+### Lyricify screenshot observations (read-only)
+- `images/readme/func-lyrics-display.png`：主歌词界面以整面动态背景承载大字号居中歌词；当前行高亮白色、上下行明显降低透明度；翻译紧随原文；底部固定歌曲信息与播放控制条，设置入口收进左上角菜单。
+- `images/readme/func-lyrics-dynamic-lyrics-island.png`：顶部黑色胶囊收起/短态以歌曲标题、翻译、左右两侧媒体/封面提示为核心，胶囊本身保持极简；截图同时展示更宽的展开状态。
+- `images/readme/func-lyrics-desktop.png`：桌面歌词是半透明大卡片叠在背景上，顶部左侧歌曲信息，右侧控制按钮；歌词原文与翻译居中，背景图像和卡片材质保持可见。
+- `images/readme/func-lyrics-fulscreen.png`：全屏歌词使用整屏渐变/动态封面，当前行最大最亮，上下行通过透明度和模糊拉开层级；专辑信息位于左下，控制位于右下。
+- `images/readme/func-lyrics-vertical.png`：竖屏/移动样式通过窄画布、底部播放卡片和底部导航重排信息；歌词层级仍保持当前行突出、相邻行退后。
+- 公开图片尺寸从 1010×460 到 3072×1920 不等；它们只作为观察证据和方向参考，不复制到正式产品。
+
+### Dynamic Lyrics bundle metadata (read-only)
+- Bundle ID：`com.bing.lyrics`；版本：`1.9.9`，build：`169`；最低 macOS：`14.6`；`LSUIElement = true`。
+- Info.plist 声明了 `spotify-lyrics`、`spotify-lyrics-quick-start` 和 `dynamic-lyrics` URL scheme，以及 Apple Events/Apple Music 媒体信息用途说明。
+- 公开资源清单包含 AppIcon、Assets.car、Custom-Regular.otf、Localized strings、配置 plist、视频/音频和若干依赖 bundle；本轮只列清单，不读取/提取/复用品牌或专有素材。
+
+### Dynamic Lyrics black-box initial state
+- Computer Use 启动 `/Applications/Dynamic Lyrics.app` 后，窗口标题为本地化的“灵动歌词”。主窗口 AX 树包含歌曲封面、歌名/艺人、喜欢、更多、播放控制、进度文本、歌词滚动区、翻译和搜索按钮。
+- 初始可见歌曲为「フレグランス」/茉ひる，时间约 `3:13 / 3:25`；当前行以白色大字突出，下一行及更远歌词逐级模糊/降低透明度；翻译紧随当前行。
+- 初始截图显示绿色/青色动态背景取自封面，左侧封面卡片和底部控制区叠在半透明材质上，圆角窗口约 1000×650。
+- 只读 WindowServer 查询显示主窗口 `1000×650`、layer 0；同时有两个无标题辅助窗口 `610×200`/layer 27 和 `600×78`/layer 24，说明应用启动时已有辅助层或胶囊状态对象，但需通过交互和截图进一步确认其语义。
+- “更多”菜单公开了歌词延时、歌词模糊效果、字体大小（标准/小/特小）、左右/居中对齐、分享、报错和纯音乐标记；这说明设置入口被收进上下文菜单，而不是长期占据歌词画布。
+- 播放/暂停按钮和歌曲内容会随外部媒体状态变化；观察期间歌曲从「フレグランス」切换到 `First Love`，因此动态应用不是固定演示数据，后续视觉结论只针对当前窗口状态，不推断数据源实现。
+- 点击 macOS 全屏按钮后，Dynamic Lyrics 进入屏幕级歌词布局：截图显示左侧专辑/播放信息、中央当前行和模糊相邻行；WindowServer 主窗口扩展为 `2560×1440`，辅助层仍位于顶部。
+- 使用 `super+ctrl+f` 后 AX 树恢复“标准窗口”描述，但截图/WindowServer 仍处于屏幕级布局，说明原生全屏/缩放状态切换需要以实际窗口帧和截图共同判定，不能只看 AX 文本。
+- `Cmd+W` 关闭主窗口后，AX 树留下 `floating-lyrics` 系统对话框；这证明主窗口与辅助浮层是分开的。当前浮层截图呈空白/透明状态，不能把“窗口对象存在”误写成“歌词内容可见”。
+- 主窗口关闭时 WindowServer 仍显示两个无标题辅助窗口（`610×200` layer 27、`600×78` layer 24）；它们的具体语义需要结合菜单/状态操作继续确认。
+- macOS“显示”菜单提供系统级“进入全屏幕”命令；标题栏绿色全屏按钮和菜单命令都是系统窗口状态，不是独立歌词功能入口。
+- 多次切换后辅助窗口之一会移动到不同屏幕坐标（例如 `600×78` 从 `1289,69` 到 `534,88`），说明胶囊/辅助窗口位置可能受当前显示器和状态影响；不能用固定坐标设计正式 UI。
+
+### 2026-07-26 UI Reference Audit — clean Xcode runtime correction
+
+- 为避免同名 Bundle ID 复用旧进程，先通过应用菜单退出了旧的 `/Users/apple/backup/sptifylyrics/build/SpotifyLyrics.app` 进程；随后才启动 `/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app`。`ps` 实际显示的可执行文件路径为 DerivedData 路径。
+- 干净 Xcode 进程的主窗口 WindowServer 帧为 `900×621`、layer 0；当前捕获保存为 `ui-reference-audit-assets/spotifylyrics-main-xcode.png`。视觉上仍是白色测试面板：左侧常驻歌曲/显示视图/多行开关，右侧歌词画布无封面背景、无模糊材质。
+- 干净 Xcode 进程的悬浮歌词为 `600×180`、layer 3（截图 `spotifylyrics-floating-xcode.png`）；可见浅色圆角卡片、原文/罗马音/翻译三行，四周为透明黑色背景，未见上下相邻歌词或动态背景。
+- 干净 Xcode 进程的顶部胶囊为 `380×46`、layer 25（截图 `spotifylyrics-capsule-xcode.png`）；可见极浅色胶囊、歌曲标题、第二行文字、左侧图标和右侧播放按钮。没有观察到独立的展开按钮或第二个更大内容态；本轮将“展开态”标为未验证，而不是推断为已实现。
+- 干净 Xcode 进程的全屏覆盖为 `2560×1440`、layer 8（截图 `spotifylyrics-fullscreen-xcode.png`）；黑色覆盖层只显示一行蓝色罗马音，右上角有关闭圆钮。当前截图未呈现原文、翻译、相邻行、专辑信息或播放控件，因此与参考的层级式全屏歌词有明显差距。
+- 通过应用菜单退出 Xcode 进程并重新用 DerivedData 路径启动，主窗口恢复且进程路径仍指向 DerivedData；这证明的是应用级关闭/重开。窗口级 `Cmd+W` 在辅助窗口同时存在时会把焦点转到最前面的辅助窗，因此本轮不把该次按键误写成主窗口关闭成功。
+- `Dynamic Lyrics.app` 本轮已有初始/暂停/全屏黑盒截图和 WindowServer 记录；再次尝试读取时 Computer Use 服务超时，未新增胶囊内容截图。既有 `dynamic-floating.png` 仍只证明存在一个 `600×78` 辅助窗口对象，截图内容为空，不能声称浮动歌词内容可见。
