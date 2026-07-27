@@ -151,6 +151,24 @@ Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 - [x] 完成签名 Debug 构建、真实运行搜索和点击结果验证
 - [x] 记录验证结果并提交独立搜索 commit
 
+## Phase 22: Song and Lyrics Source Research — completed, awaiting user confirmation
+- [x] 读取 `Lyricify-App-main` 许可证与公开实现线索；不读取 Dynamic Lyrics 闭源实现或资源
+- [x] 调查 Spotify Web API、LRCLIB、网易云、QQ 音乐、酷狗、Apple Music/MusicKit 及补充来源的官方 API、条款、字段、额度、缓存与发布风险
+- [x] 以当前日期记录实际官方来源、最小请求验证和非官方方案的维护风险
+- [x] 审计当前 SongSearch/LyricsProvider/identity/matcher 架构是否混淆曲库搜索、当前播放识别和歌词版本搜索
+- [x] 输出 `SOURCE_PROVIDER_RESEARCH.md`、推荐分层和分阶段接入计划；等待用户确认，不修改 Swift 或接入新 Provider
+
+
+## Phase 23: Low-risk Architecture Split (Track vs Lyrics) — complete
+- [x] Split SongSearchManager into TrackSearchManager + LyricsSearchManager with compatibility facade
+- [x] Track search returns metadata-only TrackSearchResult (no lyrics body)
+- [x] SpotifyCurrentTrackProvider repositioned as CurrentTrackResolver (not free-text catalog)
+- [x] Shared read-only LocalLyricsIndex for LocalSearchProvider + LocalLyricsProvider
+- [x] LRCLIB isolated to lyrics path with timeout/retry/429/cancel classification; disabled in track search
+- [x] Contract tests: search models, provider failure matrix, existing song search + real track suites
+- [x] Signed Debug xcodebuild + codesign verify + real Spotify Desktop launch smoke
+- [x] Pause before Spotify Web OAuth / Chinese platform experimental plugins
+
 ## Decisions Made
 | Decision | Rationale |
 |----------|-----------|
@@ -165,6 +183,7 @@ Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 |-------|---------|------------|
 | None yet | 0 | — |
 | zsh `status` is read-only while capturing a failing contract exit code | 1 | Re-ran with `rc` and confirmed the intended red exit code `1` |
+| zsh glob for `SpotifyLyrics/Providers/*Lyrics*.swift` matched no files | 1 | Stopped using the speculative glob and enumerated the actual `SpotifyLyrics/Lyrics/` and `SpotifyLyrics/Search/` files |
 | Computer Use 坐标点击误触“假名”开关 | 1 | 停止坐标点击，改用 AX 索引/键盘焦点并恢复状态 |
 | 后续 `swift -e` WindowServer 查询被 Xcode license 提示阻止 | 1 | 不运行 sudo、不接受许可；改用已收集证据和 Computer Use 继续审计 |
 | 播放计时器持续刷新导致 Computer Use 报告界面被改变 | 1 | 重新查询最终状态，确认暂停已生效，不把中间失败当成功 |

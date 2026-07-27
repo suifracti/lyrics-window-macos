@@ -472,3 +472,31 @@
 - 正常签名 Debug 构建命令返回 `0`，`/tmp/spotifylyrics-search-final-signed.log` 结尾为 `** BUILD SUCCEEDED **`；产物为 `/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app`，使用 Xcode `Sign to Run Locally` 签名并通过 codesign 验证。
 - 最终签名产物重新启动后，AX 实际观察到搜索 popover、LRCLIB 与 Spotify 当前歌曲统一结果列表。点击当前歌曲结果进入 `正在搜索歌词…`，播放位置仍为 `00:04 / 01:59`；点击不匹配的 LRCLIB 结果显示“搜索结果与当前歌曲匹配度不足，未加载”，没有污染当前歌曲状态。
 - 最终截图已刷新：`ui-redesign-assets/phase2-lyrics-focus.png`、`ui-redesign-assets/phase2-immersive-split.png`。契约、`git diff --check` 和最终签名构建均通过。
+
+## 2026-07-27 — Phase 22 source research started
+
+- 用户要求先完整调研歌曲目录与歌词来源，等待确认后再修改 Swift；本轮明确禁止新增 Provider 实现，也禁止读取 Dynamic Lyrics 闭源实现、二进制、私有接口或资源。
+- 调研输出目标为 `SOURCE_PROVIDER_RESEARCH.md`，覆盖 Spotify Web API、LRCLIB、网易云、QQ 音乐、酷狗、Apple Music/MusicKit、补充来源、Lyricify 公开仓库和当前 Provider 架构审计。
+
+## 2026-07-27 — Phase 22 source research complete
+- 已完成 Spotify Web API、LRCLIB、网易云、QQ 音乐、酷狗、Apple Music/MusicKit、MusicBrainz/Cover Art Archive、Musixmatch、Genius、Deezer 的官方/公开资料审计，并对 LRCLIB、中文平台和 MusicBrainz 做了最小只读请求验证。
+- 已读取 `Lyricify-App-main` 的 README、docs、i18n 公开文案并确认本地副本没有可识别 LICENSE；另记录公开 `Lyricify-Lyrics-Helper` 的 Apache-2.0 许可证和 Searchers/Providers 分层线索。没有读取或操作 Dynamic Lyrics 的闭源实现、二进制、私有接口或资源。
+- 已确认当前 `SongSearchResult` 将曲库候选、Spotify 当前播放识别和可选歌词正文混在一起；报告建议拆为 `TrackSearchManager`、`CurrentTrackResolver` 和 `LyricsSearchManager`，并保留严格 `TrackIdentity`/generation 安全边界。
+- 已创建 `SOURCE_PROVIDER_RESEARCH.md`，包含对比表、推荐分层、统一模型、失败隔离、未来修改文件计划和从低风险到高风险的验收顺序。本轮没有修改 Swift、Xcode 工程或业务实现，等待用户确认后再一次接入一个来源。
+
+## 2026-07-27 — Phase 23 architecture split
+
+### Done
+- Implemented low-risk architecture from `SOURCE_PROVIDER_RESEARCH.md` without OAuth or Chinese platform providers.
+- Added `TrackSearchManager` / `TrackSearchResult` (metadata only) and `LyricsSearchManager` for confirmed `TrackIdentity` lookups.
+- Replaced free-text role of `SpotifyCurrentTrackProvider` with `CurrentTrackResolver`; kept UI-facing `SongSearchManager` compatibility facade.
+- Introduced shared read-only `LocalLyricsIndex` used by local track search and local lyrics lookup; Release still omits project-root `Lyrics/` except under DEBUG.
+- LRCLIB remains lyrics-only: independent timeout, limited automatic retry, 400/404/429/timeout/network/parse classification, cancellation, no default on-disk persistence; track-search `LRCLIBProvider` is a hard no-op/deprecated shim.
+- `PlaybackState` track search wires only Local + CurrentTrackResolver; lyrics session still Local + LRCLIB via composite/search manager.
+- Contracts: `./Tests/song_search_contract.sh` (song search + search models + provider failure) and `./Tests/real_track_lyrics_contract.sh` passed.
+- Signed Debug build: `** BUILD SUCCEEDED **`; `codesign --verify --deep --strict` OK.
+- Real runtime: launched DerivedData Debug app (1 main window); Spotify Desktop had live track `あやふや / みさき` (paused). Full UI click-through of every control was not exhaustively AX-scripted this round.
+
+### Not done / paused
+- Spotify Developer Client ID / Web OAuth catalog search
+- Apple Music / Musixmatch / NetEase / QQ / KuGou providers

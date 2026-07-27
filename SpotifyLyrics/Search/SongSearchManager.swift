@@ -1,22 +1,30 @@
 import Combine
 import Foundation
 
+/// Compatibility facade over `TrackSearchManager` for existing UI bindings.
+/// Track search never attaches lyrics bodies; selection resolves lyrics separately.
 @MainActor
 public final class SongSearchManager: ObservableObject {
     @Published public private(set) var state: SongSearchState = .idle
 
-    private let providers: [SongSearchProvider]
+    public let trackSearchManager: TrackSearchManager
     private var requestTask: Task<Void, Never>?
     private var generation: UInt64 = 0
 
-    public init(providers: [SongSearchProvider]) {
-        self.providers = providers
+    public init(providers: [TrackSearchProvider]) {
+        self.trackSearchManager = TrackSearchManager(providers: providers)
+    }
+
+    /// Legacy constructor accepted `SongSearchProvider`. Bridge adapters keep call sites compiling.
+    public convenience init(providers: [SongSearchProvider]) {
+        self.init(providers: providers.map { SongSearchProviderBridge(provider: $0) })
     }
 
     deinit {
         requestTask?.cancel()
     }
 
+    @discardableResult
     public func search(query: SongSearchQuery) -> Task<Void, Never>? {
         generation &+= 1
         let requestGeneration = generation
@@ -25,38 +33,16 @@ public final class SongSearchManager: ObservableObject {
         guard !query.isEmpty else {
             state = .idle
             requestTask = nil
+            _ = trackSearchManager.search(query: query)
             return nil
         }
 
         state = .searching(query)
-        let providers = self.providers
+        let trackTask = trackSearchManager.search(query: query)
         requestTask = Task { [weak self] in
-            var results: [SongSearchResult] = []
-            var errors: [String] = []
-
-            for provider in providers {
-                guard !Task.isCancelled else { return }
-                do {
-                    results.append(contentsOf: try await provider.search(query: query))
-                } catch let error as SongSearchError {
-                    errors.append(error.errorDescription ?? provider.name)
-                } catch {
-                    errors.append(error.localizedDescription)
-                }
-            }
-
-            guard !Task.isCancelled else { return }
-            let merged = Self.merge(results)
-            guard let self,
-                  self.generation == requestGeneration else { return }
-
-            if !merged.isEmpty {
-                self.state = .results(query, merged)
-            } else if !errors.isEmpty {
-                self.state = .failed(query, errors.joined(separator: "；"))
-            } else {
-                self.state = .noResults(query)
-            }
+            await trackTask?.value
+            guard let self, self.generation == requestGeneration else { return }
+            self.state = self.trackSearchManager.state.songSearchState
         }
         return requestTask
     }
@@ -65,27 +51,27 @@ public final class SongSearchManager: ObservableObject {
         generation &+= 1
         requestTask?.cancel()
         requestTask = nil
+        trackSearchManager.cancel()
         state = .idle
     }
+}
 
-    private static func merge(_ results: [SongSearchResult]) -> [SongSearchResult] {
-        var merged: [String: SongSearchResult] = [:]
-        for result in results {
-            let key = result.searchMergeKey
-            guard let existing = merged[key] else {
-                merged[key] = result
-                continue
-            }
+/// Adapts legacy `SongSearchProvider` implementations into metadata-only track search.
+private struct SongSearchProviderBridge: TrackSearchProvider {
+    let provider: SongSearchProvider
+    var name: String { provider.name }
 
-            if existing.lyrics == nil, result.lyrics != nil {
-                merged[key] = result
-            } else if result.confidence > existing.confidence {
-                merged[key] = result
-            }
-        }
-        return merged.values.sorted {
-            if $0.confidence == $1.confidence { return $0.track.title < $1.track.title }
-            return $0.confidence > $1.confidence
+    func search(query: TrackSearchQuery) async throws -> [TrackSearchResult] {
+        let results = try await provider.search(query: query)
+        return results.map { result in
+            // Drop any accidental lyrics payload from legacy providers.
+            TrackSearchResult(
+                id: result.id,
+                source: result.source,
+                track: result.track,
+                confidence: result.confidence,
+                artworkURL: result.artworkURL
+            )
         }
     }
 }

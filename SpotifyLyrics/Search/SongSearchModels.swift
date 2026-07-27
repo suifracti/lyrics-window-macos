@@ -71,44 +71,44 @@ public enum SongSearchSource: String, CaseIterable, Identifiable {
     }
 }
 
+/// Compatibility search result. Track search paths leave `lyrics` nil; lyrics body
+/// is resolved later by `LyricsSearchManager` / local index for a confirmed identity.
 public struct SongSearchResult: Identifiable, Equatable {
     public let id: String
     public let source: SongSearchSource
     public let track: Track
     public let confidence: Double
     public let lyrics: LyricsDocument?
+    public let artworkURL: URL?
 
     public init(
         id: String,
         source: SongSearchSource,
         track: Track,
         confidence: Double,
-        lyrics: LyricsDocument? = nil
+        lyrics: LyricsDocument? = nil,
+        artworkURL: URL? = nil
     ) {
         self.id = id
         self.source = source
         self.track = track
-        self.confidence = confidence
+        self.confidence = max(0, min(confidence, 1))
         self.lyrics = lyrics
+        self.artworkURL = artworkURL
     }
 
-    public var metadataKey: String {
-        TrackIdentity.metadataFingerprint(
-            title: track.title,
-            artist: track.artist,
-            album: track.album,
-            duration: track.duration
-        )
-    }
-
-    /// Search-result de-duplication intentionally ignores album and duration:
-    /// public lyric indexes often publish the same recording under slightly
-    /// different release metadata or duration rounding.
     public var searchMergeKey: String {
-        [
-            SongSearchQuery.normalizeSearchText(track.title),
-            SongSearchQuery.normalizeSearchText(track.artist)
-        ].joined(separator: "|")
+        asTrackSearchResult().searchMergeKey
+    }
+
+    public func asTrackSearchResult() -> TrackSearchResult {
+        TrackSearchResult(
+            id: id,
+            source: source,
+            track: track,
+            confidence: confidence,
+            artworkURL: artworkURL
+        )
     }
 }
 
@@ -131,16 +131,20 @@ public enum SongSearchState: Equatable {
 public enum SongSearchError: LocalizedError, Equatable {
     case networkUnavailable
     case timedOut
+    case rateLimited(TimeInterval?)
     case serverError(Int)
     case parseFailure
+    case cancelled
     case unknown(String)
 
     public var errorDescription: String? {
         switch self {
         case .networkUnavailable: return "网络不可用"
         case .timedOut: return "搜索请求超时"
+        case .rateLimited: return "搜索服务限流"
         case .serverError(let code): return "搜索服务错误（HTTP \(code)）"
         case .parseFailure: return "搜索结果解析失败"
+        case .cancelled: return "搜索已取消"
         case .unknown(let message): return message.isEmpty ? "未知搜索错误" : message
         }
     }
@@ -152,24 +156,25 @@ enum SongSearchScoring {
         let artistScore = fieldScore(track.artist, explicit: query.artist, query: query)
         let albumScore = fieldScore(track.album, explicit: query.album, query: query)
 
-        let metadataScore = (titleScore * 0.52) + (artistScore * 0.28) + (albumScore * 0.10)
-        let durationScore: Double
+        var score = titleScore * 0.55 + artistScore * 0.35 + albumScore * 0.10
+
         if let duration = query.duration, duration > 0, track.duration > 0 {
-            let delta = abs(duration - track.duration)
-            durationScore = delta < 2 ? 1 : delta < 6 ? 0.65 : delta < 12 ? 0.25 : 0
-        } else {
-            durationScore = 0
+            let delta = abs(track.duration - duration)
+            if delta <= 2 { score += 0.05 }
+            else if delta >= 15 { score -= 0.15 }
         }
 
-        if query.title == nil, query.artist == nil, query.album == nil {
-            let tokens = query.tokens
-            guard !tokens.isEmpty else { return 1 }
+        if score < 0.20, !query.tokens.isEmpty {
             let haystack = SongSearchQuery.normalizeSearchText("\(track.title) \(track.artist) \(track.album)")
-            let matched = tokens.filter { haystack.contains($0) }.count
-            return Double(matched) / Double(tokens.count)
+            let matched = query.tokens.filter { haystack.contains($0) }.count
+            if matched == query.tokens.count {
+                score = max(score, 0.45)
+            } else if matched > 0 {
+                score = max(score, Double(matched) / Double(query.tokens.count) * 0.4)
+            }
         }
 
-        return min(1, metadataScore + (durationScore * 0.10))
+        return max(0, min(score, 1))
     }
 
     private static func fieldScore(_ value: String, explicit: String?, query: SongSearchQuery) -> Double {
@@ -177,11 +182,21 @@ enum SongSearchScoring {
         if let explicit, !explicit.isEmpty {
             let normalizedExplicit = SongSearchQuery.normalizeSearchText(explicit)
             if normalizedValue == normalizedExplicit { return 1 }
-            if normalizedValue.contains(normalizedExplicit) || normalizedExplicit.contains(normalizedValue) { return 0.72 }
+            if normalizedValue.contains(normalizedExplicit) || normalizedExplicit.contains(normalizedValue) {
+                return 0.8
+            }
+            return tokenOverlap(normalizedValue, normalizedExplicit)
         }
-        let tokens = query.tokens
-        guard !tokens.isEmpty else { return 0 }
-        let matched = tokens.filter { normalizedValue.contains($0) }.count
-        return min(1, Double(matched) / Double(tokens.count))
+
+        guard !query.tokens.isEmpty else { return 0 }
+        return tokenOverlap(normalizedValue, query.normalizedText)
+    }
+
+    private static func tokenOverlap(_ value: String, _ other: String) -> Double {
+        let left = Set(value.split(separator: " ").map(String.init))
+        let right = Set(other.split(separator: " ").map(String.init))
+        guard !left.isEmpty, !right.isEmpty else { return 0 }
+        let intersection = left.intersection(right).count
+        return Double(intersection) / Double(max(left.count, right.count))
     }
 }

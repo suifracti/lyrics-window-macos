@@ -1,37 +1,69 @@
 import Foundation
 
-private final class StubSearchSession: LRCLIBSearchSession {
+private final class StubSearchSession: LRCLIBSession, @unchecked Sendable {
+    let responseData: Data
+    let statusCode: Int
     private(set) var requests: [URLRequest] = []
-    let dataToReturn: Data
 
-    init(dataToReturn: Data) {
-        self.dataToReturn = dataToReturn
+    init(responseData: Data, statusCode: Int = 200) {
+        self.responseData = responseData
+        self.statusCode = statusCode
     }
 
     func data(for request: URLRequest) async throws -> (Data, URLResponse) {
         requests.append(request)
-        return (
-            dataToReturn,
-            HTTPURLResponse(
-                url: request.url!,
-                statusCode: 200,
-                httpVersion: nil,
-                headerFields: ["Content-Type": "application/json"]
-            )!
-        )
+        let response = HTTPURLResponse(
+            url: request.url ?? URL(string: "https://lrclib.net/api/get")!,
+            statusCode: statusCode,
+            httpVersion: "HTTP/1.1",
+            headerFields: nil
+        )!
+        return (responseData, response)
+    }
+}
+
+private struct FixedTrackProvider: TrackSearchProvider {
+    let name: String
+    let results: [TrackSearchResult]
+    func search(query: TrackSearchQuery) async throws -> [TrackSearchResult] { results }
+}
+
+private struct DelayedTrackProvider: TrackSearchProvider {
+    let name: String
+    let delay: UInt64
+    let acceptedQuery: String
+    let result: TrackSearchResult
+
+    func search(query: TrackSearchQuery) async throws -> [TrackSearchResult] {
+        try await Task.sleep(nanoseconds: delay)
+        try Task.checkCancellation()
+        guard query.text == acceptedQuery else { return [] }
+        return [result]
     }
 }
 
 @MainActor
-private final class StubPlaybackProvider: PlaybackProvider {
-    let displayName = "stub playback"
-    var snapshot: PlaybackSnapshot
-
-    init(snapshot: PlaybackSnapshot) {
-        self.snapshot = snapshot
+private final class FixedPlaybackProvider: PlaybackProvider {
+    let displayName = "fixed-playback"
+    let track: Track
+    init(track: Track) { self.track = track }
+    func refresh() async -> PlaybackSnapshot {
+        PlaybackSnapshot(
+            status: .ready,
+            track: ProviderTrack(
+                id: track.spotifyId,
+                title: track.title,
+                artist: track.artist,
+                album: track.album,
+                duration: track.duration,
+                artworkURL: track.artworkURL,
+                spotifyURL: track.spotifyURL,
+                isrc: track.isrc
+            ),
+            position: 1,
+            isPlaying: true
+        )
     }
-
-    func refresh() async -> PlaybackSnapshot { snapshot }
     func play() async throws {}
     func pause() async throws {}
     func previous() async throws {}
@@ -39,109 +71,84 @@ private final class StubPlaybackProvider: PlaybackProvider {
     func seek(to position: TimeInterval) async throws {}
 }
 
-private struct DelayedSearchProvider: SongSearchProvider {
-    let name: String
-    let delay: UInt64
-    let acceptedQuery: String
-    let result: SongSearchResult
-
-    func search(query: SongSearchQuery) async throws -> [SongSearchResult] {
-        try await Task.sleep(nanoseconds: delay)
-        return query.normalizedText == acceptedQuery ? [result] : []
-    }
-}
-
-private struct FixedSearchProvider: SongSearchProvider {
-    let name: String
-    let results: [SongSearchResult]
-
-    func search(query: SongSearchQuery) async throws -> [SongSearchResult] { results }
-}
-
 @main
-@MainActor
 struct SongSearchContract {
     static func main() async {
-        let track = Track(
-            id: "spotify-track-search",
-            title: "Search Song",
-            artist: "Search Artist",
-            album: "Search Album",
-            duration: 201,
-            spotifyId: "spotify-track-search"
-        )
-        let query = SongSearchQuery(text: "Search Song  Search Artist")
-        precondition(query.normalizedText == "search song search artist")
-        precondition(!query.isEmpty)
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("song-search-\(UUID().uuidString)", isDirectory: true)
+        try! FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
 
-        let localRoot = FileManager.default.temporaryDirectory
-            .appendingPathComponent("spotifylyrics-song-search-(UUID().uuidString)")
-        try! FileManager.default.createDirectory(at: localRoot, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: localRoot) }
-        let localFile = localRoot.appendingPathComponent("Search Song.lrc")
-        try! "[ti:Search Song]\n[ar:Search Artist]\n[al:Search Album]\n[00:01.00]Local line\n"
-            .write(to: localFile, atomically: true, encoding: .utf8)
+        let file = root.appendingPathComponent("Search Song.lrc")
+        let body = """
+        [ti:Search Song]
+        [ar:Search Artist]
+        [al:Search Album]
+        [00:01.00]one
+        [00:02.00]two
+        """
+        try! body.write(to: file, atomically: true, encoding: .utf8)
+        let originalData = try! Data(contentsOf: file)
 
-        let local = LocalSearchProvider(searchDirectories: [localRoot])
-        let localResults = try! await local.search(query: SongSearchQuery(text: "Search Artist"))
-        precondition(localResults.count == 1)
-        precondition(localResults[0].source == .local)
-        precondition(localResults[0].lyrics?.lines.first?.originalText == "Local line")
+        let index = LocalLyricsIndex(searchDirectories: [root])
+        let local = LocalSearchProvider(index: index)
+        let localTrackResults = try! await local.search(query: SongSearchQuery(text: "Search Song Search Artist"))
+        precondition(localTrackResults.count == 1)
+        precondition(localTrackResults[0].source == .local)
+        let localResults = localTrackResults.map { $0.asSongSearchResult() }
+        precondition(localResults[0].lyrics == nil, "track search must not embed lyrics bodies")
+        precondition(localResults[0].track.title == "Search Song")
+        precondition((try! Data(contentsOf: file)) == originalData)
 
+        // LRCLIB remains available for lyrics lookup, not track catalog search.
         let payload = """
-        [{
-          "id": 7,
+        {
+          "id": 42,
           "trackName": "Search Song",
           "artistName": "Search Artist",
           "albumName": "Search Album",
-          "duration": 201,
-          "plainLyrics": "Plain line",
-          "syncedLyrics": "[00:02.00]Synced line"
-        }]
+          "duration": 200,
+          "syncedLyrics": "[00:01.00]online"
+        }
         """.data(using: .utf8)!
-        let session = StubSearchSession(dataToReturn: payload)
-        let lrclib = LRCLIBProvider(
-            session: session,
-            baseURL: URL(string: "https://example.test/api")!
-        )
-        let lrclibResults = try! await lrclib.search(query: SongSearchQuery(text: "Search Song"))
-        precondition(lrclibResults.count == 1)
-        precondition(lrclibResults[0].source == .lrclib)
-        precondition(lrclibResults[0].lyrics?.isSynchronized == true)
-        precondition(session.requests.count == 1)
+        let lrclib = LRCLIBLyricsProvider(session: StubSearchSession(responseData: payload), maxAutomaticRetries: 0)
+        let track = Track(title: "Search Song", artist: "Search Artist", album: "Search Album", duration: 200)
+        let identity = TrackIdentity(track: track)
+        let lyricsResult = await lrclib.lookup(track: track, identity: identity)
+        guard case .match(let document) = lyricsResult else {
+            fatalError("expected LRCLIB lyrics match")
+        }
+        precondition(document.lines.first?.originalText == "online")
+        let disabledTrackSearch = try! await LRCLIBProvider().search(query: SongSearchQuery(text: "Search Song"))
+        precondition(disabledTrackSearch.isEmpty)
 
-        let playback = StubPlaybackProvider(
-            snapshot: PlaybackSnapshot(
-                status: .ready,
-                track: ProviderTrack(
-                    id: "spotify-track-search",
-                    title: "Search Song",
-                    artist: "Search Artist",
-                    album: "Search Album",
-                    duration: 201
-                ),
-                position: 42,
-                isPlaying: false
+        let playback = FixedPlaybackProvider(
+            track: Track(
+                title: "Search Song",
+                artist: "Search Artist",
+                album: "Search Album",
+                duration: 200,
+                spotifyId: "spotify:track:search"
             )
         )
-        let current = SpotifyCurrentTrackProvider(playbackProvider: playback)
+        let current = CurrentTrackResolver(playbackProvider: playback)
         let currentResults = try! await current.search(query: SongSearchQuery(text: "Search Artist"))
         precondition(currentResults.count == 1)
         precondition(currentResults[0].source == .spotifyCurrentTrack)
         precondition(currentResults[0].track.title == "Search Song")
 
-        let duplicateManager = SongSearchManager(providers: [
-            FixedSearchProvider(name: "duplicates", results: [
-                lrclibResults[0],
-                SongSearchResult(
-                    id: "same-song-different-release",
-                    source: .lrclib,
-                    track: Track(
-                        title: "Search Song",
-                        artist: "Search Artist",
-                        album: "Alternate Release",
-                        duration: 199
-                    ),
+        let duplicateManager = TrackSearchManager(providers: [
+            FixedTrackProvider(name: "duplicates", results: [
+                TrackSearchResult(
+                    id: "a",
+                    source: .local,
+                    track: Track(title: "Search Song", artist: "Search Artist", album: "Search Album", duration: 200),
+                    confidence: 0.9
+                ),
+                TrackSearchResult(
+                    id: "b",
+                    source: .local,
+                    track: Track(title: "Search Song", artist: "Search Artist", album: "Alternate Release", duration: 199),
                     confidence: 0.4
                 )
             ])
@@ -153,25 +160,23 @@ struct SongSearchContract {
         }
         precondition(deduplicatedResults.count == 1)
 
-        let old = SongSearchResult(
+        let old = TrackSearchResult(
             id: "old",
             source: .local,
             track: track,
-            confidence: 0.5,
-            lyrics: nil
+            confidence: 0.5
         )
         let latestTrack = Track(title: "Latest", artist: "Artist", album: "Album", duration: 180)
-        let latest = SongSearchResult(
+        let latest = TrackSearchResult(
             id: "latest",
             source: .local,
             track: latestTrack,
-            confidence: 0.9,
-            lyrics: nil
+            confidence: 0.9
         )
         let manager = SongSearchManager(providers: [
-            DelayedSearchProvider(name: "slow", delay: 250_000_000, acceptedQuery: "old", result: old),
-            DelayedSearchProvider(name: "fast", delay: 20_000_000, acceptedQuery: "latest", result: latest)
-        ])
+            DelayedTrackProvider(name: "slow", delay: 250_000_000, acceptedQuery: "old", result: old),
+            DelayedTrackProvider(name: "fast", delay: 20_000_000, acceptedQuery: "latest", result: latest)
+        ] as [TrackSearchProvider])
         let firstTask = manager.search(query: SongSearchQuery(text: "old"))
         _ = manager.search(query: SongSearchQuery(text: "latest"))
         await firstTask?.value
@@ -180,6 +185,7 @@ struct SongSearchContract {
             fatalError("expected manager results")
         }
         precondition(results.map(\.id) == ["latest"])
+        precondition(results.allSatisfy { $0.lyrics == nil })
 
         print("song search contract passed")
     }

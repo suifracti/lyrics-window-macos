@@ -19,7 +19,7 @@ for source in "${SOURCES[@]}"; do
 done
 
 TMP_DIR="$(mktemp -d)"
-trap 'rm -rf "$TMP_DIR"' EXIT
+trap 'rm -f "$TMP_DIR"/* 2>/dev/null; rmdir "$TMP_DIR" 2>/dev/null || true' EXIT
 
 cp "$ROOT_DIR/Tests/lyrics_core_test.swift" "$TMP_DIR/main.swift"
 COMPILE_SOURCES=(
@@ -52,6 +52,9 @@ LOCAL_SOURCES=(
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsModels.swift"
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LRCParser.swift"
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsMatcher.swift"
+  "$ROOT_DIR/SpotifyLyrics/Search/LocalLyricsIndex.swift"
+  "$ROOT_DIR/SpotifyLyrics/Search/SongSearchModels.swift"
+  "$ROOT_DIR/SpotifyLyrics/Search/TrackSearchModels.swift"
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LocalLyricsProvider.swift"
   "$TMP_DIR/LocalProviderMain.swift"
 )
@@ -65,8 +68,12 @@ LRCLIB_SOURCES=(
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsModels.swift"
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LRCParser.swift"
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsMatcher.swift"
+  "$ROOT_DIR/SpotifyLyrics/Search/LocalLyricsIndex.swift"
+  "$ROOT_DIR/SpotifyLyrics/Search/SongSearchModels.swift"
+  "$ROOT_DIR/SpotifyLyrics/Search/TrackSearchModels.swift"
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LocalLyricsProvider.swift"
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LRCLIBLyricsProvider.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsSearchManager.swift"
   "$ROOT_DIR/SpotifyLyrics/Lyrics/CompositeLyricsProvider.swift"
   "$TMP_DIR/LRCLIBProviderMain.swift"
 )
@@ -94,6 +101,7 @@ CORRECTNESS_SOURCES=(
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LRCParser.swift"
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsMatcher.swift"
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LRCLIBLyricsProvider.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsSearchManager.swift"
   "$ROOT_DIR/SpotifyLyrics/Lyrics/CompositeLyricsProvider.swift"
   "$ROOT_DIR/SpotifyLyrics/Services/LyricsSessionController.swift"
   "$TMP_DIR/LyricsCorrectnessMain.swift"
@@ -109,8 +117,14 @@ PLAYBACK_SOURCES=(
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsModels.swift"
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LRCParser.swift"
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsMatcher.swift"
+  "$ROOT_DIR/SpotifyLyrics/Search/LocalLyricsIndex.swift"
+  "$ROOT_DIR/SpotifyLyrics/Search/TrackSearchModels.swift"
+  "$ROOT_DIR/SpotifyLyrics/Search/TrackSearchProvider.swift"
+  "$ROOT_DIR/SpotifyLyrics/Search/TrackSearchManager.swift"
+  "$ROOT_DIR/SpotifyLyrics/Search/CurrentTrackResolver.swift"
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LocalLyricsProvider.swift"
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LRCLIBLyricsProvider.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsSearchManager.swift"
   "$ROOT_DIR/SpotifyLyrics/Lyrics/CompositeLyricsProvider.swift"
   "$ROOT_DIR/SpotifyLyrics/Services/LyricsSessionController.swift"
   "$ROOT_DIR/SpotifyLyrics/Providers/PlaybackProvider.swift"
@@ -150,7 +164,7 @@ done
 rg -q 'Mock Preview|enterMockPreview|exitMockPreview' "$ROOT_DIR/SpotifyLyrics/Services/PlaybackState.swift"
 rg -q '暂未找到歌词|LyricsLoadState|loading|candidates|failed' "$ROOT_DIR/SpotifyLyrics/Views/Components/LyricsCanvasView.swift"
 rg -q 'https://lrclib.net/api|syncedLyrics|plainLyrics' "$ROOT_DIR/SpotifyLyrics/Lyrics/LRCLIBLyricsProvider.swift"
-rg -q 'Music/SpotifyLyrics/Lyrics|Application Support/SpotifyLyrics/Lyrics' "$ROOT_DIR/SpotifyLyrics/Lyrics/LocalLyricsProvider.swift"
+rg -q 'Music/SpotifyLyrics/Lyrics|Application Support/SpotifyLyrics/Lyrics' "$ROOT_DIR/SpotifyLyrics/Lyrics/LocalLyricsProvider.swift" "$ROOT_DIR/SpotifyLyrics/Search/LocalLyricsIndex.swift"
 rg -q 'Task.isCancelled|TrackIdentity|artwork' "$ROOT_DIR/SpotifyLyrics/Views/Components/TrackBackdropView.swift"
 rg -q 'PlainLyricsListView|!state.lyricsAreSynchronized' "$ROOT_DIR/SpotifyLyrics/Views/LyricsViews.swift"
 rg -q 'validSeekTimestamp' "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsModels.swift"

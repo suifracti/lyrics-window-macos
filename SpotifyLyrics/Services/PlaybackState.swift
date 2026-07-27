@@ -49,19 +49,21 @@ public final class PlaybackState: ObservableObject {
     ) {
         let resolvedProvider = provider ?? SpotifyDesktopProvider()
         self.provider = resolvedProvider
+        let sharedIndex = LocalLyricsIndex.shared
         self.lyricsSession = LyricsSessionController(
             provider: lyricsProvider ?? CompositeLyricsProvider(
                 providers: [
-                    LocalLyricsProvider(),
+                    LocalLyricsProvider(index: sharedIndex),
                     LRCLIBLyricsProvider()
                 ]
             )
         )
+        // Track search is metadata-only: local index + current Spotify track.
+        // LRCLIB stays isolated inside the lyrics session path.
         self.songSearchManager = SongSearchManager(providers: [
-            LocalSearchProvider(),
-            SpotifyCurrentTrackProvider(playbackProvider: resolvedProvider),
-            LRCLIBProvider()
-        ])
+            LocalSearchProvider(index: sharedIndex),
+            CurrentTrackResolver(playbackProvider: resolvedProvider)
+        ] as [TrackSearchProvider])
         self.lyricsSessionCancellable = nil
         self.lyricsSessionCancellable = self.lyricsSession.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
@@ -232,10 +234,10 @@ public final class PlaybackState: ObservableObject {
         lyricsSession.retry(track: currentTrack, identity: identity)
     }
 
-    /// Applies a selected song-search result to the current lyric session
-    /// without changing Spotify playback or its time anchor. Search results
-    /// from local/LRCLIB sources carry a metadata-only identity, so they are
-    /// remapped only after a high-confidence match against the live track.
+    /// Applies a selected track-search result to the current lyric session
+    /// without changing Spotify playback or its time anchor.
+    /// Track search results are metadata-only; local lyrics are resolved from
+    /// the shared read-only index when the selected track matches the live song.
     public func loadSearchResult(_ result: SongSearchResult) {
         guard !isMockPreviewMode else {
             songSearchSelectionMessage = "请先退出 Mock Preview，再加载真实歌曲歌词"
@@ -246,7 +248,9 @@ public final class PlaybackState: ObservableObject {
             return
         }
 
-        if let lyrics = result.lyrics {
+        let resolvedLyrics = result.lyrics ?? Self.localLyrics(for: result, identity: activeIdentity)
+
+        if let lyrics = resolvedLyrics {
             let candidate = LyricsCandidate(
                 id: result.id,
                 identity: activeIdentity,
@@ -281,12 +285,33 @@ public final class PlaybackState: ObservableObject {
             return
         }
 
-        guard TrackIdentity(track: result.track) == activeIdentity else {
-            songSearchSelectionMessage = "该结果不是当前 Spotify 歌曲，未改变播放"
+        let trackResult = result.asTrackSearchResult()
+        let metadataProbe = LyricsCandidate(
+            id: trackResult.id,
+            identity: activeIdentity,
+            title: trackResult.track.title,
+            artist: trackResult.track.artist,
+            album: trackResult.track.album,
+            duration: trackResult.track.duration,
+            lines: [LyricLine(timestamp: 0, originalText: ".")],
+            source: .local,
+            confidence: trackResult.confidence
+        )
+        let metadataConfidence = LyricsMatcher.score(track: currentTrack, candidate: metadataProbe)
+
+        if TrackIdentity(track: result.track) == activeIdentity || LyricsMatcher.isHighConfidence(metadataConfidence) {
+            retryLyrics()
+            songSearchSelectionMessage = "已重新搜索当前歌曲歌词"
             return
         }
-        retryLyrics()
-        songSearchSelectionMessage = "已重新搜索当前歌曲歌词"
+
+        songSearchSelectionMessage = "该结果不是当前 Spotify 歌曲，未改变播放"
+    }
+
+    private static func localLyrics(for result: SongSearchResult, identity: TrackIdentity) -> LyricsDocument? {
+        guard result.source == .local else { return nil }
+        guard let entry = LocalLyricsIndex.shared.entry(id: result.id) else { return nil }
+        return LocalLyricsIndex.shared.document(for: entry, identity: identity, confidence: result.confidence)
     }
 
     public func adoptLyricsCandidate(_ candidate: LyricsCandidate) {

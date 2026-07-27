@@ -1,32 +1,18 @@
 import Foundation
 
-public final class CompositeLyricsProvider: LyricsProvider {
-    public let name = "Local + LRCLIB"
-    private let providers: [LyricsProvider]
+/// Compatibility wrapper over `LyricsSearchManager`.
+public final class CompositeLyricsProvider: LyricsProvider, @unchecked Sendable {
+    public let name: String
+    private let manager: LyricsSearchManager
 
-    public init(providers: [LyricsProvider]) {
-        self.providers = providers
+    public init(providers: [LyricsProvider], name: String? = nil) {
+        self.manager = LyricsSearchManager(providers: providers, name: name ?? "Local + LRCLIB")
+        self.name = self.manager.name
     }
 
     public func lookup(track: Track, identity: TrackIdentity) async -> LyricsLookupResult {
-        var latestFailure: LyricsFailure?
-        var sawNoLyrics = false
-
-        for provider in providers {
-            let result = await provider.lookup(track: track, identity: identity)
-            switch result {
-            case .match, .candidates:
-                return result
-            case .noLyrics:
-                sawNoLyrics = true
-            case .noMatch:
-                continue
-            case .failed(let message):
-                latestFailure = message
-            }
-        }
-
-        if let latestFailure { return .failed(latestFailure) }
-        return sawNoLyrics ? .noLyrics : .noMatch
+        await manager.lookup(track: track, identity: identity)
     }
+
+    public var searchManager: LyricsSearchManager { manager }
 }

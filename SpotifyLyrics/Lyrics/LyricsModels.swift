@@ -88,8 +88,10 @@ public struct LyricsCandidate: Identifiable, Equatable {
 public enum LyricsFailure: Equatable, Sendable {
     case networkUnavailable
     case timedOut
+    case rateLimited(TimeInterval?)
     case serverError(Int)
     case parseFailure
+    case cancelled
     case unknown(String)
 
     public var userFacingMessage: String {
@@ -98,10 +100,14 @@ public enum LyricsFailure: Equatable, Sendable {
             return "网络不可用"
         case .timedOut:
             return "歌词请求超时"
+        case .rateLimited:
+            return "歌词服务限流，请稍后重试"
         case .serverError(let statusCode):
             return "歌词服务错误（HTTP \(statusCode)）"
         case .parseFailure:
             return "歌词解析失败"
+        case .cancelled:
+            return "歌词请求已取消"
         case .unknown(let message):
             return message.isEmpty ? "未知歌词错误" : message
         }

@@ -47,6 +47,12 @@
 		110000272D83400100000001 /* LRCLIBProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000272D83400100000000 /* LRCLIBProvider.swift */; };
 		110000282D83400100000001 /* SongSearchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000282D83400100000000 /* SongSearchManager.swift */; };
 		110000292D83400100000001 /* SongSearchPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000292D83400100000000 /* SongSearchPopover.swift */; };
+		1100002A2D83400100000001 /* LocalLyricsIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100002A2D83400100000000 /* LocalLyricsIndex.swift */; };
+		1100002B2D83400100000001 /* TrackSearchModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100002B2D83400100000000 /* TrackSearchModels.swift */; };
+		1100002C2D83400100000001 /* TrackSearchProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100002C2D83400100000000 /* TrackSearchProvider.swift */; };
+		1100002D2D83400100000001 /* TrackSearchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100002D2D83400100000000 /* TrackSearchManager.swift */; };
+		1100002E2D83400100000001 /* CurrentTrackResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100002E2D83400100000000 /* CurrentTrackResolver.swift */; };
+		1100002F2D83400100000001 /* LyricsSearchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100002F2D83400100000000 /* LyricsSearchManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -92,6 +98,12 @@
 		110000272D83400100000000 /* LRCLIBProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LRCLIBProvider.swift; sourceTree = "<group>"; };
 		110000282D83400100000000 /* SongSearchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongSearchManager.swift; sourceTree = "<group>"; };
 		110000292D83400100000000 /* SongSearchPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongSearchPopover.swift; sourceTree = "<group>"; };
+		1100002A2D83400100000000 /* LocalLyricsIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLyricsIndex.swift; sourceTree = "<group>"; };
+		1100002B2D83400100000000 /* TrackSearchModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackSearchModels.swift; sourceTree = "<group>"; };
+		1100002C2D83400100000000 /* TrackSearchProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackSearchProvider.swift; sourceTree = "<group>"; };
+		1100002D2D83400100000000 /* TrackSearchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackSearchManager.swift; sourceTree = "<group>"; };
+		1100002E2D83400100000000 /* CurrentTrackResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentTrackResolver.swift; sourceTree = "<group>"; };
+		1100002F2D83400100000000 /* LyricsSearchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsSearchManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -190,6 +202,7 @@
 				110000162D83400100000000 /* LocalLyricsProvider.swift */,
 				110000172D83400100000000 /* LRCLIBLyricsProvider.swift */,
 				110000182D83400100000000 /* CompositeLyricsProvider.swift */,
+				1100002F2D83400100000000 /* LyricsSearchManager.swift */,
 			);
 			path = Lyrics;
 			sourceTree = "<group>";
@@ -197,6 +210,11 @@
 		110000002D83400000000026 /* Search */ = {
 			isa = PBXGroup;
 			children = (
+				1100002A2D83400100000000 /* LocalLyricsIndex.swift */,
+				1100002B2D83400100000000 /* TrackSearchModels.swift */,
+				1100002C2D83400100000000 /* TrackSearchProvider.swift */,
+				1100002D2D83400100000000 /* TrackSearchManager.swift */,
+				1100002E2D83400100000000 /* CurrentTrackResolver.swift */,
 				110000232D83400100000000 /* SongSearchModels.swift */,
 				110000242D83400100000000 /* SongSearchProvider.swift */,
 				110000252D83400100000000 /* LocalSearchProvider.swift */,
@@ -310,6 +328,12 @@
 				110000272D83400100000001 /* LRCLIBProvider.swift in Sources */,
 				110000282D83400100000001 /* SongSearchManager.swift in Sources */,
 				110000292D83400100000001 /* SongSearchPopover.swift in Sources */,
+				1100002A2D83400100000001 /* LocalLyricsIndex.swift in Sources */,
+				1100002B2D83400100000001 /* TrackSearchModels.swift in Sources */,
+				1100002C2D83400100000001 /* TrackSearchProvider.swift in Sources */,
+				1100002D2D83400100000001 /* TrackSearchManager.swift in Sources */,
+				1100002E2D83400100000001 /* CurrentTrackResolver.swift in Sources */,
+				1100002F2D83400100000001 /* LyricsSearchManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
