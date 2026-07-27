@@ -362,3 +362,9 @@
 - 用户要求保持现有主窗口布局，只修复真实歌曲 identity 与歌词/背景状态一致性，并接入第一版 LocalProvider + LRCLIBProvider。
 - 已确认当前实现仍将 `MockData.sampleLyrics` 常驻在 `PlaybackState`，Spotify 切歌时不会清空歌词；主窗口背景也只是固定渐变加右上角封面纹理，尚未按 Track ID / artwork 生成主色背景。
 - 本阶段先不写 Swift 实现，等待设计确认后进入 TDD 红色契约。
+
+### Phase 17: Red Core Contract
+- **Status:** red observed
+- 已获得用户对设计和本地歌词目录的确认。
+- `Tests/real_track_lyrics_contract.sh` 已先于生产核心文件运行，并按预期失败：`missing production/test source: SpotifyLyrics/Lyrics/TrackIdentity.swift`。
+- 下一步实现纯 Foundation identity、LRC parser、lyrics model 和 confidence matcher，再运行同一契约进入 green。

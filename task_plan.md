@@ -7,7 +7,7 @@
 完成“真实歌曲视觉与歌词纵向切片”：切歌时清空旧歌词/翻译/滚动/背景状态，接入 LocalProvider 与 LRCLIBProvider，生成与真实 artwork 绑定的主色渐变背景，并用真实歌曲截图验证加载、失败、无歌词和亮暗封面状态。
 
 ## Current Phase
-Phase 17 — Real Track Visual and Lyrics Slice (design pending)
+Phase 17 — Real Track Visual and Lyrics Slice (in progress)
 
 ## Scope & Boundaries
 - 唯一正式项目：`/Users/apple/backup/sptifylyrics`
@@ -105,8 +105,9 @@ Phase 17 — Real Track Visual and Lyrics Slice (design pending)
 - [x] 输出工作目录、修改文件、diff、xcodebuild、app 路径、权限和真实运行验证
 - [x] 提交独立 commit：`3fcc104 Add verified Spotify desktop provider`
 
-## Phase 17: Real Track Visual and Lyrics Slice — design pending
-- [ ] 先完成设计确认，再写实现计划和红色契约
+## Phase 17: Real Track Visual and Lyrics Slice — in progress
+- [x] 完成设计确认，写入 spec/plan，并提交 `60db497`
+- [x] 写入红色核心契约并确认缺少生产核心文件时失败
 - [ ] 切歌 identity 变化时清空旧歌词、翻译、罗马音、假名、滚动位置和背景状态
 - [ ] 区分真实 Spotify、Mock Preview、歌词加载中、无歌词和搜索失败状态
 - [ ] 定义 `LyricsProvider`，实现 LocalProvider 与 LRCLIBProvider；不接 SQLite、AI 或其他歌词源

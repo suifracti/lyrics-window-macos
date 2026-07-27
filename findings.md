@@ -235,3 +235,6 @@
 - `MainLyricsWindowView` currently composes a fixed design gradient, material veil, and a right-aligned `TrackArtworkView`; it has no track-bound background identity, palette extraction, crossfade, or loading state.
 - `Track` already carries `artworkURL` and stable Spotify `id`, so the next design can use those values as the background and lyrics request identity without changing the Spotify provider contract.
 - No `.lrc` or local lyrics data files exist in the repository; `LocalProvider` needs an explicit, non-persistent local-file search policy before implementation.
+
+### 2026-07-27 TDD red evidence
+- The new core contract intentionally fails before implementation because `SpotifyLyrics/Lyrics/TrackIdentity.swift` does not exist. This confirms the test is exercising the new slice rather than passing against existing code.
