@@ -299,3 +299,10 @@ Tests/japanese_alias_contract.sh
 - live 版候选不自动覆盖  
 - 快速切歌无旧词  
 - 无新平台默认开启
+
+
+---
+
+## 相关后续
+
+- Web 三站发现审计与设计：`docs/superpowers/specs/2026-07-27-web-lyrics-discovery-jp-sites.md`（AWA / Uta-Net / UtaTime；发现+外链+手动导入，不自动抓正文）
