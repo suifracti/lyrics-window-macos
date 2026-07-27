@@ -11,6 +11,10 @@ enum LyricsDesignTokens {
     static let canvasVerticalPadding: CGFloat = 72
     static let artworkSize: CGFloat = 84
     static let backdropArtworkSize: CGFloat = 260
+    static let immersiveSplitBreakpoint: CGFloat = 900
+    static let immersiveArtworkSize: CGFloat = 290
+    static let immersiveColumnSpacing: CGFloat = 26
+    static let immersiveWindowPadding: CGFloat = 28
 
     static let primaryText = Color(red: 0.96, green: 0.94, blue: 0.90)
     static let secondaryText = Color(red: 0.77, green: 0.78, blue: 0.80)

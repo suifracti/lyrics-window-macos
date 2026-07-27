@@ -18,6 +18,7 @@ public final class PlaybackState: ObservableObject {
     @Published public private(set) var providerStatus: PlaybackProviderState = .connecting
     @Published public private(set) var isMockPreviewMode = false
     @Published public private(set) var hasLiveTrack = false
+    @Published public private(set) var songSearchSelectionMessage = ""
 
     // Auxiliary display states remain available to the existing window manager.
     @Published public var showFloatingWindow = false
@@ -26,6 +27,7 @@ public final class PlaybackState: ObservableObject {
 
     private let provider: PlaybackProvider
     private let lyricsSession: LyricsSessionController
+    public let songSearchManager: SongSearchManager
     private var lyricsSessionCancellable: AnyCancellable?
     private var timer: Timer?
     private var isProviderStarted = false
@@ -45,7 +47,8 @@ public final class PlaybackState: ObservableObject {
         provider: PlaybackProvider? = nil,
         lyricsProvider: LyricsProvider? = nil
     ) {
-        self.provider = provider ?? SpotifyDesktopProvider()
+        let resolvedProvider = provider ?? SpotifyDesktopProvider()
+        self.provider = resolvedProvider
         self.lyricsSession = LyricsSessionController(
             provider: lyricsProvider ?? CompositeLyricsProvider(
                 providers: [
@@ -54,6 +57,11 @@ public final class PlaybackState: ObservableObject {
                 ]
             )
         )
+        self.songSearchManager = SongSearchManager(providers: [
+            LocalSearchProvider(),
+            SpotifyCurrentTrackProvider(playbackProvider: resolvedProvider),
+            LRCLIBProvider()
+        ])
         self.lyricsSessionCancellable = nil
         self.lyricsSessionCancellable = self.lyricsSession.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
@@ -224,6 +232,63 @@ public final class PlaybackState: ObservableObject {
         lyricsSession.retry(track: currentTrack, identity: identity)
     }
 
+    /// Applies a selected song-search result to the current lyric session
+    /// without changing Spotify playback or its time anchor. Search results
+    /// from local/LRCLIB sources carry a metadata-only identity, so they are
+    /// remapped only after a high-confidence match against the live track.
+    public func loadSearchResult(_ result: SongSearchResult) {
+        guard !isMockPreviewMode else {
+            songSearchSelectionMessage = "请先退出 Mock Preview，再加载真实歌曲歌词"
+            return
+        }
+        guard hasLiveTrack, let activeIdentity = currentTrackIdentity else {
+            songSearchSelectionMessage = "当前没有可加载歌词的 Spotify 歌曲"
+            return
+        }
+
+        if let lyrics = result.lyrics {
+            let candidate = LyricsCandidate(
+                id: result.id,
+                identity: activeIdentity,
+                title: result.track.title,
+                artist: result.track.artist,
+                album: result.track.album,
+                duration: result.track.duration,
+                lines: lyrics.lines,
+                isSynchronized: lyrics.isSynchronized,
+                source: lyrics.source,
+                confidence: result.confidence
+            )
+            let metadataConfidence = LyricsMatcher.score(track: currentTrack, candidate: candidate)
+            guard LyricsMatcher.isHighConfidence(metadataConfidence) else {
+                songSearchSelectionMessage = "搜索结果与当前歌曲匹配度不足，未加载"
+                return
+            }
+
+            let remapped = LyricsDocument(
+                identity: activeIdentity,
+                title: lyrics.title ?? result.track.title,
+                artist: lyrics.artist ?? result.track.artist,
+                album: lyrics.album ?? result.track.album,
+                duration: lyrics.duration ?? result.track.duration,
+                lines: lyrics.lines,
+                isSynchronized: lyrics.isSynchronized,
+                source: lyrics.source,
+                confidence: metadataConfidence
+            )
+            lyricsSession.adopt(document: remapped)
+            songSearchSelectionMessage = "已加载搜索结果歌词，播放位置未改变"
+            return
+        }
+
+        guard TrackIdentity(track: result.track) == activeIdentity else {
+            songSearchSelectionMessage = "该结果不是当前 Spotify 歌曲，未改变播放"
+            return
+        }
+        retryLyrics()
+        songSearchSelectionMessage = "已重新搜索当前歌曲歌词"
+    }
+
     public func adoptLyricsCandidate(_ candidate: LyricsCandidate) {
         lyricsSession.adopt(candidate: candidate)
     }
@@ -283,6 +348,7 @@ public final class PlaybackState: ObservableObject {
             hasLiveTrack = true
             isMockPreviewMode = false
             currentTrack = nextTrack
+            songSearchSelectionMessage = ""
             lyricsSession.begin(track: nextTrack, identity: nextIdentity)
         } else if currentTrack != nextTrack {
             // Metadata/artwork may change without a lyric identity change. The
@@ -302,6 +368,7 @@ public final class PlaybackState: ObservableObject {
             currentTrack = .emptyPlaybackPlaceholder
             lyricsSession.clear()
         }
+        songSearchSelectionMessage = ""
         isPlaying = false
         resetPlaybackAnchor(to: 0)
     }

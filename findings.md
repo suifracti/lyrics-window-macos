@@ -268,3 +268,56 @@
 - A signed DerivedData runtime was tested against the user’s live Spotify queue. After two quick next-track transitions, the app eventually converged from `最人间` to `一点点（为什么晚上总是有星星）`; the final header, artwork-derived background, lyrics and progress all belonged to the latter. The intermediate loading state was captured on a fresh real-track launch.
 - Pause/resume, seek, previous/next and exit/reopen were observed through the accessibility tree and screenshots. On Spotify quit, the app cleared the live track and lyrics instead of showing stale or Mock lyrics; after reopen, it reconnected and repopulated the same real track.
 - No SQLite, AI, Web API, OAuth or additional lyric source was added. `LocalLyricsProvider` and `LRCLIBLyricsProvider` remain separate behind `LyricsProvider`.
+
+## 2026-07-27 Phase 20 — Reference Audit Started
+
+- `Lyricify-App-main/` has no root `LICENSE`, `LICENSE.*`, or `COPYING` file; the requested first read returned “No such file or directory”. Treat the checkout as reference-only and do not assume its source, screenshots, icons, or brand assets are licensed for copying.
+- Continue with README/docs/images only for public behavior and interaction observations; inspect actual UI mode/persistence files read-only and implement an independent SwiftUI composition.
+
+## 2026-07-27 Phase 20 — Fresh UI Reference Audit
+
+### Lyricify public checkout
+- Repeated the required first read: `Lyricify-App-main/LICENSE` is absent; `find` also found no `LICENSE*` or `COPYING*` within the checkout. This is a licensing boundary, not evidence of a permissive license for the screenshots or resources.
+- The checkout contains documentation, screenshots, language strings, theme resources, and a settings example, but no Swift, C#, or XAML application implementation. Relevant files inspected read-only are `README.md`, `docs/Lyricify 4/README.md`, `docs/Lyricify 4/Lyrics.md`, `docs/Lyricify 4/settings.json`, and the public images under `images/readme/`.
+- `docs/Lyricify 4/README.md` describes the main menu, bottom-left track information, bottom-center playback controls, and bottom-right feature controls including lyrics, Apple Music lyrics, Spotify Connect, volume, and fullscreen. It also documents vertical-layout switching, manual lyric import, and lyric-source management.
+- `docs/Lyricify 4/settings.json` is an example of persisted settings rather than UI source. It names `window_main`, `apple_music_lyrics`, `dynamic_lyrics_island`, and `desktop_lyrics` sections and stores window position/size, typography, blur, animation, and open/closed state. There is no discoverable enum or switch implementation in this checkout.
+- Public images show the generic interaction pattern of a full-window lyric canvas, contextual settings, a compact top island, a desktop lyric view, and an Apple-Music-like lyric view. No image, icon, brand name, or color recipe is copied into SpotifyLyrics.
+
+### Dynamic Lyrics black-box
+- Fresh AX state for `/Applications/Dynamic Lyrics.app` showed a standard main window with artwork, title `SAD SONG`, artist `CHANMINA`, favorite/more controls, elapsed/total time, previous/pause/next, a scrollable timed lyric list with bilingual rows, translation and search buttons, and standard macOS window controls.
+- The fresh screenshot is a 1000×650 rounded window with a large artwork block on the left and lyrics on the right. The current bilingual row is bright and largest; nearby rows remain readable but dim/blurred; the background is a warm, cover-derived blurred field with a darkened readability veil. Playback controls and progress live at the bottom of the artwork column.
+- Existing WindowServer evidence records the main window at 1000×650 and two separate auxiliary windows at 610×200 and 600×78 on higher layers. Their exact collapsed/expanded semantics are not inferred from size alone; the top-island expansion state remains unverified.
+- The more menu is contextual and exposes lyric delay, blur, font-size choices, alignment, share/report, and a pure-music toggle. This supports moving infrequent controls into a menu rather than a permanent settings panel.
+- Observation assets already in the repository are `ui-reference-audit-assets/dynamic-main-initial.png`, `dynamic-main-paused.png`, `dynamic-fullscreen.png`, and `dynamic-floating.png`; they are screenshots only and contain no extracted bundle resources.
+
+### Music.app black-box
+- Fresh AX state for `com.apple.Music` showed the real macOS shell: sidebar entries for Search/Home/Radio/Library/Recently Added/Artists/Albums/Songs/Store, an account button, and a mini-player with shuffle, previous, play, next, repeat, now-playing, lyrics, queue, AirPlay, and volume controls.
+- No active song or lyrics were available in the current local Music.app session; transport controls were disabled and the home page showed the subscription marketing shelf. Therefore no playback/lyrics visual behavior is claimed as observed. The shell demonstrates a compact persistent transport bar and a dedicated lyrics entry, not a permanent settings panel.
+
+### Apple official guidance consulted
+- Apple HIG `Materials` recommends choosing system materials and blending modes (`behindWindow` or `withinWindow`) deliberately, using vibrancy to keep foreground content legible, and avoiding opaque regions that unnecessarily block content.
+- Apple HIG `Windows` describes resizable macOS windows with system controls and distinct main/key states; content must remain usable while people resize and switch between apps.
+- Apple HIG `Layout` requires layouts to adapt dynamically to context; SwiftUI layout tools are an approved way to keep relationships stable as the window changes size.
+- Apple HIG `Designing for macOS` emphasizes spacious desktop canvases and user personalization. Apple Design Resources provides official macOS UI kits and system font references; this project will use system controls/fonts rather than importing Apple assets.
+
+### Consequence for phase 2
+- 设计参考范围已按用户确认收敛：主参考只保留 Dynamic Lyrics 黑盒与 Lyricify 的 Apple Music 歌词模式；Music.app/HIG 仅作平台约束，不作为视觉样板。
+- Keep `lyricsFocus` as the current vertical lyric experience and add `immersiveSplit` as a compositional sibling. Both must consume the existing `PlaybackState`, lyric session, provider, artwork-bound backdrop, and playback actions.
+- The split layout uses a responsive breakpoint: a cover/metadata/control column when wide, and a stacked cover-plus-lyrics composition when narrow. It does not clone the reference products' pixel measurements.
+- Normal Spotify connection status moves to a compact toolbar/menu/status affordance; only actionable failures occupy content space. Adjacent lyrics use opacity first and only a light blur at farther distances.
+
+## 2026-07-27 Song search implementation findings
+
+- Neither reference application supplied a reusable search implementation. The formal implementation uses an independent `SongSearchProvider` protocol and a single `SongSearchResult` model.
+- Provider order is Local → Spotify current track → LRCLIB. `SongSearchManager` cancels the previous task, increments a generation, merges duplicate metadata while preferring results that include lyrics, and ignores late results from an older generation.
+- `LocalSearchProvider` is read-only and uses the same approved user/application/Debug Lyrics directories as the lyric provider. `LRCLIBProvider` only decodes public search JSON; it does not persist results.
+- A selected result with lyrics is loaded only after high-confidence metadata matching against the active Spotify track; the active playback time and track are not mutated. A Spotify-current-track result triggers a normal lyric retry for that identity.
+- Runtime observation on the Japanese track `あやふや` showed the search popover, an LRCLIB result (`Ambiguous`) and a Spotify-current-track result. Selecting the mismatched LRCLIB result was rejected with an explicit identity message; selecting the current-track result entered the loading state without changing the `00:04 / 01:59` playback anchor.
+- The focus-mode playback-control bug was reproduced in screenshots despite AX nodes being present. The root cause was the order of `.frame(maxHeight: .infinity)` and top padding on `layoutBody`; an explicit GeometryReader content height now keeps the control panel inside the visible window.
+
+### 2026-07-27 Song search final signed runtime
+
+- After the final signed rebuild, the exact DerivedData app was relaunched and the search popover was opened through its AX button. Querying the real Japanese track `あやふや` produced a unified list with LRCLIB candidates and the Spotify current-track result; repeated LRCLIB release rows were merged by normalized title/artist while preserving the best candidate metadata.
+- Selecting the Spotify current-track result displayed `已重新搜索当前歌曲歌词` and `正在搜索歌词…` while the same live track and `00:04 / 01:59` remained visible. Selecting an LRCLIB result for another artist displayed `搜索结果与当前歌曲匹配度不足，未加载`; it did not replace the track, cover, playback anchor, or lyrics identity.
+- The final signed runtime switched from `lyricsFocus` to `immersiveSplit` and back without restarting. Both modes exposed the real cover, track metadata, progress slider, previous/play/next controls, and the same paused position. Final screenshots are `ui-redesign-assets/phase2-lyrics-focus.png` and `ui-redesign-assets/phase2-immersive-split.png`.
+- Search result IDs now use real interpolation for local file paths, Spotify identity keys, and LRCLIB record IDs. Search de-duplication intentionally ignores release album and duration differences, while TrackIdentity remains strict and still includes metadata/duration for playback and lyric session safety.

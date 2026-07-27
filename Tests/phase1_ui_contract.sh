@@ -34,8 +34,8 @@ grep -q 'LyricsPreferencesPopover' "$ROOT_DIR/SpotifyLyrics/Views/MainWindow/Mai
 # Main-window refinement contract: keep these visual affordances explicit in source
 # so a later regression cannot silently fall back to the original test-panel shell.
 grep -q 'TrackArtworkView' "$ROOT_DIR/SpotifyLyrics/Views/Components/TrackHeaderView.swift"
-grep -q 'backward.fill' "$ROOT_DIR/SpotifyLyrics/Views/MainWindow/MainLyricsWindowView.swift"
-grep -q 'forward.fill' "$ROOT_DIR/SpotifyLyrics/Views/MainWindow/MainLyricsWindowView.swift"
+rg -q 'backward.fill' "$ROOT_DIR/SpotifyLyrics/Views/MainWindow/MainLyricsWindowView.swift" "$ROOT_DIR/SpotifyLyrics/Views/Components/PlaybackControlsView.swift"
+rg -q 'forward.fill' "$ROOT_DIR/SpotifyLyrics/Views/MainWindow/MainLyricsWindowView.swift" "$ROOT_DIR/SpotifyLyrics/Views/Components/PlaybackControlsView.swift"
 grep -q 'GeometryReader' "$ROOT_DIR/SpotifyLyrics/Views/Components/LyricsCanvasView.swift"
 grep -q 'blurRadius: 0.6' "$ROOT_DIR/SpotifyLyrics/Design/LyricsDesignTokens.swift"
 grep -q 'blurRadius: 1.8' "$ROOT_DIR/SpotifyLyrics/Design/LyricsDesignTokens.swift"

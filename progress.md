@@ -448,3 +448,27 @@
 - Debug 日志：使用 `Logger(subsystem: "com.spotifylyrics.app", category: "seek")`；真实运行日志捕获 `accepted source=lyric-line time=21.140 identity=spotify-id:spotify:track:5lp9unpcikghkh7x1amhnw...`，Spotify AX 同步显示约 `0:22/3:50`，未跳回 00:00。Slider 也捕获 `source=progress-slider`。
 - 真实运行：正常签名 DerivedData Debug app 连接 Spotify 的真实 `IDOLPOWER / M!LK`，同步歌词行通过 Accessibility 暴露为可点击按钮；点击第 8 行后 Spotify Apple Events 位置约 22 秒，应用位置约 22.52 秒。当前无时间轴歌曲的 AX 树没有歌词按钮，符合禁止伪造 seek。
 - 构建：无签名 Debug 与正常签名 Debug 均以 `** BUILD SUCCEEDED **` 结束；完整合同测试通过。未修改 SQLite、AI、Provider 或悬浮/胶囊/全屏布局。
+## 2026-07-27 Phase 20 — Reference Audit and Layout Contract
+
+- Read-only audit completed for `Lyricify-App-main`, `/Applications/Dynamic Lyrics.app`, and `com.apple.Music`.
+- `Lyricify-App-main/LICENSE` and all root `LICENSE*`/`COPYING*` files are absent; no UI source implementation was found. Findings and source file inventory are recorded in `UI_LAYOUT_AUDIT_PHASE2.md` and `findings.md`.
+- Dynamic Lyrics fresh AX/screenshot observation and Music.app shell observation were recorded; Music.app has no active song in the current non-subscriber session, so real lyric playback remains explicitly unverified.
+- Apple official HIG sources for Materials, Windows, Layout, Designing for macOS, and Apple Design Resources were consulted and linked in the audit document.
+- Created `Tests/phase2_layout_contract.sh` before any Swift UI production changes. The first run failed as intended with `missing required layout file: SpotifyLyrics/Design/MainWindowLayoutStyle.swift`; this is the TDD red checkpoint.
+- No Swift source or Xcode project changes have been made for the new layouts yet.
+## Session: 2026-07-27 — Song search continuation
+
+- 用户明确要求继续实现独立 `SongSearchProvider` 架构；参考应用只用于体验，不复制代码或资源。
+- 当前工作区仍有 Phase 20 UI 未提交改动；本阶段先保留并继续验证，不覆盖已有主窗口实现。
+- 目标链路：`SongSearchManager` 调度 `LocalSearchProvider`、`SpotifyCurrentTrackProvider` 和 `LRCLIBProvider`，统一输出 `SongSearchResult`。
+- 先写 `Tests/song_search_contract.sh` 与 `Tests/song_search_contract.swift` 并观察到缺少生产 Search 文件时退出 `1`；实现后契约通过，覆盖本地 LRC、LRCLIB JSON、Spotify 当前歌曲和旧请求取消。
+- 实际 Xcode Debug 构建已通过；运行中搜索入口、搜索 popover、LRCLIB/Spotify 结果列表和点击结果状态均已观察。
+- 专注模式控制条的 AX/截图不一致定位为 `layoutBody` 先取满窗口高度再加顶部 padding，导致底部控件布局到窗口外；改为 GeometryReader 计算内容高度并 offset 到 top bar 下方，运行截图已实际显示进度条和三键控制。
+
+## 2026-07-27 — Phase 20/21 final runtime gate
+
+- Phase 20 两种主窗口布局已在同一运行会话中即时切换：`lyricsFocus` 与 `immersiveSplit` 均保留当前 Track、封面、歌词会话、播放控制和 `00:04 / 01:59` 位置；分栏模式显示真实封面、元数据、进度及上一首/播放/下一首。
+- Phase 21 完成独立搜索链路：`SongSearchManager` 依次调度只读 `LocalSearchProvider`、`SpotifyCurrentTrackProvider` 和 `LRCLIBProvider`，UI 只消费 `SongSearchResult`；搜索任务带 generation/cancellation 保护，重复发行元数据合并，Late response 不覆盖新查询。
+- 正常签名 Debug 构建命令返回 `0`，`/tmp/spotifylyrics-search-final-signed.log` 结尾为 `** BUILD SUCCEEDED **`；产物为 `/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app`，使用 Xcode `Sign to Run Locally` 签名并通过 codesign 验证。
+- 最终签名产物重新启动后，AX 实际观察到搜索 popover、LRCLIB 与 Spotify 当前歌曲统一结果列表。点击当前歌曲结果进入 `正在搜索歌词…`，播放位置仍为 `00:04 / 01:59`；点击不匹配的 LRCLIB 结果显示“搜索结果与当前歌曲匹配度不足，未加载”，没有污染当前歌曲状态。
+- 最终截图已刷新：`ui-redesign-assets/phase2-lyrics-focus.png`、`ui-redesign-assets/phase2-immersive-split.png`。契约、`git diff --check` 和最终签名构建均通过。

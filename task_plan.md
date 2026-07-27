@@ -4,10 +4,10 @@
 在已提交的主窗口基础上，实现下载后即可使用的本机 Spotify Desktop 播放链路：通过真实 Apple Events 读取 Spotify 当前歌曲、封面 URL、播放状态和进度，并提供播放控制；UI 只依赖 `PlaybackProvider` 协议；Spotify 不可用时明确显示并回退 Mock 预览。本阶段不实现 Web API、OAuth、SQLite、歌词 Provider 或在线歌词源。
 
 ## Next Step
-完成 Phase 18 功能正确性收敛后，等待下一阶段指示；不继续改动主窗口布局，也不进入悬浮/胶囊/全屏视觉重做。
+完成 Phase 20 的两种主窗口布局、真实运行截图和签名 Debug 验收后，提交独立 UI commit；随后完成 Phase 21 的独立歌曲搜索链路；不进入悬浮/胶囊/全屏视觉重做。
 
 ## Current Phase
-Phase 18 — Playback and Lyrics Correctness (complete)
+Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 
 ## Scope & Boundaries
 - 唯一正式项目：`/Users/apple/backup/sptifylyrics`
@@ -134,13 +134,22 @@ Phase 18 — Playback and Lyrics Correctness (complete)
 - [x] 用正常签名 Debug 产物实际验证同步歌词点击 seek 与 Spotify 播放位置；网络恢复的有限重试由合同测试覆盖，未通过切换系统网络设置强行制造断网
 - [x] 提交独立 commit：`Fix lyrics recovery and invalid lyric seek`
 
-## Phase 20: Reference Audit and Switchable Main Layouts — pending
-- [ ] 先读 Lyricify LICENSE，审计其模式枚举/切换入口/持久化/主歌词界面文件
-- [ ] 黑盒观察 Dynamic Lyrics 与当前 Music.app，并记录窗口、AX、截图证据
-- [ ] 查询 Apple 官方 HIG、Materials、Windows 和 macOS Design Resources
-- [ ] 输出审计结论和拟修改文件清单后，再实现 lyricsFocus/immersiveSplit
-- [ ] 两种布局共享播放、歌词会话、Provider、背景和控制逻辑；完成即时切换、截图、签名构建
-- [ ] 提交独立 UI commit，不修改悬浮/胶囊/全屏/SQLite/AI
+## Phase 20: Reference Audit and Switchable Main Layouts — complete
+- [x] 先读 Lyricify LICENSE，审计其模式枚举/切换入口/持久化/主歌词界面文件
+- [x] 黑盒观察 Dynamic Lyrics 与当前 Music.app，并记录窗口、AX、截图证据
+- [x] 查询 Apple 官方 HIG、Materials、Windows 和 macOS Design Resources
+- [x] 输出 `UI_LAYOUT_AUDIT_PHASE2.md` 与拟修改文件清单
+- [x] 先让 `Tests/phase2_layout_contract.sh` 红灯，再实现 `lyricsFocus`/`immersiveSplit`
+- [x] 两种布局共享播放、歌词会话、Provider、背景和控制逻辑；完成即时切换、截图、无签 Debug 构建和正常签名 Debug 构建
+- [x] 提交独立 UI/搜索实现 commit，不修改悬浮/胶囊/全屏/SQLite/AI
+
+## Phase 21: Independent Song Search — complete
+- [x] 先写 SongSearchProvider 红色契约，覆盖统一结果模型、Provider 调度和旧请求取消
+- [x] 实现 LocalSearchProvider、SpotifyCurrentTrackProvider、LRCLIBProvider
+- [x] 实现 SongSearchManager，UI 只依赖 manager 与统一结果
+- [x] 增加搜索入口、结果列表和点击结果加载歌词，不复制参考应用代码
+- [x] 完成签名 Debug 构建、真实运行搜索和点击结果验证
+- [x] 记录验证结果并提交独立搜索 commit
 
 ## Decisions Made
 | Decision | Rationale |
@@ -149,11 +158,13 @@ Phase 18 — Playback and Lyrics Correctness (complete)
 | 真实 Xcode 构建是工程成功的唯一构建证据 | 手工 `swiftc` 拼装不能证明 Xcode 工程有效 |
 | 参考应用和仓库只读 | 防止把第三方二进制、品牌资源或源码混入独立 Swift 实现 |
 | UI 结论必须来自实际窗口观察 | 进程存活或代码存在不等于窗口功能可用 |
+| 本阶段视觉主参考收敛为 Dynamic Lyrics + Lyricify Apple Music 模式 | 用户确认只需要这两个产品方向；Music.app/HIG 仅保留平台约束，不作为样板 |
 
 ## Errors Encountered
 | Error | Attempt | Resolution |
 |-------|---------|------------|
 | None yet | 0 | — |
+| zsh `status` is read-only while capturing a failing contract exit code | 1 | Re-ran with `rc` and confirmed the intended red exit code `1` |
 | Computer Use 坐标点击误触“假名”开关 | 1 | 停止坐标点击，改用 AX 索引/键盘焦点并恢复状态 |
 | 后续 `swift -e` WindowServer 查询被 Xcode license 提示阻止 | 1 | 不运行 sudo、不接受许可；改用已收集证据和 Computer Use 继续审计 |
 | 播放计时器持续刷新导致 Computer Use 报告界面被改变 | 1 | 重新查询最终状态，确认暂停已生效，不把中间失败当成功 |

@@ -115,6 +115,12 @@ PLAYBACK_SOURCES=(
   "$ROOT_DIR/SpotifyLyrics/Services/LyricsSessionController.swift"
   "$ROOT_DIR/SpotifyLyrics/Providers/PlaybackProvider.swift"
   "$ROOT_DIR/SpotifyLyrics/Providers/SpotifyDesktopProvider.swift"
+  "$ROOT_DIR/SpotifyLyrics/Search/SongSearchModels.swift"
+  "$ROOT_DIR/SpotifyLyrics/Search/SongSearchProvider.swift"
+  "$ROOT_DIR/SpotifyLyrics/Search/LocalSearchProvider.swift"
+  "$ROOT_DIR/SpotifyLyrics/Search/SpotifyCurrentTrackProvider.swift"
+  "$ROOT_DIR/SpotifyLyrics/Search/LRCLIBProvider.swift"
+  "$ROOT_DIR/SpotifyLyrics/Search/SongSearchManager.swift"
   "$ROOT_DIR/SpotifyLyrics/Services/PlaybackState.swift"
   "$TMP_DIR/PlaybackStateMain.swift"
 )

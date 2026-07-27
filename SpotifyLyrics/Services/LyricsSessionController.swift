@@ -109,6 +109,17 @@ public final class LyricsSessionController: ObservableObject {
         state = .loaded(document)
     }
 
+    /// Applies a selected search result only when its identity has already
+    /// been remapped to the active playback identity by the caller.
+    public func adopt(document: LyricsDocument) {
+        guard activeIdentity == document.identity else { return }
+        cancelCurrentRequest()
+        revision &+= 1
+        lyrics = document.lines
+        isSynchronized = document.isSynchronized
+        state = document.lines.isEmpty ? .noLyrics(document.identity) : .loaded(document)
+    }
+
     private func apply(
         _ result: LyricsLookupResult,
         identity: TrackIdentity,
