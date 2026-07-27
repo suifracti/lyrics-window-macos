@@ -187,6 +187,25 @@ public enum LyricsLoadState: Equatable {
 }
 
 public enum LyricsTimeline {
+    /// Returns a seek position only for a synchronized row whose timestamp is
+    /// finite and inside the current track. Plain-text rows intentionally
+    /// return nil because their zero placeholder is not a real seek target.
+    public static func validSeekTimestamp(
+        for line: LyricLine,
+        isSynchronized: Bool,
+        duration: TimeInterval
+    ) -> TimeInterval? {
+        guard isSynchronized,
+              duration.isFinite,
+              duration > 0,
+              line.timestamp.isFinite,
+              line.timestamp >= 0,
+              line.timestamp <= duration else {
+            return nil
+        }
+        return line.timestamp
+    }
+
     public static func activeLineIndex(
         lines: [LyricLine],
         time: TimeInterval,

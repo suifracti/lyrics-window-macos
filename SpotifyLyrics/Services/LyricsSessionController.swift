@@ -11,6 +11,7 @@ public final class LyricsSessionController: ObservableObject {
 
     private let provider: LyricsProvider
     private var requestTask: Task<Void, Never>?
+    private var automaticRecoveryRetryIdentity: TrackIdentity?
 
     public init(provider: LyricsProvider) {
         self.provider = provider
@@ -24,6 +25,9 @@ public final class LyricsSessionController: ObservableObject {
         cancelCurrentRequest()
         revision &+= 1
         let requestRevision = revision
+        if activeIdentity != identity {
+            automaticRecoveryRetryIdentity = nil
+        }
         activeIdentity = identity
         lyrics = []
         isSynchronized = true
@@ -44,10 +48,28 @@ public final class LyricsSessionController: ObservableObject {
         begin(track: track, identity: identity)
     }
 
+    /// Performs at most one automatic retry for a network failure belonging
+    /// to the active Track identity. Manual retry remains available through
+    /// `retry(track:identity:)` and does not alter playback state.
+    @discardableResult
+    public func retryAfterNetworkRecovery(track: Track, identity: TrackIdentity) -> Bool {
+        guard activeIdentity == identity,
+              case .failed(let failedIdentity, .networkUnavailable) = state,
+              failedIdentity == identity,
+              automaticRecoveryRetryIdentity != identity else {
+            return false
+        }
+
+        automaticRecoveryRetryIdentity = identity
+        begin(track: track, identity: identity)
+        return true
+    }
+
     public func clear() {
         cancelCurrentRequest()
         revision &+= 1
         activeIdentity = nil
+        automaticRecoveryRetryIdentity = nil
         lyrics = []
         isSynchronized = true
         state = .idle
@@ -57,6 +79,7 @@ public final class LyricsSessionController: ObservableObject {
         cancelCurrentRequest()
         revision &+= 1
         activeIdentity = nil
+        automaticRecoveryRetryIdentity = nil
         lyrics = lines
         isSynchronized = true
         state = .mockPreview

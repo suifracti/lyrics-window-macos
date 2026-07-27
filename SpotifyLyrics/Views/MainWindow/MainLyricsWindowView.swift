@@ -114,7 +114,7 @@ struct MainLyricsWindowView: View {
             Slider(
                 value: Binding(
                     get: { state.currentTime },
-                    set: { state.seek(to: $0) }
+                    set: { state.seek(to: $0, source: "progress-slider") }
                 ),
                 in: 0...max(0.1, state.currentTrack.duration)
             )

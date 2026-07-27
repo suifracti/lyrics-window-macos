@@ -89,6 +89,14 @@ private struct NoLyricsProvider: LyricsProvider {
     }
 }
 
+private struct NetworkFailureLyricsProvider: LyricsProvider {
+    var name: String { "network-failure-test" }
+
+    func lookup(track: Track, identity: TrackIdentity) async -> LyricsLookupResult {
+        .failed(.networkUnavailable)
+    }
+}
+
 @main
 @MainActor
 struct PlaybackStateContract {
@@ -135,6 +143,21 @@ struct PlaybackStateContract {
         try? await Task.sleep(nanoseconds: 320_000_000)
         precondition(provider.commandLog.contains("seek:88"))
         precondition(abs(state.currentTime - 88) < 2)
+
+        let timeBeforeInvalidSeek = state.currentTime
+        state.seek(to: .nan, source: "invalid-test")
+        state.seek(to: 999, source: "invalid-test")
+        try? await Task.sleep(nanoseconds: 120_000_000)
+        precondition(abs(state.currentTime - timeBeforeInvalidSeek) < 1)
+
+        let recoveryState = PlaybackState(provider: provider, lyricsProvider: NetworkFailureLyricsProvider())
+        recoveryState.startProvider()
+        try? await Task.sleep(nanoseconds: 80_000_000)
+        let recoveryTime = recoveryState.currentTime
+        precondition(recoveryState.lyricsState.identity == recoveryState.currentTrackIdentity)
+        recoveryState.retryLyrics()
+        try? await Task.sleep(nanoseconds: 30_000_000)
+        precondition(abs(recoveryState.currentTime - recoveryTime) < 1)
 
         provider.snapshot = PlaybackSnapshot(status: .ready, track: trackB, position: 4, isPlaying: false)
         state.nextTrack()

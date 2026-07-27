@@ -47,21 +47,28 @@ struct LyricsCanvasView: View {
 
                         LazyVStack(alignment: .leading, spacing: LyricsDesignTokens.lyricRowSpacing) {
                             ForEach(Array(state.lyrics.enumerated()), id: \.element.id) { index, line in
-                                LyricLineView(
-                                    line: line,
-                                    isActive: state.currentLineIndex == index,
-                                    distance: distance(from: index),
+                                if let seekTimestamp = LyricsTimeline.validSeekTimestamp(
+                                    for: line,
                                     isSynchronized: state.lyricsAreSynchronized,
-                                    preferences: state.preferences
-                                )
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .contentShape(Rectangle())
-                                .id(line.id)
-                                .onTapGesture {
-                                    state.seek(to: line.timestamp)
+                                    duration: state.currentTrack.duration
+                                ) {
+                                    Button {
+                                        state.seek(to: seekTimestamp, source: "lyric-line")
+                                    } label: {
+                                        lyricLineView(line: line, index: index)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .contentShape(Rectangle())
+                                    .accessibilityLabel(line.originalText)
+                                    .accessibilityHint("跳转到歌词时间")
+                                    .accessibilityIdentifier("lyrics-line-\(line.id.uuidString)")
+                                } else {
+                                    lyricLineView(line: line, index: index)
                                 }
                             }
                         }
+                        .accessibilityElement(children: .contain)
                         .frame(
                             width: min(
                                 720,
@@ -81,6 +88,7 @@ struct LyricsCanvasView: View {
                     .padding(.vertical, LyricsDesignTokens.canvasVerticalPadding)
                 }
                 .scrollIndicators(.hidden)
+                .accessibilityElement(children: .contain)
                 .onAppear {
                     scrollToCurrentLine(using: proxy, animated: false)
                 }
@@ -167,6 +175,20 @@ struct LyricsCanvasView: View {
             currentIndex: state.currentLineIndex,
             isSynchronized: state.lyricsAreSynchronized
         )
+    }
+
+    @ViewBuilder
+    private func lyricLineView(line: LyricLine, index: Int) -> some View {
+        LyricLineView(
+            line: line,
+            isActive: state.currentLineIndex == index,
+            distance: distance(from: index),
+            isSynchronized: state.lyricsAreSynchronized,
+            preferences: state.preferences
+        )
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
+        .id(line.id)
     }
 
     private func scrollToCurrentLine(using proxy: ScrollViewProxy, animated: Bool) {

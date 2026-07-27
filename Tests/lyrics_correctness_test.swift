@@ -124,6 +124,31 @@ struct LyricsCorrectnessContract {
             currentIndex: nil,
             isSynchronized: false
         ) == 0)
+        precondition(LyricsTimeline.validSeekTimestamp(
+            for: LyricLine(timestamp: 12.5, originalText: "可跳转"),
+            isSynchronized: true,
+            duration: 180
+        ) == 12.5)
+        precondition(LyricsTimeline.validSeekTimestamp(
+            for: LyricLine(timestamp: 0, originalText: "纯文本"),
+            isSynchronized: false,
+            duration: 180
+        ) == nil)
+        precondition(LyricsTimeline.validSeekTimestamp(
+            for: LyricLine(timestamp: -.infinity, originalText: "负无穷"),
+            isSynchronized: true,
+            duration: 180
+        ) == nil)
+        precondition(LyricsTimeline.validSeekTimestamp(
+            for: LyricLine(timestamp: .nan, originalText: "非数字"),
+            isSynchronized: true,
+            duration: 180
+        ) == nil)
+        precondition(LyricsTimeline.validSeekTimestamp(
+            for: LyricLine(timestamp: 181, originalText: "超出歌曲"),
+            isSynchronized: true,
+            duration: 180
+        ) == nil)
 
         let trackA = Track(title: "Track A", artist: "Artist", album: "Album", duration: 180)
         let trackB = Track(title: "Track B", artist: "Artist", album: "Album", duration: 180)
@@ -178,6 +203,36 @@ struct LyricsCorrectnessContract {
         guard case .loaded(let adopted) = controller.state,
               adopted.identity == TrackIdentity(track: trackB) else {
             fatalError("expected manually adopted candidate")
+        }
+
+        let recoveryDocument = LyricsDocument(
+            identity: TrackIdentity(track: trackB),
+            title: trackB.title,
+            artist: trackB.artist,
+            album: trackB.album,
+            duration: trackB.duration,
+            lines: [LyricLine(timestamp: 2, originalText: "恢复后歌词")],
+            source: .lrclib
+        )
+        let recoveryProvider = SequenceLyricsProvider(results: [
+            .failed(.networkUnavailable),
+            .match(recoveryDocument),
+            .match(recoveryDocument)
+        ])
+        let recoveryController = LyricsSessionController(provider: recoveryProvider)
+        let recoveryIdentity = TrackIdentity(track: trackB)
+        recoveryController.begin(track: trackB, identity: recoveryIdentity)
+        try? await Task.sleep(nanoseconds: 10_000_000)
+        guard case .failed(let failedIdentity, .networkUnavailable) = recoveryController.state,
+              failedIdentity == recoveryIdentity else {
+            fatalError("expected network failure before recovery retry")
+        }
+        precondition(recoveryController.retryAfterNetworkRecovery(track: trackB, identity: recoveryIdentity))
+        precondition(!recoveryController.retryAfterNetworkRecovery(track: trackB, identity: recoveryIdentity))
+        try? await Task.sleep(nanoseconds: 10_000_000)
+        guard case .loaded = recoveryController.state,
+              recoveryProvider.calls == 2 else {
+            fatalError("network recovery retry must be bounded to one automatic attempt")
         }
 
         controller.begin(track: trackA, identity: TrackIdentity(track: trackA))

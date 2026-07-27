@@ -433,3 +433,18 @@
 - The exact no-signing Debug command and the normal signed Debug command both returned `0` with `** BUILD SUCCEEDED **`; the final signed app passed `codesign --verify --deep --strict` and retained the Apple Events entitlement/usage description.
 - Final signed runtime was relaunched from DerivedData. Spotify and SpotifyLyrics both reported `一点点（为什么晚上总是有星星） / 董唧唧、芊芊龍`; the app showed matching artwork, background, lyrics and paused progress after the loading state.
 - Independent commit: `Fix playback and lyrics state correctness`.
+## 2026-07-27 — Phase 19 started
+
+- 当前基线为 `bb63ba8 Fix playback and lyrics state correctness`，工作区干净，分支 `ui-redesign-phase-1`。
+- 本阶段先处理两个独立 Bug：网络恢复后当前 identity 有限重试一次；歌词 seek 只接受合法同步时间轴并记录 Debug 来源。
+- 已确认现有 seek 唯一 UI 来源在 `LyricsCanvasView` 和主窗口进度 Slider；`PlaybackState.seek` 当前没有 finite/duration 防护，歌词行无条件传入 timestamp。
+- 下一步先在纯 Foundation/合同测试中加入红色断言，再修改生产代码；Bug 提交完成后再进行三套 UI 参考审计。
+
+## 2026-07-27 — Phase 19 complete
+
+- TDD 红色证据：新增的 `validSeekTimestamp`、网络失败恢复 API 断言先因生产 API 缺失而编译失败；随后实现后 `Tests/real_track_lyrics_contract.sh` 全部通过。
+- 网络恢复：`LyricsSessionController.retryAfterNetworkRecovery` 只接受当前 identity 的 `.networkUnavailable`，每个 identity 最多自动尝试一次；`NWPathMonitor` 只在不满足→满足的路径转变时触发，手动 `retryLyrics()` 保留且不会重置播放锚点。
+- 安全 seek：同步歌词行使用 `LyricsTimeline.validSeekTimestamp`，要求 finite、非负、且不超过当前歌曲时长；纯文本、非法时间戳、空白和 loading/failed/noLyrics/candidates 没有 seek 入口；进度 Slider 使用独立 `progress-slider` 来源。
+- Debug 日志：使用 `Logger(subsystem: "com.spotifylyrics.app", category: "seek")`；真实运行日志捕获 `accepted source=lyric-line time=21.140 identity=spotify-id:spotify:track:5lp9unpcikghkh7x1amhnw...`，Spotify AX 同步显示约 `0:22/3:50`，未跳回 00:00。Slider 也捕获 `source=progress-slider`。
+- 真实运行：正常签名 DerivedData Debug app 连接 Spotify 的真实 `IDOLPOWER / M!LK`，同步歌词行通过 Accessibility 暴露为可点击按钮；点击第 8 行后 Spotify Apple Events 位置约 22 秒，应用位置约 22.52 秒。当前无时间轴歌曲的 AX 树没有歌词按钮，符合禁止伪造 seek。
+- 构建：无签名 Debug 与正常签名 Debug 均以 `** BUILD SUCCEEDED **` 结束；完整合同测试通过。未修改 SQLite、AI、Provider 或悬浮/胶囊/全屏布局。

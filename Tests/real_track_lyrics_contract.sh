@@ -118,7 +118,7 @@ PLAYBACK_SOURCES=(
   "$ROOT_DIR/SpotifyLyrics/Services/PlaybackState.swift"
   "$TMP_DIR/PlaybackStateMain.swift"
 )
-swiftc -parse-as-library -framework AppKit "${PLAYBACK_SOURCES[@]}" -o "$TMP_DIR/playback-state-contract"
+swiftc -parse-as-library -framework AppKit -framework Network "${PLAYBACK_SOURCES[@]}" -o "$TMP_DIR/playback-state-contract"
 "$TMP_DIR/playback-state-contract"
 
 cp "$ROOT_DIR/Tests/backdrop_palette_test.swift" "$TMP_DIR/BackdropPaletteMain.swift"
@@ -147,5 +147,13 @@ rg -q 'https://lrclib.net/api|syncedLyrics|plainLyrics' "$ROOT_DIR/SpotifyLyrics
 rg -q 'Music/SpotifyLyrics/Lyrics|Application Support/SpotifyLyrics/Lyrics' "$ROOT_DIR/SpotifyLyrics/Lyrics/LocalLyricsProvider.swift"
 rg -q 'Task.isCancelled|TrackIdentity|artwork' "$ROOT_DIR/SpotifyLyrics/Views/Components/TrackBackdropView.swift"
 rg -q 'PlainLyricsListView|!state.lyricsAreSynchronized' "$ROOT_DIR/SpotifyLyrics/Views/LyricsViews.swift"
+rg -q 'validSeekTimestamp' "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsModels.swift"
+rg -q 'source: "lyric-line"' "$ROOT_DIR/SpotifyLyrics/Views/Components/LyricsCanvasView.swift"
+if rg -q 'state\.seek\(to: line\.timestamp' "$ROOT_DIR/SpotifyLyrics"; then
+  echo "unvalidated lyric timestamp seek source remains" >&2
+  exit 1
+fi
+rg -q 'retryAfterNetworkRecovery' "$ROOT_DIR/SpotifyLyrics/Services/LyricsSessionController.swift"
+rg -q 'NWPathMonitor|network-recovery' "$ROOT_DIR/SpotifyLyrics/Services/PlaybackState.swift"
 
 echo "real track lyrics contract passed"

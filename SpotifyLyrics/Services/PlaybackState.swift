@@ -1,8 +1,15 @@
 import Combine
 import Foundation
+import Network
+#if DEBUG
+import os
+#endif
 
 @MainActor
 public final class PlaybackState: ObservableObject {
+#if DEBUG
+    private static let seekLogger = Logger(subsystem: "com.spotifylyrics.app", category: "seek")
+#endif
     @Published public private(set) var currentTrack: Track = .emptyPlaybackPlaceholder
     @Published public private(set) var currentTime: TimeInterval = 0
     @Published public private(set) var isPlaying = false
@@ -26,6 +33,8 @@ public final class PlaybackState: ObservableObject {
     private var providerRefreshGeneration: UInt64 = 0
     private var refreshRequestedWhileBusy = false
     private var providerRefreshTask: Task<Void, Never>?
+    private var networkRecoveryMonitor: NWPathMonitor?
+    private var networkWasSatisfied = false
     private var playbackAnchorPosition: TimeInterval = 0
     private var playbackAnchorDate = Date()
     private var lastProviderRefreshDate = Date.distantPast
@@ -54,6 +63,7 @@ public final class PlaybackState: ObservableObject {
     deinit {
         timer?.invalidate()
         providerRefreshTask?.cancel()
+        networkRecoveryMonitor?.cancel()
         lyricsSessionCancellable?.cancel()
     }
 
@@ -95,6 +105,7 @@ public final class PlaybackState: ObservableObject {
         guard !isProviderStarted else { return }
         isProviderStarted = true
         startTimer()
+        startNetworkRecoveryMonitor()
         providerRefreshTask = Task { @MainActor [weak self] in
             await self?.refreshProvider()
         }
@@ -182,15 +193,29 @@ public final class PlaybackState: ObservableObject {
         }
     }
 
-    public func seek(to time: TimeInterval) {
+    public func seek(to time: TimeInterval, source: String = "programmatic") {
         guard canInteractWithPlayback else { return }
-        let clampedTime = max(0, min(time, currentTrack.duration))
-        resetPlaybackAnchor(to: clampedTime)
+        guard time.isFinite,
+              time >= 0,
+              currentTrack.duration.isFinite,
+              currentTrack.duration > 0,
+              time <= currentTrack.duration else {
+            #if DEBUG
+            Self.seekLogger.debug("rejected source=\(source, privacy: .public) time=\(time, privacy: .public) duration=\(self.currentTrack.duration, privacy: .public) identity=\(self.currentTrackIdentity?.stableKey ?? "none", privacy: .public)")
+            #endif
+            return
+        }
+
+        let seekTime = time
+        #if DEBUG
+        Self.seekLogger.debug("accepted source=\(source, privacy: .public) time=\(String(format: "%.3f", seekTime), privacy: .public) identity=\(self.currentTrackIdentity?.stableKey ?? "none", privacy: .public)")
+        #endif
+        resetPlaybackAnchor(to: seekTime)
 
         guard canControlSpotify else { return }
         invalidateProviderRefresh()
         runProviderCommand { provider in
-            try await provider.seek(to: clampedTime)
+            try await provider.seek(to: seekTime)
         }
     }
 
@@ -329,6 +354,30 @@ public final class PlaybackState: ObservableObject {
                 self?.tick()
             }
         }
+    }
+
+    private func startNetworkRecoveryMonitor() {
+        guard networkRecoveryMonitor == nil else { return }
+
+        let monitor = NWPathMonitor()
+        networkRecoveryMonitor = monitor
+        monitor.pathUpdateHandler = { [weak self] path in
+            let isSatisfied = path.status == .satisfied
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                let wasSatisfied = self.networkWasSatisfied
+                self.networkWasSatisfied = isSatisfied
+                guard isSatisfied, !wasSatisfied else { return }
+                self.retryLyricsAfterNetworkRecovery()
+            }
+        }
+        monitor.start(queue: DispatchQueue(label: "com.spotifylyrics.network-recovery"))
+    }
+
+    private func retryLyricsAfterNetworkRecovery() {
+        guard hasLiveTrack,
+              let identity = currentTrackIdentity else { return }
+        _ = lyricsSession.retryAfterNetworkRecovery(track: currentTrack, identity: identity)
     }
 
     private func tick() {

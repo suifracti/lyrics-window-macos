@@ -126,6 +126,22 @@ Phase 18 — Playback and Lyrics Correctness (complete)
 - [x] 运行最终全量契约、无签名 Debug build、正常签名 Debug build、codesign 验证和真实 Spotify 运行核对
 - [x] 提交独立 commit：`Fix playback and lyrics state correctness`
 
+## Phase 19: Lyrics Recovery and Safe Seek — complete
+- [x] 先新增歌词恢复与安全 seek 回归契约，并观察红色失败
+- [x] 网络错误恢复时对当前 Track identity 自动有限重试一次；保留手动重试且不改变播放锚点
+- [x] 只允许合法逐行时间轴歌词触发 seek，拒绝纯文本、非法时间戳和非歌词状态
+- [x] 增加 Debug seek 日志，完成全量契约和 Xcode 构建
+- [x] 用正常签名 Debug 产物实际验证同步歌词点击 seek 与 Spotify 播放位置；网络恢复的有限重试由合同测试覆盖，未通过切换系统网络设置强行制造断网
+- [x] 提交独立 commit：`Fix lyrics recovery and invalid lyric seek`
+
+## Phase 20: Reference Audit and Switchable Main Layouts — pending
+- [ ] 先读 Lyricify LICENSE，审计其模式枚举/切换入口/持久化/主歌词界面文件
+- [ ] 黑盒观察 Dynamic Lyrics 与当前 Music.app，并记录窗口、AX、截图证据
+- [ ] 查询 Apple 官方 HIG、Materials、Windows 和 macOS Design Resources
+- [ ] 输出审计结论和拟修改文件清单后，再实现 lyricsFocus/immersiveSplit
+- [ ] 两种布局共享播放、歌词会话、Provider、背景和控制逻辑；完成即时切换、截图、签名构建
+- [ ] 提交独立 UI commit，不修改悬浮/胶囊/全屏/SQLite/AI
+
 ## Decisions Made
 | Decision | Rationale |
 |----------|-----------|
