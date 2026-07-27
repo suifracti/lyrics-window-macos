@@ -355,3 +355,10 @@
 - 最终无签名和正常签名 Debug 日志均以 `** BUILD SUCCEEDED **` 结尾；产物路径为 `/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app`。
 - 已提交独立 commit：`3fcc104 Add verified Spotify desktop provider`。
 - 下一阶段仍未开始：LocalProvider + LRCLIBProvider；本阶段没有接入歌词源、Web API、OAuth、SQLite 或 AI。
+
+## Session: 2026-07-27 — Real Track Visual and Lyrics Slice
+
+- **Status:** design pending
+- 用户要求保持现有主窗口布局，只修复真实歌曲 identity 与歌词/背景状态一致性，并接入第一版 LocalProvider + LRCLIBProvider。
+- 已确认当前实现仍将 `MockData.sampleLyrics` 常驻在 `PlaybackState`，Spotify 切歌时不会清空歌词；主窗口背景也只是固定渐变加右上角封面纹理，尚未按 Track ID / artwork 生成主色背景。
+- 本阶段先不写 Swift 实现，等待设计确认后进入 TDD 红色契约。

@@ -228,3 +228,10 @@
 - 干净 Xcode 进程的全屏覆盖为 `2560×1440`、layer 8（截图 `spotifylyrics-fullscreen-xcode.png`）；黑色覆盖层只显示一行蓝色罗马音，右上角有关闭圆钮。当前截图未呈现原文、翻译、相邻行、专辑信息或播放控件，因此与参考的层级式全屏歌词有明显差距。
 - 通过应用菜单退出 Xcode 进程并重新用 DerivedData 路径启动，主窗口恢复且进程路径仍指向 DerivedData；这证明的是应用级关闭/重开。窗口级 `Cmd+W` 在辅助窗口同时存在时会把焦点转到最前面的辅助窗，因此本轮不把该次按键误写成主窗口关闭成功。
 - `Dynamic Lyrics.app` 本轮已有初始/暂停/全屏黑盒截图和 WindowServer 记录；再次尝试读取时 Computer Use 服务超时，未新增胶囊内容截图。既有 `dynamic-floating.png` 仍只证明存在一个 `600×78` 辅助窗口对象，截图内容为空，不能声称浮动歌词内容可见。
+
+## 2026-07-27 Real Track Visual and Lyrics Slice — initial findings
+
+- `PlaybackState` currently initializes `lyrics` with `MockData.sampleLyrics` and `synchronize(with:)` only replaces `currentTrack`; a Spotify identity change therefore leaves the previous/mock lyrics visible.
+- `MainLyricsWindowView` currently composes a fixed design gradient, material veil, and a right-aligned `TrackArtworkView`; it has no track-bound background identity, palette extraction, crossfade, or loading state.
+- `Track` already carries `artworkURL` and stable Spotify `id`, so the next design can use those values as the background and lyrics request identity without changing the Spotify provider contract.
+- No `.lrc` or local lyrics data files exist in the repository; `LocalProvider` needs an explicit, non-persistent local-file search policy before implementation.

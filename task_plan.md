@@ -4,10 +4,10 @@
 在已提交的主窗口基础上，实现下载后即可使用的本机 Spotify Desktop 播放链路：通过真实 Apple Events 读取 Spotify 当前歌曲、封面 URL、播放状态和进度，并提供播放控制；UI 只依赖 `PlaybackProvider` 协议；Spotify 不可用时明确显示并回退 Mock 预览。本阶段不实现 Web API、OAuth、SQLite、歌词 Provider 或在线歌词源。
 
 ## Next Step
-完成真实 Spotify Desktop Provider 的红色契约、Apple Events 实现、状态同步/封面缓存、主窗口接线和签名权限验证；最后用至少五首真实歌曲做运行验收并提交独立 commit。
+完成“真实歌曲视觉与歌词纵向切片”：切歌时清空旧歌词/翻译/滚动/背景状态，接入 LocalProvider 与 LRCLIBProvider，生成与真实 artwork 绑定的主色渐变背景，并用真实歌曲截图验证加载、失败、无歌词和亮暗封面状态。
 
 ## Current Phase
-Phase 16 — Build and Commit (complete)
+Phase 17 — Real Track Visual and Lyrics Slice (design pending)
 
 ## Scope & Boundaries
 - 唯一正式项目：`/Users/apple/backup/sptifylyrics`
@@ -104,6 +104,15 @@ Phase 16 — Build and Commit (complete)
 - [x] 运行无签名构建和正常签名 Debug 构建，均保留结果
 - [x] 输出工作目录、修改文件、diff、xcodebuild、app 路径、权限和真实运行验证
 - [x] 提交独立 commit：`3fcc104 Add verified Spotify desktop provider`
+
+## Phase 17: Real Track Visual and Lyrics Slice — design pending
+- [ ] 先完成设计确认，再写实现计划和红色契约
+- [ ] 切歌 identity 变化时清空旧歌词、翻译、罗马音、假名、滚动位置和背景状态
+- [ ] 区分真实 Spotify、Mock Preview、歌词加载中、无歌词和搜索失败状态
+- [ ] 定义 `LyricsProvider`，实现 LocalProvider 与 LRCLIBProvider；不接 SQLite、AI 或其他歌词源
+- [ ] 使用真实 artwork 生成主色多层渐变、放大裁切模糊纹理和可读性遮罩
+- [ ] 以英文、日文、中文、无歌词、亮/暗封面和切歌过程保存实际截图
+- [ ] 运行契约、Xcode Debug build 和真实应用验收；未通过不得声称完成
 
 ## Decisions Made
 | Decision | Rationale |
