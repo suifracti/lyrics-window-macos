@@ -241,3 +241,8 @@
 
 ### 2026-07-27 Core contract evidence
 - Pure Foundation identity/LRC/matcher assertions pass. The first compile attempt exposed a test-harness-only top-level-code issue and an unwanted `MockData` dependency; both were fixed before the green run. No production UI or provider behavior was used to satisfy the core test.
+
+### 2026-07-27 Provider contract evidence
+- The LocalProvider temporary-directory test returns a matching document and verifies the original LRC bytes are unchanged after lookup.
+- The LRCLIB stub test verifies URL query construction, JSON decoding, synced lyric parsing, absent translation layers, and composite provider ordering.
+- A compiler issue in the first LRCLIB implementation was fixed by retaining the typed `LRCLIBError` in the nested 404/search catch; no network behavior was hidden by the test.

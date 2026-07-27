@@ -37,13 +37,50 @@ required_sources=(
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LocalLyricsProvider.swift"
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LRCLIBLyricsProvider.swift"
   "$ROOT_DIR/SpotifyLyrics/Lyrics/CompositeLyricsProvider.swift"
-  "$ROOT_DIR/SpotifyLyrics/Services/LyricsSessionController.swift"
-  "$ROOT_DIR/SpotifyLyrics/Views/Components/TrackBackdropView.swift"
-  "$ROOT_DIR/SpotifyLyrics/Design/BackdropPalette.swift"
 )
 for source in "${required_sources[@]}"; do
   if [[ ! -f "$source" ]]; then
     echo "missing required slice source: $source" >&2
+    exit 1
+  fi
+done
+
+cp "$ROOT_DIR/Tests/local_provider_test.swift" "$TMP_DIR/LocalProviderMain.swift"
+LOCAL_SOURCES=(
+  "$ROOT_DIR/SpotifyLyrics/Models/Models.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/TrackIdentity.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsModels.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LRCParser.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsMatcher.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LocalLyricsProvider.swift"
+  "$TMP_DIR/LocalProviderMain.swift"
+)
+swiftc -parse-as-library "${LOCAL_SOURCES[@]}" -o "$TMP_DIR/local-provider-contract"
+"$TMP_DIR/local-provider-contract"
+
+cp "$ROOT_DIR/Tests/lrclib_provider_test.swift" "$TMP_DIR/LRCLIBProviderMain.swift"
+LRCLIB_SOURCES=(
+  "$ROOT_DIR/SpotifyLyrics/Models/Models.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/TrackIdentity.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsModels.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LRCParser.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsMatcher.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LocalLyricsProvider.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LRCLIBLyricsProvider.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/CompositeLyricsProvider.swift"
+  "$TMP_DIR/LRCLIBProviderMain.swift"
+)
+swiftc -parse-as-library "${LRCLIB_SOURCES[@]}" -o "$TMP_DIR/lrclib-provider-contract"
+"$TMP_DIR/lrclib-provider-contract"
+
+ui_sources=(
+  "$ROOT_DIR/SpotifyLyrics/Services/LyricsSessionController.swift"
+  "$ROOT_DIR/SpotifyLyrics/Views/Components/TrackBackdropView.swift"
+  "$ROOT_DIR/SpotifyLyrics/Design/BackdropPalette.swift"
+)
+for source in "${ui_sources[@]}"; do
+  if [[ ! -f "$source" ]]; then
+    echo "missing required UI slice source: $source" >&2
     exit 1
   fi
 done

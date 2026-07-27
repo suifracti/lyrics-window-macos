@@ -71,11 +71,11 @@
 - `LocalLyricsProvider(searchDirectories: [URL]? = nil)`.
 - `lookup(track: Track, identity: TrackIdentity) async -> LyricsLookupResult`.
 
-- [ ] Add a contract assertion for the three ordered search roots and the absence of write APIs.
-- [ ] Implement search order: `~/Music/SpotifyLyrics/Lyrics`, `~/Library/Application Support/SpotifyLyrics/Lyrics`, and `#if DEBUG` current-working-directory `Lyrics/`.
-- [ ] Match exact Track ID/Spotify URI/ISRC filenames first, then normalized metadata tags/filename and duration.
-- [ ] Read and parse only existing `.lrc` files; return loaded, candidates, noLyrics, or failed without copying or modifying any file.
-- [ ] Run the contract and a temporary-directory read-only probe; verify no file timestamp or content changes.
+- [x] Add a contract assertion for the three ordered search roots and the absence of write APIs.
+- [x] Implement search order: `~/Music/SpotifyLyrics/Lyrics`, `~/Library/Application Support/SpotifyLyrics/Lyrics`, and `#if DEBUG` current-working-directory `Lyrics/`.
+- [x] Match exact Track ID/Spotify URI/ISRC filenames first, then normalized metadata tags/filename and duration.
+- [x] Read and parse only existing `.lrc` files; return loaded, candidates, noLyrics, or failed without copying or modifying any file.
+- [x] Run the contract and a temporary-directory read-only probe; verify no file timestamp or content changes.
 
 ### Task 4: LRCLIBProvider and provider chain
 
@@ -90,11 +90,11 @@
 - `CompositeLyricsProvider(providers: [LyricsProvider])`.
 - Both conform to `LyricsProvider` and return `LyricsLookupResult`.
 
-- [ ] Add contract assertions for LRCLIB URL construction, JSON fields, and provider ordering.
+- [x] Add contract assertions for LRCLIB URL construction, JSON fields, and provider ordering.
 - [ ] Validate the current LRCLIB endpoint response shape against a live metadata query before wiring it into the app.
-- [ ] Implement metadata-specific lookup using title, artist, album, and duration; parse `syncedLyrics`/`plainLyrics` only.
-- [ ] On a valid but low-confidence result, return candidates rather than auto-adopting; on empty lyric fields return noLyrics.
-- [ ] Implement composite behavior: local loaded/candidates stop the chain; local no match proceeds to LRCLIB; failures preserve the most useful failure state.
+- [x] Implement metadata-specific lookup using title, artist, album, and duration; parse `syncedLyrics`/`plainLyrics` only.
+- [x] On a valid but low-confidence result, return candidates rather than auto-adopting; on empty lyric fields return noLyrics.
+- [x] Implement composite behavior: local loaded/candidates stop the chain; local no match proceeds to LRCLIB; failures preserve the most useful failure state.
 - [ ] Run contract and a live provider probe with a real Spotify track, recording response classification without saving lyrics.
 
 ### Task 5: Identity-safe PlaybackState lyrics session

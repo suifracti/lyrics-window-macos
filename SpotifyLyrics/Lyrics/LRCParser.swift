@@ -13,6 +13,7 @@ public enum LRCParser {
         var title: String?
         var artist: String?
         var album: String?
+        var duration: TimeInterval?
         var parsedLines: [LyricLine] = []
 
         for rawLine in content.components(separatedBy: .newlines) {
@@ -24,6 +25,7 @@ public enum LRCParser {
                 case "ti": title = tag.value
                 case "ar": artist = tag.value
                 case "al": album = tag.value
+                case "length": duration = parseLength(tag.value)
                 default: break
                 }
             }
@@ -59,6 +61,7 @@ public enum LRCParser {
             title: title,
             artist: artist,
             album: album,
+            duration: duration,
             lines: parsedLines,
             source: source,
             confidence: 1
@@ -93,5 +96,15 @@ public enum LRCParser {
             fraction = (Double(fractionText) ?? 0) / denominator
         }
         return minute * 60 + seconds + fraction
+    }
+
+    private static func parseLength(_ value: String) -> TimeInterval? {
+        let pieces = value.split(separator: ":")
+        guard pieces.count == 2,
+              let minutes = Double(pieces[0]),
+              let seconds = Double(pieces[1]) else {
+            return nil
+        }
+        return minutes * 60 + seconds
     }
 }

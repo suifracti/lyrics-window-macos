@@ -374,3 +374,10 @@
 - Added `TrackIdentity`, `LyricsLoadState`/document/candidate models, LRC parser, and weighted matcher.
 - Core contract now prints `lyrics core contract passed`; the full slice contract remains intentionally red because provider/session/background files are not implemented yet.
 - One harness issue was corrected during this cycle: Swift top-level test code must be copied to `main.swift`, and the core model no longer depends directly on `MockData` so the Foundation test remains isolated.
+
+### Phase 17: Local and LRCLIB Providers
+- **Status:** implementation green, live probe pending
+- `LocalLyricsProvider` reads the three approved directories in order and the temporary-directory contract confirms file bytes are unchanged.
+- `LRCLIBLyricsProvider` uses the current `/api/get` metadata query, falls back to `/api/search`, parses `syncedLyrics`/`plainLyrics`, and returns candidates below the high-confidence threshold.
+- `CompositeLyricsProvider` stops on a match/candidate and continues from local no-match to LRCLIB.
+- The contract currently passes core, local, and LRCLIB provider checks, then remains red at the not-yet-created session/background files.

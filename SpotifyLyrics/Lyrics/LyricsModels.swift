@@ -19,6 +19,7 @@ public struct LyricsDocument: Equatable {
     public let title: String?
     public let artist: String?
     public let album: String?
+    public let duration: TimeInterval?
     public let lines: [LyricLine]
     public let source: LyricsSource
     public let confidence: Double
@@ -28,6 +29,7 @@ public struct LyricsDocument: Equatable {
         title: String? = nil,
         artist: String? = nil,
         album: String? = nil,
+        duration: TimeInterval? = nil,
         lines: [LyricLine],
         source: LyricsSource,
         confidence: Double = 1
@@ -36,6 +38,7 @@ public struct LyricsDocument: Equatable {
         self.title = title
         self.artist = artist
         self.album = album
+        self.duration = duration
         self.lines = lines
         self.source = source
         self.confidence = confidence
