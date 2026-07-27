@@ -14,7 +14,7 @@ public enum LyricsSource: String, CaseIterable, Codable, Sendable {
     }
 }
 
-public struct LyricsDocument: Equatable {
+public struct LyricsDocument: Equatable, Sendable {
     public let identity: TrackIdentity
     public let title: String?
     public let artist: String?
@@ -48,7 +48,7 @@ public struct LyricsDocument: Equatable {
     }
 }
 
-public struct LyricsCandidate: Identifiable, Equatable {
+public struct LyricsCandidate: Identifiable, Equatable, Sendable {
     public let id: String
     public let identity: TrackIdentity
     public let title: String
@@ -122,7 +122,7 @@ public enum LyricsLookupResult {
     case failed(LyricsFailure)
 }
 
-public protocol LyricsProvider {
+public protocol LyricsProvider: Sendable {
     var name: String { get }
     func lookup(track: Track, identity: TrackIdentity) async -> LyricsLookupResult
 }

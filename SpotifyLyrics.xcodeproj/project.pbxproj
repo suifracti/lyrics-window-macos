@@ -53,6 +53,15 @@
 		1100002D2D83400100000001 /* TrackSearchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100002D2D83400100000000 /* TrackSearchManager.swift */; };
 		1100002E2D83400100000001 /* CurrentTrackResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100002E2D83400100000000 /* CurrentTrackResolver.swift */; };
 		1100002F2D83400100000001 /* LyricsSearchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100002F2D83400100000000 /* LyricsSearchManager.swift */; };
+		110000302D83400100000001 /* TrackAlias.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000302D83400100000000 /* TrackAlias.swift */; };
+		110000312D83400100000001 /* TrackMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000312D83400100000000 /* TrackMetadata.swift */; };
+		110000322D83400100000001 /* TrackTextNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000322D83400100000000 /* TrackTextNormalizer.swift */; };
+		110000332D83400100000001 /* JapaneseRomanizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000332D83400100000000 /* JapaneseRomanizer.swift */; };
+		110000342D83400100000001 /* JapaneseKanaGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000342D83400100000000 /* JapaneseKanaGenerator.swift */; };
+		110000352D83400100000001 /* LyricsQueryPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000352D83400100000000 /* LyricsQueryPlanner.swift */; };
+		110000362D83400100000001 /* LyricsSafeMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000362D83400100000000 /* LyricsSafeMatcher.swift */; };
+		110000372D83400100000001 /* LyricsRecoveryModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000372D83400100000000 /* LyricsRecoveryModels.swift */; };
+		110000382D83400100000001 /* LyricsRecoveryOrchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000382D83400100000000 /* LyricsRecoveryOrchestrator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -104,6 +113,15 @@
 		1100002D2D83400100000000 /* TrackSearchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackSearchManager.swift; sourceTree = "<group>"; };
 		1100002E2D83400100000000 /* CurrentTrackResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentTrackResolver.swift; sourceTree = "<group>"; };
 		1100002F2D83400100000000 /* LyricsSearchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsSearchManager.swift; sourceTree = "<group>"; };
+		110000302D83400100000000 /* TrackAlias.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackAlias.swift; sourceTree = "<group>"; };
+		110000312D83400100000000 /* TrackMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackMetadata.swift; sourceTree = "<group>"; };
+		110000322D83400100000000 /* TrackTextNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackTextNormalizer.swift; sourceTree = "<group>"; };
+		110000332D83400100000000 /* JapaneseRomanizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JapaneseRomanizer.swift; sourceTree = "<group>"; };
+		110000342D83400100000000 /* JapaneseKanaGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JapaneseKanaGenerator.swift; sourceTree = "<group>"; };
+		110000352D83400100000000 /* LyricsQueryPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsQueryPlanner.swift; sourceTree = "<group>"; };
+		110000362D83400100000000 /* LyricsSafeMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsSafeMatcher.swift; sourceTree = "<group>"; };
+		110000372D83400100000000 /* LyricsRecoveryModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsRecoveryModels.swift; sourceTree = "<group>"; };
+		110000382D83400100000000 /* LyricsRecoveryOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsRecoveryOrchestrator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -203,6 +221,15 @@
 				110000172D83400100000000 /* LRCLIBLyricsProvider.swift */,
 				110000182D83400100000000 /* CompositeLyricsProvider.swift */,
 				1100002F2D83400100000000 /* LyricsSearchManager.swift */,
+				110000302D83400100000000 /* TrackAlias.swift */,
+				110000312D83400100000000 /* TrackMetadata.swift */,
+				110000322D83400100000000 /* TrackTextNormalizer.swift */,
+				110000332D83400100000000 /* JapaneseRomanizer.swift */,
+				110000342D83400100000000 /* JapaneseKanaGenerator.swift */,
+				110000352D83400100000000 /* LyricsQueryPlanner.swift */,
+				110000362D83400100000000 /* LyricsSafeMatcher.swift */,
+				110000372D83400100000000 /* LyricsRecoveryModels.swift */,
+				110000382D83400100000000 /* LyricsRecoveryOrchestrator.swift */,
 			);
 			path = Lyrics;
 			sourceTree = "<group>";
@@ -334,6 +361,15 @@
 				1100002D2D83400100000001 /* TrackSearchManager.swift in Sources */,
 				1100002E2D83400100000001 /* CurrentTrackResolver.swift in Sources */,
 				1100002F2D83400100000001 /* LyricsSearchManager.swift in Sources */,
+				110000302D83400100000001 /* TrackAlias.swift in Sources */,
+				110000312D83400100000001 /* TrackMetadata.swift in Sources */,
+				110000322D83400100000001 /* TrackTextNormalizer.swift in Sources */,
+				110000332D83400100000001 /* JapaneseRomanizer.swift in Sources */,
+				110000342D83400100000001 /* JapaneseKanaGenerator.swift in Sources */,
+				110000352D83400100000001 /* LyricsQueryPlanner.swift in Sources */,
+				110000362D83400100000001 /* LyricsSafeMatcher.swift in Sources */,
+				110000372D83400100000001 /* LyricsRecoveryModels.swift in Sources */,
+				110000382D83400100000001 /* LyricsRecoveryOrchestrator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

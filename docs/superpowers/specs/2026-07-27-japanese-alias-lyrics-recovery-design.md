@@ -306,3 +306,5 @@ Tests/japanese_alias_contract.sh
 ## 相关后续
 
 - Web 三站发现审计与设计：`docs/superpowers/specs/2026-07-27-web-lyrics-discovery-jp-sites.md`（AWA / Uta-Net / UtaTime；发现+外链+手动导入，不自动抓正文）
+
+- 一键自动补全：`docs/superpowers/specs/2026-07-27-one-button-lyrics-autocomplete-design.md`

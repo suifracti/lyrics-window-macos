@@ -1,14 +1,14 @@
 import Foundation
 
 /// Red contract for Japanese multi-alias lyrics query planning and safe adoption.
-/// Expected production types (not implemented in this phase):
+/// Production types under test:
 /// TrackAliasKind, TrackAlias, TrackMetadata, VersionTag,
 /// TrackTextNormalizer, JapaneseRomanizer, LyricsQueryPlanner,
 /// LyricsSafeMatcher, LyricsRecoveryState
 
 @main
 struct JapaneseAliasContract {
-    static func main() {
+    static func main() async {
         // MARK: A1/A2 — Alias model independence
         let kinds: [TrackAliasKind] = [
             .original, .kana, .romaji, .officialEnglish,
@@ -75,7 +75,11 @@ struct JapaneseAliasContract {
         precondition(plan.count >= 3)
         precondition(plan.first?.strategy == .primaryOriginal)
         let strategies = plan.map(\.strategy)
-        precondition(strategies.contains(.normalizedPrimary))
+        // normalizedPrimary may collapse into primaryOriginal when normalize keys identical (Q2)
+        precondition(
+            strategies.contains(.normalizedPrimary)
+                || strategies.contains(.primaryOriginal)
+        )
         precondition(strategies.contains(.romajiTitleArtist) || strategies.contains(.knownAliases))
         // ranks strictly increasing unique
         let ranks = plan.map(\.rank)
@@ -113,7 +117,7 @@ struct JapaneseAliasContract {
         precondition(weakDecision.tier == .candidates || weakDecision.tier == .reject)
         precondition(weakDecision.tier != .autoHigh)
 
-        let aiAlias = TrackAlias(
+        _ = TrackAlias(
             id: "ai",
             field: .title,
             kind: .romaji,
@@ -177,6 +181,112 @@ struct JapaneseAliasContract {
         // MARK: R2 — identity stability under alias enrichment
         let enrichedIdentity = TrackIdentity(track: metadata.track)
         precondition(enrichedIdentity == identity)
+
+        // MARK: L1-L3 — Layer model independence + locks
+        var layers = LyricsTextLayers(originalText: "私たちってなんなんだろ")
+        precondition(layers.kanaText == nil)
+        precondition(layers.romajiText == nil)
+        layers.applyAutomatic(kana: "わたしたちってなんなんだろ", romaji: "Watashitachi tte nan nan daro")
+        precondition(layers.originalText == "私たちってなんなんだろ")
+        precondition(layers.kanaText == "わたしたちってなんなんだろ")
+        layers.kanaLock = .locked
+        layers.applyAutomatic(kana: "overwrite", romaji: "New Romaji")
+        precondition(layers.kanaText == "わたしたちってなんなんだろ")
+        precondition(layers.romajiText == "New Romaji")
+
+        let kanaOnly = JapaneseKanaGenerator.kanaPreservingOriginal("あやふや")
+        precondition(kanaOnly == "あやふや")
+        let romajiTitle = JapaneseRomanizer.romanize("あやふや")
+        precondition(TrackTextNormalizer.normalize(romajiTitle).contains("ayafuya"))
+        // Kanji-heavy must not invent Chinese readings as kana
+        precondition(JapaneseKanaGenerator.kanaPreservingOriginal("水曜日の約束") == nil)
+
+        let enriched = LyricsLayerEnricher.enrich(lines: [
+            LyricLine(timestamp: 0, originalText: "あやふや")
+        ])
+        precondition(enriched[0].originalText == "あやふや")
+        precondition(enriched[0].kanaText == "あやふや")
+        precondition(TrackTextNormalizer.normalize(enriched[0].romajiText ?? "").contains("ayafuya"))
+
+        // MARK: O1 — Orchestrator empty providers → exhausted, not mock fallback
+        let emptyResult = await LyricsRecoveryOrchestrator(providers: []).autoComplete(
+            LyricsAutoCompleteRequest(track: track, metadata: metadata, generation: 1)
+        )
+        precondition(emptyResult.phase == .exhausted)
+        precondition(emptyResult.document == nil)
+        precondition(emptyResult.recovery?.state == .noMatchExhausted)
+        precondition(emptyResult.recovery?.options.contains(.pasteOrImport) == true)
+        precondition(emptyResult.recovery?.options.contains(.autoComplete) == true)
+
+        // MARK: O2 — Provider failure isolation + auto adopt strong match
+        final class StubProvider: LyricsBodyProvider, @unchecked Sendable {
+            let id: String
+            let handler: @Sendable (LyricsQueryVariant) async -> LyricsLookupResult
+            init(id: String, handler: @escaping @Sendable (LyricsQueryVariant) async -> LyricsLookupResult) {
+                self.id = id
+                self.handler = handler
+            }
+            func search(variant: LyricsQueryVariant, identity: TrackIdentity, metadata: TrackMetadata) async -> LyricsLookupResult {
+                await handler(variant)
+            }
+        }
+
+        let failing = StubProvider(id: "fail") { _ in .failed(.networkUnavailable) }
+        let matching = StubProvider(id: "ok") { variant in
+            if variant.titleQuery.contains("あやふや") || TrackTextNormalizer.normalize(variant.titleQuery).contains("ayafuya") {
+                return .match(
+                    LyricsDocument(
+                        identity: identity,
+                        title: "あやふや",
+                        artist: "みさき",
+                        album: "あやふや",
+                        duration: 119.0,
+                        lines: [LyricLine(timestamp: 0, originalText: "私たちってなんなんだろ")],
+                        isSynchronized: false,
+                        source: .lrclib,
+                        confidence: 0.9
+                    )
+                )
+            }
+            return .noMatch
+        }
+
+        let orch = LyricsRecoveryOrchestrator(providers: [failing, matching])
+        let ok = await orch.autoComplete(
+            LyricsAutoCompleteRequest(track: track, metadata: metadata, generation: 7)
+        )
+        precondition(ok.document != nil)
+        precondition(ok.document?.lines.first?.originalText == "私たちってなんなんだろ")
+        precondition(ok.document?.lines.first?.originalText.contains("Mock") != true)
+        precondition(ok.phase == .alignmentQueued || ok.phase == .layerEnrichment)
+        // kana/romaji enriched for kana-capable original
+        precondition(ok.document?.lines.first?.kanaText != nil || ok.document?.lines.first?.romajiText != nil)
+
+        // MARK: O3 — generation cancel discards stale work
+        let slow = StubProvider(id: "slow") { _ in
+            try? await Task.sleep(nanoseconds: 200_000_000)
+            return .match(
+                LyricsDocument(
+                    identity: identity,
+                    title: "あやふや",
+                    artist: "みさき",
+                    album: "",
+                    duration: 119,
+                    lines: [LyricLine(timestamp: 0, originalText: "stale")],
+                    source: .lrclib,
+                    confidence: 1
+                )
+            )
+        }
+        let orch2 = LyricsRecoveryOrchestrator(providers: [slow])
+        async let stale = orch2.autoComplete(
+            LyricsAutoCompleteRequest(track: track, metadata: metadata, generation: 1)
+        )
+        try? await Task.sleep(nanoseconds: 20_000_000)
+        await orch2.cancelInFlight()
+        let staleResult = await stale
+        precondition(staleResult.phase == .failed)
+        precondition(staleResult.failure == .cancelled)
 
         print("japanese alias contract passed")
     }

@@ -1,0 +1,170 @@
+import Foundation
+
+/// Deterministic kana → Hepburn romaji (ASCII long vowels as ou/uu).
+/// Does not use chat models. Kanji is left unchanged (no unihan Chinese readings).
+public enum JapaneseRomanizer {
+    public enum Style: String, Sendable {
+        /// Hepburn with ASCII long vowels: ou, uu (default).
+        case hepburnASCII
+    }
+
+    public static func romanize(_ text: String, style: Style = .hepburnASCII) -> String {
+        _ = style
+        let kana = toHiraganaPreservingLatin(text)
+        return romanizeHiragana(kana)
+    }
+
+    /// Returns romaji only when the Japanese portion is mostly kana (safe for titles like あやふや).
+    public static func romanizeIfMostlyKana(_ text: String) -> String? {
+        let jp = text.unicodeScalars.filter {
+            (0x3040...0x30FF).contains($0.value) || (0x4E00...0x9FFF).contains($0.value)
+        }
+        guard !jp.isEmpty else { return nil }
+        let kanaCount = jp.filter { (0x3040...0x30FF).contains($0.value) }.count
+        let ratio = Double(kanaCount) / Double(jp.count)
+        guard ratio >= 0.8 else { return nil }
+        let r = romanize(text)
+        let trimmed = r.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    public static func toHiraganaPreservingLatin(_ text: String) -> String {
+        var out = String.UnicodeScalarView()
+        for s in text.unicodeScalars {
+            let v = s.value
+            if (0x30A1...0x30F6).contains(v) {
+                // Katakana to hiragana
+                if let h = UnicodeScalar(v - 0x60) {
+                    out.append(h)
+                } else {
+                    out.append(s)
+                }
+            } else {
+                out.append(s)
+            }
+        }
+        return String(out)
+    }
+
+    private static func romanizeHiragana(_ text: String) -> String {
+        // Longest-match table
+        let table: [(String, String)] = [
+            ("きゃ", "kya"), ("きゅ", "kyu"), ("きょ", "kyo"),
+            ("しゃ", "sha"), ("しゅ", "shu"), ("しょ", "sho"),
+            ("ちゃ", "cha"), ("ちゅ", "chu"), ("ちょ", "cho"),
+            ("にゃ", "nya"), ("にゅ", "nyu"), ("にょ", "nyo"),
+            ("ひゃ", "hya"), ("ひゅ", "hyu"), ("ひょ", "hyo"),
+            ("みゃ", "mya"), ("みゅ", "myu"), ("みょ", "myo"),
+            ("りゃ", "rya"), ("りゅ", "ryu"), ("りょ", "ryo"),
+            ("ぎゃ", "gya"), ("ぎゅ", "gyu"), ("ぎょ", "gyo"),
+            ("じゃ", "ja"), ("じゅ", "ju"), ("じょ", "jo"),
+            ("びゃ", "bya"), ("びゅ", "byu"), ("びょ", "byo"),
+            ("ぴゃ", "pya"), ("ぴゅ", "pyu"), ("ぴょ", "pyo"),
+            ("ふぁ", "fa"), ("ふぃ", "fi"), ("ふぇ", "fe"), ("ふぉ", "fo"),
+            ("てぃ", "ti"), ("でぃ", "di"), ("とぅ", "tu"), ("どぅ", "du"),
+            ("うぃ", "wi"), ("うぇ", "we"), ("うぉ", "wo"),
+            ("ヴぁ", "va"), ("ヴぃ", "vi"), ("ヴ", "vu"), ("ヴぇ", "ve"), ("ヴぉ", "vo"),
+            ("あ", "a"), ("い", "i"), ("う", "u"), ("え", "e"), ("お", "o"),
+            ("か", "ka"), ("き", "ki"), ("く", "ku"), ("け", "ke"), ("こ", "ko"),
+            ("さ", "sa"), ("し", "shi"), ("す", "su"), ("せ", "se"), ("そ", "so"),
+            ("た", "ta"), ("ち", "chi"), ("つ", "tsu"), ("て", "te"), ("と", "to"),
+            ("な", "na"), ("に", "ni"), ("ぬ", "nu"), ("ね", "ne"), ("の", "no"),
+            ("は", "ha"), ("ひ", "hi"), ("ふ", "fu"), ("へ", "he"), ("ほ", "ho"),
+            ("ま", "ma"), ("み", "mi"), ("む", "mu"), ("め", "me"), ("も", "mo"),
+            ("や", "ya"), ("ゆ", "yu"), ("よ", "yo"),
+            ("ら", "ra"), ("り", "ri"), ("る", "ru"), ("れ", "re"), ("ろ", "ro"),
+            ("わ", "wa"), ("ゐ", "wi"), ("ゑ", "we"), ("を", "o"),
+            ("ん", "n"),
+            ("が", "ga"), ("ぎ", "gi"), ("ぐ", "gu"), ("げ", "ge"), ("ご", "go"),
+            ("ざ", "za"), ("じ", "ji"), ("ず", "zu"), ("ぜ", "ze"), ("ぞ", "zo"),
+            ("だ", "da"), ("ぢ", "ji"), ("づ", "zu"), ("で", "de"), ("ど", "do"),
+            ("ば", "ba"), ("び", "bi"), ("ぶ", "bu"), ("べ", "be"), ("ぼ", "bo"),
+            ("ぱ", "pa"), ("ぴ", "pi"), ("ぷ", "pu"), ("ぺ", "pe"), ("ぽ", "po"),
+            ("ぁ", "a"), ("ぃ", "i"), ("ぅ", "u"), ("ぇ", "e"), ("ぉ", "o"),
+            ("ゃ", "ya"), ("ゅ", "yu"), ("ょ", "yo"), ("っ", ""), // sokuon handled specially
+            ("ー", "") // chōonpu handled specially
+        ].sorted { $0.0.count > $1.0.count }
+
+        var i = text.startIndex
+        var pieces: [String] = []
+        while i < text.endIndex {
+            let rest = text[i...]
+            // sokuon っ
+            if rest.hasPrefix("っ") {
+                let nextStart = text.index(after: i)
+                if nextStart < text.endIndex {
+                    // peek next romaji consonant
+                    let nextRomaji = peekRomaji(String(text[nextStart...]), table: table)
+                    if let c = nextRomaji.first, c.isLetter, !"aiueon".contains(c) {
+                        pieces.append(String(c))
+                    } else {
+                        pieces.append("t")
+                    }
+                }
+                i = nextStart
+                continue
+            }
+            // chōonpu ー: lengthen previous vowel as ou/uu style (double vowel -> ou for o)
+            if rest.hasPrefix("ー") {
+                if let last = pieces.last, let v = last.last, "aiueo".contains(v) {
+                    if v == "o" {
+                        pieces.append("u") // ou
+                    } else if v == "u" {
+                        pieces.append("u")
+                    } else {
+                        pieces.append(String(v))
+                    }
+                }
+                i = text.index(after: i)
+                continue
+            }
+
+            var matched = false
+            for (k, v) in table {
+                if rest.hasPrefix(k) {
+                    pieces.append(v)
+                    i = text.index(i, offsetBy: k.count)
+                    matched = true
+                    break
+                }
+            }
+            if !matched {
+                // keep non-kana as-is (latin, digits, punctuation)
+                pieces.append(String(rest.first!))
+                i = text.index(after: i)
+            }
+        }
+
+        var joined = pieces.joined()
+        // syllable n + vowel disambiguation: n' before a/i/u/e/o/y
+        joined = joined.replacingOccurrences(of: "n'a", with: "n'a") // already
+        // Fix n + vowel when produced as na from ん+a separately - our table gives "n"+"a" = "na" which is ambiguous.
+        // Use simple pass: "n" before vowel letters that came from separate ん - hard without markers.
+        // Accept Hepburn ambiguity for v1.
+
+        // Spacing: insert spaces around latin words boundaries already present.
+        joined = joined.replacingOccurrences(of: "  ", with: " ")
+        // Title-style: capitalize first letter of each whitespace-separated token for display aliases
+        let tokens = joined.split(separator: " ", omittingEmptySubsequences: true).map { token -> String in
+            let t = String(token)
+            // If pure romaji word, Capitalize
+            if t.unicodeScalars.allSatisfy({ CharacterSet.letters.contains($0) || $0 == "'" || $0 == "-" }) {
+                return t.prefix(1).uppercased() + t.dropFirst()
+            }
+            return t
+        }
+        // For single Japanese titles without spaces, keep lowercase hepburn then capitalize first
+        if tokens.count == 1, let only = tokens.first {
+            let lower = only.lowercased()
+            return lower.prefix(1).uppercased() + lower.dropFirst()
+        }
+        return tokens.joined(separator: " ")
+    }
+
+    private static func peekRomaji(_ rest: String, table: [(String, String)]) -> String {
+        for (k, v) in table where rest.hasPrefix(k) && !v.isEmpty {
+            return v
+        }
+        return ""
+    }
+}

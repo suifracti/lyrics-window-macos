@@ -1,7 +1,7 @@
 // Shared/Models/Models.swift
 import Foundation
 
-public struct Track: Identifiable, Equatable, Hashable {
+public struct Track: Identifiable, Equatable, Hashable, Sendable {
     public let id: String
     public let title: String
     public let artist: String
@@ -38,7 +38,7 @@ public struct Track: Identifiable, Equatable, Hashable {
     }
 }
 
-public struct LyricLine: Identifiable, Equatable, Hashable {
+public struct LyricLine: Identifiable, Equatable, Hashable, Sendable {
     public let id: UUID
     public var timestamp: TimeInterval
     public var originalText: String
