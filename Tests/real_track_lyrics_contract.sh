@@ -21,7 +21,16 @@ done
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-swiftc "${SOURCES[@]}" -o "$TMP_DIR/lyrics-core-contract"
+cp "$ROOT_DIR/Tests/lyrics_core_test.swift" "$TMP_DIR/main.swift"
+COMPILE_SOURCES=(
+  "$ROOT_DIR/SpotifyLyrics/Models/Models.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/TrackIdentity.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsModels.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LRCParser.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsMatcher.swift"
+  "$TMP_DIR/main.swift"
+)
+swiftc "${COMPILE_SOURCES[@]}" -o "$TMP_DIR/lyrics-core-contract"
 "$TMP_DIR/lyrics-core-contract"
 
 required_sources=(

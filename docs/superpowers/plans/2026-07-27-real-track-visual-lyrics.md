@@ -32,9 +32,9 @@
 **Interfaces:**
 - The shell contract will compile the four pure Foundation files plus `Tests/lyrics_core_test.swift` and assert the expected identity/parser/matcher behaviors.
 
-- [ ] Write the failing test harness with assertions for primary identity precedence, metadata fallback stability, LRC timestamps/language optionals, and confidence thresholds.
-- [ ] Run `./Tests/real_track_lyrics_contract.sh` and confirm it fails because the production core files are missing.
-- [ ] Commit only the approved design and plan documents before implementation.
+- [x] Write the failing test harness with assertions for primary identity precedence, metadata fallback stability, LRC timestamps/language optionals, and confidence thresholds.
+- [x] Run `./Tests/real_track_lyrics_contract.sh` and confirm it fails because the production core files are missing.
+- [x] Commit only the approved design and plan documents before implementation.
 
 ### Task 2: Pure identity, lyric document, LRC parser, and matcher
 
@@ -53,12 +53,12 @@
 - `LRCParser.parse(_:, identity:, source:) -> LyricsDocument?`.
 - `LyricsMatcher.score(track: Track, candidate: LyricsCandidate) -> Double` and `isHighConfidence(_:)`.
 
-- [ ] Run the red contract and record its expected missing-symbol failure.
-- [ ] Implement normalization that folds case/width, removes punctuation/spacing, and rounds duration to whole seconds for the fallback fingerprint.
-- [ ] Implement identity lookup keys in priority order without making Track ID the only comparison value.
-- [ ] Implement LRC `[mm:ss.xx]` parsing, metadata tags, sorted lines, and nil optional translation/romaji/kana.
-- [ ] Implement weighted title/artist/album/duration matching with a high-confidence threshold of `0.84` and candidate threshold of `0.35`.
-- [ ] Run the contract and verify all core assertions pass.
+- [x] Run the red contract and record its expected missing-symbol failure.
+- [x] Implement normalization that folds case/width, removes punctuation/spacing, and rounds duration to whole seconds for the fallback fingerprint.
+- [x] Implement identity lookup keys in priority order without making Track ID the only comparison value.
+- [x] Implement LRC `[mm:ss.xx]` parsing, metadata tags, sorted lines, and nil optional translation/romaji/kana.
+- [x] Implement weighted title/artist/album/duration matching with a high-confidence threshold of `0.84` and candidate threshold of `0.35`.
+- [x] Run the core contract and verify all core assertions pass; full slice contract remains red until provider/UI files exist.
 
 ### Task 3: Read-only LocalLyricsProvider
 

@@ -368,3 +368,9 @@
 - 已获得用户对设计和本地歌词目录的确认。
 - `Tests/real_track_lyrics_contract.sh` 已先于生产核心文件运行，并按预期失败：`missing production/test source: SpotifyLyrics/Lyrics/TrackIdentity.swift`。
 - 下一步实现纯 Foundation identity、LRC parser、lyrics model 和 confidence matcher，再运行同一契约进入 green。
+
+### Phase 17: Core Green
+- **Status:** complete
+- Added `TrackIdentity`, `LyricsLoadState`/document/candidate models, LRC parser, and weighted matcher.
+- Core contract now prints `lyrics core contract passed`; the full slice contract remains intentionally red because provider/session/background files are not implemented yet.
+- One harness issue was corrected during this cycle: Swift top-level test code must be copied to `main.swift`, and the core model no longer depends directly on `MockData` so the Foundation test remains isolated.

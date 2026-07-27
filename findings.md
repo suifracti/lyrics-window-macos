@@ -238,3 +238,6 @@
 
 ### 2026-07-27 TDD red evidence
 - The new core contract intentionally fails before implementation because `SpotifyLyrics/Lyrics/TrackIdentity.swift` does not exist. This confirms the test is exercising the new slice rather than passing against existing code.
+
+### 2026-07-27 Core contract evidence
+- Pure Foundation identity/LRC/matcher assertions pass. The first compile attempt exposed a test-harness-only top-level-code issue and an unwanted `MockData` dependency; both were fixed before the green run. No production UI or provider behavior was used to satisfy the core test.
