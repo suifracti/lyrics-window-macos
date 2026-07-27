@@ -1,0 +1,2 @@
+POS check around acceptance: before secondary click attempt 99.179000854492|水曜日の約束
+Primary path was automatic trackChange begin (same as autoCompleteLyrics -> session.begin).

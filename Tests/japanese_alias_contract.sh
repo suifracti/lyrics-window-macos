@@ -15,7 +15,7 @@ required_prod=(
   "SpotifyLyrics/Lyrics/LyricsQueryPlanner.swift"
   "SpotifyLyrics/Lyrics/LyricsSafeMatcher.swift"
   "SpotifyLyrics/Lyrics/LyricsRecoveryModels.swift"
-  "SpotifyLyrics/Lyrics/LyricsRecoveryOrchestrator.swift"
+  "SpotifyLyrics/Lyrics/LyricsSearchManager.swift"
   "docs/superpowers/specs/2026-07-27-japanese-alias-lyrics-recovery-design.md"
   "docs/superpowers/specs/2026-07-27-one-button-lyrics-autocomplete-design.md"
 )
@@ -26,7 +26,7 @@ done
 
 rg -q 'TrackAliasKind|original|kana|romaji|officialEnglish' \
   docs/superpowers/specs/2026-07-27-japanese-alias-lyrics-recovery-design.md
-rg -q 'LyricsRecoveryOrchestrator|autoComplete|originalText|kanaText|romajiText' \
+rg -q 'LyricsSearchManager|autoComplete|originalText|kanaText|romajiText' \
   docs/superpowers/specs/2026-07-27-one-button-lyrics-autocomplete-design.md
 rg -q 'primaryOriginal|romajiTitleArtist|titleOnlyLoose' \
   docs/superpowers/specs/2026-07-27-japanese-alias-lyrics-recovery-design.md
@@ -51,7 +51,10 @@ SOURCES=(
   SpotifyLyrics/Lyrics/LyricsQueryPlanner.swift
   SpotifyLyrics/Lyrics/LyricsSafeMatcher.swift
   SpotifyLyrics/Lyrics/LyricsRecoveryModels.swift
-  SpotifyLyrics/Lyrics/LyricsRecoveryOrchestrator.swift
+  SpotifyLyrics/Lyrics/LyricsE2ELog.swift
+  SpotifyLyrics/Lyrics/LyricsSearchManager.swift
+  SpotifyLyrics/Lyrics/LRCParser.swift
+  SpotifyLyrics/Lyrics/LyricsMatcher.swift
   "$TMP_DIR/main.swift"
 )
 

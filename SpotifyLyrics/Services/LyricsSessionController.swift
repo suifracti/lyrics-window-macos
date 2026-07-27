@@ -9,40 +9,30 @@ public final class LyricsSessionController: ObservableObject {
     @Published public private(set) var activeIdentity: TrackIdentity?
     @Published public private(set) var revision: UInt64 = 0
 
-    private let provider: LyricsProvider
+    private let searchManager: LyricsSearchManager
     private var requestTask: Task<Void, Never>?
     private var automaticRecoveryRetryIdentity: TrackIdentity?
 
-    public init(provider: LyricsProvider) {
-        self.provider = provider
+    /// Primary production path: multi-variant LyricsSearchManager (not a dead Orchestrator).
+    public init(providers: [LyricsProvider], name: String = "LyricsSearchManager") {
+        self.searchManager = LyricsSearchManager(providers: providers, name: name)
+    }
+
+    /// Test/compat wrapper around a single composite provider.
+    public convenience init(provider: LyricsProvider) {
+        if let composite = provider as? CompositeLyricsProvider {
+            self.init(providers: composite.underlyingProviders, name: composite.name)
+        } else {
+            self.init(providers: [provider], name: provider.name)
+        }
     }
 
     deinit {
         requestTask?.cancel()
     }
 
-    /// One-button auto-complete entry used by playback identity changes and manual retry.
     public func autoComplete(track: Track, identity: TrackIdentity) {
         begin(track: track, identity: identity)
-    }
-
-    public func beginLoadingPlaceholder(identity: TrackIdentity, message: String = "") {
-        cancelCurrentRequest()
-        revision &+= 1
-        activeIdentity = identity
-        lyrics = []
-        isSynchronized = true
-        state = .loading(identity)
-        _ = message
-    }
-
-    public func fail(identity: TrackIdentity, failure: LyricsFailure) {
-        guard activeIdentity == identity else { return }
-        cancelCurrentRequest()
-        revision &+= 1
-        lyrics = []
-        isSynchronized = true
-        state = .failed(identity, failure)
     }
 
     public func begin(track: Track, identity: TrackIdentity) {
@@ -57,24 +47,50 @@ public final class LyricsSessionController: ObservableObject {
         isSynchronized = true
         state = .loading(identity)
 
-        requestTask = Task { [weak self, provider] in
-            let result = await provider.lookup(track: track, identity: identity)
-            guard !Task.isCancelled else { return }
-            self?.apply(
-                result,
-                identity: identity,
-                requestRevision: requestRevision
-            )
+        LyricsE2ELog.log(
+            "SESSION begin rev=\(requestRevision) identity=\(identity.stableKey) title=\(track.title) artist=\(track.artist) duration=\(track.duration) spotifyId=\(track.spotifyId ?? "")"
+        )
+
+        requestTask = Task { [weak self, searchManager] in
+            let outcome = await searchManager.search(track: track, identity: identity)
+            guard !Task.isCancelled else {
+                LyricsE2ELog.log("SESSION cancelled before apply rev=\(requestRevision)")
+                return
+            }
+            LyricsE2ELog.log("SESSION search finished rev=\(requestRevision) result=\(Self.describe(outcome.result)) diag=\(outcome.diagnostics.count)")
+            for d in outcome.diagnostics {
+                LyricsE2ELog.log("  DIAG \(d.provider) \(Self.describeDiag(d.outcome)) \(String(format: "%.2f", d.duration))s")
+            }
+            await MainActor.run {
+                self?.apply(outcome.result, identity: identity, requestRevision: requestRevision)
+            }
         }
+    }
+
+    public func beginLoadingPlaceholder(identity: TrackIdentity, message: String = "") {
+        cancelCurrentRequest()
+        revision &+= 1
+        activeIdentity = identity
+        lyrics = []
+        isSynchronized = true
+        state = .loading(identity)
+        LyricsE2ELog.log("SESSION placeholder identity=\(identity.stableKey) msg=\(message)")
+    }
+
+    public func fail(identity: TrackIdentity, failure: LyricsFailure) {
+        guard activeIdentity == identity else { return }
+        cancelCurrentRequest()
+        revision &+= 1
+        lyrics = []
+        isSynchronized = true
+        state = .failed(identity, failure)
+        LyricsE2ELog.log("SESSION fail identity=\(identity.stableKey) \(failure)")
     }
 
     public func retry(track: Track, identity: TrackIdentity) {
         autoComplete(track: track, identity: identity)
     }
 
-    /// Performs at most one automatic retry for a network failure belonging
-    /// to the active Track identity. Manual retry remains available through
-    /// `retry(track:identity:)` and does not alter playback state.
     @discardableResult
     public func retryAfterNetworkRecovery(track: Track, identity: TrackIdentity) -> Bool {
         guard activeIdentity == identity,
@@ -83,7 +99,6 @@ public final class LyricsSessionController: ObservableObject {
               automaticRecoveryRetryIdentity != identity else {
             return false
         }
-
         automaticRecoveryRetryIdentity = identity
         begin(track: track, identity: identity)
         return true
@@ -97,6 +112,7 @@ public final class LyricsSessionController: ObservableObject {
         lyrics = []
         isSynchronized = true
         state = .idle
+        LyricsE2ELog.log("SESSION clear")
     }
 
     public func enterMockPreview(lines: [LyricLine]) {
@@ -107,16 +123,19 @@ public final class LyricsSessionController: ObservableObject {
         lyrics = lines
         isSynchronized = true
         state = .mockPreview
+        LyricsE2ELog.log("SESSION mockPreview lines=\(lines.count)")
     }
 
     public func adopt(candidate: LyricsCandidate) {
-        guard activeIdentity == candidate.identity else { return }
+        guard activeIdentity == candidate.identity else {
+            LyricsE2ELog.log("SESSION adopt candidate REJECT identity mismatch")
+            return
+        }
         guard !candidate.lines.isEmpty else {
             lyrics = []
             state = .noLyrics(candidate.identity)
             return
         }
-
         let document = LyricsDocument(
             identity: candidate.identity,
             title: candidate.title,
@@ -131,10 +150,11 @@ public final class LyricsSessionController: ObservableObject {
         applyLoadedDocument(document, identity: candidate.identity)
     }
 
-    /// Applies a selected search result only when its identity has already
-    /// been remapped to the active playback identity by the caller.
     public func adopt(document: LyricsDocument) {
-        guard activeIdentity == document.identity else { return }
+        guard activeIdentity == document.identity else {
+            LyricsE2ELog.log("SESSION adopt document REJECT identity mismatch")
+            return
+        }
         cancelCurrentRequest()
         revision &+= 1
         applyLoadedDocument(document, identity: document.identity)
@@ -157,11 +177,14 @@ public final class LyricsSessionController: ObservableObject {
         isSynchronized = enriched.isSynchronized
         if enriched.lines.isEmpty {
             state = .noLyrics(identity)
+            LyricsE2ELog.log("SESSION apply empty -> noLyrics source=\(enriched.source)")
         } else if enriched.isSynchronized {
             state = .loaded(enriched)
+            LyricsE2ELog.log("SESSION apply loaded source=\(enriched.source) lines=\(enriched.lines.count) first=\(enriched.lines.first?.originalText ?? "")")
         } else {
-            // Do not fake timeline sync for plain text.
+            // Plain text: show full lyrics, never fake synced scrolling.
             state = .alignmentQueued(identity, enriched)
+            LyricsE2ELog.log("SESSION apply alignmentQueued source=\(enriched.source) lines=\(enriched.lines.count) first=\(enriched.lines.first?.originalText ?? "")")
         }
     }
 
@@ -170,13 +193,17 @@ public final class LyricsSessionController: ObservableObject {
         identity: TrackIdentity,
         requestRevision: UInt64
     ) {
-        guard activeIdentity == identity, revision == requestRevision else { return }
+        guard activeIdentity == identity, revision == requestRevision else {
+            LyricsE2ELog.log("SESSION drop stale result rev=\(requestRevision) current=\(revision)")
+            return
+        }
 
         switch result {
         case .match(let document):
             guard document.identity == identity else {
                 lyrics = []
                 state = .failed(identity, .unknown("歌词身份与当前歌曲不一致"))
+                LyricsE2ELog.log("SESSION match identity mismatch")
                 return
             }
             applyLoadedDocument(document, identity: identity)
@@ -184,23 +211,47 @@ public final class LyricsSessionController: ObservableObject {
             lyrics = []
             isSynchronized = true
             state = .candidates(identity, candidates)
+            LyricsE2ELog.log("SESSION candidates count=\(candidates.count)")
         case .noLyrics:
             lyrics = []
             isSynchronized = true
             state = .noLyrics(identity)
+            LyricsE2ELog.log("SESSION noLyrics")
         case .noMatch:
             lyrics = []
             isSynchronized = true
             state = .noMatch(identity)
+            LyricsE2ELog.log("SESSION noMatch")
         case .failed(let failure):
             lyrics = []
             isSynchronized = true
             state = .failed(identity, failure)
+            LyricsE2ELog.log("SESSION failed \(failure)")
         }
     }
 
     private func cancelCurrentRequest() {
         requestTask?.cancel()
         requestTask = nil
+    }
+
+    private static func describe(_ result: LyricsLookupResult) -> String {
+        switch result {
+        case .match(let d): return "match(\(d.source),lines=\(d.lines.count),sync=\(d.isSynchronized))"
+        case .candidates(let c): return "candidates(\(c.count))"
+        case .noLyrics: return "noLyrics"
+        case .noMatch: return "noMatch"
+        case .failed(let f): return "failed(\(f))"
+        }
+    }
+
+    private static func describeDiag(_ o: LyricsProviderDiagnostic.Outcome) -> String {
+        switch o {
+        case .match: return "match"
+        case .candidates(let n): return "candidates(\(n))"
+        case .noLyrics: return "noLyrics"
+        case .noMatch: return "noMatch"
+        case .failed(let f): return "failed(\(f))"
+        }
     }
 }

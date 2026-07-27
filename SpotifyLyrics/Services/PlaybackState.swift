@@ -52,11 +52,15 @@ public final class PlaybackState: ObservableObject {
         let resolvedProvider = provider ?? SpotifyDesktopProvider()
         self.provider = resolvedProvider
         let sharedIndex = LocalLyricsIndex.shared
-        self.lyricsSession = LyricsSessionController(
-            provider: lyricsProvider ?? CompositeLyricsProvider(
-                providers: Self.makeDefaultLyricsProviders(index: sharedIndex)
-            )
-        )
+        let lyricsProviders: [LyricsProvider]
+        if let lyricsProvider {
+            lyricsProviders = [lyricsProvider]
+        } else {
+            lyricsProviders = Self.makeDefaultLyricsProviders(index: sharedIndex)
+        }
+        LyricsE2ELog.reset()
+        LyricsE2ELog.log("PlaybackState init providers=" + lyricsProviders.map { $0.name }.joined(separator: ","))
+        self.lyricsSession = LyricsSessionController(providers: lyricsProviders)
         // Track search is metadata-only: local index + current Spotify track.
         // LRCLIB stays isolated inside the lyrics session path.
         self.songSearchManager = SongSearchManager(providers: [
@@ -252,7 +256,10 @@ public final class PlaybackState: ObservableObject {
     /// Product default: one-button lyrics auto-complete for the live TrackIdentity.
     public func autoCompleteLyrics() {
         guard hasLiveTrack, let identity = currentTrackIdentity else { return }
+        LyricsE2ELog.log("UI autoCompleteLyrics identity=\(identity.stableKey) title=\(currentTrack.title) pos=\(currentTime)")
+        let posBefore = currentTime
         lyricsSession.autoComplete(track: currentTrack, identity: identity)
+        LyricsE2ELog.log("UI autoCompleteLyrics dispatched posBefore=\(posBefore) (must not seek)")
     }
 
     /// noTextSource fallback: pick a local audio file and build an ASR lyrics draft.
@@ -439,6 +446,7 @@ public final class PlaybackState: ObservableObject {
             isMockPreviewMode = false
             currentTrack = nextTrack
             songSearchSelectionMessage = ""
+            LyricsE2ELog.log("Playback trackChange identity=\(nextIdentity.stableKey) title=\(nextTrack.title) artist=\(nextTrack.artist) duration=\(nextTrack.duration)")
             lyricsSession.begin(track: nextTrack, identity: nextIdentity)
         } else if currentTrack != nextTrack {
             // Metadata/artwork may change without a lyric identity change. The

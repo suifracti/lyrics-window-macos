@@ -1,0 +1,101 @@
+{
+  "水曜日の約束 / Kawasaki.Rio": {
+    "lrclib": {
+      "ok": false,
+      "code": 200,
+      "n": 0,
+      "bodyish": 0,
+      "syncedish": 0
+    },
+    "netease": {
+      "ok": false,
+      "code": 200,
+      "song_id": 2695572249,
+      "name": "水曜日の約束",
+      "artists": [
+        "Kawasaki.Rio"
+      ],
+      "lyric_len": 0,
+      "timed": false
+    },
+    "qq": {
+      "ok": true,
+      "code": 200,
+      "songmid": "004YkjHH0g5pRt",
+      "name": "水曜日の約束",
+      "artists": [
+        "Kawasaki.Rio"
+      ],
+      "retcode": 0,
+      "lyric_len": 395,
+      "lines": 32,
+      "preview": "「これでおわり」って言われた夜\nでもまだ　ほどけない心\n言えなかった言葉だけ\n喉の奥つっかえたまま\n\nちがう日々　選んだのに\n街で君の気配　探す\n前に進みたいだ"
+    }
+  },
+  "Lemon / 米津玄師": {
+    "lrclib": {
+      "ok": true,
+      "code": 200,
+      "n": 20,
+      "bodyish": 10,
+      "syncedish": 10
+    },
+    "netease": {
+      "ok": true,
+      "code": 200,
+      "song_id": 536622304,
+      "name": "Lemon",
+      "artists": [
+        "米津玄師"
+      ],
+      "lyric_len": 1122,
+      "timed": true
+    },
+    "qq": {
+      "ok": true,
+      "code": 200,
+      "songmid": "000akynZ2Rbro5",
+      "name": "Lemon",
+      "artists": [
+        "米津玄師 (よねづ けんし)"
+      ],
+      "retcode": 0,
+      "lyric_len": 1614,
+      "lines": 63,
+      "preview": "[ti:Lemon (《Unnatural》日剧主题曲)]\n[ar:米津玄師 (よねづ けんし)]\n[al:Lemon (柠檬)]\n[by:]\n[offset:"
+    }
+  },
+  "あやふや / みさき": {
+    "lrclib": {
+      "ok": false,
+      "code": 200,
+      "n": 0,
+      "bodyish": 0,
+      "syncedish": 0
+    },
+    "netease": {
+      "ok": false,
+      "code": 200,
+      "song_id": 2717111195,
+      "name": "あやふや",
+      "artists": [
+        "みさき"
+      ],
+      "lyric_len": 0,
+      "timed": false
+    },
+    "qq": {
+      "ok": false,
+      "code": 200,
+      "songmid": "004g1Q9f3pPenU",
+      "name": "あやふや",
+      "artists": [
+        "みさき"
+      ],
+      "retcode": -1901,
+      "lyric_len": 0,
+      "lines": 0,
+      "preview": ""
+    }
+  }
+}

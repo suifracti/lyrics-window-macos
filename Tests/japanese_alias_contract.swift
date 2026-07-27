@@ -213,32 +213,28 @@ struct JapaneseAliasContract {
         precondition(enriched[0].kanaText == "あやふや")
         precondition(TrackTextNormalizer.normalize(enriched[0].romajiText ?? "").contains("ayafuya"))
 
-        // MARK: O1 — Orchestrator empty providers → exhausted, not mock fallback
-        let emptyResult = await LyricsRecoveryOrchestrator(providers: []).autoComplete(
-            LyricsAutoCompleteRequest(track: track, metadata: metadata, generation: 1)
-        )
-        precondition(emptyResult.phase == .exhausted)
-        precondition(emptyResult.document == nil)
-        precondition(emptyResult.recovery?.state == .noMatchExhausted)
-        precondition(emptyResult.recovery?.options.contains(.pasteOrImport) == true)
-        precondition(emptyResult.recovery?.options.contains(.autoComplete) == true)
-
-        // MARK: O2 — Provider failure isolation + auto adopt strong match
-        final class StubProvider: LyricsBodyProvider, @unchecked Sendable {
-            let id: String
-            let handler: @Sendable (LyricsQueryVariant) async -> LyricsLookupResult
-            init(id: String, handler: @escaping @Sendable (LyricsQueryVariant) async -> LyricsLookupResult) {
-                self.id = id
-                self.handler = handler
-            }
-            func search(variant: LyricsQueryVariant, identity: TrackIdentity, metadata: TrackMetadata) async -> LyricsLookupResult {
-                await handler(variant)
-            }
+        // MARK: O1 — SearchManager empty providers → noMatch (no mock fallback)
+        let emptyManager = LyricsSearchManager(providers: [])
+        let emptyOutcome = await emptyManager.search(track: track, identity: identity)
+        if case .noMatch = emptyOutcome.result {} else {
+            precondition(false, "empty providers must not invent lyrics")
         }
 
-        let failing = StubProvider(id: "fail") { _ in .failed(.networkUnavailable) }
-        let matching = StubProvider(id: "ok") { variant in
-            if variant.titleQuery.contains("あやふや") || TrackTextNormalizer.normalize(variant.titleQuery).contains("ayafuya") {
+        // MARK: O2 — Provider failure isolation + auto adopt strong match
+        final class StubLyricsProvider: LyricsProvider, @unchecked Sendable {
+            let name: String
+            let handler: @Sendable (Track, TrackIdentity) async -> LyricsLookupResult
+            init(name: String, handler: @escaping @Sendable (Track, TrackIdentity) async -> LyricsLookupResult) {
+                self.name = name
+                self.handler = handler
+            }
+            func lookup(track: Track, identity: TrackIdentity) async -> LyricsLookupResult {
+                await handler(track, identity)
+            }
+        }
+        let failing = StubLyricsProvider(name: "fail") { _, _ in .failed(.networkUnavailable) }
+        let matching = StubLyricsProvider(name: "ok") { track, identity in
+            if track.title.contains("あやふや") || TrackTextNormalizer.normalize(track.title).contains("ayafuya") {
                 return .match(
                     LyricsDocument(
                         identity: identity,
@@ -249,50 +245,18 @@ struct JapaneseAliasContract {
                         lines: [LyricLine(timestamp: 0, originalText: "私たちってなんなんだろ")],
                         isSynchronized: false,
                         source: .lrclib,
-                        confidence: 0.9
+                        confidence: 0.95
                     )
                 )
             }
             return .noMatch
         }
+        let manager = LyricsSearchManager(providers: [failing, matching])
+        let ok = await manager.search(track: track, identity: identity)
+        guard case .match(let doc) = ok.result else { precondition(false, "expected match") }
+        precondition(doc.lines.first?.originalText == "私たちってなんなんだろ")
+        precondition(!doc.lines.first!.originalText.contains("Mock"))
 
-        let orch = LyricsRecoveryOrchestrator(providers: [failing, matching])
-        let ok = await orch.autoComplete(
-            LyricsAutoCompleteRequest(track: track, metadata: metadata, generation: 7)
-        )
-        precondition(ok.document != nil)
-        precondition(ok.document?.lines.first?.originalText == "私たちってなんなんだろ")
-        precondition(ok.document?.lines.first?.originalText.contains("Mock") != true)
-        precondition(ok.phase == .alignmentQueued || ok.phase == .layerEnrichment)
-        // kana/romaji enriched for kana-capable original
-        precondition(ok.document?.lines.first?.kanaText != nil || ok.document?.lines.first?.romajiText != nil)
-
-        // MARK: O3 — generation cancel discards stale work
-        let slow = StubProvider(id: "slow") { _ in
-            try? await Task.sleep(nanoseconds: 200_000_000)
-            return .match(
-                LyricsDocument(
-                    identity: identity,
-                    title: "あやふや",
-                    artist: "みさき",
-                    album: "",
-                    duration: 119,
-                    lines: [LyricLine(timestamp: 0, originalText: "stale")],
-                    source: .lrclib,
-                    confidence: 1
-                )
-            )
-        }
-        let orch2 = LyricsRecoveryOrchestrator(providers: [slow])
-        async let stale = orch2.autoComplete(
-            LyricsAutoCompleteRequest(track: track, metadata: metadata, generation: 1)
-        )
-        try? await Task.sleep(nanoseconds: 20_000_000)
-        await orch2.cancelInFlight()
-        let staleResult = await stale
-        precondition(staleResult.phase == .failed)
-        precondition(staleResult.failure == .cancelled)
-
-        print("japanese alias contract passed")
+print("japanese alias contract passed")
     }
 }

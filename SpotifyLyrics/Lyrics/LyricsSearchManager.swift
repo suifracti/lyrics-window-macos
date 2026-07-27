@@ -30,6 +30,7 @@ public final class LyricsSearchManager: @unchecked Sendable {
             versionTags: metadata.versionTags
         )
         let variants = LyricsQueryPlanner.plan(for: meta)
+        LyricsE2ELog.log("MANAGER start title=\(track.title) artist=\(track.artist) variants=\(variants.count) providers=\(providers.map { $0.name })")
         var diagnostics: [LyricsProviderDiagnostic] = []
         var acceptedCandidates: [LyricsCandidate] = []
         var sawNoLyrics = false
@@ -108,6 +109,7 @@ public final class LyricsSearchManager: @unchecked Sendable {
 
                     if decision.tier == .autoHigh || decision.tier == .autoMedium {
                         let enriched = Self.finalizeDocument(document, identity: identity)
+                        LyricsE2ELog.log("MANAGER AUTO_ADOPT provider=\(provider.name) strategy=\(variant.strategy.rawValue) tier=\(decision.tier) score=\(decision.score) lines=\(enriched.lines.count) sync=\(enriched.isSynchronized) first=\(enriched.lines.first?.originalText ?? "")")
                         return SearchOutcome(result: .match(enriched), diagnostics: diagnostics)
                     }
                     if decision.tier == .candidates {
@@ -142,6 +144,7 @@ public final class LyricsSearchManager: @unchecked Sendable {
                                 confidence: item.confidence
                             )
                             let enriched = Self.finalizeDocument(document, identity: identity)
+                            LyricsE2ELog.log("MANAGER AUTO_ADOPT from-candidates provider=\(provider.name) strategy=\(variant.strategy.rawValue) tier=\(decision.tier) lines=\(enriched.lines.count) first=\(enriched.lines.first?.originalText ?? "")")
                             return SearchOutcome(result: .match(enriched), diagnostics: diagnostics)
                         }
                         if decision.tier == .candidates {

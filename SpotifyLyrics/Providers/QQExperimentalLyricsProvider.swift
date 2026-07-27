@@ -70,10 +70,17 @@ public final class QQExperimentalLyricsProvider: LyricsProvider, @unchecked Send
                 )
             }
 
-            if candidates.isEmpty { return .noMatch }
+            if candidates.isEmpty {
+                LyricsE2ELog.log("QQ no body candidates for title=\(track.title) artist=\(track.artist)")
+                return .noMatch
+            }
             let sorted = candidates.sorted { $0.confidence > $1.confidence }
+            if let best = sorted.first {
+                LyricsE2ELog.log("QQ best mid-candidate title=\(best.title) artist=\(best.artist) conf=\(best.confidence) lines=\(best.lines.count) sync=\(best.isSynchronized)")
+            }
             if let best = sorted.first, best.confidence >= 0.75,
                sorted.dropFirst().first.map({ best.confidence - $0.confidence >= 0.05 }) ?? true {
+                LyricsE2ELog.log("QQ MATCH lines=\(best.lines.count) conf=\(best.confidence) first=\(best.lines.first?.originalText ?? "")")
                 return .match(
                     LyricsDocument(
                         identity: identity,

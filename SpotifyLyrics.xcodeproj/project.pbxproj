@@ -61,11 +61,11 @@
 		110000352D83400100000001 /* LyricsQueryPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000352D83400100000000 /* LyricsQueryPlanner.swift */; };
 		110000362D83400100000001 /* LyricsSafeMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000362D83400100000000 /* LyricsSafeMatcher.swift */; };
 		110000372D83400100000001 /* LyricsRecoveryModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000372D83400100000000 /* LyricsRecoveryModels.swift */; };
-		110000382D83400100000001 /* LyricsRecoveryOrchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000382D83400100000000 /* LyricsRecoveryOrchestrator.swift */; };
 		110000402D83400100000001 /* japanese_kanji_readings.json in Resources */ = {isa = PBXBuildFile; fileRef = 110000402D83400100000000 /* japanese_kanji_readings.json */; };
 		110000432D83400100000001 /* NetEaseExperimentalLyricsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000432D83400100000000 /* NetEaseExperimentalLyricsProvider.swift */; };
 		110000442D83400100000001 /* QQExperimentalLyricsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000442D83400100000000 /* QQExperimentalLyricsProvider.swift */; };
 		110000452D83400100000001 /* LocalAudioASRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000452D83400100000000 /* LocalAudioASRService.swift */; };
+		110000462D83400100000001 /* LyricsE2ELog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000462D83400100000000 /* LyricsE2ELog.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -125,11 +125,11 @@
 		110000352D83400100000000 /* LyricsQueryPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsQueryPlanner.swift; sourceTree = "<group>"; };
 		110000362D83400100000000 /* LyricsSafeMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsSafeMatcher.swift; sourceTree = "<group>"; };
 		110000372D83400100000000 /* LyricsRecoveryModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsRecoveryModels.swift; sourceTree = "<group>"; };
-		110000382D83400100000000 /* LyricsRecoveryOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsRecoveryOrchestrator.swift; sourceTree = "<group>"; };
 		110000402D83400100000000 /* japanese_kanji_readings.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = japanese_kanji_readings.json; sourceTree = "<group>"; };
 		110000432D83400100000000 /* NetEaseExperimentalLyricsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetEaseExperimentalLyricsProvider.swift; sourceTree = "<group>"; };
 		110000442D83400100000000 /* QQExperimentalLyricsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QQExperimentalLyricsProvider.swift; sourceTree = "<group>"; };
 		110000452D83400100000000 /* LocalAudioASRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAudioASRService.swift; sourceTree = "<group>"; };
+		110000462D83400100000000 /* LyricsE2ELog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsE2ELog.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -232,6 +232,7 @@
 				110000172D83400100000000 /* LRCLIBLyricsProvider.swift */,
 				110000182D83400100000000 /* CompositeLyricsProvider.swift */,
 				1100002F2D83400100000000 /* LyricsSearchManager.swift */,
+				110000462D83400100000000 /* LyricsE2ELog.swift */,
 				110000302D83400100000000 /* TrackAlias.swift */,
 				110000312D83400100000000 /* TrackMetadata.swift */,
 				110000322D83400100000000 /* TrackTextNormalizer.swift */,
@@ -240,7 +241,6 @@
 				110000352D83400100000000 /* LyricsQueryPlanner.swift */,
 				110000362D83400100000000 /* LyricsSafeMatcher.swift */,
 				110000372D83400100000000 /* LyricsRecoveryModels.swift */,
-				110000382D83400100000000 /* LyricsRecoveryOrchestrator.swift */,
 				110000452D83400100000000 /* LocalAudioASRService.swift */,
 			);
 			path = Lyrics;
@@ -382,6 +382,7 @@
 				1100002D2D83400100000001 /* TrackSearchManager.swift in Sources */,
 				1100002E2D83400100000001 /* CurrentTrackResolver.swift in Sources */,
 				1100002F2D83400100000001 /* LyricsSearchManager.swift in Sources */,
+				110000462D83400100000001 /* LyricsE2ELog.swift in Sources */,
 				110000432D83400100000001 /* NetEaseExperimentalLyricsProvider.swift in Sources */,
 				110000452D83400100000001 /* LocalAudioASRService.swift in Sources */,
 				110000442D83400100000001 /* QQExperimentalLyricsProvider.swift in Sources */,
@@ -393,7 +394,6 @@
 				110000352D83400100000001 /* LyricsQueryPlanner.swift in Sources */,
 				110000362D83400100000001 /* LyricsSafeMatcher.swift in Sources */,
 				110000372D83400100000001 /* LyricsRecoveryModels.swift in Sources */,
-				110000382D83400100000001 /* LyricsRecoveryOrchestrator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
