@@ -7,10 +7,10 @@ struct SpotifyLyricsApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MainWindowView()
+            MainLyricsWindowView()
                 .environmentObject(playbackState)
-                .frame(minWidth: 800, minHeight: 500)
         }
+        .defaultSize(width: 1040, height: 680)
         .windowStyle(.titleBar)
         .windowToolbarStyle(.unified)
     }

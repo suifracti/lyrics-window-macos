@@ -215,3 +215,99 @@
 |---|---|
 | 同名旧手工进程导致首次截图身份不够明确 | 通过应用菜单退出旧进程；重新启动 DerivedData 并用 `ps` 验证可执行文件绝对路径 |
 | Dynamic Lyrics 二次 `get_app_state` 超时 | 不重复操作；保留既有黑盒截图/WindowServer 记录，明确胶囊展开态未验证 |
+
+## Session: 2026-07-26 — UI Redesign Phase 1
+
+### Phase 1: Audit Commit and Branch
+- **Status:** complete
+- 审计资产总大小：`808K`。
+- `ui-reference-audit-assets/` 共 12 个文件，`file` 均识别为 PNG/JPEG 观察截图；没有 `.app`、framework、bundle、Assets.car、字体、dylib、压缩包或其他提取资源。
+- 已提交 `05ad34564d069ad8d95dfce8d75c0eb162ada920 Add verified UI reference audit`。
+- 已从该提交创建并切换到 `ui-redesign-phase-1`。
+
+### Phase 2: TDD Red Contract
+- **Status:** complete
+- 新增 `Tests/phase1_ui_contract.sh`，在任何生产 Swift 修改前运行。
+- 失败证据：`missing required phase-1 file: SpotifyLyrics/Views/MainWindow/MainLyricsWindowView.swift`。
+
+### Phase 3: Main Window Components
+- **Status:** in_progress
+- 计划只修改 `Main.swift`、旧主窗口定义的承载文件和 Xcode 文件引用；新增六个主窗口组件/设计 token 文件。
+- `MockData.swift`、`PlaybackState.swift`、`WindowManager.swift` 及悬浮/胶囊/全屏实现保持不动。
+
+### Phase 3: Component Build Checkpoint
+- **Status:** complete
+- 已新增六个主窗口组件/设计 token 文件，并将其加入 `SpotifyLyrics` Target。
+- 已从 `LyricsViews.swift` 移除旧 `MainWindowView`/`NavigationSplitView`，保留 `LineDisplayView` 及悬浮、胶囊、全屏视图。
+- 第一次组件构建命令返回 `0`，输出 `** BUILD SUCCEEDED **`。
+- 阶段 1 合约测试由红转绿：`phase-1 UI contract passed`。
+
+### Phase 5: Initial Runtime Check
+- **Status:** in_progress
+- DerivedData app 实际启动，WindowServer 主窗口默认帧为约 `1040×680`；已保存 `ui-redesign-assets/phase1-main-default.png`。
+- 通过拖拽调整到最小约 `761×552` 外框（对应内容最小 `760×520` 约束）；已保存 `ui-redesign-assets/phase1-main-minimum.png`。
+- 播放按钮由“播放”变为“暂停”，时间从 `00:00` 推进到 `00:15`，再次点击恢复暂停。
+- AX 树确认设置 popover；逐一关闭/恢复原文、翻译、罗马音、假名开关时，歌词文本随层级消失/恢复，没有常驻 checkbox 面板。
+
+### Build Error Log
+- 第一次最终构建命令的 shell 包装误用了 zsh 保留变量 `status`，导致包装命令返回 1；日志本身已经包含 `** BUILD SUCCEEDED **`。
+- 立即改用 `build_exit` 重新执行同一用户指定命令，返回码 `0`，日志结尾为 `** BUILD SUCCEEDED **`。
+
+### Phase 4: Final Build and Runtime Evidence
+- **Status:** complete
+- 最终命令按用户指定重新执行并返回 `0`：
+  `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project SpotifyLyrics.xcodeproj -scheme SpotifyLyrics -configuration Debug -derivedDataPath ./DerivedData CODE_SIGNING_ALLOWED=NO build`
+- `/tmp/spotifylyrics-phase1-build.log` 结尾包含 `** BUILD SUCCEEDED **`；真实产物为 `/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app`。
+- `git diff -- SpotifyLyrics/Services/MockData.swift SpotifyLyrics/Services/PlaybackState.swift SpotifyLyrics/Windows/WindowManager.swift` 为空，数据含义和辅助窗口实现未改动。
+
+### Phase 5: Final Runtime Screenshots
+- **Status:** complete
+- 启动进程路径已确认：`/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics`。
+- 默认窗口配置为 `1040×680`；WindowServer 实际内容窗口约 `1038×680`（系统标题栏外框为 `1038×680`）。
+- 拖动右下角验证最小约束：内容约 `760×520`，含标题栏外框约 `760×552`；恢复默认尺寸后继续保留应用供复核。
+- 已实际点击播放/暂停并观察 Mock 进度从 `00:00` 推进到约 `00:15`，暂停后保持时间；歌词当前行随 Mock 时间切换。
+- 设置 popover 已实际打开；原文、翻译、罗马音、假名开关逐一关闭/恢复，AX 歌词文本随层级消失/恢复且无空白占位。
+- 最终截图已覆盖保存：
+  - `ui-redesign-assets/phase1-main-default.png`（默认态）
+  - `ui-redesign-assets/phase1-main-minimum.png`（最小态）
+- 最终截图资产目录仅含上述两张 PNG，总大小约 `1.3M`；默认截图为 `1150×792`，最小截图为 `872×664`（含屏幕空白区域）。
+- 最终构建后重新启动并再次验证播放/暂停、时间推进、四个语言开关和 popover；验证结束后应用保持在默认尺寸、暂停状态供查看。
+
+### Phase 6: Handoff
+- **Status:** waiting for visual confirmation
+- 本轮实现没有提交 commit；当前分支保留工作区改动和截图，等待用户查看视觉方向。
+
+## Session: 2026-07-27 — Main Window Refinement
+
+### Phase 7: Refinement Contract
+- **Status:** red observed
+- 用户确认主窗口方向并提出五项必须修正：Mock 专辑封面、上一首/播放/下一首、宽窗口动态布局、较轻的非当前歌词 blur、明确窗口模式入口。
+- 扩展 `Tests/phase1_ui_contract.sh` 后先运行，按预期在缺少 `TrackArtworkView` 时退出 `1`；生产 Swift 尚未因本轮 refinement 修改。
+- 另外三种显示模式、Provider、SQLite、Spotify、AI 和自动排轴保持在本轮范围外。
+
+### Phase 8: Main Window Refinement
+- **Status:** complete
+- `TrackHeaderView` 现在使用独立生成的 Mock 封面卡片（渐变、图形符号和专辑文字），并在主画布右侧加入低透明度、强弱化的背景封面层；没有读取或复制参考软件资源。
+- 底部加入“上一首 / 播放暂停 / 下一首”三键；由于 `PlaybackState` 仍只有单曲 Mock，前后曲按钮明确禁用并通过 Tooltip 说明，不改变数据语义。
+- `LyricsCanvasView` 使用 `GeometryReader` 和居中 HStack 将歌词列按可用宽度重定位；相邻歌词调整为 `0.62 / 0.6 blur`，更远歌词调整为 `0.32 / 1.8 blur`，保持层级但恢复可读性。
+- 新增“窗口模式”菜单按钮，AX 树确认图标、标签和 Tooltip：主窗口、悬浮歌词、顶部胶囊、全屏歌词。
+
+### Phase 9: Refinement Runtime Evidence
+- **Status:** in_progress
+- 组件构建已返回 `0` 并输出 `** BUILD SUCCEEDED **`；当前 DerivedData app 已重新启动。
+- AX 树已确认专辑封面、上一首/播放/下一首按钮、窗口模式 Tooltip 和歌词显示层级。
+- 实测默认内容窗口约 `1038×680`，最小外框 `760×552`（内容约 `760×520`），并已恢复默认尺寸。
+- 播放从 `00:00` 推进至 `00:11`，暂停后保持；实际截图显示当前歌词从第一行切换到「さよなら」行。
+- 设置 popover 和原文、翻译、罗马音、假名四个开关逐一切换并恢复默认状态。
+- 已更新 `ui-redesign-assets/phase1-main-default.png` 和 `ui-redesign-assets/phase1-main-minimum.png`；审计截图资产仍未做破坏性删除，公开发布前另行清理。
+
+### Phase 9: Final Build Gate
+- **Status:** complete
+- 按用户指定的完整命令重新构建，返回 `0`；`/tmp/spotifylyrics-phase1-refinement-final-build.log` 结尾为 `** BUILD SUCCEEDED **`。
+- 构建后重新启动 `/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app`，AX 树再次确认窗口模式、封面、三键控制和歌词画布；窗口默认内容约 `1038×680`。
+- 最终最小尺寸截图覆盖后恢复默认尺寸；`MockData.swift`、`PlaybackState.swift`、`WindowManager.swift` 的 diff 仍为空。
+
+### Phase 10: Main Window Commit
+- **Status:** complete
+- 已提交独立主窗口 refinement commit：`Refine verified main lyrics window`（最终 hash 由 Git 记录）。
+- 本提交只包含主窗口 refinement、合约测试、规划记录和两张主窗口截图；未包含 DerivedData、build 或参考应用资源。

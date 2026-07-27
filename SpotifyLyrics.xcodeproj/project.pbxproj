@@ -13,6 +13,12 @@
 		110000042D83400100000001 /* PlaybackState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000042D83400100000000 /* PlaybackState.swift */; };
 		110000052D83400100000001 /* WindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000052D83400100000000 /* WindowManager.swift */; };
 		110000062D83400100000001 /* LyricsViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000062D83400100000000 /* LyricsViews.swift */; };
+		110000072D83400100000001 /* MainLyricsWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000072D83400100000000 /* MainLyricsWindowView.swift */; };
+		110000082D83400100000001 /* LyricsCanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000082D83400100000000 /* LyricsCanvasView.swift */; };
+		110000092D83400100000001 /* LyricLineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000092D83400100000000 /* LyricLineView.swift */; };
+		1100000A2D83400100000001 /* TrackHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100000A2D83400100000000 /* TrackHeaderView.swift */; };
+		1100000B2D83400100000001 /* LyricsPreferencesPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100000B2D83400100000000 /* LyricsPreferencesPopover.swift */; };
+		1100000C2D83400100000001 /* LyricsDesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100000C2D83400100000000 /* LyricsDesignTokens.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,6 +29,12 @@
 		110000042D83400100000000 /* PlaybackState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/PlaybackState.swift; sourceTree = "<group>"; };
 		110000052D83400100000000 /* WindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windows/WindowManager.swift; sourceTree = "<group>"; };
 		110000062D83400100000000 /* LyricsViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/LyricsViews.swift; sourceTree = "<group>"; };
+		110000072D83400100000000 /* MainLyricsWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainLyricsWindowView.swift; sourceTree = "<group>"; };
+		110000082D83400100000000 /* LyricsCanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsCanvasView.swift; sourceTree = "<group>"; };
+		110000092D83400100000000 /* LyricLineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricLineView.swift; sourceTree = "<group>"; };
+		1100000A2D83400100000000 /* TrackHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackHeaderView.swift; sourceTree = "<group>"; };
+		1100000B2D83400100000000 /* LyricsPreferencesPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsPreferencesPopover.swift; sourceTree = "<group>"; };
+		1100000C2D83400100000000 /* LyricsDesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsDesignTokens.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -43,8 +55,46 @@
 				110000042D83400100000000 /* PlaybackState.swift */,
 				110000052D83400100000000 /* WindowManager.swift */,
 				110000062D83400100000000 /* LyricsViews.swift */,
+				110000002D83400000000020 /* Views */,
+				110000002D83400000000023 /* Design */,
 			);
 			path = SpotifyLyrics;
+			sourceTree = "<group>";
+		};
+		110000002D83400000000020 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				110000002D83400000000021 /* MainWindow */,
+				110000002D83400000000022 /* Components */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		110000002D83400000000021 /* MainWindow */ = {
+			isa = PBXGroup;
+			children = (
+				110000072D83400100000000 /* MainLyricsWindowView.swift */,
+			);
+			path = MainWindow;
+			sourceTree = "<group>";
+		};
+		110000002D83400000000022 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				110000082D83400100000000 /* LyricsCanvasView.swift */,
+				110000092D83400100000000 /* LyricLineView.swift */,
+				1100000A2D83400100000000 /* TrackHeaderView.swift */,
+				1100000B2D83400100000000 /* LyricsPreferencesPopover.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		110000002D83400000000023 /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				1100000C2D83400100000000 /* LyricsDesignTokens.swift */,
+			);
+			path = Design;
 			sourceTree = "<group>";
 		};
 		110000002D83400000000003 /* Products */ = {
@@ -116,6 +166,12 @@
 				110000042D83400100000001 /* PlaybackState.swift in Sources */,
 				110000052D83400100000001 /* WindowManager.swift in Sources */,
 				110000062D83400100000001 /* LyricsViews.swift in Sources */,
+				110000072D83400100000001 /* MainLyricsWindowView.swift in Sources */,
+				110000082D83400100000001 /* LyricsCanvasView.swift in Sources */,
+				110000092D83400100000001 /* LyricLineView.swift in Sources */,
+				1100000A2D83400100000001 /* TrackHeaderView.swift in Sources */,
+				1100000B2D83400100000001 /* LyricsPreferencesPopover.swift in Sources */,
+				1100000C2D83400100000001 /* LyricsDesignTokens.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
