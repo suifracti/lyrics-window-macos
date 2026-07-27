@@ -23,16 +23,28 @@ struct LyricsCanvasView: View {
             case .loading:
                 statusView(icon: "magnifyingglass", message: "正在自动补全歌词…", detail: "Local → LRCLIB 多别名查询中")
             case .noLyrics:
-                statusView(icon: "text.magnifyingglass", message: "暂未找到歌词", detail: "来源返回无词（例如纯音乐）") {
-                    retryButton
+                statusView(icon: "text.magnifyingglass", message: "暂未找到歌词", detail: "来源返回无词（例如纯音乐）。可导入本地音频做 ASR 草稿。") {
+                    VStack(spacing: 8) {
+                        retryButton
+                        Button("导入本地音频 · ASR 草稿") {
+                            state.importLocalAudioForASR()
+                        }
+                        .buttonStyle(.bordered)
+                    }
                 }
             case .noMatch:
                 statusView(
                     icon: "magnifyingglass",
                     message: "自动补全未找到歌词",
-                    detail: "多别名已尝试。别名只提升匹配率，不能在来源本身无词时凭空生成正文。"
+                    detail: "多别名与在线源均无正文（noTextSource）。可选：重试自动补全，或导入本地音频生成 ASR 草稿。"
                 ) {
-                    retryButton
+                    VStack(spacing: 8) {
+                        retryButton
+                        Button("导入本地音频 · ASR 草稿") {
+                            state.importLocalAudioForASR()
+                        }
+                        .buttonStyle(.bordered)
+                    }
                 }
             case .failed(_, let failure):
                 statusView(icon: "exclamationmark.triangle", message: "自动补全失败", detail: failure.userFacingMessage) {

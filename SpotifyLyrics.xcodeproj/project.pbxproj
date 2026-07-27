@@ -64,6 +64,8 @@
 		110000382D83400100000001 /* LyricsRecoveryOrchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000382D83400100000000 /* LyricsRecoveryOrchestrator.swift */; };
 		110000402D83400100000001 /* japanese_kanji_readings.json in Resources */ = {isa = PBXBuildFile; fileRef = 110000402D83400100000000 /* japanese_kanji_readings.json */; };
 		110000432D83400100000001 /* NetEaseExperimentalLyricsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000432D83400100000000 /* NetEaseExperimentalLyricsProvider.swift */; };
+		110000442D83400100000001 /* QQExperimentalLyricsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000442D83400100000000 /* QQExperimentalLyricsProvider.swift */; };
+		110000452D83400100000001 /* LocalAudioASRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000452D83400100000000 /* LocalAudioASRService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -126,6 +128,8 @@
 		110000382D83400100000000 /* LyricsRecoveryOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsRecoveryOrchestrator.swift; sourceTree = "<group>"; };
 		110000402D83400100000000 /* japanese_kanji_readings.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = japanese_kanji_readings.json; sourceTree = "<group>"; };
 		110000432D83400100000000 /* NetEaseExperimentalLyricsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetEaseExperimentalLyricsProvider.swift; sourceTree = "<group>"; };
+		110000442D83400100000000 /* QQExperimentalLyricsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QQExperimentalLyricsProvider.swift; sourceTree = "<group>"; };
+		110000452D83400100000000 /* LocalAudioASRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAudioASRService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -212,6 +216,7 @@
 				1100000F2D83400100000000 /* MockPlaybackProvider.swift */,
 				110000102D83400100000000 /* ArtworkImageLoader.swift */,
 				110000432D83400100000000 /* NetEaseExperimentalLyricsProvider.swift */,
+				110000442D83400100000000 /* QQExperimentalLyricsProvider.swift */,
 			);
 			path = Providers;
 			sourceTree = "<group>";
@@ -236,6 +241,7 @@
 				110000362D83400100000000 /* LyricsSafeMatcher.swift */,
 				110000372D83400100000000 /* LyricsRecoveryModels.swift */,
 				110000382D83400100000000 /* LyricsRecoveryOrchestrator.swift */,
+				110000452D83400100000000 /* LocalAudioASRService.swift */,
 			);
 			path = Lyrics;
 			sourceTree = "<group>";
@@ -377,6 +383,8 @@
 				1100002E2D83400100000001 /* CurrentTrackResolver.swift in Sources */,
 				1100002F2D83400100000001 /* LyricsSearchManager.swift in Sources */,
 				110000432D83400100000001 /* NetEaseExperimentalLyricsProvider.swift in Sources */,
+				110000452D83400100000001 /* LocalAudioASRService.swift in Sources */,
+				110000442D83400100000001 /* QQExperimentalLyricsProvider.swift in Sources */,
 				110000302D83400100000001 /* TrackAlias.swift in Sources */,
 				110000312D83400100000001 /* TrackMetadata.swift in Sources */,
 				110000322D83400100000001 /* TrackTextNormalizer.swift in Sources */,
@@ -416,6 +424,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHighResolutionCapable = YES;
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "SpotifyLyrics 需要控制 Spotify 以读取当前歌曲、播放状态和封面。";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "SpotifyLyrics 使用语音识别，从你导入的本地音频生成日语歌词草稿（不会读取 Spotify 受保护音频）。";
 				INFOPLIST_KEY_LSMinimumSystemVersion = "14.0";
 				INFOPLIST_KEY_CFBundleDisplayName = SpotifyLyrics;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
@@ -437,6 +446,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHighResolutionCapable = YES;
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "SpotifyLyrics 需要控制 Spotify 以读取当前歌曲、播放状态和封面。";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "SpotifyLyrics 使用语音识别，从你导入的本地音频生成日语歌词草稿（不会读取 Spotify 受保护音频）。";
 				INFOPLIST_KEY_LSMinimumSystemVersion = "14.0";
 				INFOPLIST_KEY_CFBundleDisplayName = SpotifyLyrics;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;

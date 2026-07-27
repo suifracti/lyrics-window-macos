@@ -4,6 +4,8 @@ public enum LyricsSource: String, CaseIterable, Codable, Sendable {
     case local
     case lrclib
     case neteaseExperimental
+    case qqExperimental
+    case asrMachineGenerated
     case mock
 
     public var displayName: String {
@@ -11,6 +13,8 @@ public enum LyricsSource: String, CaseIterable, Codable, Sendable {
         case .local: return "本地 LRC"
         case .lrclib: return "LRCLIB"
         case .neteaseExperimental: return "网易云（实验）"
+        case .qqExperimental: return "QQ音乐（实验）"
+        case .asrMachineGenerated: return "ASR 草稿（待校正）"
         case .mock: return "Mock Preview"
         }
     }

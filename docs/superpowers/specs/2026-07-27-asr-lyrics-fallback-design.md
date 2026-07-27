@@ -54,3 +54,12 @@ AudioAsset
 - 不接具体 ASR SDK  
 - 不实现强制对齐算法  
 - 不静默上传音频到第三方  
+
+
+## 实现状态（2026-07-27）
+
+- `LocalAudioASRService`：Speech 框架，本地音频 URL 识别，ja-JP。
+- `PlaybackState.importLocalAudioForASR()`：NSOpenPanel 选文件。
+- UI：noMatch/noLyrics 显示「导入本地音频 · ASR 草稿」。
+- 不读取 Spotify DRM。
+- 结果 `source=asrMachineGenerated`，低置信；有 segment 时间则尝试同步，否则 alignmentQueued。

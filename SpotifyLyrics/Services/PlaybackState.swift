@@ -1,4 +1,6 @@
 import Combine
+import AppKit
+import UniformTypeIdentifiers
 import Foundation
 import Network
 #if DEBUG
@@ -73,11 +75,13 @@ public final class PlaybackState: ObservableObject {
             LocalLyricsProvider(index: index),
             LRCLIBLyricsProvider()
         ]
-        // Experimental NetEase: enabled unless explicitly disabled.
-        // Catalog hit does not guarantee lyric body (validated on あやふや).
-        let disabled = ProcessInfo.processInfo.environment["SPOTIFYLYRICS_DISABLE_NETEASE"] == "1"
-        if !disabled {
+        // Experimental NetEase: catalog≠body (あやふや / 水曜日の約束 Kawasaki.Rio empty lrc).
+        if ProcessInfo.processInfo.environment["SPOTIFYLYRICS_DISABLE_NETEASE"] != "1" {
             providers.append(NetEaseExperimentalLyricsProvider())
+        }
+        // Experimental QQ: single-track audit proved body for 水曜日の約束/Kawasaki.Rio.
+        if ProcessInfo.processInfo.environment["SPOTIFYLYRICS_DISABLE_QQ"] != "1" {
+            providers.append(QQExperimentalLyricsProvider())
         }
         return providers
     }
@@ -250,6 +254,50 @@ public final class PlaybackState: ObservableObject {
         guard hasLiveTrack, let identity = currentTrackIdentity else { return }
         lyricsSession.autoComplete(track: currentTrack, identity: identity)
     }
+
+    /// noTextSource fallback: pick a local audio file and build an ASR lyrics draft.
+    public func importLocalAudioForASR() {
+        guard hasLiveTrack, let identity = currentTrackIdentity, !isMockPreviewMode else {
+            songSearchSelectionMessage = "需要当前 Spotify 歌曲身份才能生成 ASR 草稿"
+            return
+        }
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [.mp3, .wav, .aiff, .mpeg4Audio]
+        panel.title = "选择本地音频（ASR 歌词草稿）"
+        panel.message = "不会从 Spotify 取受保护音频。生成结果为机器草稿，需人工校正。"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        Task { @MainActor in
+            await self.runLocalAudioASR(url: url, identity: identity)
+        }
+    }
+
+    public func runLocalAudioASR(url: URL, identity: TrackIdentity) async {
+        guard hasLiveTrack, currentTrackIdentity == identity else { return }
+        lyricsSession.beginLoadingPlaceholder(identity: identity, message: "ASR 识别中…")
+        do {
+            let service = LocalAudioASRService()
+            let document = try await service.makeLyricsDocument(
+                audioURL: url,
+                identity: identity,
+                track: currentTrack
+            )
+            guard currentTrackIdentity == identity else { return }
+            lyricsSession.adopt(document: document)
+            if case .alignmentQueued = lyricsSession.state {
+                songSearchSelectionMessage = "ASR 草稿已生成（待对齐/待校正）"
+            } else {
+                songSearchSelectionMessage = "ASR 草稿已生成（机器生成，待校正）"
+            }
+        } catch {
+            guard currentTrackIdentity == identity else { return }
+            lyricsSession.fail(identity: identity, failure: .unknown("ASR 失败：\(error.localizedDescription)"))
+            songSearchSelectionMessage = "ASR 失败：\(error.localizedDescription)"
+        }
+    }
+
 
     /// Applies a selected track-search result to the current lyric session
     /// without changing Spotify playback or its time anchor.

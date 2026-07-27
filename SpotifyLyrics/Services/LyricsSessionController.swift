@@ -26,6 +26,25 @@ public final class LyricsSessionController: ObservableObject {
         begin(track: track, identity: identity)
     }
 
+    public func beginLoadingPlaceholder(identity: TrackIdentity, message: String = "") {
+        cancelCurrentRequest()
+        revision &+= 1
+        activeIdentity = identity
+        lyrics = []
+        isSynchronized = true
+        state = .loading(identity)
+        _ = message
+    }
+
+    public func fail(identity: TrackIdentity, failure: LyricsFailure) {
+        guard activeIdentity == identity else { return }
+        cancelCurrentRequest()
+        revision &+= 1
+        lyrics = []
+        isSynchronized = true
+        state = .failed(identity, failure)
+    }
+
     public func begin(track: Track, identity: TrackIdentity) {
         cancelCurrentRequest()
         revision &+= 1

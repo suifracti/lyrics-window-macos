@@ -1,0 +1,777 @@
+{
+  "track": {
+    "title": "水曜日の約束",
+    "artist": "Kawasaki.Rio"
+  },
+  "queries": [
+    "水曜日の約束",
+    "水曜日の約束 Kawasaki.Rio",
+    "水曜日の約束 Kawasaki Rio",
+    "すいようびのやくそく",
+    "すいようびのやくそく Kawasaki.Rio",
+    "suiyoubi no yakusoku",
+    "suiyoubi no yakusoku Kawasaki Rio",
+    "suiyobi no yakusoku",
+    "Wednesday Promise",
+    "Wednesday Promise Kawasaki Rio",
+    "Kawasaki.Rio 水曜日の約束",
+    "kawasaki.rio",
+    "Kawasaki Rio",
+    "カワサキリオ",
+    "かわさき りお"
+  ],
+  "sources": {
+    "local": {
+      "found_correct_track": false,
+      "has_lyric_body": false,
+      "has_kanji_original": false,
+      "has_kana": null,
+      "has_romaji": null,
+      "has_line_timing": null,
+      "programmatic_read_ok": true,
+      "hits": [],
+      "dirs_checked": [
+        "/Users/apple/Music/SpotifyLyrics/Lyrics",
+        "/Users/apple/Library/Application Support/SpotifyLyrics/Lyrics",
+        "/Users/apple/backup/sptifylyrics/Lyrics"
+      ]
+    },
+    "lrclib": {
+      "found_correct_track": false,
+      "has_lyric_body": false,
+      "has_kanji_original": false,
+      "has_kana": false,
+      "has_romaji": false,
+      "has_line_timing": false,
+      "programmatic_read_ok": true,
+      "correct_hits": [],
+      "other_hits_sample": [
+        {
+          "id": 30970414,
+          "trackName": "水曜日の約束-another story-",
+          "artistName": "HoneyWorks feat. 成海聖奈(CV：雨宮天)",
+          "duration": 222.0,
+          "has_plain": true,
+          "has_synced": false,
+          "preview": "折り返し水曜日\n今日は早く帰らなくちゃ\n充電切れる前に\n繋いで満たして100まで\n\n彼氏は飾らない人\n私は気にしちゃう方で...\nテレビで失敗しても\nおだて上手な王子様\n言えない罪悪感\nバレてしまえば",
+          "via": "水曜日の約束"
+        },
+        {
+          "id": 32896209,
+          "trackName": "水曜日の約束-another story-",
+          "artistName": "HoneyWorks",
+          "duration": 222.0,
+          "has_plain": true,
+          "has_synced": false,
+          "preview": "折り返し水曜日\n今日は早く帰らなくちゃ\n充電切れる前に\n繋いで満たして100まで\n\n彼氏は飾らない人\n私は気にしちゃう方で...\nテレビで失敗しても\nおだて上手な王子様\n言えない罪悪感\nバレてしまえば",
+          "via": "水曜日の約束"
+        },
+        {
+          "id": 35621808,
+          "trackName": "水曜日の約束-another story-",
+          "artistName": "HoneyWorks feat. 成海聖奈(CV：雨宮天)",
+          "duration": 222.0,
+          "has_plain": true,
+          "has_synced": false,
+          "preview": "折り返し水曜日\n今日は早く帰らなくちゃ\n充電切れる前に\n繋いで満たして100まで\n\n彼氏は飾らない人\n私は気にしちゃう方で...\nテレビで失敗しても\nおだて上手な王子様\n言えない罪悪感\nバレてしまえば",
+          "via": "水曜日の約束"
+        },
+        {
+          "id": 24538476,
+          "trackName": "水曜日の約束-another story- (Instrumental)",
+          "artistName": "HoneyWorks",
+          "duration": 221.653333,
+          "has_plain": true,
+          "has_synced": false,
+          "preview": "折り返し水曜日\n今日は早く帰らなくちゃ\n充電切れる前に\n繋いで満たして100まで\n彼氏は飾らない人\n私は気にしちゃう方で\nテレビで失敗しても\nおだて上手な王子様\n言えない罪悪感\nバレてしまえばスキャン",
+          "via": "水曜日の約束"
+        },
+        {
+          "id": 30465803,
+          "trackName": "水曜日の約束 -another story-",
+          "artistName": "Honeyworks",
+          "duration": 222.0,
+          "has_plain": true,
+          "has_synced": false,
+          "preview": "折り返し水曜日\n今日は早く帰らなくちゃ\n充電切れる前に\n繋いで満たして100まで\n\n彼氏は飾らない人\n私は気にしちゃう方で...\nテレビで失敗しても\nおだて上手な王子様\n言えない罪悪感\nバレてしまえば",
+          "via": "水曜日の約束"
+        },
+        {
+          "id": 31476949,
+          "trackName": "水曜日の約束 -another story-",
+          "artistName": "Honeyworks",
+          "duration": 221.0,
+          "has_plain": true,
+          "has_synced": false,
+          "preview": "折り返し水曜日\n今日は早く帰らなくちゃ\n充電切れる前に\n繋いで満たして100まで\n\n彼氏は飾らない人\n私は気にしちゃう方で...\nテレビで失敗しても\nおだて上手な王子様\n言えない罪悪感\nバレてしまえば",
+          "via": "水曜日の約束"
+        },
+        {
+          "id": 23616425,
+          "trackName": "水曜日の約束-another story-  (Instrumental)",
+          "artistName": "Honeyworks",
+          "duration": 221.0,
+          "has_plain": true,
+          "has_synced": false,
+          "preview": "折り返し水曜日\n今日は早く帰らなくちゃ\n充電切れる前に\n繋いで満たして100まで\n彼氏は飾らない人\n私は気にしちゃう方で\nテレビで失敗しても\nおだて上手な王子様\n言えない罪悪感\nバレてしまえばスキャン",
+          "via": "水曜日の約束"
+        },
+        {
+          "id": 27130270,
+          "trackName": "シス×ラブ (Instrumental)",
+          "artistName": "HoneyWorks",
+          "duration": 212.819592,
+          "has_plain": true,
+          "has_synced": true,
+          "preview": "一緒に怒られて\n一緒に大きくなって\n一緒に涙して\nその分もっと笑った\n\n仲良しの姉妹で隠し事はなかった\n好きな人の話いつか聞きたいかも\n突然どうしたの？うちら仲良しだけど\n大人になるほどね 秘密増やし",
+          "via": "水曜日の約束"
+        },
+        {
+          "id": 22256022,
+          "trackName": "Suiyoubi no Yakusoku -another story-",
+          "artistName": "HoneyWorks",
+          "duration": 222.32,
+          "has_plain": true,
+          "has_synced": false,
+          "preview": "折り返し水曜日\n今日は早く帰らなくちゃ\n充電切れる前に\n繋いで満たして100まで\n\n彼氏は飾らない人\n私は気にしちゃう方で...\nテレビで失敗しても\nおだて上手な王子様\n言えない罪悪感\nバレてしまえば",
+          "via": "suiyoubi no yakusoku"
+        },
+        {
+          "id": 27791872,
+          "trackName": "Suiyoubi no Yakusoku -another story- (Instrumental)",
+          "artistName": "HoneyWorks",
+          "duration": 222.0,
+          "has_plain": true,
+          "has_synced": false,
+          "preview": "折り返し水曜日\n今日は早く帰らなくちゃ\n充電切れる前に\n繋いで満たして100まで\n\n彼氏は飾らない人\n私は気にしちゃう方で...\nテレビで失敗しても\nおだて上手な王子様\n言えない罪悪感\nバレてしまえば",
+          "via": "suiyoubi no yakusoku"
+        }
+      ],
+      "get_attempts": [
+        {
+          "query": "水曜日の約束|Kawasaki.Rio",
+          "http": 404,
+          "has_plain": false,
+          "has_synced": false,
+          "trackName": null,
+          "artistName": null,
+          "status": 404,
+          "error": null
+        },
+        {
+          "query": "水曜日の約束|Kawasaki Rio",
+          "http": 404,
+          "has_plain": false,
+          "has_synced": false,
+          "trackName": null,
+          "artistName": null,
+          "status": 404,
+          "error": null
+        },
+        {
+          "query": "suiyoubi no yakusoku|Kawasaki.Rio",
+          "http": 404,
+          "has_plain": false,
+          "has_synced": false,
+          "trackName": null,
+          "artistName": null,
+          "status": 404,
+          "error": null
+        },
+        {
+          "query": "suiyoubi no yakusoku|Kawasaki Rio",
+          "http": 404,
+          "has_plain": false,
+          "has_synced": false,
+          "trackName": null,
+          "artistName": null,
+          "status": 404,
+          "error": null
+        },
+        {
+          "query": "Wednesday Promise|Kawasaki.Rio",
+          "http": 404,
+          "has_plain": false,
+          "has_synced": false,
+          "trackName": null,
+          "artistName": null,
+          "status": 404,
+          "error": null
+        },
+        {
+          "query": "Wednesday Promise|Kawasaki Rio",
+          "http": 404,
+          "has_plain": false,
+          "has_synced": false,
+          "trackName": null,
+          "artistName": null,
+          "status": 404,
+          "error": null
+        },
+        {
+          "query": "すいようびのやくそく|Kawasaki.Rio",
+          "http": 404,
+          "has_plain": false,
+          "has_synced": false,
+          "trackName": null,
+          "artistName": null,
+          "status": 404,
+          "error": null
+        }
+      ]
+    },
+    "netease": {
+      "found_correct_track": true,
+      "has_lyric_body": false,
+      "has_kanji_original": false,
+      "has_kana": false,
+      "has_romaji": false,
+      "has_line_timing": false,
+      "has_translation": false,
+      "programmatic_read_ok": true,
+      "correct_candidates": [
+        {
+          "id": 2695572249,
+          "name": "水曜日の約束",
+          "artists": [
+            "Kawasaki.Rio"
+          ],
+          "album": "水曜日の約束",
+          "duration_ms": 180047,
+          "via": "水曜日の約束"
+        }
+      ],
+      "title_matches": [
+        {
+          "id": 1470059350,
+          "name": "水曜日の約束",
+          "artists": [
+            "Gero"
+          ],
+          "album": "TOKYO HAZE",
+          "duration_ms": 221279,
+          "via": "水曜日の約束"
+        },
+        {
+          "id": 1954147383,
+          "name": "水曜日の約束-another story- (メロディー) [Cover] [『HoneyWorks Premium Live (ハニプレ) 』より]",
+          "artists": [
+            "RiNG-O Melody"
+          ],
+          "album": "バラエティボックス メロディ編 Vol.53",
+          "duration_ms": 44796,
+          "via": "水曜日の約束"
+        },
+        {
+          "id": 1496392747,
+          "name": "水曜日の約束",
+          "artists": [
+            "晴斗Nick",
+            "IC卡"
+          ],
+          "album": "水曜日の約束",
+          "duration_ms": 218764,
+          "via": "水曜日の約束"
+        },
+        {
+          "id": 2695572249,
+          "name": "水曜日の約束",
+          "artists": [
+            "Kawasaki.Rio"
+          ],
+          "album": "水曜日の約束",
+          "duration_ms": 180047,
+          "via": "水曜日の約束"
+        },
+        {
+          "id": 2048792826,
+          "name": "水曜日の約束",
+          "artists": [
+            "樱井瑶",
+            "__李寻青"
+          ],
+          "album": "水曜日の約束",
+          "duration_ms": 220690,
+          "via": "水曜日の約束"
+        },
+        {
+          "id": 2126696761,
+          "name": "水曜日の約束",
+          "artists": [
+            "mieeim",
+            "音羽莲"
+          ],
+          "album": "水曜日の約束",
+          "duration_ms": 222040,
+          "via": "水曜日の約束"
+        },
+        {
+          "id": 26179349,
+          "name": "水曜日の约束",
+          "artists": [
+            "太田裕美"
+          ],
+          "album": "太田裕美の軌跡　～First Quarter～",
+          "duration_ms": 210703,
+          "via": "水曜日の約束"
+        },
+        {
+          "id": 1897953044,
+          "name": "水曜日の約束",
+          "artists": [
+            "AQ"
+          ],
+          "album": "AQ",
+          "duration_ms": 221544,
+          "via": "水曜日の約束"
+        }
+      ],
+      "lyrics": [
+        {
+          "id": 2695572249,
+          "name": "水曜日の約束",
+          "artists": [
+            "Kawasaki.Rio"
+          ],
+          "album": "水曜日の約束",
+          "duration_ms": 180047,
+          "via": "水曜日の約束",
+          "http": 200,
+          "has_text": false,
+          "has_tlyric": false,
+          "has_yrc": false,
+          "timed": false,
+          "preview": ""
+        }
+      ],
+      "notes": "catalog hit may still have empty lrc"
+    },
+    "qq": {
+      "found_correct_track": true,
+      "has_lyric_body": true,
+      "has_kanji_original": true,
+      "has_kana": false,
+      "has_romaji": false,
+      "has_line_timing": false,
+      "programmatic_read_ok": true,
+      "correct_candidates": [
+        {
+          "songmid": "004YkjHH0g5pRt",
+          "songname": "水曜日の約束",
+          "artists": [
+            "Kawasaki.Rio"
+          ],
+          "interval": 171,
+          "albumname": "水曜日の約束",
+          "via": "水曜日の約束 Kawasaki.Rio"
+        }
+      ],
+      "lyrics": [
+        {
+          "songmid": "004YkjHH0g5pRt",
+          "songname": "水曜日の約束",
+          "artists": [
+            "Kawasaki.Rio"
+          ],
+          "interval": 171,
+          "albumname": "水曜日の約束",
+          "via": "水曜日の約束 Kawasaki.Rio",
+          "http": 200,
+          "retcode": 0,
+          "has_text": true,
+          "timed": false,
+          "preview": "「これでおわり」って言われた夜\nでもまだ　ほどけない心\n言えなかった言葉だけ\n喉の奥つっかえたまま\n\nちがう日々　選んだのに\n街で君の気配　探す\n前に進みたいだけなのに\n思い出が足を止める\n\nSNSのスクショで手が止まる\n「もう忘れた」って言ってるのに\n心だけ裂けていく\n戻れないってわかってるのに\n\nシャッフルで流れた",
+          "blocked": false
+        }
+      ],
+      "notes": "retcode -1310/-1901 common without cookie"
+    },
+    "kugou": {
+      "found_correct_track": true,
+      "has_lyric_body": false,
+      "has_kanji_original": false,
+      "has_kana": false,
+      "has_romaji": false,
+      "has_line_timing": false,
+      "programmatic_read_ok": false,
+      "songs": [
+        {
+          "hash": "CCAE7F1BEF37B31640B613825644AE1F",
+          "name": "火曜日はチューデイ -another story-",
+          "singer": "HoneyWorks、雨宮天",
+          "duration": 265,
+          "via": "水曜日の約束",
+          "http": 200
+        },
+        {
+          "hash": "C78D9C3D4A07FFFA6B30F7962D2060E5",
+          "name": "水曜日の約束",
+          "singer": "Kawasaki.Rio",
+          "duration": 171,
+          "via": "水曜日の約束",
+          "http": 200
+        },
+        {
+          "hash": "0260BD743F5EF1ADA5AC899AEEF5A9E9",
+          "name": "水曜日の約束",
+          "singer": "AQ",
+          "duration": 221,
+          "via": "水曜日の約束",
+          "http": 200
+        },
+        {
+          "hash": "80F5A181D3A552D5B1BD5536E8700210",
+          "name": "水曜日の約束 (水曜日的约定)",
+          "singer": "Nako",
+          "duration": 221,
+          "via": "水曜日の約束",
+          "http": 200
+        },
+        {
+          "hash": "382F538CF193395A0D368FB4C114B52E",
+          "name": "水曜日の約束",
+          "singer": "Gero",
+          "duration": 221,
+          "via": "水曜日の約束",
+          "http": 200
+        },
+        {
+          "hash": "F49797C1788B7DC9E2AC980B9728F90A",
+          "name": "水曜日の約束",
+          "singer": "晴斗Nick、IC卡",
+          "duration": 218,
+          "via": "水曜日の約束",
+          "http": 200
+        },
+        {
+          "hash": "81EE9CE28BF02A85E8C79AC9653B594D",
+          "name": "水曜日の約束",
+          "singer": "太田裕美",
+          "duration": 212,
+          "via": "水曜日の約束",
+          "http": 200
+        },
+        {
+          "hash": "FFB564184B86722370A2E2910C5C667F",
+          "name": "水曜日の約束 -another story-",
+          "singer": "樱井瑶",
+          "duration": 220,
+          "via": "水曜日の約束",
+          "http": 200
+        },
+        {
+          "hash": "307577345A5108BEB5FA606822246AF6",
+          "name": "水曜日の約束 -another story-",
+          "singer": "HoneyWorks、雨宮天",
+          "duration": 222,
+          "via": "水曜日の約束 Kawasaki.Rio",
+          "http": 200
+        },
+        {
+          "hash": "84CC6F8DAFCA654D31258A5624C789E0",
+          "name": "水曜日の約束-another story-",
+          "singer": "鸣海narumi",
+          "duration": 219,
+          "via": "水曜日の約束 Kawasaki Rio",
+          "http": 200
+        }
+      ],
+      "correct_candidates": [
+        {
+          "hash": "C78D9C3D4A07FFFA6B30F7962D2060E5",
+          "name": "水曜日の約束",
+          "singer": "Kawasaki.Rio",
+          "duration": 171,
+          "via": "水曜日の約束",
+          "http": 200
+        }
+      ],
+      "lyrics": [
+        {
+          "hash": "C78D9C3D4A07FFFA6B30F7962D2060E5",
+          "name": "水曜日の約束",
+          "singer": "Kawasaki.Rio",
+          "duration": 171,
+          "via": "水曜日の約束",
+          "http": 200,
+          "cand_http": 200,
+          "candidates": 0,
+          "has_text": false,
+          "preview": "",
+          "programmatic_body": false
+        }
+      ]
+    },
+    "web": {
+      "uta_net_search": {
+        "url": "https://www.uta-net.com/search/?Keyword=%E6%B0%B4%E6%9B%9C%E6%97%A5%E3%81%AE%E7%B4%84%E6%9D%9F",
+        "http": 403,
+        "title": "Just a moment...",
+        "cloudflare": true,
+        "mentions_lyrics": false,
+        "bytes": 5824,
+        "programmatic_read_ok": false,
+        "error": null
+      },
+      "uta_net_search_artist": {
+        "url": "https://www.uta-net.com/search/?Keyword=%E6%B0%B4%E6%9B%9C%E6%97%A5%E3%81%AE%E7%B4%84%E6%9D%9F%20Kawasaki",
+        "http": 403,
+        "title": "Just a moment...",
+        "cloudflare": true,
+        "mentions_lyrics": false,
+        "bytes": 5893,
+        "programmatic_read_ok": false,
+        "error": null
+      },
+      "utatime_search": {
+        "url": "https://www.lyrical-nonsense.com/?s=%E6%B0%B4%E6%9B%9C%E6%97%A5%E3%81%AE%E7%B4%84%E6%9D%9F",
+        "http": 403,
+        "title": "Just a moment...",
+        "cloudflare": true,
+        "mentions_lyrics": false,
+        "bytes": 5814,
+        "programmatic_read_ok": false,
+        "error": null
+      },
+      "utatime_global": {
+        "url": "https://www.lyrical-nonsense.com/global/?s=suiyoubi%20yakusoku%20Kawasaki",
+        "http": 403,
+        "title": "Just a moment...",
+        "cloudflare": true,
+        "mentions_lyrics": false,
+        "bytes": 5730,
+        "programmatic_read_ok": false,
+        "error": null
+      },
+      "utaten_title": {
+        "url": "https://utaten.com/search?sort=popular_sort_asc&title=%E6%B0%B4%E6%9B%9C%E6%97%A5%E3%81%AE%E7%B4%84%E6%9D%9F",
+        "http": 200,
+        "title": "水曜日の約束 歌詞の検索結果 | 歌詞検索UtaTen（うたてん）",
+        "cloudflare": false,
+        "mentions_lyrics": true,
+        "bytes": 35016,
+        "programmatic_read_ok": true,
+        "error": null
+      },
+      "utaten_both": {
+        "url": "https://utaten.com/search?artist_name=Kawasaki&title=%E6%B0%B4%E6%9B%9C%E6%97%A5%E3%81%AE%E7%B4%84%E6%9D%9F",
+        "http": 200,
+        "title": "水曜日の約束 Kawasaki 歌詞の検索結果 | 歌詞検索UtaTen（うたてん）",
+        "cloudflare": false,
+        "mentions_lyrics": true,
+        "bytes": 56053,
+        "programmatic_read_ok": true,
+        "error": null
+      },
+      "jlyric": {
+        "url": "https://search.j-lyric.net/index.php?kt=%E6%B0%B4%E6%9B%9C%E6%97%A5%E3%81%AE%E7%B4%84%E6%9D%9F&ct=2&ka=Kawasaki&ca=2",
+        "http": 0,
+        "title": "",
+        "cloudflare": false,
+        "mentions_lyrics": false,
+        "bytes": 1,
+        "programmatic_read_ok": false,
+        "error": "curl: (35) LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to search.j-lyric.net:443"
+      },
+      "jlyric_title": {
+        "url": "https://search.j-lyric.net/index.php?kt=%E6%B0%B4%E6%9B%9C%E6%97%A5%E3%81%AE%E7%B4%84%E6%9D%9F&ct=2",
+        "http": 0,
+        "title": "",
+        "cloudflare": false,
+        "mentions_lyrics": false,
+        "bytes": 1,
+        "programmatic_read_ok": false,
+        "error": "curl: (35) LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to search.j-lyric.net:443"
+      },
+      "awa_search": {
+        "url": "https://awa.fm/search?q=%E6%B0%B4%E6%9B%9C%E6%97%A5%E3%81%AE%E7%B4%84%E6%9D%9F",
+        "http": 404,
+        "title": "AWA | 2億曲の音楽ストリーミングと音声ライブ配信",
+        "cloudflare": false,
+        "mentions_lyrics": false,
+        "bytes": 17085,
+        "programmatic_read_ok": false,
+        "error": null
+      },
+      "youtube_search": {
+        "url": "https://www.youtube.com/results?search_query=%E6%B0%B4%E6%9B%9C%E6%97%A5%E3%81%AE%E7%B4%84%E6%9D%9F%20Kawasaki.Rio",
+        "http": 200,
+        "title": "",
+        "cloudflare": false,
+        "mentions_lyrics": true,
+        "bytes": 964931,
+        "programmatic_read_ok": true,
+        "error": null
+      },
+      "ddg_jp": {
+        "url": "https://html.duckduckgo.com/html/?q=%E6%B0%B4%E6%9B%9C%E6%97%A5%E3%81%AE%E7%B4%84%E6%9D%9F%20Kawasaki.Rio%20%E6%AD%8C%E8%A9%9E",
+        "http": 200,
+        "title": "水曜日の約束 Kawasaki.Rio 歌詞 at DuckDuckGo",
+        "cloudflare": false,
+        "mentions_lyrics": true,
+        "bytes": 31443,
+        "programmatic_read_ok": true,
+        "error": null,
+        "links": []
+      },
+      "ddg_en": {
+        "url": "https://html.duckduckgo.com/html/?q=suiyoubi%20no%20yakusoku%20Kawasaki.Rio%20lyrics",
+        "http": 202,
+        "title": "DuckDuckGo",
+        "cloudflare": false,
+        "mentions_lyrics": true,
+        "bytes": 14233,
+        "programmatic_read_ok": false,
+        "error": null,
+        "links": []
+      },
+      "genius_api": {
+        "http": 403,
+        "hits": [
+          {
+            "error": "Expecting value: line 1 column 1 (char 0)",
+            "raw": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\""
+          }
+        ],
+        "programmatic_body_read": false,
+        "notes": "page may exist; body scrape not authorized here"
+      },
+      "followed_lyric_pages": []
+    },
+    "uta_net": {
+      "found_correct_track": null,
+      "has_lyric_body": false,
+      "has_kanji_original": false,
+      "has_kana": false,
+      "has_romaji": false,
+      "has_line_timing": false,
+      "programmatic_read_ok": false,
+      "page": {
+        "url": "https://www.uta-net.com/search/?Keyword=%E6%B0%B4%E6%9B%9C%E6%97%A5%E3%81%AE%E7%B4%84%E6%9D%9F",
+        "http": 403,
+        "title": "Just a moment...",
+        "cloudflare": true,
+        "mentions_lyrics": false,
+        "bytes": 5824,
+        "programmatic_read_ok": false,
+        "error": null
+      },
+      "notes": "no auto body; CF/terms/no public API"
+    },
+    "utatime": {
+      "found_correct_track": null,
+      "has_lyric_body": false,
+      "has_kanji_original": false,
+      "has_kana": false,
+      "has_romaji": false,
+      "has_line_timing": false,
+      "programmatic_read_ok": false,
+      "page": {
+        "url": "https://www.lyrical-nonsense.com/?s=%E6%B0%B4%E6%9B%9C%E6%97%A5%E3%81%AE%E7%B4%84%E6%9D%9F",
+        "http": 403,
+        "title": "Just a moment...",
+        "cloudflare": true,
+        "mentions_lyrics": false,
+        "bytes": 5814,
+        "programmatic_read_ok": false,
+        "error": null
+      },
+      "notes": "no auto body; CF/terms/no public API"
+    },
+    "utaten": {
+      "found_correct_track": null,
+      "has_lyric_body": false,
+      "has_kanji_original": false,
+      "has_kana": false,
+      "has_romaji": false,
+      "has_line_timing": false,
+      "programmatic_read_ok": false,
+      "page": {
+        "url": "https://utaten.com/search?sort=popular_sort_asc&title=%E6%B0%B4%E6%9B%9C%E6%97%A5%E3%81%AE%E7%B4%84%E6%9D%9F",
+        "http": 200,
+        "title": "水曜日の約束 歌詞の検索結果 | 歌詞検索UtaTen（うたてん）",
+        "cloudflare": false,
+        "mentions_lyrics": true,
+        "bytes": 35016,
+        "programmatic_read_ok": true,
+        "error": null
+      },
+      "notes": "no auto body; CF/terms/no public API"
+    },
+    "jlyric": {
+      "found_correct_track": null,
+      "has_lyric_body": false,
+      "has_kanji_original": false,
+      "has_kana": false,
+      "has_romaji": false,
+      "has_line_timing": false,
+      "programmatic_read_ok": false,
+      "page": {
+        "url": "https://search.j-lyric.net/index.php?kt=%E6%B0%B4%E6%9B%9C%E6%97%A5%E3%81%AE%E7%B4%84%E6%9D%9F&ct=2&ka=Kawasaki&ca=2",
+        "http": 0,
+        "title": "",
+        "cloudflare": false,
+        "mentions_lyrics": false,
+        "bytes": 1,
+        "programmatic_read_ok": false,
+        "error": "curl: (35) LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to search.j-lyric.net:443"
+      },
+      "notes": "no auto body; CF/terms/no public API"
+    },
+    "awa": {
+      "found_correct_track": null,
+      "has_lyric_body": false,
+      "has_kanji_original": false,
+      "has_kana": false,
+      "has_romaji": false,
+      "has_line_timing": false,
+      "programmatic_read_ok": false,
+      "page": {
+        "url": "https://awa.fm/search?q=%E6%B0%B4%E6%9B%9C%E6%97%A5%E3%81%AE%E7%B4%84%E6%9D%9F",
+        "http": 404,
+        "title": "AWA | 2億曲の音楽ストリーミングと音声ライブ配信",
+        "cloudflare": false,
+        "mentions_lyrics": false,
+        "bytes": 17085,
+        "programmatic_read_ok": false,
+        "error": null
+      },
+      "notes": "no auto body; CF/terms/no public API"
+    },
+    "youtube": {
+      "found_correct_track": null,
+      "has_lyric_body": false,
+      "has_kanji_original": false,
+      "has_kana": false,
+      "has_romaji": false,
+      "has_line_timing": false,
+      "programmatic_read_ok": false,
+      "page": {
+        "url": "https://www.youtube.com/results?search_query=%E6%B0%B4%E6%9B%9C%E6%97%A5%E3%81%AE%E7%B4%84%E6%9D%9F%20Kawasaki.Rio",
+        "http": 200,
+        "title": "",
+        "cloudflare": false,
+        "mentions_lyrics": true,
+        "bytes": 964931,
+        "programmatic_read_ok": true,
+        "error": null
+      },
+      "notes": "no auto body; CF/terms/no public API"
+    },
+    "official_or_youtube": {
+      "youtube_links": [],
+      "has_lyric_body": false,
+      "programmatic_read_ok": false,
+      "notes": "description not programmatically fetched without YouTube API; manual check needed"
+    }
+  },
+  "generated_at": "2026-07-27T21:53:19+0800",
+  "decision": {
+    "programmable_body_sources": [
+      "qq"
+    ],
+    "outcome": "hasTextSource",
+    "next_step": "import_best_body",
+    "do_not_add_more_blind_queries": false
+  }
+}
