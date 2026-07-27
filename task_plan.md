@@ -169,6 +169,14 @@ Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 - [x] Signed Debug xcodebuild + codesign verify + real Spotify Desktop launch smoke
 - [x] Pause before Spotify Web OAuth / Chinese platform experimental plugins
 
+
+## Phase 24: Japanese Alias + Lyrics Recovery Design — awaiting confirmation
+- [x] Write design: alias model, query matrix, safe match, JP romanization, recovery, source survey
+- [x] Add red contracts `Tests/japanese_alias_contract.*` (production sources intentionally missing)
+- [ ] User confirms model choices (TrackMetadata shape, romaji style, recovery scope)
+- [ ] Implement pure functions then Local/LRCLIB multi-variant only
+- [ ] Do not enable NetEase/QQ/KuGou in core default path
+
 ## Decisions Made
 | Decision | Rationale |
 |----------|-----------|

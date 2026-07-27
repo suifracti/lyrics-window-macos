@@ -500,3 +500,10 @@
 ### Not done / paused
 - Spotify Developer Client ID / Web OAuth catalog search
 - Apple Music / Musixmatch / NetEase / QQ / KuGou providers
+
+## 2026-07-27 — Japanese alias design (no implementation)
+
+- Added `docs/superpowers/specs/2026-07-27-japanese-alias-lyrics-recovery-design.md`.
+- Red contract `./Tests/japanese_alias_contract.sh` fails on missing production sources as intended.
+- Read-only survey: LRCLIB misses あやふや; hits Lemon/Pretender; NetEase finds あやふや catalog id but live/studio ambiguity remains.
+- Waiting for user confirmation before coding models/planner/matcher.
