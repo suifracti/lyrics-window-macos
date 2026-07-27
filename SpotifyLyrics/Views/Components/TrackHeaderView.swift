@@ -39,7 +39,8 @@ struct TrackArtworkView: View {
         .shadow(color: .black.opacity(showsAlbumLabel ? 0.28 : 0.18), radius: size * 0.08, y: size * 0.04)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("专辑封面，\(track.album)")
-        .task(id: track.artworkURL?.absoluteString ?? "") {
+        .task(id: "\(track.id)|\(track.artworkURL?.absoluteString ?? "no-artwork")") {
+            remoteArtwork = nil
             remoteArtwork = await ArtworkImageLoader.shared.image(for: track.artworkURL)
         }
     }

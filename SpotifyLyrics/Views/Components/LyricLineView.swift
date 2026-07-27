@@ -4,10 +4,15 @@ struct LyricLineView: View {
     let line: LyricLine
     let isActive: Bool
     let distance: Int
+    let isSynchronized: Bool
     let preferences: DisplayPreferences
 
     private var emphasis: LyricEmphasis {
-        LyricsDesignTokens.lyricEmphasis(isActive: isActive, distance: distance)
+        LyricsDesignTokens.lyricEmphasis(
+            isActive: isActive,
+            distance: distance,
+            isSynchronized: isSynchronized
+        )
     }
 
     private var hasVisibleContent: Bool {

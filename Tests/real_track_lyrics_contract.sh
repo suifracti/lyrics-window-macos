@@ -73,6 +73,62 @@ LRCLIB_SOURCES=(
 swiftc -parse-as-library "${LRCLIB_SOURCES[@]}" -o "$TMP_DIR/lrclib-provider-contract"
 "$TMP_DIR/lrclib-provider-contract"
 
+cp "$ROOT_DIR/Tests/lyrics_session_test.swift" "$TMP_DIR/LyricsSessionMain.swift"
+SESSION_SOURCES=(
+  "$ROOT_DIR/SpotifyLyrics/Models/Models.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/TrackIdentity.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsModels.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LRCParser.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsMatcher.swift"
+  "$ROOT_DIR/SpotifyLyrics/Services/LyricsSessionController.swift"
+  "$TMP_DIR/LyricsSessionMain.swift"
+)
+swiftc -parse-as-library "${SESSION_SOURCES[@]}" -o "$TMP_DIR/lyrics-session-contract"
+"$TMP_DIR/lyrics-session-contract"
+
+cp "$ROOT_DIR/Tests/lyrics_correctness_test.swift" "$TMP_DIR/LyricsCorrectnessMain.swift"
+CORRECTNESS_SOURCES=(
+  "$ROOT_DIR/SpotifyLyrics/Models/Models.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/TrackIdentity.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsModels.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LRCParser.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsMatcher.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LRCLIBLyricsProvider.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/CompositeLyricsProvider.swift"
+  "$ROOT_DIR/SpotifyLyrics/Services/LyricsSessionController.swift"
+  "$TMP_DIR/LyricsCorrectnessMain.swift"
+)
+swiftc -parse-as-library "${CORRECTNESS_SOURCES[@]}" -o "$TMP_DIR/lyrics-correctness-contract"
+"$TMP_DIR/lyrics-correctness-contract"
+
+cp "$ROOT_DIR/Tests/playback_state_contract.swift" "$TMP_DIR/PlaybackStateMain.swift"
+PLAYBACK_SOURCES=(
+  "$ROOT_DIR/SpotifyLyrics/Models/Models.swift"
+  "$ROOT_DIR/SpotifyLyrics/Services/MockData.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/TrackIdentity.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsModels.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LRCParser.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsMatcher.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LocalLyricsProvider.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LRCLIBLyricsProvider.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/CompositeLyricsProvider.swift"
+  "$ROOT_DIR/SpotifyLyrics/Services/LyricsSessionController.swift"
+  "$ROOT_DIR/SpotifyLyrics/Providers/PlaybackProvider.swift"
+  "$ROOT_DIR/SpotifyLyrics/Providers/SpotifyDesktopProvider.swift"
+  "$ROOT_DIR/SpotifyLyrics/Services/PlaybackState.swift"
+  "$TMP_DIR/PlaybackStateMain.swift"
+)
+swiftc -parse-as-library -framework AppKit "${PLAYBACK_SOURCES[@]}" -o "$TMP_DIR/playback-state-contract"
+"$TMP_DIR/playback-state-contract"
+
+cp "$ROOT_DIR/Tests/backdrop_palette_test.swift" "$TMP_DIR/BackdropPaletteMain.swift"
+PALETTE_SOURCES=(
+  "$ROOT_DIR/SpotifyLyrics/Design/BackdropPalette.swift"
+  "$TMP_DIR/BackdropPaletteMain.swift"
+)
+swiftc -parse-as-library -framework AppKit "${PALETTE_SOURCES[@]}" -o "$TMP_DIR/backdrop-palette-contract"
+"$TMP_DIR/backdrop-palette-contract"
+
 ui_sources=(
   "$ROOT_DIR/SpotifyLyrics/Services/LyricsSessionController.swift"
   "$ROOT_DIR/SpotifyLyrics/Views/Components/TrackBackdropView.swift"
@@ -90,5 +146,6 @@ rg -q '暂未找到歌词|LyricsLoadState|loading|candidates|failed' "$ROOT_DIR/
 rg -q 'https://lrclib.net/api|syncedLyrics|plainLyrics' "$ROOT_DIR/SpotifyLyrics/Lyrics/LRCLIBLyricsProvider.swift"
 rg -q 'Music/SpotifyLyrics/Lyrics|Application Support/SpotifyLyrics/Lyrics' "$ROOT_DIR/SpotifyLyrics/Lyrics/LocalLyricsProvider.swift"
 rg -q 'Task.isCancelled|TrackIdentity|artwork' "$ROOT_DIR/SpotifyLyrics/Views/Components/TrackBackdropView.swift"
+rg -q 'PlainLyricsListView|!state.lyricsAreSynchronized' "$ROOT_DIR/SpotifyLyrics/Views/LyricsViews.swift"
 
 echo "real track lyrics contract passed"

@@ -23,6 +23,16 @@
 		1100000E2D83400100000001 /* SpotifyDesktopProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100000E2D83400100000000 /* SpotifyDesktopProvider.swift */; };
 		1100000F2D83400100000001 /* MockPlaybackProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100000F2D83400100000000 /* MockPlaybackProvider.swift */; };
 		110000102D83400100000001 /* ArtworkImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000102D83400100000000 /* ArtworkImageLoader.swift */; };
+		110000122D83400100000001 /* TrackIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000122D83400100000000 /* TrackIdentity.swift */; };
+		110000132D83400100000001 /* LyricsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000132D83400100000000 /* LyricsModels.swift */; };
+		110000142D83400100000001 /* LRCParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000142D83400100000000 /* LRCParser.swift */; };
+		110000152D83400100000001 /* LyricsMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000152D83400100000000 /* LyricsMatcher.swift */; };
+		110000162D83400100000001 /* LocalLyricsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000162D83400100000000 /* LocalLyricsProvider.swift */; };
+		110000172D83400100000001 /* LRCLIBLyricsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000172D83400100000000 /* LRCLIBLyricsProvider.swift */; };
+		110000182D83400100000001 /* CompositeLyricsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000182D83400100000000 /* CompositeLyricsProvider.swift */; };
+		110000192D83400100000001 /* LyricsSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000192D83400100000000 /* LyricsSessionController.swift */; };
+		1100001A2D83400100000001 /* TrackBackdropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100001A2D83400100000000 /* TrackBackdropView.swift */; };
+		1100001B2D83400100000001 /* BackdropPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100001B2D83400100000000 /* BackdropPalette.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -44,6 +54,16 @@
 		1100000F2D83400100000000 /* MockPlaybackProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockPlaybackProvider.swift; sourceTree = "<group>"; };
 		110000102D83400100000000 /* ArtworkImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkImageLoader.swift; sourceTree = "<group>"; };
 		110000112D83400100000000 /* SpotifyLyrics.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SpotifyLyrics.entitlements; sourceTree = "<group>"; };
+		110000122D83400100000000 /* TrackIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackIdentity.swift; sourceTree = "<group>"; };
+		110000132D83400100000000 /* LyricsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsModels.swift; sourceTree = "<group>"; };
+		110000142D83400100000000 /* LRCParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LRCParser.swift; sourceTree = "<group>"; };
+		110000152D83400100000000 /* LyricsMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsMatcher.swift; sourceTree = "<group>"; };
+		110000162D83400100000000 /* LocalLyricsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLyricsProvider.swift; sourceTree = "<group>"; };
+		110000172D83400100000000 /* LRCLIBLyricsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LRCLIBLyricsProvider.swift; sourceTree = "<group>"; };
+		110000182D83400100000000 /* CompositeLyricsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompositeLyricsProvider.swift; sourceTree = "<group>"; };
+		110000192D83400100000000 /* LyricsSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LyricsSessionController.swift; sourceTree = "<group>"; };
+		1100001A2D83400100000000 /* TrackBackdropView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackBackdropView.swift; sourceTree = "<group>"; };
+		1100001B2D83400100000000 /* BackdropPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackdropPalette.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -62,9 +82,11 @@
 				110000022D83400100000000 /* Models.swift */,
 				110000032D83400100000000 /* MockData.swift */,
 				110000042D83400100000000 /* PlaybackState.swift */,
+				110000192D83400100000000 /* LyricsSessionController.swift */,
 				110000052D83400100000000 /* WindowManager.swift */,
 				110000062D83400100000000 /* LyricsViews.swift */,
 				110000002D83400000000024 /* Providers */,
+				110000002D83400000000025 /* Lyrics */,
 				110000112D83400100000000 /* SpotifyLyrics.entitlements */,
 				110000002D83400000000020 /* Views */,
 				110000002D83400000000023 /* Design */,
@@ -96,6 +118,7 @@
 				110000092D83400100000000 /* LyricLineView.swift */,
 				1100000A2D83400100000000 /* TrackHeaderView.swift */,
 				1100000B2D83400100000000 /* LyricsPreferencesPopover.swift */,
+				1100001A2D83400100000000 /* TrackBackdropView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -104,6 +127,7 @@
 			isa = PBXGroup;
 			children = (
 				1100000C2D83400100000000 /* LyricsDesignTokens.swift */,
+				1100001B2D83400100000000 /* BackdropPalette.swift */,
 			);
 			path = Design;
 			sourceTree = "<group>";
@@ -117,6 +141,20 @@
 				110000102D83400100000000 /* ArtworkImageLoader.swift */,
 			);
 			path = Providers;
+			sourceTree = "<group>";
+		};
+		110000002D83400000000025 /* Lyrics */ = {
+			isa = PBXGroup;
+			children = (
+				110000122D83400100000000 /* TrackIdentity.swift */,
+				110000132D83400100000000 /* LyricsModels.swift */,
+				110000142D83400100000000 /* LRCParser.swift */,
+				110000152D83400100000000 /* LyricsMatcher.swift */,
+				110000162D83400100000000 /* LocalLyricsProvider.swift */,
+				110000172D83400100000000 /* LRCLIBLyricsProvider.swift */,
+				110000182D83400100000000 /* CompositeLyricsProvider.swift */,
+			);
+			path = Lyrics;
 			sourceTree = "<group>";
 		};
 		110000002D83400000000003 /* Products */ = {
@@ -198,6 +236,16 @@
 				1100000E2D83400100000001 /* SpotifyDesktopProvider.swift in Sources */,
 				1100000F2D83400100000001 /* MockPlaybackProvider.swift in Sources */,
 				110000102D83400100000001 /* ArtworkImageLoader.swift in Sources */,
+				110000122D83400100000001 /* TrackIdentity.swift in Sources */,
+				110000132D83400100000001 /* LyricsModels.swift in Sources */,
+				110000142D83400100000001 /* LRCParser.swift in Sources */,
+				110000152D83400100000001 /* LyricsMatcher.swift in Sources */,
+				110000162D83400100000001 /* LocalLyricsProvider.swift in Sources */,
+				110000172D83400100000001 /* LRCLIBLyricsProvider.swift in Sources */,
+				110000182D83400100000001 /* CompositeLyricsProvider.swift in Sources */,
+				110000192D83400100000001 /* LyricsSessionController.swift in Sources */,
+				1100001A2D83400100000001 /* TrackBackdropView.swift in Sources */,
+				1100001B2D83400100000001 /* BackdropPalette.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

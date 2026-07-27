@@ -29,7 +29,21 @@ enum LyricsDesignTokens {
         endPoint: .bottomTrailing
     )
 
-    static func lyricEmphasis(isActive: Bool, distance: Int) -> LyricEmphasis {
+    static func lyricEmphasis(
+        isActive: Bool,
+        distance: Int,
+        isSynchronized: Bool = true
+    ) -> LyricEmphasis {
+        if !isSynchronized {
+            return LyricEmphasis(
+                primaryFontSize: 24,
+                secondaryFontSize: 14,
+                opacity: 0.82,
+                blurRadius: 0,
+                verticalPadding: 7
+            )
+        }
+
         if isActive {
             return LyricEmphasis(
                 primaryFontSize: 34,

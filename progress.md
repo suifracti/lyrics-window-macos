@@ -376,8 +376,60 @@
 - One harness issue was corrected during this cycle: Swift top-level test code must be copied to `main.swift`, and the core model no longer depends directly on `MockData` so the Foundation test remains isolated.
 
 ### Phase 17: Local and LRCLIB Providers
-- **Status:** implementation green, live probe pending
+- **Status:** implementation green, live probe verified
 - `LocalLyricsProvider` reads the three approved directories in order and the temporary-directory contract confirms file bytes are unchanged.
 - `LRCLIBLyricsProvider` uses the current `/api/get` metadata query, falls back to `/api/search`, parses `syncedLyrics`/`plainLyrics`, and returns candidates below the high-confidence threshold.
 - `CompositeLyricsProvider` stops on a match/candidate and continues from local no-match to LRCLIB.
-- The contract currently passes core, local, and LRCLIB provider checks, then remains red at the not-yet-created session/background files.
+- The contract passes core, local, LRCLIB, session, palette, and UI source checks. Plain LRCLIB lyrics are marked unsynchronized and do not drive playback highlighting.
+
+### Phase 17: Session, background, and UI state chain
+- **Status:** implementation and contract verification complete; final runtime gate in progress
+- Added `LyricsSessionController` with revision/identity checks, immediate clear-on-begin, cancellation, loading/noLyrics/candidates/failed/mockPreview states, and candidate adoption without persistence.
+- Added Track identity priority: Spotify Track ID, Spotify URI, ISRC, then normalized title/artist/album/rounded duration. The stable key always includes the metadata fingerprint, so an ID alone cannot keep stale lyrics attached to changed metadata.
+- Added `TrackBackdropView` and `BackdropPalette`: artwork-bound request keys, cancellation/stale-return guards, palette extraction, cropped/blurred texture, gradient layers, readability veil, neutral fallback, and short crossfade snapshot.
+- Replaced real-track Mock lyric fallback with explicit `Mock Preview`; switching real identities clears lyric rows and resets the scroll view through the session revision.
+- Fixed provider refresh to recalibrate periodically while Spotify is ready, so externally triggered Spotify track changes reach the app without requiring a local transport command.
+
+### Phase 17: Contract and real runtime evidence
+- `./Tests/real_track_lyrics_contract.sh` passes: core identity/LRC/matcher, read-only local lookup, LRCLIB JSON/query/synced/plain parsing, delayed session ordering, palette extraction for vivid/bright/dark/single-color inputs, and UI source checks.
+- The final no-signing DerivedData Debug build returned `0` and ended with `** BUILD SUCCEEDED **`; a normal signed Debug build also returned `0`, used `Sign to Run Locally`, and passed codesign verification.
+- Real Spotify runtime screenshots saved under `real-track-lyrics-assets/`:
+  - `bye-bye-bye-real-lyrics.png`: English lyrics, matching cover/background and track title.
+  - `japanese-real-lyrics.png`: Japanese lyrics, matching cover/background and track title.
+  - `chinese-real-lyrics.png`: Chinese track `晴天下雨`, matching cover/background, explicit `暂未找到歌词`, and no prior lyrics retained.
+  - `final-real-track-loading.png`: fresh DerivedData launch shows the real Chinese track, matching cover/background, and `正在搜索歌词…` with the previous rows cleared.
+  - `final-real-track-loaded.png`: the same real Chinese track returns matching lyrics after the loading state.
+  - `real-network-failed.png`: Debug-only LRCLIB endpoint override to a refused localhost port produces the real app `歌词搜索失败` state; the override is compile-gated to Debug and is not used by Release.
+
+### Phase 17: Final gate
+- **Status:** complete
+- Final tests pass, the no-signing Debug build and normal signed Debug build both end with `** BUILD SUCCEEDED **`, and `codesign --verify --deep --strict` passes.
+- The signed DerivedData app was relaunched after the diagnostic process ended; Apple Events TCC remains granted for `com.spotifylyrics.app → com.spotify.client`, and the real track returned to the normal loading/loaded path.
+
+## Session: 2026-07-27 — Playback and Lyrics Correctness
+
+### Phase 18: Red-green correctness contracts
+- **Status:** implementation green; final gate in progress
+- Added `Tests/lyrics_correctness_test.swift` before the corresponding production changes. The first contract run failed at the missing typed failure cases and `LyricsTimeline`, confirming the new assertions were red for the intended reason.
+- Added `Tests/playback_state_contract.swift` and wired it into `Tests/real_track_lyrics_contract.sh`; it exercises a protocol-injected provider rather than coupling tests to `SpotifyDesktopProvider`.
+- The complete contract now covers network unavailable, timeout, HTTP server failure, parse failure, no-match versus no-lyrics, unsynchronized plain text, candidate adoption/current-identity checks, retry, rapid session replacement, and playback controls.
+
+### Phase 18: State correctness implementation
+- `LyricsFailure` now carries explicit user-facing categories: `networkUnavailable`, `timedOut`, `serverError`, `parseFailure`, and `unknown`.
+- `LyricsLoadState.noMatch` is separate from `noLyrics`; both clear current rows, while failed/no-match states expose a retry action. Low-confidence candidates remain visible until the user explicitly adopts one for the active identity.
+- `LyricsTimeline` is the shared pure rule for synchronized active-line calculation and unsynchronized full-text presentation. Plain lyrics never receive a synthetic active line or playback-driven scroll.
+- LRCLIB maps URL/network/HTTP/JSON failures to the typed categories and treats a direct/search 404 sequence as `noMatch`.
+
+### Phase 18: Real signed runtime evidence
+- Normal signed Debug build was launched from `/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app` with existing Apple Events permission.
+- The runtime showed the real `一点点（为什么晚上总是有星星）` / 董唧唧、芊芊龍 track, matching artwork-derived background and lyrics. Two rapid next-track transitions and previous/next controls converged to the same Spotify track, cover, lyrics, and position; a fresh launch showed the explicit loading state before lyrics arrived.
+- Pause/resume held and advanced the real interpolated position; slider `Increment` changed the paused position from about `01:51` to `02:09` and Spotify/app state remained paused.
+- Quitting Spotify produced `Spotify.app 未运行 · 未进入 Mock Preview` with placeholder track and cleared lyrics; reopening Spotify automatically returned to the same real track, cover, lyrics and connected status.
+- New observation-only screenshots: `real-track-lyrics-assets/correctness-reconnected.png` and `real-track-lyrics-assets/correctness-paused.png`; the earlier full-size loading evidence remains `real-track-lyrics-assets/final-real-track-loading.png`.
+
+### Phase 18: Final verification
+- **Status:** complete
+- `./Tests/real_track_lyrics_contract.sh` passes all core, provider, session, palette, correctness, playback and source-contract checks.
+- The exact no-signing Debug command and the normal signed Debug command both returned `0` with `** BUILD SUCCEEDED **`; the final signed app passed `codesign --verify --deep --strict` and retained the Apple Events entitlement/usage description.
+- Final signed runtime was relaunched from DerivedData. Spotify and SpotifyLyrics both reported `一点点（为什么晚上总是有星星） / 董唧唧、芊芊龍`; the app showed matching artwork, background, lyrics and paused progress after the loading state.
+- Independent commit: `Fix playback and lyrics state correctness`.

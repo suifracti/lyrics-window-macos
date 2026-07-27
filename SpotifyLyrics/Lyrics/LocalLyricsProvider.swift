@@ -54,6 +54,7 @@ public final class LocalLyricsProvider: LyricsProvider {
                 album: document.album ?? track.album,
                 duration: document.duration ?? track.duration,
                 lines: document.lines,
+                isSynchronized: document.isSynchronized,
                 source: .local,
                 confidence: 0
             )
@@ -67,6 +68,7 @@ public final class LocalLyricsProvider: LyricsProvider {
                     album: candidate.album,
                     duration: candidate.duration,
                     lines: candidate.lines,
+                    isSynchronized: candidate.isSynchronized,
                     source: candidate.source,
                     confidence: score
                 )
@@ -92,6 +94,7 @@ public final class LocalLyricsProvider: LyricsProvider {
                     album: best.album,
                     duration: best.duration,
                     lines: best.lines,
+                    isSynchronized: best.isSynchronized,
                     source: .local,
                     confidence: best.confidence
                 )

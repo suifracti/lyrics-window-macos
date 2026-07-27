@@ -14,10 +14,10 @@ public final class LRCLIBLyricsProvider: LyricsProvider {
 
     public init(
         session: LRCLIBSession = URLSession.shared,
-        baseURL: URL = URL(string: "https://lrclib.net/api")!
+        baseURL: URL? = nil
     ) {
         self.session = session
-        self.baseURL = baseURL
+        self.baseURL = baseURL ?? Self.defaultBaseURL
     }
 
     public func lookup(track: Track, identity: TrackIdentity) async -> LyricsLookupResult {
@@ -35,14 +35,17 @@ public final class LRCLIBLyricsProvider: LyricsProvider {
                     let search = try await fetchRecords(path: "search", track: track)
                     return classify(records: search, track: track, identity: identity) ?? .noLyrics
                 } catch let nested as LRCLIBError {
-                    return .failed(Self.userFacingMessage(for: nested))
+                    if case .notFound = nested {
+                        return .noMatch
+                    }
+                    return .failed(Self.failure(for: nested))
                 } catch {
-                    return .failed(error.localizedDescription)
+                    return .failed(Self.failure(for: error))
                 }
             }
-            return .failed(Self.userFacingMessage(for: error))
+            return .failed(Self.failure(for: error))
         } catch {
-            return .failed(error.localizedDescription)
+            return .failed(Self.failure(for: error))
         }
     }
 
@@ -75,10 +78,14 @@ public final class LRCLIBLyricsProvider: LyricsProvider {
         }
 
         let decoder = JSONDecoder()
-        if path == "search" {
-            return try decoder.decode([LRCLIBRecord].self, from: data)
+        do {
+            if path == "search" {
+                return try decoder.decode([LRCLIBRecord].self, from: data)
+            }
+            return [try decoder.decode(LRCLIBRecord.self, from: data)]
+        } catch {
+            throw LRCLIBError.parseFailure
         }
-        return [try decoder.decode(LRCLIBRecord.self, from: data)]
     }
 
     private func classify(
@@ -89,7 +96,7 @@ public final class LRCLIBLyricsProvider: LyricsProvider {
         var candidates: [LyricsCandidate] = []
 
         for (index, record) in records.enumerated() {
-            guard let lines = parseLines(from: record), !lines.isEmpty else { continue }
+            guard let parsed = parseLyrics(from: record), !parsed.lines.isEmpty else { continue }
             let candidate = LyricsCandidate(
                 id: String(record.id ?? index),
                 identity: identity,
@@ -97,7 +104,8 @@ public final class LRCLIBLyricsProvider: LyricsProvider {
                 artist: record.artistName ?? "",
                 album: record.albumName ?? "",
                 duration: record.duration ?? track.duration,
-                lines: lines,
+                lines: parsed.lines,
+                isSynchronized: parsed.isSynchronized,
                 source: .lrclib,
                 confidence: 0
             )
@@ -111,6 +119,7 @@ public final class LRCLIBLyricsProvider: LyricsProvider {
                     album: candidate.album,
                     duration: candidate.duration,
                     lines: candidate.lines,
+                    isSynchronized: candidate.isSynchronized,
                     source: candidate.source,
                     confidence: score
                 )
@@ -134,6 +143,7 @@ public final class LRCLIBLyricsProvider: LyricsProvider {
                     album: best.album,
                     duration: best.duration,
                     lines: best.lines,
+                    isSynchronized: best.isSynchronized,
                     source: .lrclib,
                     confidence: best.confidence
                 )
@@ -142,14 +152,14 @@ public final class LRCLIBLyricsProvider: LyricsProvider {
         return .candidates(sorted)
     }
 
-    private func parseLines(from record: LRCLIBRecord) -> [LyricLine]? {
+    private func parseLyrics(from record: LRCLIBRecord) -> ParsedLyrics? {
         if let syncedLyrics = record.syncedLyrics,
            let document = LRCParser.parse(
                syncedLyrics,
                identity: TrackIdentity(title: record.trackName ?? "", artist: record.artistName ?? "", album: record.albumName ?? "", duration: record.duration ?? 0),
                source: .lrclib
            ) {
-            return document.lines
+            return ParsedLyrics(lines: document.lines, isSynchronized: true)
         }
 
         guard let plainLyrics = record.plainLyrics else { return nil }
@@ -158,18 +168,47 @@ public final class LRCLIBLyricsProvider: LyricsProvider {
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
             .map { LyricLine(timestamp: 0, originalText: $0) }
-        return lines.isEmpty ? nil : lines
+        return lines.isEmpty ? nil : ParsedLyrics(lines: lines, isSynchronized: false)
     }
 
-    private static func userFacingMessage(for error: LRCLIBError) -> String {
+    private static func failure(for error: LRCLIBError) -> LyricsFailure {
         switch error {
         case .notFound:
-            return "LRCLIB 没有匹配结果"
+            return .unknown("LRCLIB 没有匹配结果")
         case .httpStatus(let status):
-            return "LRCLIB 返回 HTTP \(status)"
+            return .serverError(status)
         case .invalidResponse:
-            return "LRCLIB 返回格式无法识别"
+            return .parseFailure
+        case .parseFailure:
+            return .parseFailure
         }
+    }
+
+    private static func failure(for error: Error) -> LyricsFailure {
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .notConnectedToInternet, .networkConnectionLost, .cannotFindHost,
+                 .cannotConnectToHost, .dnsLookupFailed:
+                return .networkUnavailable
+            case .timedOut:
+                return .timedOut
+            default:
+                break
+            }
+        }
+        return .unknown(error.localizedDescription)
+    }
+
+    private static var defaultBaseURL: URL {
+        #if DEBUG
+        if let override = ProcessInfo.processInfo.environment["SPOTIFYLYRICS_LRCLIB_BASE_URL"],
+           let url = URL(string: override),
+           url.scheme != nil,
+           url.host != nil {
+            return url
+        }
+        #endif
+        return URL(string: "https://lrclib.net/api")!
     }
 }
 
@@ -177,6 +216,7 @@ private enum LRCLIBError: Error {
     case notFound
     case httpStatus(Int)
     case invalidResponse
+    case parseFailure
 }
 
 private struct LRCLIBRecord: Decodable {
@@ -188,4 +228,9 @@ private struct LRCLIBRecord: Decodable {
     let instrumental: Bool?
     let plainLyrics: String?
     let syncedLyrics: String?
+}
+
+private struct ParsedLyrics {
+    let lines: [LyricLine]
+    let isSynchronized: Bool
 }

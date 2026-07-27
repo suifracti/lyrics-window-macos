@@ -21,6 +21,7 @@ public struct LyricsDocument: Equatable {
     public let album: String?
     public let duration: TimeInterval?
     public let lines: [LyricLine]
+    public let isSynchronized: Bool
     public let source: LyricsSource
     public let confidence: Double
 
@@ -31,6 +32,7 @@ public struct LyricsDocument: Equatable {
         album: String? = nil,
         duration: TimeInterval? = nil,
         lines: [LyricLine],
+        isSynchronized: Bool = true,
         source: LyricsSource,
         confidence: Double = 1
     ) {
@@ -40,6 +42,7 @@ public struct LyricsDocument: Equatable {
         self.album = album
         self.duration = duration
         self.lines = lines
+        self.isSynchronized = isSynchronized
         self.source = source
         self.confidence = confidence
     }
@@ -53,6 +56,7 @@ public struct LyricsCandidate: Identifiable, Equatable {
     public let album: String
     public let duration: TimeInterval
     public let lines: [LyricLine]
+    public let isSynchronized: Bool
     public let source: LyricsSource
     public let confidence: Double
 
@@ -64,6 +68,7 @@ public struct LyricsCandidate: Identifiable, Equatable {
         album: String,
         duration: TimeInterval,
         lines: [LyricLine],
+        isSynchronized: Bool = true,
         source: LyricsSource,
         confidence: Double
     ) {
@@ -74,8 +79,32 @@ public struct LyricsCandidate: Identifiable, Equatable {
         self.album = album
         self.duration = duration
         self.lines = lines
+        self.isSynchronized = isSynchronized
         self.source = source
         self.confidence = confidence
+    }
+}
+
+public enum LyricsFailure: Equatable, Sendable {
+    case networkUnavailable
+    case timedOut
+    case serverError(Int)
+    case parseFailure
+    case unknown(String)
+
+    public var userFacingMessage: String {
+        switch self {
+        case .networkUnavailable:
+            return "网络不可用"
+        case .timedOut:
+            return "歌词请求超时"
+        case .serverError(let statusCode):
+            return "歌词服务错误（HTTP \(statusCode)）"
+        case .parseFailure:
+            return "歌词解析失败"
+        case .unknown(let message):
+            return message.isEmpty ? "未知歌词错误" : message
+        }
     }
 }
 
@@ -84,7 +113,7 @@ public enum LyricsLookupResult {
     case candidates([LyricsCandidate])
     case noLyrics
     case noMatch
-    case failed(String)
+    case failed(LyricsFailure)
 }
 
 public protocol LyricsProvider {
@@ -97,15 +126,16 @@ public enum LyricsLoadState: Equatable {
     case loading(TrackIdentity)
     case loaded(LyricsDocument)
     case noLyrics(TrackIdentity)
+    case noMatch(TrackIdentity)
     case candidates(TrackIdentity, [LyricsCandidate])
-    case failed(TrackIdentity, String)
+    case failed(TrackIdentity, LyricsFailure)
     case mockPreview
 
     public var identity: TrackIdentity? {
         switch self {
         case .idle, .mockPreview:
             return nil
-        case .loading(let identity), .noLyrics(let identity), .failed(let identity, _):
+        case .loading(let identity), .noLyrics(let identity), .noMatch(let identity), .failed(let identity, _):
             return identity
         case .loaded(let document):
             return document.identity
@@ -135,10 +165,12 @@ public enum LyricsLoadState: Equatable {
             return ""
         case .noLyrics:
             return "暂未找到歌词"
+        case .noMatch:
+            return "未找到匹配歌词"
         case .candidates:
             return "请选择匹配的歌词"
-        case .failed(_, let message):
-            return "歌词搜索失败：\(message)"
+        case .failed(_, let failure):
+            return "歌词搜索失败：\(failure.userFacingMessage)"
         case .mockPreview:
             return "Mock Preview"
         }
@@ -151,5 +183,25 @@ public enum LyricsLoadState: Equatable {
         default:
             return false
         }
+    }
+}
+
+public enum LyricsTimeline {
+    public static func activeLineIndex(
+        lines: [LyricLine],
+        time: TimeInterval,
+        isSynchronized: Bool
+    ) -> Int? {
+        guard isSynchronized, !lines.isEmpty else { return nil }
+        return lines.enumerated().last { $0.element.timestamp <= time }?.offset
+    }
+
+    public static func presentationDistance(
+        index: Int,
+        currentIndex: Int?,
+        isSynchronized: Bool
+    ) -> Int {
+        guard isSynchronized, let currentIndex else { return 0 }
+        return abs(index - currentIndex)
     }
 }

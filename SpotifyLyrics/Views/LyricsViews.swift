@@ -34,6 +34,25 @@ struct LineDisplayView: View {
     }
 }
 
+struct PlainLyricsListView: View {
+    let lines: [LyricLine]
+    let prefs: DisplayPreferences
+
+    var body: some View {
+        ScrollView(.vertical) {
+            VStack(alignment: .leading, spacing: 12) {
+                ForEach(lines) { line in
+                    LineDisplayView(line: line, isActive: false, prefs: prefs)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+        }
+        .scrollIndicators(.hidden)
+    }
+}
+
 // Floating Lyrics View
 struct FloatingLyricsView: View {
     @EnvironmentObject var state: PlaybackState
@@ -48,11 +67,15 @@ struct FloatingLyricsView: View {
                 )
 
             VStack(alignment: .leading, spacing: 6) {
-                if let index = state.currentLineIndex, index < state.lyrics.count {
+                if state.lyricsAreSynchronized,
+                   let index = state.currentLineIndex,
+                   index < state.lyrics.count {
                     let line = state.lyrics[index]
                     LineDisplayView(line: line, isActive: true, prefs: state.preferences)
+                } else if !state.lyricsAreSynchronized, !state.lyrics.isEmpty {
+                    PlainLyricsListView(lines: state.lyrics, prefs: state.preferences)
                 } else {
-                    Text("Spotify 歌词准备就绪")
+                    Text(state.lyricsStatusMessage.isEmpty ? "歌词已加载" : state.lyricsStatusMessage)
                         .foregroundColor(.secondary)
                 }
             }
@@ -80,6 +103,11 @@ struct CapsulePlayerView: View {
                     .lineLimit(1)
                 if let index = state.currentLineIndex, index < state.lyrics.count {
                     Text(state.lyrics[index].originalText)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                } else if !state.lyricsAreSynchronized, let firstLine = state.lyrics.first {
+                    Text(firstLine.originalText)
                         .font(.caption2)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
@@ -127,7 +155,9 @@ struct FullScreenLyricsView: View {
                 Spacer()
 
                 VStack(spacing: 24) {
-                    if let index = state.currentLineIndex, index < state.lyrics.count {
+                    if state.lyricsAreSynchronized,
+                       let index = state.currentLineIndex,
+                       index < state.lyrics.count {
                         let line = state.lyrics[index]
                         LineDisplayView(
                             line: line,
@@ -142,8 +172,21 @@ struct FullScreenLyricsView: View {
                                 alwaysOnTop: false
                             )
                         )
+                    } else if !state.lyricsAreSynchronized, !state.lyrics.isEmpty {
+                        PlainLyricsListView(
+                            lines: state.lyrics,
+                            prefs: DisplayPreferences(
+                                showOriginal: state.preferences.showOriginal,
+                                showTranslation: state.preferences.showTranslation,
+                                showRomaji: state.preferences.showRomaji,
+                                showKana: state.preferences.showKana,
+                                fontSize: 32,
+                                opacity: 1.0,
+                                alwaysOnTop: false
+                            )
+                        )
                     } else {
-                        Text(state.currentTrack.title)
+                        Text(state.lyricsStatusMessage.isEmpty ? state.currentTrack.title : state.lyricsStatusMessage)
                             .font(.largeTitle)
                             .foregroundColor(.white)
                     }

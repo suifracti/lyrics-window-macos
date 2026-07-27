@@ -3,13 +3,14 @@ import Foundation
 
 @MainActor
 public final class PlaybackState: ObservableObject {
-    @Published public var currentTrack: Track = MockData.sampleTrack
-    @Published public var lyrics: [LyricLine] = MockData.sampleLyrics
+    @Published public private(set) var currentTrack: Track = .emptyPlaybackPlaceholder
     @Published public private(set) var currentTime: TimeInterval = 0
     @Published public private(set) var isPlaying = false
     @Published public var currentMode: LyricsDisplayMode = .mainWindow
     @Published public var preferences: DisplayPreferences = DisplayPreferences()
     @Published public private(set) var providerStatus: PlaybackProviderState = .connecting
+    @Published public private(set) var isMockPreviewMode = false
+    @Published public private(set) var hasLiveTrack = false
 
     // Auxiliary display states remain available to the existing window manager.
     @Published public var showFloatingWindow = false
@@ -17,10 +18,13 @@ public final class PlaybackState: ObservableObject {
     @Published public var showFullScreen = false
 
     private let provider: PlaybackProvider
-    private let mockProvider: MockPlaybackProvider
+    private let lyricsSession: LyricsSessionController
+    private var lyricsSessionCancellable: AnyCancellable?
     private var timer: Timer?
     private var isProviderStarted = false
     private var isRefreshingProvider = false
+    private var providerRefreshGeneration: UInt64 = 0
+    private var refreshRequestedWhileBusy = false
     private var providerRefreshTask: Task<Void, Never>?
     private var playbackAnchorPosition: TimeInterval = 0
     private var playbackAnchorDate = Date()
@@ -28,29 +32,63 @@ public final class PlaybackState: ObservableObject {
     private let tickInterval: TimeInterval = 0.2
     private let calibrationInterval: TimeInterval = 2.0
 
-    public init(provider: PlaybackProvider? = nil) {
+    public init(
+        provider: PlaybackProvider? = nil,
+        lyricsProvider: LyricsProvider? = nil
+    ) {
         self.provider = provider ?? SpotifyDesktopProvider()
-        self.mockProvider = MockPlaybackProvider()
+        self.lyricsSession = LyricsSessionController(
+            provider: lyricsProvider ?? CompositeLyricsProvider(
+                providers: [
+                    LocalLyricsProvider(),
+                    LRCLIBLyricsProvider()
+                ]
+            )
+        )
+        self.lyricsSessionCancellable = nil
+        self.lyricsSessionCancellable = self.lyricsSession.objectWillChange.sink { [weak self] _ in
+            self?.objectWillChange.send()
+        }
     }
 
     deinit {
         timer?.invalidate()
         providerRefreshTask?.cancel()
+        lyricsSessionCancellable?.cancel()
+    }
+
+    public var lyrics: [LyricLine] { lyricsSession.lyrics }
+    public var lyricsState: LyricsLoadState { lyricsSession.state }
+    public var lyricsAreSynchronized: Bool { lyricsSession.isSynchronized }
+    public var lyricsSessionRevision: UInt64 { lyricsSession.revision }
+    public var currentTrackIdentity: TrackIdentity? {
+        guard hasLiveTrack, !isMockPreviewMode else { return nil }
+        return lyricsSession.activeIdentity
     }
 
     public var canControlSpotify: Bool {
-        providerStatus.isReady
+        providerStatus.isReady && hasLiveTrack && !isMockPreviewMode
     }
 
-    public var isUsingMockPreview: Bool {
-        !providerStatus.isReady
+    /// True only after the user explicitly enters Mock Preview.
+    public var isUsingMockPreview: Bool { isMockPreviewMode }
+
+    public var canInteractWithPlayback: Bool {
+        canControlSpotify || isMockPreviewMode
     }
 
     public var providerStatusMessage: String {
-        guard isUsingMockPreview, providerStatus != .mockPreview else {
+        if isMockPreviewMode {
+            return "Mock Preview"
+        }
+        if providerStatus.isReady, hasLiveTrack {
             return providerStatus.userFacingMessage
         }
-        return "\(providerStatus.userFacingMessage) · 正在使用 Mock 预览"
+        return "\(providerStatus.userFacingMessage) · 未进入 Mock Preview"
+    }
+
+    public var lyricsStatusMessage: String {
+        lyricsState.userFacingMessage
     }
 
     public func startProvider() {
@@ -63,6 +101,39 @@ public final class PlaybackState: ObservableObject {
     }
 
     public func reconnectSpotify() {
+        guard !isMockPreviewMode else { return }
+        providerRefreshGeneration &+= 1
+        refreshRequestedWhileBusy = true
+        providerStatus = .connecting
+        clearLiveTrackIfNeeded()
+        providerRefreshTask?.cancel()
+        providerRefreshTask = Task { @MainActor [weak self] in
+            await self?.refreshProvider()
+        }
+    }
+
+    public func enterMockPreview() {
+        providerRefreshGeneration &+= 1
+        refreshRequestedWhileBusy = false
+        providerRefreshTask?.cancel()
+        isMockPreviewMode = true
+        hasLiveTrack = false
+        providerStatus = .mockPreview
+        currentTrack = MockData.sampleTrack
+        lyricsSession.enterMockPreview(lines: MockData.sampleLyrics)
+        isPlaying = false
+        resetPlaybackAnchor(to: 0)
+    }
+
+    public func exitMockPreview() {
+        providerRefreshGeneration &+= 1
+        refreshRequestedWhileBusy = true
+        isMockPreviewMode = false
+        hasLiveTrack = false
+        currentTrack = .emptyPlaybackPlaceholder
+        lyricsSession.clear()
+        isPlaying = false
+        resetPlaybackAnchor(to: 0)
         providerStatus = .connecting
         providerRefreshTask?.cancel()
         providerRefreshTask = Task { @MainActor [weak self] in
@@ -71,26 +142,29 @@ public final class PlaybackState: ObservableObject {
     }
 
     public func togglePlayPause() {
-        if canControlSpotify {
-            let shouldPlay = !isPlaying
-            isPlaying = shouldPlay
-            resetPlaybackAnchor(to: currentTime)
-            providerRefreshTask = Task { @MainActor [weak self] in
-                guard let self else { return }
-                do {
-                    if shouldPlay {
-                        try await self.provider.play()
-                    } else {
-                        try await self.provider.pause()
-                    }
-                    await self.refreshProvider()
-                } catch {
-                    self.handleProviderError(error)
-                }
-            }
-        } else {
+        if isMockPreviewMode {
             isPlaying.toggle()
             resetPlaybackAnchor(to: currentTime)
+            return
+        }
+
+        guard canControlSpotify else { return }
+        invalidateProviderRefresh()
+        let shouldPlay = !isPlaying
+        isPlaying = shouldPlay
+        resetPlaybackAnchor(to: currentTime)
+        providerRefreshTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            do {
+                if shouldPlay {
+                    try await self.provider.play()
+                } else {
+                    try await self.provider.pause()
+                }
+                await self.refreshProvider()
+            } catch {
+                self.handleProviderError(error)
+            }
         }
     }
 
@@ -109,72 +183,122 @@ public final class PlaybackState: ObservableObject {
     }
 
     public func seek(to time: TimeInterval) {
+        guard canInteractWithPlayback else { return }
         let clampedTime = max(0, min(time, currentTrack.duration))
         resetPlaybackAnchor(to: clampedTime)
 
         guard canControlSpotify else { return }
+        invalidateProviderRefresh()
         runProviderCommand { provider in
             try await provider.seek(to: clampedTime)
         }
     }
 
+    public func retryLyrics() {
+        guard hasLiveTrack, let identity = currentTrackIdentity else { return }
+        lyricsSession.retry(track: currentTrack, identity: identity)
+    }
+
+    public func adoptLyricsCandidate(_ candidate: LyricsCandidate) {
+        lyricsSession.adopt(candidate: candidate)
+    }
+
     public var currentLineIndex: Int? {
-        guard !lyrics.isEmpty else { return nil }
-        let matched = lyrics.enumerated().filter { $0.element.timestamp <= currentTime }
-        return matched.last?.offset
+        LyricsTimeline.activeLineIndex(
+            lines: lyrics,
+            time: currentTime,
+            isSynchronized: lyricsAreSynchronized
+        )
     }
 
     private func refreshProvider() async {
-        guard !isRefreshingProvider else { return }
-        isRefreshingProvider = true
-        let snapshot = await provider.refresh()
-        synchronize(with: snapshot)
-        isRefreshingProvider = false
-        lastProviderRefreshDate = Date()
-    }
-
-    private func synchronize(with snapshot: PlaybackSnapshot) {
-        providerStatus = snapshot.status
-
-        guard snapshot.status.isReady, let providerTrack = snapshot.track else {
-            switchToMockFallback()
+        guard !isMockPreviewMode else { return }
+        guard !isRefreshingProvider else {
+            refreshRequestedWhileBusy = true
             return
         }
 
-        let hasChangedTrack = currentTrack.id != providerTrack.id
-        if hasChangedTrack {
-            currentTrack = Track(providerTrack: providerTrack)
-        } else if currentTrack.artworkURL != providerTrack.artworkURL || currentTrack.title != providerTrack.title {
-            currentTrack = Track(providerTrack: providerTrack)
+        let generation = providerRefreshGeneration
+        isRefreshingProvider = true
+        refreshRequestedWhileBusy = false
+        let snapshot = await provider.refresh()
+        isRefreshingProvider = false
+
+        let shouldApply = !Task.isCancelled && generation == providerRefreshGeneration && !isMockPreviewMode
+        if shouldApply {
+            synchronize(with: snapshot)
+            lastProviderRefreshDate = Date()
+        }
+
+        let shouldQueueRefresh = refreshRequestedWhileBusy
+        refreshRequestedWhileBusy = false
+        if shouldQueueRefresh && !isMockPreviewMode {
+            providerRefreshTask = Task { @MainActor [weak self] in
+                await self?.refreshProvider()
+            }
+        }
+    }
+
+    private func synchronize(with snapshot: PlaybackSnapshot) {
+        // A refresh that was already in flight when Mock Preview was entered
+        // must not be allowed to resurrect a real Spotify session.
+        guard !isMockPreviewMode else { return }
+        providerStatus = snapshot.status
+
+        guard snapshot.status.isReady, let providerTrack = snapshot.track else {
+            clearLiveTrackIfNeeded()
+            return
+        }
+
+        let nextTrack = Track(providerTrack: providerTrack)
+        let nextIdentity = TrackIdentity(track: nextTrack)
+        let identityChanged = !hasLiveTrack || lyricsSession.activeIdentity != nextIdentity
+
+        if identityChanged {
+            hasLiveTrack = true
+            isMockPreviewMode = false
+            currentTrack = nextTrack
+            lyricsSession.begin(track: nextTrack, identity: nextIdentity)
+        } else if currentTrack != nextTrack {
+            // Metadata/artwork may change without a lyric identity change. The
+            // background view receives the new artwork URL and rekeys itself.
+            currentTrack = nextTrack
         }
 
         isPlaying = snapshot.isPlaying
         resetPlaybackAnchor(to: snapshot.position)
     }
 
-    private func switchToMockFallback() {
-        if currentTrack.id != MockData.sampleTrack.id {
-            currentTrack = MockData.sampleTrack
+    private func clearLiveTrackIfNeeded() {
+        guard !isMockPreviewMode else { return }
+        let hadLiveState = hasLiveTrack || lyricsSession.activeIdentity != nil || !lyrics.isEmpty
+        hasLiveTrack = false
+        if hadLiveState {
+            currentTrack = .emptyPlaybackPlaceholder
+            lyricsSession.clear()
         }
         isPlaying = false
-        currentTime = min(currentTime, currentTrack.duration)
-        resetPlaybackAnchor(to: currentTime)
-        _ = mockProvider
+        resetPlaybackAnchor(to: 0)
     }
 
     private func runProviderCommand(_ command: @escaping @MainActor (PlaybackProvider) async throws -> Void) {
+        invalidateProviderRefresh()
         providerRefreshTask = Task { @MainActor [weak self] in
             guard let self else { return }
             do {
                 try await command(self.provider)
-                // Spotify applies transport commands asynchronously. Give its
-                // player a short moment to publish the new track/position before
-                // the post-command calibration read.
                 try? await Task.sleep(nanoseconds: 250_000_000)
                 await self.refreshProvider()
             } catch {
                 self.handleProviderError(error)
             }
+        }
+    }
+
+    private func invalidateProviderRefresh() {
+        providerRefreshGeneration &+= 1
+        if isRefreshingProvider {
+            refreshRequestedWhileBusy = true
         }
     }
 
@@ -195,7 +319,7 @@ public final class PlaybackState: ObservableObject {
         } else {
             providerStatus = .unavailable(error.localizedDescription)
         }
-        switchToMockFallback()
+        clearLiveTrackIfNeeded()
     }
 
     private func startTimer() {
@@ -208,7 +332,13 @@ public final class PlaybackState: ObservableObject {
     }
 
     private func tick() {
-        if providerStatus.isReady {
+        if isMockPreviewMode {
+            currentTime = min(currentTrack.duration, currentTime + (isPlaying ? tickInterval : 0))
+            if currentTime >= currentTrack.duration {
+                isPlaying = false
+                resetPlaybackAnchor(to: currentTrack.duration)
+            }
+        } else if providerStatus.isReady, hasLiveTrack {
             if isPlaying {
                 let elapsed = Date().timeIntervalSince(playbackAnchorDate)
                 currentTime = min(currentTrack.duration, playbackAnchorPosition + elapsed)
@@ -219,25 +349,13 @@ public final class PlaybackState: ObservableObject {
             } else {
                 currentTime = playbackAnchorPosition
             }
-        } else if isPlaying {
-            currentTime = min(currentTrack.duration, currentTime + tickInterval)
-            if currentTime >= currentTrack.duration {
-                isPlaying = false
-                resetPlaybackAnchor(to: currentTrack.duration)
-            }
+        } else {
+            currentTime = 0
         }
 
-        let shouldRetryConnection: Bool
-        switch providerStatus {
-        case .permissionDenied, .mockPreview:
-            shouldRetryConnection = false
-        default:
-            shouldRetryConnection = true
-        }
-
-        if shouldRetryConnection,
-           Date().timeIntervalSince(lastProviderRefreshDate) >= calibrationInterval,
-           !isRefreshingProvider {
+        let shouldRefreshProvider = !isMockPreviewMode &&
+            Date().timeIntervalSince(lastProviderRefreshDate) >= calibrationInterval
+        if shouldRefreshProvider && !isRefreshingProvider {
             providerRefreshTask = Task { @MainActor [weak self] in
                 await self?.refreshProvider()
             }
@@ -252,14 +370,30 @@ public final class PlaybackState: ObservableObject {
 }
 
 private extension Track {
+    static let emptyPlaybackPlaceholder = Track(
+        id: "no-live-track",
+        title: "等待 Spotify 播放",
+        artist: "Spotify Desktop",
+        album: "",
+        duration: 0,
+        artworkName: "music.note"
+    )
+
     init(providerTrack: ProviderTrack) {
+        let fallbackID = TrackIdentity.metadataFingerprint(
+            title: providerTrack.title,
+            artist: providerTrack.artist,
+            album: providerTrack.album,
+            duration: providerTrack.duration
+        )
         self.init(
-            id: providerTrack.id,
+            id: providerTrack.id ?? "metadata-\(fallbackID)",
             title: providerTrack.title,
             artist: providerTrack.artist,
             album: providerTrack.album,
             duration: providerTrack.duration,
             artworkName: "music.note",
+            isrc: providerTrack.isrc,
             spotifyId: providerTrack.id,
             artworkURL: providerTrack.artworkURL,
             spotifyURL: providerTrack.spotifyURL

@@ -37,22 +37,27 @@ public enum PlaybackProviderState: Equatable, Sendable {
 }
 
 public struct ProviderTrack: Equatable, Sendable {
-    public let id: String
+    /// Spotify's stable track identifier when the provider can read one.
+    /// It is optional so identity can correctly fall back to metadata when
+    /// Spotify does not expose an ID/URI/ISRC.
+    public let id: String?
     public let title: String
     public let artist: String
     public let album: String
     public let duration: TimeInterval
     public let artworkURL: URL?
     public let spotifyURL: URL?
+    public let isrc: String?
 
     public init(
-        id: String,
+        id: String? = nil,
         title: String,
         artist: String,
         album: String,
         duration: TimeInterval,
         artworkURL: URL? = nil,
-        spotifyURL: URL? = nil
+        spotifyURL: URL? = nil,
+        isrc: String? = nil
     ) {
         self.id = id
         self.title = title
@@ -61,6 +66,7 @@ public struct ProviderTrack: Equatable, Sendable {
         self.duration = duration
         self.artworkURL = artworkURL
         self.spotifyURL = spotifyURL
+        self.isrc = isrc
     }
 }
 

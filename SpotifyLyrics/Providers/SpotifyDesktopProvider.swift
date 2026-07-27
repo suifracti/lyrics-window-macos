@@ -123,7 +123,7 @@ public final class SpotifyDesktopProvider: PlaybackProvider {
         }
 
         let track = ProviderTrack(
-            id: id.isEmpty ? (spotifyURL?.absoluteString ?? "spotify-current-track") : id,
+            id: id.isEmpty ? nil : id,
             title: title,
             artist: artist,
             album: album,

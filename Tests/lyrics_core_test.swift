@@ -17,6 +17,33 @@ precondition(identified.lookupKeys.contains("spotify-uri:spotify:track:spotify-t
 precondition(identified.lookupKeys.contains("isrc:us-abc-24-00001"))
 precondition(identified.metadataFingerprint.contains("cafe"))
 
+let sameSpotifyIDDifferentMetadata = Track(
+    title: "Café — Radio Edit",
+    artist: "The Artist",
+    album: "The Album",
+    duration: 181.4,
+    spotifyId: "spotify-track-123"
+)
+precondition(TrackIdentity(track: identifiedTrack) != TrackIdentity(track: sameSpotifyIDDifferentMetadata))
+
+let uriOnly = Track(
+    title: "URI Song",
+    artist: "URI Artist",
+    album: "URI Album",
+    duration: 120,
+    spotifyURL: URL(string: "spotify:track:uri-only")
+)
+precondition(TrackIdentity(track: uriOnly).lookupKeys.first == "spotify-uri:spotify:track:uri-only")
+
+let isrcOnly = Track(
+    title: "ISRC Song",
+    artist: "ISRC Artist",
+    album: "ISRC Album",
+    duration: 120,
+    isrc: "US-ISRC-00001"
+)
+precondition(TrackIdentity(track: isrcOnly).lookupKeys.first == "isrc:us-isrc-00001")
+
 let fallbackA = Track(
     title: "Ａ Song!",
     artist: "An Artist",

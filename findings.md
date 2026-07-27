@@ -246,3 +246,25 @@
 - The LocalProvider temporary-directory test returns a matching document and verifies the original LRC bytes are unchanged after lookup.
 - The LRCLIB stub test verifies URL query construction, JSON decoding, synced lyric parsing, absent translation layers, and composite provider ordering.
 - A compiler issue in the first LRCLIB implementation was fixed by retaining the typed `LRCLIBError` in the nested 404/search catch; no network behavior was hidden by the test.
+
+### 2026-07-27 Real Track Visual and Lyrics Runtime
+- `TrackIdentity` prioritizes Spotify Track ID, then Spotify URI, then ISRC, then normalized title/artist/album/rounded-duration metadata. The stable key includes the metadata fingerprint even when a Spotify ID exists, so an ID-only collision cannot retain the wrong lyrics.
+- `PlaybackState` now starts with an empty Spotify placeholder. A real identity transition invokes `LyricsSessionController.begin`, which clears the previous line layers immediately, increments a revision, and enters loading. Results are applied only when both identity and revision still match. Mock lyrics are available only after the explicit Mock Preview action.
+- `TrackBackdropView` binds the background request to identity plus artwork URL, clears the current bound payload on key changes, and checks cancellation/key equality after artwork loading and palette generation. Old artwork is held only as a short visual crossfade snapshot and cannot become the current bound background.
+- Read-only local lookup uses the approved order: `~/Music/SpotifyLyrics/Lyrics`, `~/Library/Application Support/SpotifyLyrics/Lyrics`, and Debug-only repository `Lyrics/`; it never copies, edits, or persists user files. LRCLIB direct lookup uses `/api/get` and falls back to `/api/search`; plain lyrics are loaded without synchronized playback highlighting.
+- Real DerivedData runtime screenshots:
+  - `real-track-lyrics-assets/bye-bye-bye-real-lyrics.png`: `Bye Bye Bye` / `*NSYNC`, matching orange cover and dark palette, English synchronized lyrics.
+  - `real-track-lyrics-assets/japanese-real-lyrics.png`: `fragrance - Remix` / `茉ひる`, matching dark cover and Japanese synchronized lyrics.
+  - `real-track-lyrics-assets/chinese-real-lyrics.png`: `晴天下雨` / `橙汁`, matching blue cover and blue palette, explicit `暂未找到歌词`; the prior Japanese/English rows are absent.
+- Externally triggered Spotify track changes initially exposed a refresh gap: the timer only retried unavailable providers, so an outside Spotify next-track action did not update the app. The fix now periodically refreshes while Spotify is ready, which is required for real track identity changes.
+- A Debug-only `SPOTIFYLYRICS_LRCLIB_BASE_URL` environment override was used with a refused localhost port to exercise the real app's network-failure path. The runtime tree showed `歌词搜索失败`, the connection error, and a `重新搜索` action; Release ignores the override and keeps `https://lrclib.net/api`.
+- The final normal signed Debug build used `Sign to Run Locally`, passed `codesign --verify --deep --strict`, and retained the Apple Events entitlement. The default LRCLIB configuration was restored and a fresh runtime launch returned to the real track loading/loaded path.
+
+## 2026-07-27 Playback and Lyrics Correctness Findings
+
+- `LyricsLookupResult` previously collapsed errors to arbitrary strings and `LyricsSessionController` collapsed `noMatch` into `noLyrics`. The correctness slice now preserves typed categories and separate UI states, so retry/no-result/network/service/parse behavior is observable and testable.
+- `LyricsTimeline.activeLineIndex` returns `nil` for plain text documents. `LyricsCanvasView` passes the synchronization flag into the line token calculation, so a plain document is shown as readable full text without a fabricated active row or automatic scroll target.
+- The session controller still treats identity and revision as a pair: every provider result is ignored unless both match the active request, and cancellation is checked before applying. Candidate adoption also rejects a candidate whose identity is no longer active.
+- A signed DerivedData runtime was tested against the user’s live Spotify queue. After two quick next-track transitions, the app eventually converged from `最人间` to `一点点（为什么晚上总是有星星）`; the final header, artwork-derived background, lyrics and progress all belonged to the latter. The intermediate loading state was captured on a fresh real-track launch.
+- Pause/resume, seek, previous/next and exit/reopen were observed through the accessibility tree and screenshots. On Spotify quit, the app cleared the live track and lyrics instead of showing stale or Mock lyrics; after reopen, it reconnected and repopulated the same real track.
+- No SQLite, AI, Web API, OAuth or additional lyric source was added. `LocalLyricsProvider` and `LRCLIBLyricsProvider` remain separate behind `LyricsProvider`.

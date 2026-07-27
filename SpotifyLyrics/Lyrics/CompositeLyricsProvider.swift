@@ -9,7 +9,7 @@ public final class CompositeLyricsProvider: LyricsProvider {
     }
 
     public func lookup(track: Track, identity: TrackIdentity) async -> LyricsLookupResult {
-        var latestFailure: String?
+        var latestFailure: LyricsFailure?
         var sawNoLyrics = false
 
         for provider in providers {

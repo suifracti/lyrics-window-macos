@@ -7,26 +7,11 @@ struct MainLyricsWindowView: View {
     var body: some View {
         GeometryReader { _ in
             ZStack {
-                LyricsDesignTokens.backdropGradient
-                    .ignoresSafeArea()
-
-                Rectangle()
-                    .fill(.ultraThinMaterial)
-                    .opacity(0.34)
-                    .ignoresSafeArea()
-
-                TrackArtworkView(
+                TrackBackdropView(
                     track: state.currentTrack,
-                    size: LyricsDesignTokens.backdropArtworkSize,
-                    showsAlbumLabel: false
+                    identity: state.currentTrackIdentity,
+                    isLiveTrack: state.hasLiveTrack
                 )
-                .opacity(0.11)
-                .blur(radius: 14)
-                .rotationEffect(.degrees(-8))
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                .padding(.top, 190)
-                .padding(.trailing, 52)
-                .allowsHitTesting(false)
 
                 VStack(spacing: 0) {
                     header
@@ -155,6 +140,8 @@ struct MainLyricsWindowView: View {
                         .background(Circle().fill(LyricsDesignTokens.controlBackground))
                 }
                 .buttonStyle(.plain)
+                .disabled(!state.canInteractWithPlayback)
+                .opacity(state.canInteractWithPlayback ? 1 : 0.42)
                 .accessibilityLabel(state.isPlaying ? "暂停" : "播放")
 
                 transportButton(
@@ -193,6 +180,38 @@ struct MainLyricsWindowView: View {
             Spacer(minLength: 8)
 
             if state.isUsingMockPreview {
+                Button("退出 Mock Preview") {
+                    state.exitMockPreview()
+                }
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .buttonStyle(.borderless)
+                .foregroundStyle(LyricsDesignTokens.accent)
+                .help("退出 Mock Preview 并恢复真实 Spotify 歌曲会话")
+            } else if state.canControlSpotify {
+                if case .failed = state.lyricsState {
+                    Button("重试歌词") {
+                        state.retryLyrics()
+                    }
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(LyricsDesignTokens.accent)
+                } else if case .noMatch = state.lyricsState {
+                    Button("重试歌词") {
+                        state.retryLyrics()
+                    }
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(LyricsDesignTokens.accent)
+                }
+            } else {
+                Button("进入 Mock Preview") {
+                    state.enterMockPreview()
+                }
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .buttonStyle(.borderless)
+                .foregroundStyle(LyricsDesignTokens.accent)
+                .help("明确进入 Mock 预览，不使用真实歌曲歌词")
+
                 Button("重试 Spotify") {
                     state.reconnectSpotify()
                 }

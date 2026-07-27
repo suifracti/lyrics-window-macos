@@ -4,18 +4,18 @@
 在已提交的主窗口基础上，实现下载后即可使用的本机 Spotify Desktop 播放链路：通过真实 Apple Events 读取 Spotify 当前歌曲、封面 URL、播放状态和进度，并提供播放控制；UI 只依赖 `PlaybackProvider` 协议；Spotify 不可用时明确显示并回退 Mock 预览。本阶段不实现 Web API、OAuth、SQLite、歌词 Provider 或在线歌词源。
 
 ## Next Step
-完成“真实歌曲视觉与歌词纵向切片”：切歌时清空旧歌词/翻译/滚动/背景状态，接入 LocalProvider 与 LRCLIBProvider，生成与真实 artwork 绑定的主色渐变背景，并用真实歌曲截图验证加载、失败、无歌词和亮暗封面状态。
+完成 Phase 18 功能正确性收敛后，等待下一阶段指示；不继续改动主窗口布局，也不进入悬浮/胶囊/全屏视觉重做。
 
 ## Current Phase
-Phase 17 — Real Track Visual and Lyrics Slice (in progress)
+Phase 18 — Playback and Lyrics Correctness (complete)
 
 ## Scope & Boundaries
 - 唯一正式项目：`/Users/apple/backup/sptifylyrics`
 - 黑盒 UI 参考：`/Applications/Dynamic Lyrics.app`（只读）
 - 文档/截图参考：`Lyricify-App-main` 或未来的 `References/Lyricify-App`（只读）
 - 歌词格式参考：未来的 `References/Lyricify-Lyrics-Helper`（只读；不复制或链接代码）
-- 本轮允许写入：Provider 协议/实现、PlaybackState 的 Provider 接线、Track/封面缓存模型、主窗口状态提示、Info.plist/Apple Events entitlement、测试契约、`task_plan.md`、`progress.md` 和真实 Spotify 运行截图
-- 本轮禁止：Spotify Web API、OAuth、SQLite、LocalProvider/LRCLIB、AI、自动排轴、任何歌词源；不修改 Dynamic Lyrics、Lyricify-App-main 或参考应用资源；不改变悬浮/胶囊/全屏视觉实现
+- 本轮允许写入：PlaybackProvider/LyricsProvider 状态链路、Track identity、只读本地歌词、LRCLIB、Track-bound 背景、主窗口状态提示、测试契约、规划记录和真实 Spotify 运行截图
+- 本轮禁止：Spotify Web API、OAuth、SQLite、AI、自动排轴、其他歌词源、主窗口布局重做、悬浮/胶囊/全屏视觉重做；不修改 Dynamic Lyrics、Lyricify-App-main 或参考应用资源
 
 ## Phases
 
@@ -105,15 +105,26 @@ Phase 17 — Real Track Visual and Lyrics Slice (in progress)
 - [x] 输出工作目录、修改文件、diff、xcodebuild、app 路径、权限和真实运行验证
 - [x] 提交独立 commit：`3fcc104 Add verified Spotify desktop provider`
 
-## Phase 17: Real Track Visual and Lyrics Slice — in progress
+## Phase 17: Real Track Visual and Lyrics Slice — completed
 - [x] 完成设计确认，写入 spec/plan，并提交 `60db497`
 - [x] 写入红色核心契约并确认缺少生产核心文件时失败
-- [ ] 切歌 identity 变化时清空旧歌词、翻译、罗马音、假名、滚动位置和背景状态
-- [ ] 区分真实 Spotify、Mock Preview、歌词加载中、无歌词和搜索失败状态
-- [ ] 定义 `LyricsProvider`，实现 LocalProvider 与 LRCLIBProvider；不接 SQLite、AI 或其他歌词源
-- [ ] 使用真实 artwork 生成主色多层渐变、放大裁切模糊纹理和可读性遮罩
-- [ ] 以英文、日文、中文、无歌词、亮/暗封面和切歌过程保存实际截图
-- [ ] 运行契约、Xcode Debug build 和真实应用验收；未通过不得声称完成
+- [x] 切歌 identity 变化时清空旧歌词、翻译、罗马音、假名、滚动位置和背景状态；lyrics/background 异步结果均二次核对 identity/revision/key
+- [x] 区分真实 Spotify、Mock Preview、歌词加载中、无歌词和搜索失败状态；真实 Spotify 不回退 Mock 歌词
+- [x] 定义 `LyricsProvider`，实现只读 LocalProvider 与 LRCLIBProvider；不接 SQLite、AI 或其他歌词源
+- [x] 使用真实 artwork 生成主色多层渐变、放大裁切模糊纹理和可读性遮罩，并对旧背景做短暂交叉淡出
+- [x] 已保存英文、日文、中文/无歌词和真实歌曲 loading 状态截图；亮/暗封面均已由真实封面运行样本覆盖
+- [x] 完成 failed 状态的真实网络错误截图、最终正常签名 Debug build 和完整验收记录
+
+## Phase 18: Playback and Lyrics Correctness — completed
+- [x] 先写并观察红色契约：typed lyrics failure、noMatch、纯文本时间轴、候选手选/错误 identity 忽略、重试和播放控制
+- [x] 将网络不可用、超时、服务端错误、解析失败建模为独立 `LyricsFailure`，并保留 noMatch 与 noLyrics 的不同状态
+- [x] 低置信度候选不自动采用；UI 仅在当前 identity 下允许手动采用，错误与 noMatch 支持重新搜索
+- [x] 无时间轴歌词不计算当前行，不伪造高亮/滚动，并以可读的全文样式展示
+- [x] 保留 LyricsSessionController 的取消、revision、identity 二次核对，覆盖快速切歌和乱序返回；背景请求继续使用 identity/artwork key 与取消保护
+- [x] 新增播放状态契约，覆盖真实播放 provider 的 pause/play、seek、previous/next、退出和重连后的 Track identity/进度状态
+- [x] 已用正常签名 Debug 产物实际验证当前真实 Spotify 歌曲、连续切歌、封面/歌词切换、暂停/恢复、seek、上一首/下一首、Spotify 退出和重连
+- [x] 运行最终全量契约、无签名 Debug build、正常签名 Debug build、codesign 验证和真实 Spotify 运行核对
+- [x] 提交独立 commit：`Fix playback and lyrics state correctness`
 
 ## Decisions Made
 | Decision | Rationale |

@@ -70,6 +70,28 @@ struct LRCLIBProviderContract {
         precondition(query.contains("track_name=LRCLIB%20Song"))
         precondition(query.contains("artist_name=LRCLIB%20Artist"))
 
+        let plainPayload = """
+        {
+          "id": 43,
+          "trackName": "LRCLIB Song",
+          "artistName": "LRCLIB Artist",
+          "albumName": "LRCLIB Album",
+          "duration": 201,
+          "plainLyrics": "A plain lyric\\nAnother plain lyric",
+          "syncedLyrics": null
+        }
+        """.data(using: .utf8)!
+        let plainSession = StubLRCLIBSession(responseData: plainPayload)
+        let plainResult = await LRCLIBLyricsProvider(
+            session: plainSession,
+            baseURL: URL(string: "https://example.test/api")!
+        ).lookup(track: track, identity: identity)
+        guard case .match(let plainDocument) = plainResult else {
+            fatalError("expected plain LRCLIB match")
+        }
+        precondition(!plainDocument.isSynchronized)
+        precondition(plainDocument.lines.count == 2)
+
         let composite = CompositeLyricsProvider(providers: [
             StubProvider(result: .noMatch, name: "empty"),
             StubProvider(result: result, name: "lrclib")
