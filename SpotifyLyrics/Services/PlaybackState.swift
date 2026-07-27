@@ -52,10 +52,7 @@ public final class PlaybackState: ObservableObject {
         let sharedIndex = LocalLyricsIndex.shared
         self.lyricsSession = LyricsSessionController(
             provider: lyricsProvider ?? CompositeLyricsProvider(
-                providers: [
-                    LocalLyricsProvider(index: sharedIndex),
-                    LRCLIBLyricsProvider()
-                ]
+                providers: Self.makeDefaultLyricsProviders(index: sharedIndex)
             )
         )
         // Track search is metadata-only: local index + current Spotify track.
@@ -68,6 +65,21 @@ public final class PlaybackState: ObservableObject {
         self.lyricsSessionCancellable = self.lyricsSession.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
         }
+    }
+
+
+    private static func makeDefaultLyricsProviders(index: LocalLyricsIndex) -> [LyricsProvider] {
+        var providers: [LyricsProvider] = [
+            LocalLyricsProvider(index: index),
+            LRCLIBLyricsProvider()
+        ]
+        // Experimental NetEase: enabled unless explicitly disabled.
+        // Catalog hit does not guarantee lyric body (validated on あやふや).
+        let disabled = ProcessInfo.processInfo.environment["SPOTIFYLYRICS_DISABLE_NETEASE"] == "1"
+        if !disabled {
+            providers.append(NetEaseExperimentalLyricsProvider())
+        }
+        return providers
     }
 
     deinit {
@@ -230,8 +242,13 @@ public final class PlaybackState: ObservableObject {
     }
 
     public func retryLyrics() {
+        autoCompleteLyrics()
+    }
+
+    /// Product default: one-button lyrics auto-complete for the live TrackIdentity.
+    public func autoCompleteLyrics() {
         guard hasLiveTrack, let identity = currentTrackIdentity else { return }
-        lyricsSession.retry(track: currentTrack, identity: identity)
+        lyricsSession.autoComplete(track: currentTrack, identity: identity)
     }
 
     /// Applies a selected track-search result to the current lyric session

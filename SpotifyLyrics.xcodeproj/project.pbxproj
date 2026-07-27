@@ -62,6 +62,8 @@
 		110000362D83400100000001 /* LyricsSafeMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000362D83400100000000 /* LyricsSafeMatcher.swift */; };
 		110000372D83400100000001 /* LyricsRecoveryModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000372D83400100000000 /* LyricsRecoveryModels.swift */; };
 		110000382D83400100000001 /* LyricsRecoveryOrchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000382D83400100000000 /* LyricsRecoveryOrchestrator.swift */; };
+		110000402D83400100000001 /* japanese_kanji_readings.json in Resources */ = {isa = PBXBuildFile; fileRef = 110000402D83400100000000 /* japanese_kanji_readings.json */; };
+		110000432D83400100000001 /* NetEaseExperimentalLyricsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000432D83400100000000 /* NetEaseExperimentalLyricsProvider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -122,6 +124,8 @@
 		110000362D83400100000000 /* LyricsSafeMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsSafeMatcher.swift; sourceTree = "<group>"; };
 		110000372D83400100000000 /* LyricsRecoveryModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsRecoveryModels.swift; sourceTree = "<group>"; };
 		110000382D83400100000000 /* LyricsRecoveryOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsRecoveryOrchestrator.swift; sourceTree = "<group>"; };
+		110000402D83400100000000 /* japanese_kanji_readings.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = japanese_kanji_readings.json; sourceTree = "<group>"; };
+		110000432D83400100000000 /* NetEaseExperimentalLyricsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetEaseExperimentalLyricsProvider.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -136,6 +140,7 @@
 		110000002D83400000000002 /* SpotifyLyrics */ = {
 			isa = PBXGroup;
 			children = (
+				110000412D83400100000000 /* Resources */,
 				110000012D83400100000000 /* Main.swift */,
 				110000022D83400100000000 /* Models.swift */,
 				110000032D83400100000000 /* MockData.swift */,
@@ -206,6 +211,7 @@
 				1100000E2D83400100000000 /* SpotifyDesktopProvider.swift */,
 				1100000F2D83400100000000 /* MockPlaybackProvider.swift */,
 				110000102D83400100000000 /* ArtworkImageLoader.swift */,
+				110000432D83400100000000 /* NetEaseExperimentalLyricsProvider.swift */,
 			);
 			path = Providers;
 			sourceTree = "<group>";
@@ -260,6 +266,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		110000412D83400100000000 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				110000402D83400100000000 /* japanese_kanji_readings.json */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -268,6 +282,7 @@
 			buildConfigurationList = 110000002D83400000000007 /* Build configuration list for PBXNativeTarget "SpotifyLyrics" */;
 			buildPhases = (
 				110000002D83400000000005 /* Sources */,
+				110000422D83400100000000 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -361,6 +376,7 @@
 				1100002D2D83400100000001 /* TrackSearchManager.swift in Sources */,
 				1100002E2D83400100000001 /* CurrentTrackResolver.swift in Sources */,
 				1100002F2D83400100000001 /* LyricsSearchManager.swift in Sources */,
+				110000432D83400100000001 /* NetEaseExperimentalLyricsProvider.swift in Sources */,
 				110000302D83400100000001 /* TrackAlias.swift in Sources */,
 				110000312D83400100000001 /* TrackMetadata.swift in Sources */,
 				110000322D83400100000001 /* TrackTextNormalizer.swift in Sources */,
@@ -374,6 +390,18 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXResourcesBuildPhase section */
+		110000422D83400100000000 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				110000402D83400100000001 /* japanese_kanji_readings.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 
 /* Begin XCBuildConfiguration section */
 		110000002D83400000000008 /* Debug */ = {

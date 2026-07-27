@@ -1,0 +1,294 @@
+import Foundation
+
+/// Experimental, undocumented NetEase Cloud Music lyrics probe.
+/// Not a core/default shipping source. Failures are isolated.
+/// Catalog hit ≠ lyrics body (e.g. あやふや id may return empty lrc).
+public final class NetEaseExperimentalLyricsProvider: LyricsProvider, @unchecked Sendable {
+    public let name = "NetEase Experimental"
+
+    private let session: URLSession
+    private let timeout: TimeInterval
+
+    public init(session: URLSession? = nil, timeout: TimeInterval = 8) {
+        if let session {
+            self.session = session
+        } else {
+            let config = URLSessionConfiguration.ephemeral
+            config.timeoutIntervalForRequest = timeout
+            config.timeoutIntervalForResource = timeout
+            self.session = URLSession(configuration: config)
+        }
+        self.timeout = timeout
+    }
+
+    public func lookup(track: Track, identity: TrackIdentity) async -> LyricsLookupResult {
+        if Task.isCancelled { return .failed(.cancelled) }
+
+        do {
+            let songs = try await searchSongs(title: track.title, artist: track.artist)
+            if Task.isCancelled { return .failed(.cancelled) }
+            guard !songs.isEmpty else { return .noMatch }
+
+            var candidates: [LyricsCandidate] = []
+            for song in songs.prefix(5) {
+                if Task.isCancelled { return .failed(.cancelled) }
+                guard let lyric = try await fetchLyric(songID: song.id) else { continue }
+                let parsed = parse(lyric: lyric, track: track, song: song, identity: identity)
+                guard let document = parsed else { continue }
+                candidates.append(
+                    LyricsCandidate(
+                        id: "netease:\(song.id)",
+                        identity: identity,
+                        title: song.name,
+                        artist: song.artists.joined(separator: ", "),
+                        album: song.album,
+                        duration: song.duration,
+                        lines: document.lines,
+                        isSynchronized: document.isSynchronized,
+                        source: .neteaseExperimental,
+                        confidence: score(song: song, track: track)
+                    )
+                )
+            }
+
+            if candidates.isEmpty {
+                // Track may exist without lyric body.
+                return .noMatch
+            }
+
+            let sorted = candidates.sorted { $0.confidence > $1.confidence }
+            if let best = sorted.first, best.confidence >= 0.8,
+               sorted.dropFirst().first.map({ best.confidence - $0.confidence >= 0.05 }) ?? true {
+                return .match(
+                    LyricsDocument(
+                        identity: identity,
+                        title: best.title,
+                        artist: best.artist,
+                        album: best.album,
+                        duration: best.duration,
+                        lines: best.lines,
+                        isSynchronized: best.isSynchronized,
+                        source: .neteaseExperimental,
+                        confidence: best.confidence
+                    )
+                )
+            }
+            return .candidates(sorted)
+        } catch let failure as LyricsFailure {
+            return .failed(failure)
+        } catch {
+            if Task.isCancelled { return .failed(.cancelled) }
+            if let urlError = error as? URLError {
+                switch urlError.code {
+                case .timedOut: return .failed(.timedOut)
+                case .notConnectedToInternet, .networkConnectionLost, .cannotFindHost, .cannotConnectToHost:
+                    return .failed(.networkUnavailable)
+                case .cancelled: return .failed(.cancelled)
+                default: break
+                }
+            }
+            return .failed(.unknown(error.localizedDescription))
+        }
+    }
+
+    private func searchSongs(title: String, artist: String) async throws -> [NetEaseSong] {
+        var components = URLComponents(string: "https://music.163.com/api/search/get/web")!
+        components.queryItems = [
+            URLQueryItem(name: "s", value: "\(title) \(artist)"),
+            URLQueryItem(name: "type", value: "1"),
+            URLQueryItem(name: "offset", value: "0"),
+            URLQueryItem(name: "limit", value: "8")
+        ]
+        var request = URLRequest(url: components.url!)
+        request.setValue("https://music.163.com/", forHTTPHeaderField: "Referer")
+        request.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
+        request.timeoutInterval = timeout
+
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw LyricsFailure.parseFailure }
+        guard (200..<300).contains(http.statusCode) else {
+            throw LyricsFailure.serverError(http.statusCode)
+        }
+        let decoded = try JSONDecoder().decode(NetEaseSearchResponse.self, from: data)
+        return (decoded.result?.songs ?? []).map(\.asSong)
+    }
+
+    private func fetchLyric(songID: Int) async throws -> NetEaseLyricPayload? {
+        var components = URLComponents(string: "https://music.163.com/api/song/lyric")!
+        components.queryItems = [
+            URLQueryItem(name: "id", value: String(songID)),
+            URLQueryItem(name: "lv", value: "1"),
+            URLQueryItem(name: "kv", value: "1"),
+            URLQueryItem(name: "tv", value: "-1")
+        ]
+        var request = URLRequest(url: components.url!)
+        request.setValue("https://music.163.com/", forHTTPHeaderField: "Referer")
+        request.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
+        request.timeoutInterval = timeout
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw LyricsFailure.parseFailure }
+        guard (200..<300).contains(http.statusCode) else {
+            throw LyricsFailure.serverError(http.statusCode)
+        }
+        let decoded = try JSONDecoder().decode(NetEaseLyricResponse.self, from: data)
+        let lrc = decoded.lrc?.lyric?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let tlyric = decoded.tlyric?.lyric?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if lrc.isEmpty { return nil }
+        return NetEaseLyricPayload(lrc: lrc, tlyric: tlyric.isEmpty ? nil : tlyric)
+    }
+
+    private func parse(
+        lyric: NetEaseLyricPayload,
+        track: Track,
+        song: NetEaseSong,
+        identity: TrackIdentity
+    ) -> LyricsDocument? {
+        if let synced = LRCParser.parse(
+            lyric.lrc,
+            identity: identity,
+            source: .neteaseExperimental
+        ) {
+            let lines = mergeTranslation(lines: synced.lines, tlyric: lyric.tlyric)
+            return LyricsDocument(
+                identity: identity,
+                title: song.name,
+                artist: song.artists.joined(separator: ", "),
+                album: song.album,
+                duration: song.duration,
+                lines: lines,
+                isSynchronized: synced.isSynchronized,
+                source: .neteaseExperimental,
+                confidence: score(song: song, track: track)
+            )
+        }
+
+        let plain = lyric.lrc
+            .components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty && !$0.hasPrefix("[") }
+            .map { LyricLine(timestamp: 0, originalText: $0) }
+        guard !plain.isEmpty else { return nil }
+        return LyricsDocument(
+            identity: identity,
+            title: song.name,
+            artist: song.artists.joined(separator: ", "),
+            album: song.album,
+            duration: song.duration,
+            lines: plain,
+            isSynchronized: false,
+            source: .neteaseExperimental,
+            confidence: score(song: song, track: track)
+        )
+    }
+
+    private func mergeTranslation(lines: [LyricLine], tlyric: String?) -> [LyricLine] {
+        guard let tlyric, !tlyric.isEmpty else { return lines }
+        // Map timestamp -> translation text from tlyric LRC
+        var map: [String: String] = [:]
+        let pattern = try? NSRegularExpression(pattern: #"\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\](.*)"#)
+        for raw in tlyric.components(separatedBy: .newlines) {
+            let line = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard let pattern,
+                  let match = pattern.firstMatch(in: line, range: NSRange(line.startIndex..., in: line)),
+                  let minR = Range(match.range(at: 1), in: line),
+                  let secR = Range(match.range(at: 2), in: line),
+                  let textR = Range(match.range(at: 4), in: line)
+            else { continue }
+            let min = Double(line[minR]) ?? 0
+            let sec = Double(line[secR]) ?? 0
+            var frac = 0.0
+            if match.range(at: 3).location != NSNotFound, let fr = Range(match.range(at: 3), in: line) {
+                let f = String(line[fr])
+                frac = (Double(f) ?? 0) / pow(10.0, Double(f.count))
+            }
+            let ts = min * 60 + sec + frac
+            let key = String(format: "%.2f", ts)
+            let text = String(line[textR]).trimmingCharacters(in: .whitespacesAndNewlines)
+            if !text.isEmpty { map[key] = text }
+        }
+        return lines.map { line in
+            let key = String(format: "%.2f", line.timestamp)
+            guard let tr = map[key] else { return line }
+            return LyricLine(
+                id: line.id,
+                timestamp: line.timestamp,
+                originalText: line.originalText,
+                translationText: tr,
+                romajiText: line.romajiText,
+                kanaText: line.kanaText
+            )
+        }
+    }
+
+    private func score(song: NetEaseSong, track: Track) -> Double {
+        var score = 0.35
+        let nt = TrackTextNormalizer.normalize(track.title)
+        let ns = TrackTextNormalizer.normalize(song.name)
+        if nt == ns { score += 0.3 } else if ns.contains(nt) || nt.contains(ns) { score += 0.15 }
+        let na = TrackTextNormalizer.normalize(track.artist)
+        let artists = TrackTextNormalizer.normalize(song.artists.joined(separator: " "))
+        if artists.contains(na) || na.contains(artists) { score += 0.25 }
+        if track.duration > 0, song.duration > 0 {
+            let diff = abs(track.duration - song.duration)
+            if diff <= 2 { score += 0.15 }
+            else if diff <= 5 { score += 0.08 }
+            else if diff > 20 { score -= 0.2 }
+        }
+        let tags = TrackTextNormalizer.extractVersionTags(fromTitle: song.name)
+        if tags.contains(.live), TrackTextNormalizer.extractVersionTags(fromTitle: track.title).isEmpty {
+            score -= 0.25
+        }
+        return min(1, max(0.05, score))
+    }
+}
+
+private struct NetEaseSong {
+    let id: Int
+    let name: String
+    let artists: [String]
+    let album: String
+    let duration: TimeInterval
+}
+
+private struct NetEaseLyricPayload {
+    let lrc: String
+    let tlyric: String?
+}
+
+private struct NetEaseSearchResponse: Decodable {
+    let result: NetEaseSearchResult?
+}
+
+private struct NetEaseSearchResult: Decodable {
+    let songs: [NetEaseSongDTO]?
+}
+
+private struct NetEaseSongDTO: Decodable {
+    let id: Int
+    let name: String
+    let artists: [NetEaseArtistDTO]?
+    let album: NetEaseAlbumDTO?
+    let duration: Int?
+
+    var asSong: NetEaseSong {
+        NetEaseSong(
+            id: id,
+            name: name,
+            artists: (artists ?? []).map(\.name),
+            album: album?.name ?? "",
+            duration: TimeInterval(duration ?? 0) / 1000.0
+        )
+    }
+}
+
+private struct NetEaseArtistDTO: Decodable { let name: String }
+private struct NetEaseAlbumDTO: Decodable { let name: String? }
+
+private struct NetEaseLyricResponse: Decodable {
+    let lrc: NetEaseLyricLine?
+    let tlyric: NetEaseLyricLine?
+}
+
+private struct NetEaseLyricLine: Decodable {
+    let lyric: String?
+}

@@ -219,7 +219,7 @@ struct ProviderFailureContract {
         fastController.begin(track: track, identity: identity)
         fastController.begin(track: trackB, identity: identityB)
         try? await Task.sleep(nanoseconds: 20_000_000)
-        guard case .loaded(let loaded) = fastController.state else {
+        guard let loaded = fastController.state.document else {
             fatalError("expected fresh loaded state")
         }
         precondition(loaded.identity == identityB)

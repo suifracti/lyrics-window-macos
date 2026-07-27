@@ -1,10 +1,9 @@
 import Foundation
 
-/// Lyrics lookup for an already-confirmed `TrackIdentity`.
-/// Never performs free-text catalog search and never writes online lyrics to disk.
-public final class LyricsSearchManager: LyricsProvider, @unchecked Sendable {
+/// Multi-variant lyrics search: Local → other providers, one provider at a time per variant.
+/// Applies SafeMatcher and does not auto-adopt conflicting versions.
+public final class LyricsSearchManager: @unchecked Sendable {
     public let name: String
-
     private let providers: [LyricsProvider]
 
     public init(providers: [LyricsProvider], name: String = "Lyrics Search") {
@@ -13,121 +12,188 @@ public final class LyricsSearchManager: LyricsProvider, @unchecked Sendable {
     }
 
     public func lookup(track: Track, identity: TrackIdentity) async -> LyricsLookupResult {
-        await search(track: track, identity: identity).result
-    }
-
-    public struct SearchOutcome {
-        public let result: LyricsLookupResult
-        public let diagnostics: [LyricsProviderDiagnostic]
+        let outcome = await search(track: track, identity: identity)
+        return outcome.result
     }
 
     public func search(track: Track, identity: TrackIdentity) async -> SearchOutcome {
+        if Task.isCancelled {
+            return SearchOutcome(result: .failed(.cancelled), diagnostics: [])
+        }
+
+        let metadata = TrackMetadata.bootstrap(from: track)
+        // Keep identity stable with caller-supplied identity (playback).
+        let meta = TrackMetadata(
+            identity: identity,
+            track: track,
+            aliases: metadata.aliases,
+            versionTags: metadata.versionTags
+        )
+        let variants = LyricsQueryPlanner.plan(for: meta)
         var diagnostics: [LyricsProviderDiagnostic] = []
-        var candidates: [LyricsCandidate] = []
-        var firstFailure: LyricsFailure?
+        var acceptedCandidates: [LyricsCandidate] = []
         var sawNoLyrics = false
         var sawNoMatch = false
+        var firstFailure: LyricsFailure?
 
-        for provider in providers {
+        func alias(for variant: LyricsQueryVariant) -> TrackAlias? {
+            guard let id = variant.aliasIDs.first else { return nil }
+            return meta.aliases.first { $0.id == id }
+        }
+
+        for variant in variants {
             if Task.isCancelled {
-                return SearchOutcome(
-                    result: .failed(.unknown("歌词请求已取消")),
-                    diagnostics: diagnostics
-                )
+                return SearchOutcome(result: .failed(.cancelled), diagnostics: diagnostics)
             }
 
-            let started = Date()
-            let result = await provider.lookup(track: track, identity: identity)
-            let elapsed = Date().timeIntervalSince(started)
+            let probeTrack = Track(
+                id: track.id,
+                title: variant.titleQuery,
+                artist: variant.artistQuery ?? track.artist,
+                album: track.album,
+                duration: track.duration,
+                artworkName: track.artworkName,
+                isrc: track.isrc,
+                spotifyId: track.spotifyId,
+                artworkURL: track.artworkURL,
+                spotifyURL: track.spotifyURL
+            )
 
-            switch result {
-            case .match(let document):
-                guard document.identity == identity else {
+            for provider in providers {
+                if Task.isCancelled {
+                    return SearchOutcome(result: .failed(.cancelled), diagnostics: diagnostics)
+                }
+
+                let started = Date()
+                let result = await provider.lookup(track: probeTrack, identity: identity)
+                let elapsed = Date().timeIntervalSince(started)
+
+                switch result {
+                case .match(let document):
+                    guard document.identity == identity else {
+                        diagnostics.append(
+                            LyricsProviderDiagnostic(
+                                provider: "\(provider.name)@\(variant.strategy.rawValue)",
+                                outcome: .failed(.unknown("歌词身份不一致")),
+                                duration: elapsed
+                            )
+                        )
+                        continue
+                    }
+
+                    let candidate = LyricsCandidate(
+                        id: "\(provider.name):\(variant.id):match:\(document.title ?? probeTrack.title)",
+                        identity: identity,
+                        title: document.title ?? probeTrack.title,
+                        artist: document.artist ?? probeTrack.artist,
+                        album: document.album ?? track.album,
+                        duration: document.duration ?? track.duration,
+                        lines: document.lines,
+                        isSynchronized: document.isSynchronized,
+                        source: document.source,
+                        confidence: document.confidence
+                    )
+                    let decision = LyricsSafeMatcher.decide(
+                        candidate: candidate,
+                        metadata: meta,
+                        aliasUsed: alias(for: variant)
+                    )
                     diagnostics.append(
                         LyricsProviderDiagnostic(
-                            provider: provider.name,
-                            outcome: .failed(.unknown("identity mismatch")),
+                            provider: "\(provider.name)@\(variant.strategy.rawValue)",
+                            outcome: .match,
                             duration: elapsed
                         )
                     )
-                    continue
+
+                    if decision.tier == .autoHigh || decision.tier == .autoMedium {
+                        let enriched = Self.finalizeDocument(document, identity: identity)
+                        return SearchOutcome(result: .match(enriched), diagnostics: diagnostics)
+                    }
+                    if decision.tier == .candidates {
+                        acceptedCandidates.append(candidate)
+                    }
+                    // reject → ignore
+
+                case .candidates(let list):
+                    diagnostics.append(
+                        LyricsProviderDiagnostic(
+                            provider: "\(provider.name)@\(variant.strategy.rawValue)",
+                            outcome: .candidates(list.count),
+                            duration: elapsed
+                        )
+                    )
+                    for item in list where item.identity == identity {
+                        let decision = LyricsSafeMatcher.decide(
+                            candidate: item,
+                            metadata: meta,
+                            aliasUsed: alias(for: variant)
+                        )
+                        if decision.tier == .autoHigh || decision.tier == .autoMedium {
+                            let document = LyricsDocument(
+                                identity: identity,
+                                title: item.title,
+                                artist: item.artist,
+                                album: item.album,
+                                duration: item.duration,
+                                lines: item.lines,
+                                isSynchronized: item.isSynchronized,
+                                source: item.source,
+                                confidence: item.confidence
+                            )
+                            let enriched = Self.finalizeDocument(document, identity: identity)
+                            return SearchOutcome(result: .match(enriched), diagnostics: diagnostics)
+                        }
+                        if decision.tier == .candidates {
+                            acceptedCandidates.append(item)
+                        }
+                    }
+
+                case .noLyrics:
+                    sawNoLyrics = true
+                    diagnostics.append(
+                        LyricsProviderDiagnostic(
+                            provider: "\(provider.name)@\(variant.strategy.rawValue)",
+                            outcome: .noLyrics,
+                            duration: elapsed
+                        )
+                    )
+
+                case .noMatch:
+                    sawNoMatch = true
+                    diagnostics.append(
+                        LyricsProviderDiagnostic(
+                            provider: "\(provider.name)@\(variant.strategy.rawValue)",
+                            outcome: .noMatch,
+                            duration: elapsed
+                        )
+                    )
+
+                case .failed(let failure):
+                    if failure == .cancelled {
+                        return SearchOutcome(result: .failed(.cancelled), diagnostics: diagnostics)
+                    }
+                    if firstFailure == nil {
+                        firstFailure = failure
+                    }
+                    diagnostics.append(
+                        LyricsProviderDiagnostic(
+                            provider: "\(provider.name)@\(variant.strategy.rawValue)",
+                            outcome: .failed(failure),
+                            duration: elapsed
+                        )
+                    )
+                    // Isolate: continue other providers/variants
                 }
-                diagnostics.append(
-                    LyricsProviderDiagnostic(
-                        provider: provider.name,
-                        outcome: .match,
-                        duration: elapsed
-                    )
-                )
-                return SearchOutcome(result: .match(document), diagnostics: diagnostics)
-
-            case .candidates(let values):
-                let valid = values.filter { $0.identity == identity && !$0.lines.isEmpty }
-                candidates.append(contentsOf: valid)
-                diagnostics.append(
-                    LyricsProviderDiagnostic(
-                        provider: provider.name,
-                        outcome: .candidates(valid.count),
-                        duration: elapsed
-                    )
-                )
-
-            case .noLyrics:
-                sawNoLyrics = true
-                diagnostics.append(
-                    LyricsProviderDiagnostic(
-                        provider: provider.name,
-                        outcome: .noLyrics,
-                        duration: elapsed
-                    )
-                )
-
-            case .noMatch:
-                sawNoMatch = true
-                diagnostics.append(
-                    LyricsProviderDiagnostic(
-                        provider: provider.name,
-                        outcome: .noMatch,
-                        duration: elapsed
-                    )
-                )
-
-            case .failed(let failure):
-                if firstFailure == nil {
-                    firstFailure = failure
-                }
-                diagnostics.append(
-                    LyricsProviderDiagnostic(
-                        provider: provider.name,
-                        outcome: .failed(failure),
-                        duration: elapsed
-                    )
-                )
             }
         }
 
-        if !candidates.isEmpty {
-            let sorted = candidates.sorted { $0.confidence > $1.confidence }
-            if let best = sorted.first,
-               LyricsMatcher.isHighConfidence(best.confidence),
-               sorted.dropFirst().first.map({ best.confidence - $0.confidence >= 0.05 }) ?? true {
-                return SearchOutcome(
-                    result: .match(
-                        LyricsDocument(
-                            identity: identity,
-                            title: best.title,
-                            artist: best.artist,
-                            album: best.album,
-                            duration: best.duration,
-                            lines: best.lines,
-                            isSynchronized: best.isSynchronized,
-                            source: best.source,
-                            confidence: best.confidence
-                        )
-                    ),
-                    diagnostics: diagnostics
-                )
-            }
+        if !acceptedCandidates.isEmpty {
+            var seen = Set<String>()
+            let sorted = acceptedCandidates
+                .filter { seen.insert($0.id).inserted }
+                .sorted { $0.confidence > $1.confidence }
+                .map { Self.enrichCandidate($0) }
             return SearchOutcome(result: .candidates(sorted), diagnostics: diagnostics)
         }
 
@@ -141,6 +207,47 @@ public final class LyricsSearchManager: LyricsProvider, @unchecked Sendable {
             return SearchOutcome(result: .failed(firstFailure), diagnostics: diagnostics)
         }
         return SearchOutcome(result: .noMatch, diagnostics: diagnostics)
+    }
+
+    /// Enrich layers; preserve originalText; mark unsynced documents clearly.
+    private static func finalizeDocument(_ document: LyricsDocument, identity: TrackIdentity) -> LyricsDocument {
+        let lines = LyricsLayerEnricher.enrich(lines: document.lines)
+        return LyricsDocument(
+            identity: identity,
+            title: document.title,
+            artist: document.artist,
+            album: document.album,
+            duration: document.duration,
+            lines: lines,
+            isSynchronized: document.isSynchronized,
+            source: document.source,
+            confidence: document.confidence
+        )
+    }
+
+    private static func enrichCandidate(_ candidate: LyricsCandidate) -> LyricsCandidate {
+        LyricsCandidate(
+            id: candidate.id,
+            identity: candidate.identity,
+            title: candidate.title,
+            artist: candidate.artist,
+            album: candidate.album,
+            duration: candidate.duration,
+            lines: LyricsLayerEnricher.enrich(lines: candidate.lines),
+            isSynchronized: candidate.isSynchronized,
+            source: candidate.source,
+            confidence: candidate.confidence
+        )
+    }
+}
+
+public struct SearchOutcome {
+    public let result: LyricsLookupResult
+    public let diagnostics: [LyricsProviderDiagnostic]
+
+    public init(result: LyricsLookupResult, diagnostics: [LyricsProviderDiagnostic]) {
+        self.result = result
+        self.diagnostics = diagnostics
     }
 }
 

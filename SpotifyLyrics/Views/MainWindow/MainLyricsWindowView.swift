@@ -200,13 +200,17 @@ struct MainLyricsWindowView: View {
                     state.exitMockPreview()
                 }
             } else if state.canControlSpotify {
-                if case .failed = state.lyricsState {
-                    Button("重新搜索歌词") {
-                        state.retryLyrics()
+                let showAutoComplete: Bool = {
+                    switch state.lyricsState {
+                    case .failed, .noMatch, .noLyrics, .alignmentQueued, .candidates, .loading:
+                        return true
+                    default:
+                        return false
                     }
-                } else if case .noMatch = state.lyricsState {
-                    Button("重新搜索歌词") {
-                        state.retryLyrics()
+                }()
+                if showAutoComplete {
+                    Button("自动补全歌词") {
+                        state.autoCompleteLyrics()
                     }
                 }
             } else {

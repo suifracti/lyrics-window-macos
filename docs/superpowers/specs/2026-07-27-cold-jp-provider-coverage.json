@@ -1,0 +1,2760 @@
+{
+  "generated_at": "2026-07-27T21:42:41+0800",
+  "tracks": [
+    {
+      "id": "ayafuya",
+      "title": "あやふや",
+      "artist": "みさき",
+      "title_script": "ja",
+      "notes": "cold target",
+      "lrclib": {
+        "ok": false,
+        "count": 0,
+        "synced": false,
+        "plain": false
+      },
+      "netease": {
+        "search_ok": true,
+        "track_hit": true,
+        "song_id": 2717111195,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": 2717111195,
+            "name": "あやふや",
+            "artists": [
+              "みさき"
+            ],
+            "duration_ms": 119160
+          },
+          {
+            "id": 3341913550,
+            "name": "UMA IN AMERICA",
+            "artists": [
+              "大坪由佳",
+              "グラスワンダー (CV. 前田玲奈)",
+              "ヒシアマゾン (CV. 巽 悠衣子)",
+              "エルコンドルパサー (CV. 髙橋ミナミ)",
+              "シーキングザパール (CV. 福原綾香)",
+              "エスポワールシチー (CV. 亜咲花)",
+              "シンボリクリスエス (CV. 春川芽生)",
+              "タップダンスシチー (CV. 篠田みなみ)",
+              "シーザリオ (CV. 佐藤榛夏)",
+              "久保田未夢",
+              "レッドディザイア (CV. 関根 瞳)",
+              "フォーエバーヤング (CV. 海弓シュリ)",
+              "マルシュロレーヌ (CV. 近貞月乃)"
+            ],
+            "duration_ms": 290511
+          },
+          {
+            "id": 2620088968,
+            "name": "私は雨 (feat. 宵崎奏&朝比奈まふゆ&東雲絵名&暁山瑞希&鏡音レン)",
+            "artists": [
+              "25時、ナイトコードで。"
+            ],
+            "duration_ms": 221533
+          },
+          {
+            "id": 2094460632,
+            "name": "ザムザ (feat. 宵崎奏&朝比奈まふゆ&東雲絵名&暁山瑞希&KAITO)",
+            "artists": [
+              "25時、ナイトコードで。",
+              "KAITO"
+            ],
+            "duration_ms": 213800
+          },
+          {
+            "id": 3355915573,
+            "name": "飾って (feat. 宵崎奏&朝比奈まふゆ&東雲絵名&暁山瑞希&鏡音レン)",
+            "artists": [
+              "25時、ナイトコードで。"
+            ],
+            "duration_ms": 219786
+          }
+        ],
+        "has_kana": false,
+        "has_romaji": false
+      },
+      "qq": {
+        "search_ok": true,
+        "track_hit": true,
+        "songmid": "004g1Q9f3pPenU",
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": true,
+        "error": "retcode=-1901",
+        "candidates": [
+          {
+            "songmid": "004g1Q9f3pPenU",
+            "name": "あやふや",
+            "artists": [
+              "みさき"
+            ],
+            "interval": 119
+          },
+          {
+            "songmid": "004WoxRG266xVh",
+            "name": "あやふや",
+            "artists": [
+              "MONACA"
+            ],
+            "interval": 71
+          },
+          {
+            "songmid": "003T5FV50oXipt",
+            "name": "生まれ変わっても (就算是下辈子)",
+            "artists": [
+              "みさき"
+            ],
+            "interval": 303
+          },
+          {
+            "songmid": "002iGQgT3rb3DW",
+            "name": "たゆたうままに",
+            "artists": [
+              "みさき"
+            ],
+            "interval": 238
+          },
+          {
+            "songmid": "002l8fpG05Wgq7",
+            "name": "あやふや (Ambiguous)",
+            "artists": [
+              "ロクデナシ"
+            ],
+            "interval": 221
+          }
+        ]
+      },
+      "kugou": {
+        "search_ok": false,
+        "track_hit": false,
+        "hash": null,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": "{'error': \"curl: (60) SSL: no alternative certificate subject name matches target host name 'mobilecdn.kugou.com'\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\"}",
+        "candidates": []
+      }
+    },
+    {
+      "id": "suiyoubi",
+      "title": "水曜日の約束",
+      "artist": "Kawasaki.Rio",
+      "title_script": "ja",
+      "notes": "wrong-bind guard sample",
+      "lrclib": {
+        "ok": false,
+        "count": 0,
+        "synced": false,
+        "plain": false
+      },
+      "netease": {
+        "search_ok": true,
+        "track_hit": true,
+        "song_id": 2695572249,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": 2695572249,
+            "name": "水曜日の約束",
+            "artists": [
+              "Kawasaki.Rio"
+            ],
+            "duration_ms": 180047
+          },
+          {
+            "id": 2694116361,
+            "name": "夜の合図",
+            "artists": [
+              "Kawasaki.Rio"
+            ],
+            "duration_ms": 170782
+          },
+          {
+            "id": 1470059350,
+            "name": "水曜日の約束",
+            "artists": [
+              "Gero"
+            ],
+            "duration_ms": 221279
+          },
+          {
+            "id": 1496392747,
+            "name": "水曜日の約束",
+            "artists": [
+              "晴斗Nick",
+              "IC卡"
+            ],
+            "duration_ms": 218764
+          },
+          {
+            "id": 2048792826,
+            "name": "水曜日の約束",
+            "artists": [
+              "樱井瑶",
+              "__李寻青"
+            ],
+            "duration_ms": 220690
+          }
+        ],
+        "has_kana": false,
+        "has_romaji": false
+      },
+      "qq": {
+        "search_ok": true,
+        "track_hit": true,
+        "songmid": "004YkjHH0g5pRt",
+        "lyric_ok": true,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "songmid": "004YkjHH0g5pRt",
+            "name": "水曜日の約束",
+            "artists": [
+              "Kawasaki.Rio"
+            ],
+            "interval": 171
+          },
+          {
+            "songmid": "00343fz31Qb3Q8",
+            "name": "水曜日の約束 -another story-",
+            "artists": [
+              "HoneyWorks",
+              "雨宮天"
+            ],
+            "interval": 222
+          },
+          {
+            "songmid": "002iVcN83DDqm1",
+            "name": "水曜日 (星期三)",
+            "artists": [
+              "20th Century"
+            ],
+            "interval": 249
+          },
+          {
+            "songmid": "001Oq0L616bqIW",
+            "name": "水曜日の約束-another story- (メロディー) [Cover] [『HoneyWorks Premium Live (ハニプレ) 』より]",
+            "artists": [
+              "RiNG-O Melody"
+            ],
+            "interval": 44
+          },
+          {
+            "songmid": "003Dr5kY1MCzlI",
+            "name": "水曜日の約束",
+            "artists": [
+              "Nako"
+            ],
+            "interval": 221
+          }
+        ]
+      },
+      "kugou": {
+        "search_ok": false,
+        "track_hit": false,
+        "hash": null,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": "{'error': \"curl: (60) SSL: no alternative certificate subject name matches target host name 'mobilecdn.kugou.com'\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\"}",
+        "candidates": []
+      }
+    },
+    {
+      "id": "yoru_ni_kakeru",
+      "title": "夜に駆ける",
+      "artist": "YOASOBI",
+      "title_script": "ja",
+      "notes": "popular control",
+      "lrclib": {
+        "ok": true,
+        "count": 20,
+        "synced": true,
+        "plain": true
+      },
+      "netease": {
+        "search_ok": true,
+        "track_hit": true,
+        "song_id": 1409311773,
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": true,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": 1409311773,
+            "name": "夜に駆ける",
+            "artists": [
+              "YOASOBI"
+            ],
+            "duration_ms": 261013
+          },
+          {
+            "id": 1500151583,
+            "name": "夜に駆ける",
+            "artists": [
+              "YOASOBI"
+            ],
+            "duration_ms": 258840
+          },
+          {
+            "id": 2623442905,
+            "name": "夜に駆ける",
+            "artists": [
+              "草薙寧々"
+            ],
+            "duration_ms": 260706
+          },
+          {
+            "id": 2034742057,
+            "name": "アイドル",
+            "artists": [
+              "YOASOBI"
+            ],
+            "duration_ms": 213233
+          },
+          {
+            "id": 3389005906,
+            "name": "オリオン",
+            "artists": [
+              "YOASOBI"
+            ],
+            "duration_ms": 206586
+          }
+        ],
+        "has_kana": false,
+        "has_romaji": false
+      },
+      "qq": {
+        "search_ok": true,
+        "track_hit": true,
+        "songmid": "003WFMXk4O5ywc",
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "songmid": "003WFMXk4O5ywc",
+            "name": "夜に駆ける (向夜晚奔去)",
+            "artists": [
+              "YOASOBI (ヨアソビ)"
+            ],
+            "interval": 261
+          },
+          {
+            "songmid": "001mzQf71Of6DB",
+            "name": "夜に駆ける (Live)",
+            "artists": [
+              "YOASOBI (ヨアソビ)"
+            ],
+            "interval": 275
+          },
+          {
+            "songmid": "000tbPpN42ew3h",
+            "name": "夜に駆ける - From THE FIRST TAKE",
+            "artists": [
+              "YOASOBI (ヨアソビ)"
+            ],
+            "interval": 248
+          },
+          {
+            "songmid": "003b34Vx21nbbp",
+            "name": "夜に駆ける (奔向黑夜)",
+            "artists": [
+              "YOASOBI (ヨアソビ)"
+            ],
+            "interval": 247
+          },
+          {
+            "songmid": "001evbLQ2cuBkp",
+            "name": "夜に駆ける (2024科切拉音乐节第一周现场)",
+            "artists": [
+              "YOASOBI (ヨアソビ)"
+            ],
+            "interval": 261
+          }
+        ]
+      },
+      "kugou": {
+        "search_ok": false,
+        "track_hit": false,
+        "hash": null,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": "{'error': \"curl: (60) SSL: no alternative certificate subject name matches target host name 'mobilecdn.kugou.com'\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\"}",
+        "candidates": []
+      }
+    },
+    {
+      "id": "lemon",
+      "title": "Lemon",
+      "artist": "米津玄師",
+      "title_script": "latin",
+      "notes": "latin title JP artist",
+      "lrclib": {
+        "ok": true,
+        "count": 20,
+        "synced": true,
+        "plain": true
+      },
+      "netease": {
+        "search_ok": true,
+        "track_hit": true,
+        "song_id": 536622304,
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": true,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": 536622304,
+            "name": "Lemon",
+            "artists": [
+              "米津玄師"
+            ],
+            "duration_ms": 256000
+          },
+          {
+            "id": 1466598056,
+            "name": "Lemon",
+            "artists": [
+              "米津玄師"
+            ],
+            "duration_ms": 255883
+          },
+          {
+            "id": 1344729444,
+            "name": "lemon（钢琴改编版）（翻自 米津玄師）",
+            "artists": [
+              "米津玄師"
+            ],
+            "duration_ms": 87536
+          },
+          {
+            "id": 1344727797,
+            "name": "lemon（改大调）（翻自 米津玄師）",
+            "artists": [
+              "米津玄師"
+            ],
+            "duration_ms": 86778
+          },
+          {
+            "id": 2153395148,
+            "name": "Lemon（翻唱完整版）",
+            "artists": [
+              "音律调控者"
+            ],
+            "duration_ms": 256000
+          }
+        ],
+        "has_kana": false,
+        "has_romaji": false
+      },
+      "qq": {
+        "search_ok": true,
+        "track_hit": true,
+        "songmid": "000akynZ2Rbro5",
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "songmid": "000akynZ2Rbro5",
+            "name": "Lemon",
+            "artists": [
+              "米津玄師 (よねづ けんし)"
+            ],
+            "interval": 256
+          },
+          {
+            "songmid": "0005KUba33doP6",
+            "name": "Lemon (Live)",
+            "artists": [
+              "米津玄師 (よねづ けんし)"
+            ],
+            "interval": 248
+          },
+          {
+            "songmid": "0012lGIQ1IddRY",
+            "name": "Lemon (Live at 第69回NHK红白歌会)",
+            "artists": [
+              "米津玄師 (よねづ けんし)"
+            ],
+            "interval": 275
+          },
+          {
+            "songmid": "0031To2t04TGcp",
+            "name": "Lemon (Live at 第69回NHK 紅白歌合戦)",
+            "artists": [
+              "米津玄師 (よねづ けんし)"
+            ],
+            "interval": 275
+          },
+          {
+            "songmid": "0046aZeG1rQCWc",
+            "name": "lemon (cos：米津玄师)",
+            "artists": [
+              "米津玄师;韩少泽"
+            ],
+            "interval": 255
+          }
+        ]
+      },
+      "kugou": {
+        "search_ok": false,
+        "track_hit": false,
+        "hash": null,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": "{'error': \"curl: (60) SSL: no alternative certificate subject name matches target host name 'mobilecdn.kugou.com'\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\"}",
+        "candidates": []
+      }
+    },
+    {
+      "id": "pretender",
+      "title": "Pretender",
+      "artist": "Official髭男dism",
+      "title_script": "latin",
+      "notes": "latin title",
+      "lrclib": {
+        "ok": true,
+        "count": 20,
+        "synced": true,
+        "plain": true
+      },
+      "netease": {
+        "search_ok": true,
+        "track_hit": true,
+        "song_id": 1365924378,
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": true,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": 1365924378,
+            "name": "Pretender",
+            "artists": [
+              "Official髭男dism"
+            ],
+            "duration_ms": 326440
+          },
+          {
+            "id": 1459014121,
+            "name": "Pretender(Instrumental)",
+            "artists": [
+              "Official髭男dism"
+            ],
+            "duration_ms": 326842
+          },
+          {
+            "id": 1395807194,
+            "name": "Pretender",
+            "artists": [
+              "Official髭男dism"
+            ],
+            "duration_ms": 326842
+          },
+          {
+            "id": 1365924379,
+            "name": "Pretender(Acoustic Ver)",
+            "artists": [
+              "Official髭男dism"
+            ],
+            "duration_ms": 223840
+          },
+          {
+            "id": 1422386859,
+            "name": "Pretender",
+            "artists": [
+              "Official髭男dism"
+            ],
+            "duration_ms": 361586
+          }
+        ],
+        "has_kana": false,
+        "has_romaji": false
+      },
+      "qq": {
+        "search_ok": true,
+        "track_hit": true,
+        "songmid": "002POzud0db9lK",
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "songmid": "002POzud0db9lK",
+            "name": "Pretender",
+            "artists": [
+              "Official髭男dism (OFFICIAL HIGE DANDISM)"
+            ],
+            "interval": 326
+          },
+          {
+            "songmid": "001jjC6c2I2UPc",
+            "name": "Pretender",
+            "artists": [
+              "Official髭男dism (OFFICIAL HIGE DANDISM)"
+            ],
+            "interval": 361
+          },
+          {
+            "songmid": "002ixYF70JazHj",
+            "name": "Pretender (Acoustic)",
+            "artists": [
+              "Official髭男dism (OFFICIAL HIGE DANDISM)"
+            ],
+            "interval": 223
+          },
+          {
+            "songmid": "000tib9t4LJGzN",
+            "name": "Pretender (OFFICIAL HIGE DANDISM LIVE at STADIUM 2025)",
+            "artists": [
+              "Official髭男dism (OFFICIAL HIGE DANDISM)"
+            ],
+            "interval": 347
+          },
+          {
+            "songmid": "001IS4AC2TspZK",
+            "name": "Official髭男dism「Pretender」Special Free Live",
+            "artists": [
+              "Official髭男dism (OFFICIAL HIGE DANDISM)"
+            ],
+            "interval": 216
+          }
+        ]
+      },
+      "kugou": {
+        "search_ok": false,
+        "track_hit": false,
+        "hash": null,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": "{'error': \"curl: (60) SSL: no alternative certificate subject name matches target host name 'mobilecdn.kugou.com'\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\"}",
+        "candidates": []
+      }
+    },
+    {
+      "id": "gunjou",
+      "title": "群青",
+      "artist": "YOASOBI",
+      "title_script": "ja",
+      "notes": "anime-ish popular",
+      "lrclib": {
+        "ok": true,
+        "count": 20,
+        "synced": true,
+        "plain": true
+      },
+      "netease": {
+        "search_ok": true,
+        "track_hit": true,
+        "song_id": 1472480890,
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": true,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": 1472480890,
+            "name": "群青",
+            "artists": [
+              "YOASOBI"
+            ],
+            "duration_ms": 248444
+          },
+          {
+            "id": 1500151581,
+            "name": "群青",
+            "artists": [
+              "YOASOBI"
+            ],
+            "duration_ms": 248444
+          },
+          {
+            "id": 2007396062,
+            "name": "群青 (Remix)",
+            "artists": [
+              "DJ Agos",
+              "Ayase"
+            ],
+            "duration_ms": 245351
+          },
+          {
+            "id": 1459343252,
+            "name": "たぶん",
+            "artists": [
+              "YOASOBI"
+            ],
+            "duration_ms": 258666
+          },
+          {
+            "id": 2034742057,
+            "name": "アイドル",
+            "artists": [
+              "YOASOBI"
+            ],
+            "duration_ms": 213233
+          }
+        ],
+        "has_kana": false,
+        "has_romaji": false
+      },
+      "qq": {
+        "search_ok": true,
+        "track_hit": true,
+        "songmid": "000I42sc1Lrn0d",
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "songmid": "000I42sc1Lrn0d",
+            "name": "群青",
+            "artists": [
+              "YOASOBI (ヨアソビ)"
+            ],
+            "interval": 248
+          },
+          {
+            "songmid": "002dZk4Z2TIUhx",
+            "name": "群青 - THE FIRST TAKE",
+            "artists": [
+              "YOASOBI (ヨアソビ)"
+            ],
+            "interval": 248
+          },
+          {
+            "songmid": "004IGiel1TZwWt",
+            "name": "Blue",
+            "artists": [
+              "YOASOBI"
+            ],
+            "interval": 248
+          },
+          {
+            "songmid": "003hUNhm3pQCYf",
+            "name": "Blue (English Version)",
+            "artists": [
+              "YOASOBI"
+            ],
+            "interval": 246
+          },
+          {
+            "songmid": "001bVUC003XWjH",
+            "name": "群青 (初音ミク Ver.)",
+            "artists": [
+              "Ayase"
+            ],
+            "interval": 244
+          }
+        ]
+      },
+      "kugou": {
+        "search_ok": false,
+        "track_hit": false,
+        "hash": null,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": "{'error': \"curl: (60) SSL: no alternative certificate subject name matches target host name 'mobilecdn.kugou.com'\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\"}",
+        "candidates": []
+      }
+    },
+    {
+      "id": "idol",
+      "title": "アイドル",
+      "artist": "YOASOBI",
+      "title_script": "ja",
+      "notes": "katakana title",
+      "lrclib": {
+        "ok": true,
+        "count": 20,
+        "synced": true,
+        "plain": true
+      },
+      "netease": {
+        "search_ok": true,
+        "track_hit": true,
+        "song_id": 2034742057,
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": true,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": 2034742057,
+            "name": "アイドル",
+            "artists": [
+              "YOASOBI"
+            ],
+            "duration_ms": 213233
+          },
+          {
+            "id": 2083870325,
+            "name": "アイドル",
+            "artists": [
+              "YOASOBI"
+            ],
+            "duration_ms": 211733
+          },
+          {
+            "id": 2059786617,
+            "name": "アイドル（七人合唱）",
+            "artists": [
+              "失心少年",
+              "YOASOBI.",
+              "HIMEHINA",
+              "朔炭パリカ",
+              "セラフィー",
+              "春歌みこと",
+              "un:c"
+            ],
+            "duration_ms": 211638
+          },
+          {
+            "id": 3389005906,
+            "name": "オリオン",
+            "artists": [
+              "YOASOBI"
+            ],
+            "duration_ms": 206586
+          },
+          {
+            "id": 1472480890,
+            "name": "群青",
+            "artists": [
+              "YOASOBI"
+            ],
+            "duration_ms": 248444
+          }
+        ],
+        "has_kana": false,
+        "has_romaji": false
+      },
+      "qq": {
+        "search_ok": true,
+        "track_hit": true,
+        "songmid": "001MFU8s2twj4U",
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "songmid": "001MFU8s2twj4U",
+            "name": "アイドル (偶像)",
+            "artists": [
+              "YOASOBI (ヨアソビ)"
+            ],
+            "interval": 213
+          },
+          {
+            "songmid": "003fHWHM4Jb5vA",
+            "name": "アイドル -Anime Edit- (偶像)",
+            "artists": [
+              "YOASOBI (ヨアソビ)"
+            ],
+            "interval": 89
+          },
+          {
+            "songmid": "0027EOJj4OPk3E",
+            "name": "アイドル (Live)",
+            "artists": [
+              "YOASOBI (ヨアソビ)"
+            ],
+            "interval": 287
+          },
+          {
+            "songmid": "000FHdCS4SS1W5",
+            "name": "アイドル (Live)",
+            "artists": [
+              "YOASOBI (ヨアソビ)"
+            ],
+            "interval": 70
+          },
+          {
+            "songmid": "004TBzh51TV2DG",
+            "name": "Idol",
+            "artists": [
+              "YOASOBI"
+            ],
+            "interval": 213
+          }
+        ]
+      },
+      "kugou": {
+        "search_ok": false,
+        "track_hit": false,
+        "hash": null,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": "{'error': \"curl: (60) SSL: no alternative certificate subject name matches target host name 'mobilecdn.kugou.com'\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\"}",
+        "candidates": []
+      }
+    },
+    {
+      "id": "kaisui",
+      "title": "海の幽霊",
+      "artist": "米津玄師",
+      "title_script": "ja",
+      "notes": "mid popular",
+      "lrclib": {
+        "ok": true,
+        "count": 16,
+        "synced": true,
+        "plain": true
+      },
+      "netease": {
+        "search_ok": true,
+        "track_hit": true,
+        "song_id": 1369903412,
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": true,
+        "has_yrc": true,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": 1369903412,
+            "name": "海の幽霊",
+            "artists": [
+              "米津玄師"
+            ],
+            "duration_ms": 234521
+          },
+          {
+            "id": 1466597808,
+            "name": "海の幽霊",
+            "artists": [
+              "米津玄師"
+            ],
+            "duration_ms": 234521
+          },
+          {
+            "id": 1390398318,
+            "name": "海の幽霊",
+            "artists": [
+              "米津玄師"
+            ],
+            "duration_ms": 237238
+          },
+          {
+            "id": 1384941586,
+            "name": "海の幽霊 米津玄師-piano",
+            "artists": [
+              "南痕"
+            ],
+            "duration_ms": 243672
+          },
+          {
+            "id": 1380259895,
+            "name": "海の幽霊/海的幽灵（翻自 米津玄師）",
+            "artists": [
+              "伞妹",
+              "夏璃夜"
+            ],
+            "duration_ms": 245106
+          }
+        ],
+        "has_kana": false,
+        "has_romaji": false
+      },
+      "qq": {
+        "search_ok": true,
+        "track_hit": true,
+        "songmid": "002XKOFt1ZayiY",
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "songmid": "002XKOFt1ZayiY",
+            "name": "海の幽霊 (海之幽灵)",
+            "artists": [
+              "米津玄師 (よねづ けんし)"
+            ],
+            "interval": 234
+          },
+          {
+            "songmid": "000NLTzT0ay76M",
+            "name": "海の幽霊",
+            "artists": [
+              "α Healing",
+              "米津玄師"
+            ],
+            "interval": 243
+          },
+          {
+            "songmid": "004afARI1kxQDv",
+            "name": "海の幽霊/打上花火双声道版",
+            "artists": [
+              "Kira_辣椒酱"
+            ],
+            "interval": 25
+          },
+          {
+            "songmid": "000MYvPM2EDxdL",
+            "name": "海の幽霊 (海之幽灵) (海之幽灵)",
+            "artists": [
+              "伞妹",
+              "夏璃夜"
+            ],
+            "interval": 245
+          },
+          {
+            "songmid": "000PqouY1Opnrt",
+            "name": "海の幽霊 (和声版)",
+            "artists": [
+              "Tekilen"
+            ],
+            "interval": 237
+          }
+        ]
+      },
+      "kugou": {
+        "search_ok": false,
+        "track_hit": false,
+        "hash": null,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": "{'error': \"curl: (60) SSL: no alternative certificate subject name matches target host name 'mobilecdn.kugou.com'\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\"}",
+        "candidates": []
+      }
+    },
+    {
+      "id": "betelgeuse",
+      "title": "ベテルギウス",
+      "artist": "優里",
+      "title_script": "ja",
+      "notes": "katakana",
+      "lrclib": {
+        "ok": true,
+        "count": 7,
+        "synced": true,
+        "plain": true
+      },
+      "netease": {
+        "search_ok": true,
+        "track_hit": true,
+        "song_id": 1887893150,
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": true,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": 1887893150,
+            "name": "ベテルギウス",
+            "artists": [
+              "優里"
+            ],
+            "duration_ms": 230458
+          },
+          {
+            "id": 1905070115,
+            "name": "ベテルギウス",
+            "artists": [
+              "優里"
+            ],
+            "duration_ms": 230458
+          },
+          {
+            "id": 2099503238,
+            "name": "ベテルギウス -オーケストラアレンジver.-",
+            "artists": [
+              "優里"
+            ],
+            "duration_ms": 234010
+          },
+          {
+            "id": 1895559663,
+            "name": "ベテルギウス (Cover) [メロディー] [ドラマ「SUPER RICH」主題歌] [オリジナル歌手：優里]",
+            "artists": [
+              "Mobile Melody Series"
+            ],
+            "duration_ms": 39863
+          },
+          {
+            "id": 1952034146,
+            "name": "ベテルギウス (Cover) [オリジナル歌手：優里]",
+            "artists": [
+              "オルゴールミュージック"
+            ],
+            "duration_ms": 26996
+          }
+        ],
+        "has_kana": false,
+        "has_romaji": false
+      },
+      "qq": {
+        "search_ok": true,
+        "track_hit": true,
+        "songmid": "004eHyhu3kWhAP",
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "songmid": "004eHyhu3kWhAP",
+            "name": "ベテルギウス (参宿四)",
+            "artists": [
+              "優里 (ゆうり)"
+            ],
+            "interval": 230
+          },
+          {
+            "songmid": "001b6NU20GuWHo",
+            "name": "ベテルギウス -オーケストラアレンジver.-",
+            "artists": [
+              "優里 (ゆうり)"
+            ],
+            "interval": 233
+          },
+          {
+            "songmid": "0010NO4u4ODuLS",
+            "name": "ベテルギウス (参宿四)",
+            "artists": [
+              "NOAH (노아)"
+            ],
+            "interval": 187
+          },
+          {
+            "songmid": "003Rxrbs0Rqwss",
+            "name": "ベテルギウス (参宿四) (Betelgeuse)",
+            "artists": [
+              "도겸"
+            ],
+            "interval": 168
+          },
+          {
+            "songmid": "000ubiob1QcPes",
+            "name": "ベテルギウス (BETELGEUSE) (優里）",
+            "artists": [
+              "李永钦"
+            ],
+            "interval": 218
+          }
+        ]
+      },
+      "kugou": {
+        "search_ok": false,
+        "track_hit": false,
+        "hash": null,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": "{'error': \"curl: (60) SSL: no alternative certificate subject name matches target host name 'mobilecdn.kugou.com'\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\"}",
+        "candidates": []
+      }
+    },
+    {
+      "id": "dryflower",
+      "title": "ドライフラワー",
+      "artist": "優里",
+      "title_script": "ja",
+      "notes": "katakana",
+      "lrclib": {
+        "ok": true,
+        "count": 9,
+        "synced": true,
+        "plain": true
+      },
+      "netease": {
+        "search_ok": true,
+        "track_hit": true,
+        "song_id": 1485033549,
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": true,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": 1485033549,
+            "name": "ドライフラワー",
+            "artists": [
+              "優里"
+            ],
+            "duration_ms": 285651
+          },
+          {
+            "id": 1905070116,
+            "name": "ドライフラワー",
+            "artists": [
+              "優里"
+            ],
+            "duration_ms": 285651
+          },
+          {
+            "id": 2121576305,
+            "name": "ドライフラワー（Cover優里）",
+            "artists": [
+              "深蓝瞳孔"
+            ],
+            "duration_ms": 285871
+          },
+          {
+            "id": 1818537134,
+            "name": "ドライフラワー／優里 covered by 手越祐也",
+            "artists": [
+              "手越祐也"
+            ],
+            "duration_ms": 192984
+          },
+          {
+            "id": 1982259118,
+            "name": "ドライフラワー（Cover 優里）",
+            "artists": [
+              "不転圈圈"
+            ],
+            "duration_ms": 286273
+          }
+        ],
+        "has_kana": false,
+        "has_romaji": false
+      },
+      "qq": {
+        "search_ok": true,
+        "track_hit": true,
+        "songmid": "0019eCRo0VN9f3",
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "songmid": "0019eCRo0VN9f3",
+            "name": "ドライフラワー (干花)",
+            "artists": [
+              "優里 (ゆうり)"
+            ],
+            "interval": 285
+          },
+          {
+            "songmid": "003egJbT3ugeYo",
+            "name": "ドライフラワー (Live)",
+            "artists": [
+              "JAY",
+              "優里"
+            ],
+            "interval": 260
+          },
+          {
+            "songmid": "003w6r6L1JNNFv",
+            "name": "ドライフラワー -オーケストラアレンジver.-",
+            "artists": [
+              "優里 (ゆうり)"
+            ],
+            "interval": 293
+          },
+          {
+            "songmid": "001305S43fDJ6D",
+            "name": "Dried Flowers (Chinese Version)",
+            "artists": [
+              "優里"
+            ],
+            "interval": 285
+          },
+          {
+            "songmid": "001sSXMg280DwU",
+            "name": "ドライフラワー (干花)",
+            "artists": [
+              "Ado"
+            ],
+            "interval": 288
+          }
+        ]
+      },
+      "kugou": {
+        "search_ok": false,
+        "track_hit": false,
+        "hash": null,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": "{'error': \"curl: (60) SSL: no alternative certificate subject name matches target host name 'mobilecdn.kugou.com'\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\"}",
+        "candidates": []
+      }
+    },
+    {
+      "id": "odorenai",
+      "title": "踊",
+      "artist": "Ado",
+      "title_script": "ja",
+      "notes": "single kanji",
+      "lrclib": {
+        "ok": true,
+        "count": 20,
+        "synced": true,
+        "plain": true
+      },
+      "netease": {
+        "search_ok": true,
+        "track_hit": true,
+        "song_id": 1840383399,
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": true,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": 1840383399,
+            "name": "踊",
+            "artists": [
+              "Ado"
+            ],
+            "duration_ms": 208271
+          },
+          {
+            "id": 1489254523,
+            "name": "うっせぇわ",
+            "artists": [
+              "Ado"
+            ],
+            "duration_ms": 206891
+          },
+          {
+            "id": 3410506929,
+            "name": "花火",
+            "artists": [
+              "Ado"
+            ],
+            "duration_ms": 212373
+          },
+          {
+            "id": 3337987245,
+            "name": "soldier game",
+            "artists": [
+              "Ado"
+            ],
+            "duration_ms": 221360
+          },
+          {
+            "id": 2108142021,
+            "name": "愛して愛して愛して",
+            "artists": [
+              "Ado"
+            ],
+            "duration_ms": 258034
+          }
+        ],
+        "has_kana": false,
+        "has_romaji": false
+      },
+      "qq": {
+        "search_ok": true,
+        "track_hit": true,
+        "songmid": "001nN6GS1aQ7uu",
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "songmid": "001nN6GS1aQ7uu",
+            "name": "踊",
+            "artists": [
+              "Ado"
+            ],
+            "interval": 208
+          },
+          {
+            "songmid": "002Id9d13MHgKU",
+            "name": "踊 (Bon-Odo Remix)",
+            "artists": [
+              "Ado"
+            ],
+            "interval": 172
+          },
+          {
+            "songmid": "002jPJ6B1k09O6",
+            "name": "Mashup-踊×妄想感傷代償連盟 (多人双声道) (失心少年 / Ado / Poston. / 二ノ宮はぐ / mega / この子 / 相宮零 / はしやん remix)",
+            "artists": [
+              "失心少年;Ado;Poston.;二ノ宮はぐ;mega;この子;相宮零;はしやん"
+            ],
+            "interval": 207
+          },
+          {
+            "songmid": "0033SSqa2c0aeH",
+            "name": "踊",
+            "artists": [
+              "ABbbb君"
+            ],
+            "interval": 208
+          },
+          {
+            "songmid": "002xs6Ti3Guik5",
+            "name": "踊 (舞)",
+            "artists": [
+              "HIMEHINA"
+            ],
+            "interval": 210
+          }
+        ]
+      },
+      "kugou": {
+        "search_ok": false,
+        "track_hit": false,
+        "hash": null,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": "{'error': \"curl: (60) SSL: no alternative certificate subject name matches target host name 'mobilecdn.kugou.com'\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\"}",
+        "candidates": []
+      }
+    },
+    {
+      "id": "usen",
+      "title": "うっせぇわ",
+      "artist": "Ado",
+      "title_script": "ja",
+      "notes": "slang kana",
+      "lrclib": {
+        "ok": true,
+        "count": 20,
+        "synced": true,
+        "plain": true
+      },
+      "netease": {
+        "search_ok": true,
+        "track_hit": true,
+        "song_id": 1489254523,
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": true,
+        "has_yrc": true,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": 1489254523,
+            "name": "うっせぇわ",
+            "artists": [
+              "Ado"
+            ],
+            "duration_ms": 206891
+          },
+          {
+            "id": 3384549743,
+            "name": "うっせぇわ",
+            "artists": [
+              "Ado"
+            ],
+            "duration_ms": 204920
+          },
+          {
+            "id": 1817947370,
+            "name": "うっせぇわ (Giga Remix)",
+            "artists": [
+              "Ado",
+              "Giga"
+            ],
+            "duration_ms": 190344
+          },
+          {
+            "id": 1806720849,
+            "name": "うっせぇわ (Piano Ver.)",
+            "artists": [
+              "Ado"
+            ],
+            "duration_ms": 223053
+          },
+          {
+            "id": 1915176787,
+            "name": "うっせぇわ",
+            "artists": [
+              "Ado"
+            ],
+            "duration_ms": 206891
+          }
+        ],
+        "has_kana": false,
+        "has_romaji": false
+      },
+      "qq": {
+        "search_ok": true,
+        "track_hit": true,
+        "songmid": "003CWhlL2IFHpd",
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "songmid": "003CWhlL2IFHpd",
+            "name": "うっせぇわ (吵死了)",
+            "artists": [
+              "Ado"
+            ],
+            "interval": 205
+          },
+          {
+            "songmid": "001Tkyv01RckbA",
+            "name": "うっせぇわ (吵死了) (Giga Remix)",
+            "artists": [
+              "Ado"
+            ],
+            "interval": 190
+          },
+          {
+            "songmid": "000Nf2DK1Z0ozV",
+            "name": "うっせぇわ (啰嗦) (Piano Ver.)",
+            "artists": [
+              "Ado"
+            ],
+            "interval": 223
+          },
+          {
+            "songmid": "003HBqGs0miJ2j",
+            "name": "うっせぇわ",
+            "artists": [
+              "Clavick",
+              "Ado THE FIRST TAKE"
+            ],
+            "interval": 203
+          },
+          {
+            "songmid": "003UNucH34Xn8f",
+            "name": "撕夜",
+            "artists": [
+              "阿杜"
+            ],
+            "interval": 278
+          }
+        ]
+      },
+      "kugou": {
+        "search_ok": false,
+        "track_hit": false,
+        "hash": null,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": "{'error': \"curl: (60) SSL: no alternative certificate subject name matches target host name 'mobilecdn.kugou.com'\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\"}",
+        "candidates": []
+      }
+    },
+    {
+      "id": "kaibutsu",
+      "title": "怪獣の花唄",
+      "artist": "Vaundy",
+      "title_script": "ja",
+      "notes": "indie popular",
+      "lrclib": {
+        "ok": true,
+        "count": 20,
+        "synced": true,
+        "plain": true
+      },
+      "netease": {
+        "search_ok": true,
+        "track_hit": true,
+        "song_id": 1447572611,
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": true,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": 1447572611,
+            "name": "怪獣の花唄",
+            "artists": [
+              "Vaundy"
+            ],
+            "duration_ms": 224804
+          },
+          {
+            "id": 2095883498,
+            "name": "怪獣の花唄 - replica -",
+            "artists": [
+              "Vaundy"
+            ],
+            "duration_ms": 222934
+          },
+          {
+            "id": 2143386529,
+            "name": "怪獣の花唄 (Vaundy Cover)",
+            "artists": [
+              "秧歌儿"
+            ],
+            "duration_ms": 224800
+          },
+          {
+            "id": 1888864514,
+            "name": "踊り子",
+            "artists": [
+              "Vaundy"
+            ],
+            "duration_ms": 230109
+          },
+          {
+            "id": 1442021148,
+            "name": "東京フラッシュ",
+            "artists": [
+              "Vaundy"
+            ],
+            "duration_ms": 258857
+          }
+        ],
+        "has_kana": false,
+        "has_romaji": false
+      },
+      "qq": {
+        "search_ok": true,
+        "track_hit": true,
+        "songmid": "001BqTZQ3Ddrzb",
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "songmid": "001BqTZQ3Ddrzb",
+            "name": "怪獣の花唄 (怪兽的花之歌)",
+            "artists": [
+              "Vaundy"
+            ],
+            "interval": 224
+          },
+          {
+            "songmid": "003RJPD63JSKXa",
+            "name": "怪獣の花唄 - replica -",
+            "artists": [
+              "Vaundy"
+            ],
+            "interval": 222
+          },
+          {
+            "songmid": "001bfTY401tmz8",
+            "name": "トドメの一撃+逆光+怪獣の花唄 (Live)",
+            "artists": [
+              "Vaundy"
+            ],
+            "interval": 777
+          },
+          {
+            "songmid": "001ub2iV2Xz0kq",
+            "name": "怪獣の花唄 (2023 NHK红白歌会现场)",
+            "artists": [
+              "Vaundy"
+            ],
+            "interval": 243
+          },
+          {
+            "songmid": "001RmMSK0pdwWc",
+            "name": "怪獣の花唄 (replica -)",
+            "artists": [
+              "Vaundy"
+            ],
+            "interval": 156
+          }
+        ]
+      },
+      "kugou": {
+        "search_ok": false,
+        "track_hit": false,
+        "hash": null,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": "{'error': \"curl: (60) SSL: no alternative certificate subject name matches target host name 'mobilecdn.kugou.com'\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\"}",
+        "candidates": []
+      }
+    },
+    {
+      "id": "soranji",
+      "title": "そらんじ",
+      "artist": "Mrs. GREEN APPLE",
+      "title_script": "ja",
+      "notes": "romaji-ish kana",
+      "lrclib": {
+        "ok": false,
+        "count": 0,
+        "synced": false,
+        "plain": false
+      },
+      "netease": {
+        "search_ok": true,
+        "track_hit": true,
+        "song_id": 2158525801,
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": true,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": 2158525801,
+            "name": "ダンスホール",
+            "artists": [
+              "Mrs. GREEN APPLE"
+            ],
+            "duration_ms": 203149
+          },
+          {
+            "id": 2157786677,
+            "name": "ゼンマイ",
+            "artists": [
+              "Mrs. GREEN APPLE"
+            ],
+            "duration_ms": 273373
+          },
+          {
+            "id": 1989044540,
+            "name": "lovin'",
+            "artists": [
+              "Mrs. GREEN APPLE"
+            ],
+            "duration_ms": 155906
+          },
+          {
+            "id": 2033549990,
+            "name": "春愁",
+            "artists": [
+              "Mrs. GREEN APPLE"
+            ],
+            "duration_ms": 183800
+          },
+          {
+            "id": 1945796099,
+            "name": "Lovin'",
+            "artists": [
+              "Mrs. GREEN APPLE"
+            ],
+            "duration_ms": 155906
+          }
+        ],
+        "has_kana": false,
+        "has_romaji": false
+      },
+      "qq": {
+        "search_ok": true,
+        "track_hit": true,
+        "songmid": "003cClZg4FZRLk",
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "songmid": "003cClZg4FZRLk",
+            "name": "ダンスホール (Dance Hall)",
+            "artists": [
+              "Mrs. GREEN APPLE"
+            ],
+            "interval": 203
+          },
+          {
+            "songmid": "000Z2bZ03rVlKn",
+            "name": "lulu.",
+            "artists": [
+              "Mrs. GREEN APPLE"
+            ],
+            "interval": 270
+          },
+          {
+            "songmid": "0047wDOQ49Hy9a",
+            "name": "Brand New",
+            "artists": [
+              "Mrs. GREEN APPLE"
+            ],
+            "interval": 211
+          },
+          {
+            "songmid": "003Bo6n73ayXNx",
+            "name": "春愁",
+            "artists": [
+              "Mrs. GREEN APPLE"
+            ],
+            "interval": 183
+          },
+          {
+            "songmid": "002hYzxL1t4qic",
+            "name": "インフェルノ (Inferno)",
+            "artists": [
+              "Mrs. GREEN APPLE"
+            ],
+            "interval": 212
+          }
+        ]
+      },
+      "kugou": {
+        "search_ok": false,
+        "track_hit": false,
+        "hash": null,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": "{'error': \"curl: (60) SSL: no alternative certificate subject name matches target host name 'mobilecdn.kugou.com'\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\"}",
+        "candidates": []
+      }
+    },
+    {
+      "id": "ao_to_natsu",
+      "title": "青と夏",
+      "artist": "Mrs. GREEN APPLE",
+      "title_script": "ja",
+      "notes": "popular",
+      "lrclib": {
+        "ok": true,
+        "count": 20,
+        "synced": true,
+        "plain": true
+      },
+      "netease": {
+        "search_ok": true,
+        "track_hit": true,
+        "song_id": 574963458,
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": true,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": 574963458,
+            "name": "青と夏",
+            "artists": [
+              "Mrs. GREEN APPLE"
+            ],
+            "duration_ms": 270506
+          },
+          {
+            "id": 1394320002,
+            "name": "青と夏",
+            "artists": [
+              "Mrs. GREEN APPLE"
+            ],
+            "duration_ms": 270026
+          },
+          {
+            "id": 1501154607,
+            "name": "青と夏 (Instrumental)",
+            "artists": [
+              "Mrs. GREEN APPLE"
+            ],
+            "duration_ms": 273658
+          },
+          {
+            "id": 1460837991,
+            "name": "青と夏 (Remastered 2020)",
+            "artists": [
+              "Mrs. GREEN APPLE"
+            ],
+            "duration_ms": 273653
+          },
+          {
+            "id": 1297580582,
+            "name": "点描の唄",
+            "artists": [
+              "Mrs. GREEN APPLE",
+              "井上苑子"
+            ],
+            "duration_ms": 307120
+          }
+        ],
+        "has_kana": false,
+        "has_romaji": false
+      },
+      "qq": {
+        "search_ok": true,
+        "track_hit": true,
+        "songmid": "0002Z5Uh10uQFT",
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "songmid": "0002Z5Uh10uQFT",
+            "name": "青と夏 (青与夏)",
+            "artists": [
+              "Mrs. GREEN APPLE"
+            ],
+            "interval": 270
+          },
+          {
+            "songmid": "000g2J4s4M2f2q",
+            "name": "青と夏 (青与夏) (Remastered 2020)",
+            "artists": [
+              "Mrs. GREEN APPLE"
+            ],
+            "interval": 273
+          },
+          {
+            "songmid": "001K2TIa3EEOy0",
+            "name": "青と夏 (Guitar Ver.)",
+            "artists": [
+              "Healing Energy",
+              "大森元貴"
+            ],
+            "interval": 238
+          },
+          {
+            "songmid": "003hfI7a2IMLCE",
+            "name": "青と夏 (纯音乐)",
+            "artists": [
+              "Mrs. GREEN APPLE"
+            ],
+            "interval": 273
+          },
+          {
+            "songmid": "0044YE3g0mjdDH",
+            "name": "青と夏 (Mrs. GREEN APPLE)",
+            "artists": [
+              "コロムビアオルゴール"
+            ],
+            "interval": 288
+          }
+        ]
+      },
+      "kugou": {
+        "search_ok": false,
+        "track_hit": false,
+        "hash": null,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": "{'error': \"curl: (60) SSL: no alternative certificate subject name matches target host name 'mobilecdn.kugou.com'\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\"}",
+        "candidates": []
+      }
+    },
+    {
+      "id": "specialz",
+      "title": "SPECIALZ",
+      "artist": "King Gnu",
+      "title_script": "latin",
+      "notes": "anime OP latin",
+      "lrclib": {
+        "ok": true,
+        "count": 20,
+        "synced": true,
+        "plain": true
+      },
+      "netease": {
+        "search_ok": true,
+        "track_hit": true,
+        "song_id": 2630584675,
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": true,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": 2630584675,
+            "name": "SPECIALZ (King Gnu Dome Tour THE GREATEST UNKNOWN at TOKYO DOME)",
+            "artists": [
+              "King Gnu"
+            ],
+            "duration_ms": 239978
+          },
+          {
+            "id": 2074163984,
+            "name": "SPECIALZ",
+            "artists": [
+              "King Gnu"
+            ],
+            "duration_ms": 239211
+          },
+          {
+            "id": 2099678596,
+            "name": "SPECIALZ",
+            "artists": [
+              "King Gnu"
+            ],
+            "duration_ms": 233917
+          },
+          {
+            "id": 2077663192,
+            "name": "SPECIALZ (Jujutsu Kaisen OP 4)",
+            "artists": [
+              "Jonatan King"
+            ],
+            "duration_ms": 91794
+          },
+          {
+            "id": 3337367763,
+            "name": "AIZO",
+            "artists": [
+              "King Gnu"
+            ],
+            "duration_ms": 215922
+          }
+        ],
+        "has_kana": false,
+        "has_romaji": false
+      },
+      "qq": {
+        "search_ok": true,
+        "track_hit": true,
+        "songmid": "000CFgOU38USFz",
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "songmid": "000CFgOU38USFz",
+            "name": "SPECIALZ",
+            "artists": [
+              "King Gnu (キング・ヌー)"
+            ],
+            "interval": 239
+          },
+          {
+            "songmid": "003aF0rD4TDHuh",
+            "name": "SPECIALZ (King Gnu Dome Tour THE GREATEST UNKNOWN at TOKYO DOME)",
+            "artists": [
+              "King Gnu (キング・ヌー)"
+            ],
+            "interval": 239
+          },
+          {
+            "songmid": "004Q1MO7275WXv",
+            "name": "AIZO",
+            "artists": [
+              "King Gnu (キング・ヌー)"
+            ],
+            "interval": 215
+          },
+          {
+            "songmid": "000LpoTY23AzSe",
+            "name": "SPECIALZ《咒术回战：涩谷事变》【King Gnu】动态鼓谱",
+            "artists": [
+              "看哦爱随风原创鼓谱"
+            ],
+            "interval": 239
+          },
+          {
+            "songmid": "001Izm9v2FCFPK",
+            "name": "SPECIALZ (8-Bit King Gnu Emulation)",
+            "artists": [
+              "8-Bit Arcade"
+            ],
+            "interval": 232
+          }
+        ]
+      },
+      "kugou": {
+        "search_ok": false,
+        "track_hit": false,
+        "hash": null,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": "{'error': \"curl: (60) SSL: no alternative certificate subject name matches target host name 'mobilecdn.kugou.com'\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\"}",
+        "candidates": []
+      }
+    },
+    {
+      "id": "shinunoga",
+      "title": "死ぬのがいいわ",
+      "artist": "藤井風",
+      "title_script": "ja",
+      "notes": "global viral JP",
+      "lrclib": {
+        "ok": true,
+        "count": 4,
+        "synced": true,
+        "plain": true
+      },
+      "netease": {
+        "search_ok": true,
+        "track_hit": true,
+        "song_id": 1449537106,
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": true,
+        "has_yrc": true,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": 1449537106,
+            "name": "死ぬのがいいわ",
+            "artists": [
+              "藤井風"
+            ],
+            "duration_ms": 185567
+          },
+          {
+            "id": 2078262762,
+            "name": "死ぬのがいいわ",
+            "artists": [
+              "藤井風"
+            ],
+            "duration_ms": 185573
+          },
+          {
+            "id": 2007548396,
+            "name": "死ぬのがいいわ",
+            "artists": [
+              "藤井風"
+            ],
+            "duration_ms": 185573
+          },
+          {
+            "id": 2136341823,
+            "name": "死ぬのがいいわ (Live at Tiny Desk)",
+            "artists": [
+              "藤井風"
+            ],
+            "duration_ms": 185746
+          },
+          {
+            "id": 2644328518,
+            "name": "死ぬのがいいわ (Fujii Kaze Stadium Live \"Feelin' Good\")",
+            "artists": [
+              "藤井風"
+            ],
+            "duration_ms": 199598
+          }
+        ],
+        "has_kana": false,
+        "has_romaji": false
+      },
+      "qq": {
+        "search_ok": true,
+        "track_hit": true,
+        "songmid": "000mWUMx0mig0O",
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "songmid": "000mWUMx0mig0O",
+            "name": "死ぬのがいいわ (不如死去)",
+            "artists": [
+              "藤井风 (ふじい かぜ)"
+            ],
+            "interval": 185
+          },
+          {
+            "songmid": "002Efxjv3aehJu",
+            "name": "死ぬのがいいわ (Live at Tiny Desk Concerts Japan)",
+            "artists": [
+              "藤井風"
+            ],
+            "interval": 250
+          },
+          {
+            "songmid": "001IADRk3GLym7",
+            "name": "死ぬのがいいわ (2020武道馆演唱会片段)",
+            "artists": [
+              "藤井风 (ふじい かぜ)"
+            ],
+            "interval": 23
+          },
+          {
+            "songmid": "0023Z56Y0W0foD",
+            "name": "死ぬのがいいわ (Fujii Kaze Stadium Live \"Feelin' Good\")",
+            "artists": [
+              "藤井风 (ふじい かぜ)"
+            ],
+            "interval": 199
+          },
+          {
+            "songmid": "003f2nhY3ohx0A",
+            "name": "死ぬのがいいわ (2026Coachella科切拉音乐节现场)",
+            "artists": [
+              "藤井風"
+            ],
+            "interval": 300
+          }
+        ]
+      },
+      "kugou": {
+        "search_ok": false,
+        "track_hit": false,
+        "hash": null,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": "{'error': \"curl: (60) SSL: no alternative certificate subject name matches target host name 'mobilecdn.kugou.com'\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\"}",
+        "candidates": []
+      }
+    },
+    {
+      "id": "matsuri",
+      "title": "まつり",
+      "artist": "藤井風",
+      "title_script": "ja",
+      "notes": "hiragana",
+      "lrclib": {
+        "ok": true,
+        "count": 6,
+        "synced": true,
+        "plain": true
+      },
+      "netease": {
+        "search_ok": true,
+        "track_hit": true,
+        "song_id": 1930010660,
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": true,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": 1930010660,
+            "name": "まつり",
+            "artists": [
+              "藤井風"
+            ],
+            "duration_ms": 225924
+          },
+          {
+            "id": 1930773663,
+            "name": "まつり",
+            "artists": [
+              "藤井風"
+            ],
+            "duration_ms": 225920
+          },
+          {
+            "id": 1989044538,
+            "name": "まつり",
+            "artists": [
+              "藤井風"
+            ],
+            "duration_ms": 225920
+          },
+          {
+            "id": 2644328523,
+            "name": "まつり (Fujii Kaze Stadium Live \"Feelin' Good\")",
+            "artists": [
+              "藤井風"
+            ],
+            "duration_ms": 674228
+          },
+          {
+            "id": 1937645625,
+            "name": "まつり (Cover) [メロディー] [オリジナル歌手：藤井風]",
+            "artists": [
+              "Mobile Melody Series"
+            ],
+            "duration_ms": 39937
+          }
+        ],
+        "has_kana": false,
+        "has_romaji": false
+      },
+      "qq": {
+        "search_ok": true,
+        "track_hit": true,
+        "songmid": "001Ah8Is1lSyh6",
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "songmid": "001Ah8Is1lSyh6",
+            "name": "まつり (祭典)",
+            "artists": [
+              "藤井风 (ふじい かぜ)"
+            ],
+            "interval": 225
+          },
+          {
+            "songmid": "0045plPz4fmB7U",
+            "name": "まつり (Live at Tiny Desk Concerts Japan)",
+            "artists": [
+              "藤井風"
+            ],
+            "interval": 282
+          },
+          {
+            "songmid": "002FEGnj11o8PK",
+            "name": "まつり (祭典) (2026Coachella科切拉音乐节现场)",
+            "artists": [
+              "藤井風"
+            ],
+            "interval": 253
+          },
+          {
+            "songmid": "001qVLOJ3tDRqT",
+            "name": "まつり (Fujii Kaze Stadium Live \"Feelin' Good\")",
+            "artists": [
+              "藤井风 (ふじい かぜ)"
+            ],
+            "interval": 674
+          },
+          {
+            "songmid": "002gubRl2qfg67",
+            "name": "まつり (藤井風)",
+            "artists": [
+              "コロムビアオルゴール"
+            ],
+            "interval": 241
+          }
+        ]
+      },
+      "kugou": {
+        "search_ok": false,
+        "track_hit": false,
+        "hash": null,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": "{'error': \"curl: (60) SSL: no alternative certificate subject name matches target host name 'mobilecdn.kugou.com'\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\"}",
+        "candidates": []
+      }
+    },
+    {
+      "id": "independent1",
+      "title": "たゆたうままに",
+      "artist": "みさき",
+      "title_script": "ja",
+      "notes": "same artist cold-ish",
+      "lrclib": {
+        "ok": false,
+        "count": 0,
+        "synced": false,
+        "plain": false
+      },
+      "netease": {
+        "search_ok": true,
+        "track_hit": true,
+        "song_id": 2722395882,
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": true,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": 2722395882,
+            "name": "たゆたうままに",
+            "artists": [
+              "みさき"
+            ],
+            "duration_ms": 238426
+          },
+          {
+            "id": 2108577746,
+            "name": "I LOVE YOU",
+            "artists": [
+              "みさき"
+            ],
+            "duration_ms": 177662
+          },
+          {
+            "id": 1979369025,
+            "name": "言えない想い（feat.珀）",
+            "artists": [
+              "みさき",
+              "珀"
+            ],
+            "duration_ms": 196459
+          },
+          {
+            "id": 33316950,
+            "name": "メインタイトル1~ウルトラマンA (TVサイズ・Aタイプ)",
+            "artists": [
+              "ハニー・ナイツ",
+              "みすず児童合唱団"
+            ],
+            "duration_ms": 96837
+          },
+          {
+            "id": 33316957,
+            "name": "メインタイトル2~ウルトラマンA (TVサイズ・Bタイプ)",
+            "artists": [
+              "ハニー・ナイツ",
+              "みすず児童合唱団"
+            ],
+            "duration_ms": 96000
+          }
+        ],
+        "has_kana": false,
+        "has_romaji": false
+      },
+      "qq": {
+        "search_ok": true,
+        "track_hit": true,
+        "songmid": "002iGQgT3rb3DW",
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "songmid": "002iGQgT3rb3DW",
+            "name": "たゆたうままに",
+            "artists": [
+              "みさき"
+            ],
+            "interval": 238
+          },
+          {
+            "songmid": "002y4W7Q4dhKmE",
+            "name": "たゆたうままに(feat. Sou) (迷茫的漂流着)",
+            "artists": [
+              "瀬名航",
+              "Sou"
+            ],
+            "interval": 269
+          },
+          {
+            "songmid": "003T5FV50oXipt",
+            "name": "生まれ変わっても (就算是下辈子)",
+            "artists": [
+              "みさき"
+            ],
+            "interval": 303
+          },
+          {
+            "songmid": "001bXp3l2Xp1r4",
+            "name": "恋に落ちた私の負け (It's my loss for falling in love)",
+            "artists": [
+              "みさき"
+            ],
+            "interval": 281
+          },
+          {
+            "songmid": "004OZJiQ3dC1LC",
+            "name": "もし明日が来ないとしたら",
+            "artists": [
+              "みさき"
+            ],
+            "interval": 238
+          }
+        ]
+      },
+      "kugou": {
+        "search_ok": false,
+        "track_hit": false,
+        "hash": null,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": "{'error': \"curl: (60) SSL: no alternative certificate subject name matches target host name 'mobilecdn.kugou.com'\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\"}",
+        "candidates": []
+      }
+    },
+    {
+      "id": "cover_live_guard",
+      "title": "Lemon (Live)",
+      "artist": "米津玄師",
+      "title_script": "latin",
+      "notes": "version conflict fixture",
+      "lrclib": {
+        "ok": true,
+        "count": 1,
+        "synced": true,
+        "plain": true
+      },
+      "netease": {
+        "search_ok": true,
+        "track_hit": true,
+        "song_id": 536622304,
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": true,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": 536622304,
+            "name": "Lemon",
+            "artists": [
+              "米津玄師"
+            ],
+            "duration_ms": 256000
+          },
+          {
+            "id": 1466598056,
+            "name": "Lemon",
+            "artists": [
+              "米津玄師"
+            ],
+            "duration_ms": 255883
+          },
+          {
+            "id": 1344729444,
+            "name": "lemon（钢琴改编版）（翻自 米津玄師）",
+            "artists": [
+              "米津玄師"
+            ],
+            "duration_ms": 87536
+          },
+          {
+            "id": 1344727797,
+            "name": "lemon（改大调）（翻自 米津玄師）",
+            "artists": [
+              "米津玄師"
+            ],
+            "duration_ms": 86778
+          },
+          {
+            "id": 1986803568,
+            "name": "KICK BACK",
+            "artists": [
+              "米津玄師"
+            ],
+            "duration_ms": 193561
+          }
+        ],
+        "has_kana": false,
+        "has_romaji": false
+      },
+      "qq": {
+        "search_ok": true,
+        "track_hit": true,
+        "songmid": "0005KUba33doP6",
+        "lyric_ok": true,
+        "has_lrc": true,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": null,
+        "candidates": [
+          {
+            "songmid": "0005KUba33doP6",
+            "name": "Lemon (Live)",
+            "artists": [
+              "米津玄師 (よねづ けんし)"
+            ],
+            "interval": 248
+          },
+          {
+            "songmid": "0012lGIQ1IddRY",
+            "name": "Lemon (Live at 第69回NHK红白歌会)",
+            "artists": [
+              "米津玄師 (よねづ けんし)"
+            ],
+            "interval": 275
+          },
+          {
+            "songmid": "0031To2t04TGcp",
+            "name": "Lemon (Live at 第69回NHK 紅白歌合戦)",
+            "artists": [
+              "米津玄師 (よねづ けんし)"
+            ],
+            "interval": 275
+          },
+          {
+            "songmid": "000Mf2Ud0cH32Q",
+            "name": "Lemon (柠檬) (2018第69届NHK红白歌会现场)",
+            "artists": [
+              "米津玄師"
+            ],
+            "interval": 279
+          },
+          {
+            "songmid": "000wTl7f00A53Q",
+            "name": "Lemon (Live)",
+            "artists": [
+              "叶皓然;何圳煜;诺言;魏子越;一之濑asuka"
+            ],
+            "interval": 230
+          }
+        ]
+      },
+      "kugou": {
+        "search_ok": false,
+        "track_hit": false,
+        "hash": null,
+        "lyric_ok": false,
+        "has_lrc": false,
+        "has_tlyric": false,
+        "has_yrc": false,
+        "needs_cookie": false,
+        "error": "{'error': \"curl: (60) SSL: no alternative certificate subject name matches target host name 'mobilecdn.kugou.com'\\nMore details here: https://curl.se/docs/sslcerts.html\\n\\ncurl failed to verify the legitimacy of the server and therefore could not\\nestablish a secure connection to it. To learn more about this situation and\\nhow to fix it, please visit the web page mentioned above.\"}",
+        "candidates": []
+      }
+    }
+  ],
+  "summary": {
+    "lrclib_lyric": [
+      16,
+      20
+    ],
+    "netease_track": [
+      20,
+      20
+    ],
+    "netease_lyric": [
+      18,
+      20
+    ],
+    "netease_lrc": [
+      18,
+      20
+    ],
+    "netease_tlyric": [
+      18,
+      20
+    ],
+    "qq_track": [
+      20,
+      20
+    ],
+    "qq_lyric": [
+      19,
+      20
+    ],
+    "qq_needs_cookie": [
+      1,
+      20
+    ],
+    "kugou_track": [
+      0,
+      20
+    ],
+    "kugou_lyric": [
+      0,
+      20
+    ]
+  },
+  "cold_summary": {
+    "count": 4,
+    "netease_lyric": 2,
+    "qq_lyric": 3,
+    "kugou_lyric": 0
+  },
+  "scores": {
+    "netease": 74,
+    "qq": 65,
+    "kugou": 0
+  },
+  "recommended_first_experimental_provider": "netease",
+  "caveats": [
+    "Undocumented endpoints; experimental plugin only",
+    "No captcha bypass attempted",
+    "Match quality is heuristic title/artist containment",
+    "Aliases improve match rate only; empty sources stay empty"
+  ]
+}

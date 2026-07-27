@@ -1,0 +1,22 @@
+[
+  {"id":"ayafuya","title":"あやふや","artist":"みさき","spotify_id":"4l6XKftR34zrUw0bTnwoVv","duration":119.16,"title_script":"ja","notes":"cold target"},
+  {"id":"suiyoubi","title":"水曜日の約束","artist":"Kawasaki.Rio","spotify_id":null,"duration":null,"title_script":"ja","notes":"wrong-bind guard sample"},
+  {"id":"yoru_ni_kakeru","title":"夜に駆ける","artist":"YOASOBI","spotify_id":null,"duration":261,"title_script":"ja","notes":"popular control"},
+  {"id":"lemon","title":"Lemon","artist":"米津玄師","spotify_id":null,"duration":255,"title_script":"latin","notes":"latin title JP artist"},
+  {"id":"pretender","title":"Pretender","artist":"Official髭男dism","spotify_id":null,"duration":326,"title_script":"latin","notes":"latin title"},
+  {"id":"gunjou","title":"群青","artist":"YOASOBI","spotify_id":null,"duration":248,"title_script":"ja","notes":"anime-ish popular"},
+  {"id":"idol","title":"アイドル","artist":"YOASOBI","spotify_id":null,"duration":213,"title_script":"ja","notes":"katakana title"},
+  {"id":"kaisui","title":"海の幽霊","artist":"米津玄師","spotify_id":null,"duration":223,"title_script":"ja","notes":"mid popular"},
+  {"id":"betelgeuse","title":"ベテルギウス","artist":"優里","spotify_id":null,"duration":230,"title_script":"ja","notes":"katakana"},
+  {"id":"dryflower","title":"ドライフラワー","artist":"優里","spotify_id":null,"duration":284,"title_script":"ja","notes":"katakana"},
+  {"id":"odorenai","title":"踊","artist":"Ado","spotify_id":null,"duration":211,"title_script":"ja","notes":"single kanji"},
+  {"id":"usen","title":"うっせぇわ","artist":"Ado","spotify_id":null,"duration":203,"title_script":"ja","notes":"slang kana"},
+  {"id":"kaibutsu","title":"怪獣の花唄","artist":"Vaundy","spotify_id":null,"duration":223,"title_script":"ja","notes":"indie popular"},
+  {"id":"soranji","title":"そらんじ","artist":"Mrs. GREEN APPLE","spotify_id":null,"duration":null,"title_script":"ja","notes":"romaji-ish kana"},
+  {"id":"ao_to_natsu","title":"青と夏","artist":"Mrs. GREEN APPLE","spotify_id":null,"duration":267,"title_script":"ja","notes":"popular"},
+  {"id":"specialz","title":"SPECIALZ","artist":"King Gnu","spotify_id":null,"duration":236,"title_script":"latin","notes":"anime OP latin"},
+  {"id":"shinunoga","title":"死ぬのがいいわ","artist":"藤井風","spotify_id":null,"duration":243,"title_script":"ja","notes":"global viral JP"},
+  {"id":"matsuri","title":"まつり","artist":"藤井風","spotify_id":null,"duration":232,"title_script":"ja","notes":"hiragana"},
+  {"id":"independent1","title":"たゆたうままに","artist":"みさき","spotify_id":null,"duration":null,"title_script":"ja","notes":"same artist cold-ish"},
+  {"id":"cover_live_guard","title":"Lemon (Live)","artist":"米津玄師","spotify_id":null,"duration":null,"title_script":"latin","notes":"version conflict fixture"}
+]

@@ -200,7 +200,7 @@ struct LyricsCorrectnessContract {
             fatalError("candidate from another identity must be ignored")
         }
         controller.adopt(candidate: candidateB)
-        guard case .loaded(let adopted) = controller.state,
+        guard let adopted = controller.state.document,
               adopted.identity == TrackIdentity(track: trackB) else {
             fatalError("expected manually adopted candidate")
         }
@@ -230,14 +230,14 @@ struct LyricsCorrectnessContract {
         precondition(recoveryController.retryAfterNetworkRecovery(track: trackB, identity: recoveryIdentity))
         precondition(!recoveryController.retryAfterNetworkRecovery(track: trackB, identity: recoveryIdentity))
         try? await Task.sleep(nanoseconds: 10_000_000)
-        guard case .loaded = recoveryController.state,
+        guard let _ = recoveryController.state.document,
               recoveryProvider.calls == 2 else {
             fatalError("network recovery retry must be bounded to one automatic attempt")
         }
 
         controller.begin(track: trackA, identity: TrackIdentity(track: trackA))
         try? await Task.sleep(nanoseconds: 10_000_000)
-        guard case .match = sequence.results[1], case .loaded = controller.state else {
+        guard case .match = sequence.results[1], controller.state.document != nil else {
             fatalError("expected retry lookup to load the current identity")
         }
 

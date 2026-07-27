@@ -44,7 +44,7 @@ struct LyricsSessionContract {
         controller.begin(track: trackB, identity: TrackIdentity(track: trackB))
         try? await Task.sleep(nanoseconds: 350_000_000)
 
-        guard case .loaded(let document) = controller.state else { fatalError("expected loaded B") }
+        guard let document = controller.state.document else { fatalError("expected loaded/alignmentQueued B") }
         precondition(document.identity == TrackIdentity(track: trackB))
         precondition(controller.lyrics.first?.originalText == "歌词：Track B")
 

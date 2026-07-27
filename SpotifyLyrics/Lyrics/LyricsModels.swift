@@ -3,12 +3,14 @@ import Foundation
 public enum LyricsSource: String, CaseIterable, Codable, Sendable {
     case local
     case lrclib
+    case neteaseExperimental
     case mock
 
     public var displayName: String {
         switch self {
         case .local: return "本地 LRC"
         case .lrclib: return "LRCLIB"
+        case .neteaseExperimental: return "网易云（实验）"
         case .mock: return "Mock Preview"
         }
     }
@@ -85,7 +87,7 @@ public struct LyricsCandidate: Identifiable, Equatable, Sendable {
     }
 }
 
-public enum LyricsFailure: Equatable, Sendable {
+public enum LyricsFailure: Error, Equatable, Sendable {
     case networkUnavailable
     case timedOut
     case rateLimited(TimeInterval?)
@@ -131,6 +133,8 @@ public enum LyricsLoadState: Equatable {
     case idle
     case loading(TrackIdentity)
     case loaded(LyricsDocument)
+    /// Lyrics body available but without a trustworthy timeline (no fake sync).
+    case alignmentQueued(TrackIdentity, LyricsDocument)
     case noLyrics(TrackIdentity)
     case noMatch(TrackIdentity)
     case candidates(TrackIdentity, [LyricsCandidate])
@@ -143,7 +147,7 @@ public enum LyricsLoadState: Equatable {
             return nil
         case .loading(let identity), .noLyrics(let identity), .noMatch(let identity), .failed(let identity, _):
             return identity
-        case .loaded(let document):
+        case .loaded(let document), .alignmentQueued(_, let document):
             return document.identity
         case .candidates(let identity, _):
             return identity
@@ -152,7 +156,7 @@ public enum LyricsLoadState: Equatable {
 
     public var lines: [LyricLine] {
         switch self {
-        case .loaded(let document):
+        case .loaded(let document), .alignmentQueued(_, let document):
             return document.lines
         case .mockPreview:
             return []
@@ -161,18 +165,34 @@ public enum LyricsLoadState: Equatable {
         }
     }
 
+    public var document: LyricsDocument? {
+        switch self {
+        case .loaded(let document), .alignmentQueued(_, let document):
+            return document
+        default:
+            return nil
+        }
+    }
+
+    public var needsAlignment: Bool {
+        if case .alignmentQueued = self { return true }
+        return false
+    }
+
     public var userFacingMessage: String {
         switch self {
         case .idle:
             return "等待 Spotify 歌曲"
         case .loading:
-            return "正在搜索歌词…"
+            return "正在自动补全歌词…"
         case .loaded:
             return ""
+        case .alignmentQueued:
+            return "已获取歌词，待对齐时间轴"
         case .noLyrics:
             return "暂未找到歌词"
         case .noMatch:
-            return "未找到匹配歌词"
+            return "自动补全未找到可用歌词"
         case .candidates:
             return "请选择匹配的歌词"
         case .failed(_, let failure):
@@ -184,7 +204,7 @@ public enum LyricsLoadState: Equatable {
 
     public var isShowingRows: Bool {
         switch self {
-        case .loaded, .mockPreview:
+        case .loaded, .alignmentQueued, .mockPreview:
             return !lines.isEmpty
         default:
             return false

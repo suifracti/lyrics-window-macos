@@ -21,6 +21,11 @@ public final class LyricsSessionController: ObservableObject {
         requestTask?.cancel()
     }
 
+    /// One-button auto-complete entry used by playback identity changes and manual retry.
+    public func autoComplete(track: Track, identity: TrackIdentity) {
+        begin(track: track, identity: identity)
+    }
+
     public func begin(track: Track, identity: TrackIdentity) {
         cancelCurrentRequest()
         revision &+= 1
@@ -45,7 +50,7 @@ public final class LyricsSessionController: ObservableObject {
     }
 
     public func retry(track: Track, identity: TrackIdentity) {
-        begin(track: track, identity: identity)
+        autoComplete(track: track, identity: identity)
     }
 
     /// Performs at most one automatic retry for a network failure belonging
@@ -104,9 +109,7 @@ public final class LyricsSessionController: ObservableObject {
             source: candidate.source,
             confidence: candidate.confidence
         )
-        lyrics = document.lines
-        isSynchronized = document.isSynchronized
-        state = .loaded(document)
+        applyLoadedDocument(document, identity: candidate.identity)
     }
 
     /// Applies a selected search result only when its identity has already
@@ -115,9 +118,32 @@ public final class LyricsSessionController: ObservableObject {
         guard activeIdentity == document.identity else { return }
         cancelCurrentRequest()
         revision &+= 1
-        lyrics = document.lines
-        isSynchronized = document.isSynchronized
-        state = document.lines.isEmpty ? .noLyrics(document.identity) : .loaded(document)
+        applyLoadedDocument(document, identity: document.identity)
+    }
+
+    private func applyLoadedDocument(_ document: LyricsDocument, identity: TrackIdentity) {
+        let enrichedLines = LyricsLayerEnricher.enrich(lines: document.lines)
+        let enriched = LyricsDocument(
+            identity: identity,
+            title: document.title,
+            artist: document.artist,
+            album: document.album,
+            duration: document.duration,
+            lines: enrichedLines,
+            isSynchronized: document.isSynchronized,
+            source: document.source,
+            confidence: document.confidence
+        )
+        lyrics = enriched.lines
+        isSynchronized = enriched.isSynchronized
+        if enriched.lines.isEmpty {
+            state = .noLyrics(identity)
+        } else if enriched.isSynchronized {
+            state = .loaded(enriched)
+        } else {
+            // Do not fake timeline sync for plain text.
+            state = .alignmentQueued(identity, enriched)
+        }
     }
 
     private func apply(
@@ -134,9 +160,7 @@ public final class LyricsSessionController: ObservableObject {
                 state = .failed(identity, .unknown("歌词身份与当前歌曲不一致"))
                 return
             }
-            lyrics = document.lines
-            isSynchronized = document.isSynchronized
-            state = document.lines.isEmpty ? .noLyrics(identity) : .loaded(document)
+            applyLoadedDocument(document, identity: identity)
         case .candidates(let candidates):
             lyrics = []
             isSynchronized = true

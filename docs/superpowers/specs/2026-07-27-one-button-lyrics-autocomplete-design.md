@@ -146,3 +146,13 @@ Tests/lyrics_autocomplete_contract.swift          // 扩合同
 4. ⬜ 接入 PlaybackState UI 一键入口  
 5. ⬜ 多 variant 串 Local+LRCLIB  
 6. ⬜ 一次只接一个补充 Provider 验证冷门日语覆盖  
+
+
+## 实现进度（2026-07-27 晚）
+
+- LyricsSearchManager 已改为 QueryPlanner 多别名 + SafeMatcher。
+- PlaybackState.autoCompleteLyrics / Session.autoComplete 已接入。
+- alignmentQueued 已加入 LyricsLoadState。
+- 假名：词典最长匹配（pykakasi 导出）+ 助词规则；非 MeCab 形态素，但不做 Unihan 瞎猜。
+- 冷门覆盖：Tools/cold_jp_provider_coverage.py
+- ASR 兜底：仅设计。

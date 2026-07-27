@@ -8,22 +8,40 @@ struct LyricsCanvasView: View {
             switch state.lyricsState {
             case .loaded(_), .mockPreview:
                 lyricsScroll
+            case .alignmentQueued:
+                VStack(spacing: 10) {
+                    lyricsScroll
+                    statusView(
+                        icon: "timeline.selection",
+                        message: "待对齐时间轴",
+                        detail: "已获取歌词正文；原文/假名/罗马音独立保存。当前无可靠时间轴，不会伪造同步高亮。"
+                    ) {
+                        retryButton
+                    }
+                    .frame(maxHeight: 120)
+                }
             case .loading:
-                statusView(icon: "magnifyingglass", message: "正在搜索歌词…", detail: "已清空上一首歌曲的歌词")
+                statusView(icon: "magnifyingglass", message: "正在自动补全歌词…", detail: "Local → LRCLIB 多别名查询中")
             case .noLyrics:
-                statusView(icon: "text.magnifyingglass", message: "暂未找到歌词", detail: "当前歌曲没有可用的同步歌词")
+                statusView(icon: "text.magnifyingglass", message: "暂未找到歌词", detail: "来源返回无词（例如纯音乐）") {
+                    retryButton
+                }
             case .noMatch:
-                statusView(icon: "magnifyingglass", message: "未找到匹配歌词", detail: "可以重新搜索当前歌曲") {
+                statusView(
+                    icon: "magnifyingglass",
+                    message: "自动补全未找到歌词",
+                    detail: "多别名已尝试。别名只提升匹配率，不能在来源本身无词时凭空生成正文。"
+                ) {
                     retryButton
                 }
             case .failed(_, let failure):
-                statusView(icon: "exclamationmark.triangle", message: "歌词搜索失败", detail: failure.userFacingMessage) {
+                statusView(icon: "exclamationmark.triangle", message: "自动补全失败", detail: failure.userFacingMessage) {
                     retryButton
                 }
             case .candidates(_, let candidates):
                 candidateList(candidates)
             case .idle:
-                statusView(icon: "music.note", message: "等待 Spotify 歌曲", detail: "连接 Spotify 后将搜索当前歌曲歌词")
+                statusView(icon: "music.note", message: "等待 Spotify 歌曲", detail: "连接后将自动补全当前歌曲歌词")
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -31,8 +49,8 @@ struct LyricsCanvasView: View {
     }
 
     private var retryButton: some View {
-        Button("重新搜索") {
-            state.retryLyrics()
+        Button("自动补全歌词") {
+            state.autoCompleteLyrics()
         }
         .buttonStyle(.bordered)
         .tint(LyricsDesignTokens.accent)
