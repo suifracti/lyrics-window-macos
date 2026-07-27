@@ -55,9 +55,20 @@ struct SongSearchPopover: View {
         case .idle:
             emptyState(icon: "music.note", title: "搜索歌曲或歌词", detail: "输入标题、艺人或专辑后开始")
         case .searching:
-            emptyState(icon: "hourglass", title: "正在搜索…", detail: "正在调度本地、Spotify 和 LRCLIB Provider")
+            emptyState(
+                icon: "hourglass",
+                title: "正在搜索…",
+                detail: "正在匹配本地歌词索引与 Spotify 当前歌曲"
+            )
         case .noResults:
-            emptyState(icon: "questionmark.folder", title: "没有匹配结果", detail: "可换一个标题或艺人关键词")
+            // After architecture split, free-text track search has no online catalog
+            // provider yet. Surface that limitation instead of looking like a crash
+            // or empty-folder fault.
+            emptyState(
+                icon: "books.vertical",
+                title: "暂无可用曲库来源",
+                detail: "当前只支持本地歌词与 Spotify 当前歌曲。未接入在线曲库时，其他关键词不会返回目录结果。"
+            )
         case .failed(_, let message):
             VStack(alignment: .leading, spacing: 10) {
                 emptyState(icon: "exclamationmark.triangle", title: "搜索失败", detail: message)
