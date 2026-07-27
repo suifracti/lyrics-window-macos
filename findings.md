@@ -32,6 +32,12 @@
 |-------|------------|
 | 参考目录名称与用户给出的参考路径相同，但实际位于当前仓库内 | 以实际路径和 Git 状态为准，标记为“仓库内只读参考目录” |
 
+## Phase 25 Findings — 2026-07-27
+- 当前工作区分支为 `ui-redesign-phase-1`，已存在未提交的 Alignment V1 源码和验收 fixture；未覆盖这些用户改动。
+- 复现构建失败：`PlaybackState.swift:74` 调用了不存在的 `tryAutoAlignIfRequested()`。
+- 该错误发生在 Swift 编译阶段，因此此前 DerivedData App 不包含本轮可运行的自动排轴接线。
+- 计划的环境验收入口为 `SPOTIFYLYRICS_ALIGN_AUDIO` + `SPOTIFYLYRICS_AUTO_ALIGN=1`；自动触发必须按 TrackIdentity 去重，避免状态发布造成重复排轴。
+
 ## Resources
 - 当前项目：`/Users/apple/backup/sptifylyrics`
 - 参考项目：`/Users/apple/backup/sptifylyrics/Lyricify-App-main`
@@ -368,3 +374,13 @@
 - Track search and lyrics search are now separate managers; UI still binds to `SongSearchManager` which mirrors metadata-only track results.
 - Shared `LocalLyricsIndex` prevents double directory scans between local track search and local lyrics lookup and never writes user files.
 - LRCLIB must stay out of free-text track search; personal-desktop lyrics path keeps opt-in style isolation and does not persist online lyrics by default.
+
+## Phase 25 alignment V1 acceptance findings — corrected after runtime audit
+- `AlignmentService` is the SwiftUI-independent boundary. `AudioPCMConverter` validates/read-probes the selected local file, creates a temporary 16 kHz mono PCM WAV, hashes the original, and cleans the temporary directory without modifying the source audio.
+- `SpeechForcedAlignmentService` uses macOS Speech tokens and `LineForcedAligner` for deterministic kana-normalized dynamic/fuzzy matching. Original kanji lines remain separate from kana and romaji layers; no word-level timestamp tags are emitted.
+- A contiguous unmatched tail is interpolated as a group between the prior anchor and audio end. This fixed a real defect where multiple tail lines collapsed to the same timestamp.
+- Runtime audit found that the earlier preview/confirmation was invalid: the checked-in `kawasaki_tts.wav` is 79.8255 seconds, while the live Spotify track is 171.177 seconds. Its 32 timestamps therefore ended near 1:18 and could move before the real singer's onset. Those results and screenshots are not acceptance evidence.
+- The clean signed DerivedData binary `/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app` now rejects this mismatch before Speech recognition. The real App retained QQ's 32 plain lines, returned to `alignmentQueued`, displayed the explicit duration error, and did not create an `.aligned.lrc`.
+- `AlignmentDurationValidator` allows only small edit/intro/outro differences; the leading unmatched interpolation rule also forbids scheduling a row before the first timed recognition anchor.
+- The duration-mismatch log and screenshot are in `docs/superpowers/specs/acceptance-2026-07-27-alignment-v1/`. A valid full-song alignment remains unverified until a matching 171-second local audio file is supplied.
+- Standalone contracts emit only Swift 6 Sendable warnings for existing test doubles and AVFoundation's non-Sendable buffer API; Xcode normal signed Debug build succeeded and `codesign --verify --deep --strict` passed with `Sign to Run Locally` / ad hoc signature.

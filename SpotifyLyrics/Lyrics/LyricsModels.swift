@@ -6,6 +6,7 @@ public enum LyricsSource: String, CaseIterable, Codable, Sendable {
     case neteaseExperimental
     case qqExperimental
     case asrMachineGenerated
+    case automaticAlignment
     case mock
 
     public var displayName: String {
@@ -15,6 +16,7 @@ public enum LyricsSource: String, CaseIterable, Codable, Sendable {
         case .neteaseExperimental: return "网易云（实验）"
         case .qqExperimental: return "QQ音乐（实验）"
         case .asrMachineGenerated: return "ASR 草稿（待校正）"
+        case .automaticAlignment: return "自动排轴"
         case .mock: return "Mock Preview"
         }
     }
@@ -139,6 +141,10 @@ public enum LyricsLoadState: Equatable {
     case loaded(LyricsDocument)
     /// Lyrics body available but without a trustworthy timeline (no fake sync).
     case alignmentQueued(TrackIdentity, LyricsDocument)
+    /// Force-align in progress; keep plain document for identity.
+    case alignmentRunning(TrackIdentity, LyricsDocument, Double)
+    /// Preview timed result before user confirms (does not replace locked lyrics until confirm).
+    case alignmentPreview(TrackIdentity, plain: LyricsDocument, timed: LyricsDocument, report: AlignmentReport)
     case noLyrics(TrackIdentity)
     case noMatch(TrackIdentity)
     case candidates(TrackIdentity, [LyricsCandidate])
@@ -151,8 +157,10 @@ public enum LyricsLoadState: Equatable {
             return nil
         case .loading(let identity), .noLyrics(let identity), .noMatch(let identity), .failed(let identity, _):
             return identity
-        case .loaded(let document), .alignmentQueued(_, let document):
+        case .loaded(let document), .alignmentQueued(_, let document), .alignmentRunning(_, let document, _):
             return document.identity
+        case .alignmentPreview(let identity, _, _, _):
+            return identity
         case .candidates(let identity, _):
             return identity
         }
@@ -160,8 +168,10 @@ public enum LyricsLoadState: Equatable {
 
     public var lines: [LyricLine] {
         switch self {
-        case .loaded(let document), .alignmentQueued(_, let document):
+        case .loaded(let document), .alignmentQueued(_, let document), .alignmentRunning(_, let document, _):
             return document.lines
+        case .alignmentPreview(_, _, let timed, _):
+            return timed.lines
         case .mockPreview:
             return []
         default:
@@ -171,11 +181,36 @@ public enum LyricsLoadState: Equatable {
 
     public var document: LyricsDocument? {
         switch self {
-        case .loaded(let document), .alignmentQueued(_, let document):
+        case .loaded(let document), .alignmentQueued(_, let document), .alignmentRunning(_, let document, _):
+            return document
+        case .alignmentPreview(_, _, let timed, _):
+            return timed
+        default:
+            return nil
+        }
+    }
+
+    public var plainDocument: LyricsDocument? {
+        switch self {
+        case .alignmentQueued(_, let document), .alignmentRunning(_, let document, _):
+            return document
+        case .alignmentPreview(_, let plain, _, _):
+            return plain
+        case .loaded(let document):
             return document
         default:
             return nil
         }
+    }
+
+    public var alignmentProgressValue: Double? {
+        if case .alignmentRunning(_, _, let p) = self { return p }
+        return nil
+    }
+
+    public var alignmentReport: AlignmentReport? {
+        if case .alignmentPreview(_, _, _, let report) = self { return report }
+        return nil
     }
 
     public var needsAlignment: Bool {
@@ -193,6 +228,10 @@ public enum LyricsLoadState: Equatable {
             return ""
         case .alignmentQueued:
             return "已获取歌词，待对齐时间轴"
+        case .alignmentRunning:
+            return "正在自动排轴…"
+        case .alignmentPreview:
+            return "排轴预览（未确认）"
         case .noLyrics:
             return "暂未找到歌词"
         case .noMatch:
@@ -208,7 +247,7 @@ public enum LyricsLoadState: Equatable {
 
     public var isShowingRows: Bool {
         switch self {
-        case .loaded, .alignmentQueued, .mockPreview:
+        case .loaded, .alignmentQueued, .alignmentRunning, .alignmentPreview, .mockPreview:
             return !lines.isEmpty
         default:
             return false
@@ -242,7 +281,7 @@ public enum LyricsTimeline {
         isSynchronized: Bool
     ) -> Int? {
         guard isSynchronized, !lines.isEmpty else { return nil }
-        return lines.enumerated().last { $0.element.timestamp <= time }?.offset
+        return lines.indices.last { lines[$0].timestamp <= time }
     }
 
     public static func presentationDistance(

@@ -70,6 +70,9 @@ public final class PlaybackState: ObservableObject {
         self.lyricsSessionCancellable = nil
         self.lyricsSessionCancellable = self.lyricsSession.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
+            Task { @MainActor in
+                self?.tryAutoAlignIfRequested()
+            }
         }
     }
 
@@ -157,6 +160,8 @@ public final class PlaybackState: ObservableObject {
         providerRefreshGeneration &+= 1
         refreshRequestedWhileBusy = false
         providerRefreshTask?.cancel()
+        alignmentTask?.cancel()
+        didAutoAlignForIdentity = nil
         isMockPreviewMode = true
         hasLiveTrack = false
         providerStatus = .mockPreview
@@ -169,6 +174,8 @@ public final class PlaybackState: ObservableObject {
     public func exitMockPreview() {
         providerRefreshGeneration &+= 1
         refreshRequestedWhileBusy = true
+        alignmentTask?.cancel()
+        didAutoAlignForIdentity = nil
         isMockPreviewMode = false
         hasLiveTrack = false
         currentTrack = .emptyPlaybackPlaceholder
@@ -263,6 +270,146 @@ public final class PlaybackState: ObservableObject {
     }
 
     /// noTextSource fallback: pick a local audio file and build an ASR lyrics draft.
+
+    private let alignmentService: any AlignmentService = SpeechForcedAlignmentService()
+    private var alignmentTask: Task<Void, Never>?
+    private var didAutoAlignForIdentity: TrackIdentity?
+
+    /// Debug-only acceptance hook. It is opt-in and keyed by the live
+    /// TrackIdentity so state publications cannot start duplicate work.
+    private func tryAutoAlignIfRequested() {
+        guard ProcessInfo.processInfo.environment["SPOTIFYLYRICS_AUTO_ALIGN"] == "1",
+              hasLiveTrack,
+              let identity = currentTrackIdentity,
+              didAutoAlignForIdentity != identity else {
+            return
+        }
+        guard case .alignmentQueued = lyricsSession.state else { return }
+
+        didAutoAlignForIdentity = identity
+        LyricsE2ELog.log("UI autoAlign env trigger identity=\(identity.stableKey)")
+        alignCurrentLyricsWithLocalAudio()
+    }
+
+    /// Known plain lyrics + local audio -> line-level forced alignment preview.
+    public func alignCurrentLyricsWithLocalAudio() {
+        guard hasLiveTrack, let identity = currentTrackIdentity, !isMockPreviewMode else {
+            songSearchSelectionMessage = "需要当前 Spotify 歌曲"
+            return
+        }
+        guard let plain = lyricsSession.state.plainDocument ?? lyricsSession.state.document else {
+            songSearchSelectionMessage = "当前没有可排轴的歌词正文"
+            return
+        }
+
+        let url: URL
+        if let override = ProcessInfo.processInfo.environment["SPOTIFYLYRICS_ALIGN_AUDIO"],
+           !override.isEmpty {
+            url = URL(fileURLWithPath: override)
+            guard FileManager.default.isReadableFile(atPath: url.path) else {
+                songSearchSelectionMessage = "排轴音频不可读：\(override)"
+                return
+            }
+        } else {
+            let panel = NSOpenPanel()
+            panel.canChooseFiles = true
+            panel.canChooseDirectories = false
+            panel.allowsMultipleSelection = false
+            panel.allowedContentTypes = [.mp3, .wav, .aiff, .mpeg4Audio]
+            panel.title = "选择本地音频（逐行自动排轴）"
+            panel.message = "不会修改原音频，也不会从 Spotify 取流。确认前不会覆盖当前歌词。"
+            guard panel.runModal() == .OK, let picked = panel.url else { return }
+            url = picked
+        }
+
+        let posBefore = currentTime
+        LyricsE2ELog.log("UI align start identity=\(identity.stableKey) audio=\(url.lastPathComponent) pos=\(posBefore)")
+        alignmentTask?.cancel()
+        lyricsSession.beginAlignment(identity: identity, plain: plain)
+        alignmentTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            do {
+                let request = AlignmentRequest(
+                    identity: identity,
+                    track: self.currentTrack,
+                    plainLines: plain.lines,
+                    audioURL: url,
+                    durationHint: self.currentTrack.duration
+                )
+                let report = try await self.alignmentService.align(request) { prog in
+                    Task { @MainActor [weak self] in
+                        guard let self, self.currentTrackIdentity == identity else { return }
+                        let value: Double
+                        switch prog {
+                        case .preparingAudio(let p): value = 0.05 + 0.15 * p
+                        case .recognizing(let p): value = 0.20 + 0.45 * p
+                        case .aligning(let p): value = 0.65 + 0.25 * p
+                        case .scoring(let p): value = 0.90 + 0.09 * p
+                        case .finished: value = 1
+                        }
+                        self.lyricsSession.updateAlignmentProgress(identity: identity, plain: plain, progress: value)
+                        self.songSearchSelectionMessage = "自动排轴 \(Int(value * 100))%"
+                    }
+                }
+                guard !Task.isCancelled, self.currentTrackIdentity == identity else { return }
+                let timed = report.makeDocument(base: plain, source: .automaticAlignment)
+                self.lyricsSession.presentAlignmentPreview(
+                    identity: identity,
+                    plain: plain,
+                    timed: timed,
+                    report: report
+                )
+                self.songSearchSelectionMessage = String(
+                    format: "排轴预览：总置信度 %.0f%%，低置信 %d 行。确认后保存。",
+                    report.overallConfidence * 100,
+                    report.lowConfidenceCount
+                )
+                LyricsE2ELog.log("UI align preview ready overall=\(report.overallConfidence) low=\(report.lowConfidenceCount) pos=\(self.currentTime) before=\(posBefore)")
+            } catch {
+                guard self.currentTrackIdentity == identity else { return }
+                self.lyricsSession.adopt(document: plain)
+                self.songSearchSelectionMessage = "自动排轴失败：\(error.localizedDescription)"
+                LyricsE2ELog.log("UI align failed \(error.localizedDescription)")
+            }
+        }
+    }
+
+    public func confirmAlignmentPreview(saveLocal: Bool = true) {
+        guard hasLiveTrack, let identity = currentTrackIdentity else { return }
+        guard case .alignmentPreview(_, _, let timed, let report) = lyricsSession.state else { return }
+        let posBefore = currentTime
+        do {
+            let url = try lyricsSession.confirmAlignment(
+                identity: identity,
+                timed: timed,
+                report: report,
+                saveLocal: saveLocal
+            )
+            if let url {
+                songSearchSelectionMessage = "已确认并保存：\(url.lastPathComponent)"
+            } else {
+                songSearchSelectionMessage = "已确认排轴结果"
+            }
+            LyricsE2ELog.log("UI align confirmed save=\(saveLocal) posBefore=\(posBefore) posAfter=\(currentTime)")
+        } catch {
+            songSearchSelectionMessage = "保存失败：\(error.localizedDescription)"
+        }
+    }
+
+    public func cancelAlignmentPreview() {
+        guard hasLiveTrack, let identity = currentTrackIdentity else { return }
+        if case .alignmentPreview(_, let plain, _, _) = lyricsSession.state {
+            lyricsSession.cancelAlignmentPreview(identity: identity, plain: plain)
+            songSearchSelectionMessage = "已返回未排轴歌词"
+            return
+        }
+        if case .alignmentRunning(_, let plain, _) = lyricsSession.state {
+            alignmentTask?.cancel()
+            lyricsSession.adopt(document: plain)
+            songSearchSelectionMessage = "已取消排轴"
+        }
+    }
+
     public func importLocalAudioForASR() {
         guard hasLiveTrack, let identity = currentTrackIdentity, !isMockPreviewMode else {
             songSearchSelectionMessage = "需要当前 Spotify 歌曲身份才能生成 ASR 草稿"
@@ -442,6 +589,8 @@ public final class PlaybackState: ObservableObject {
         let identityChanged = !hasLiveTrack || lyricsSession.activeIdentity != nextIdentity
 
         if identityChanged {
+            alignmentTask?.cancel()
+            didAutoAlignForIdentity = nil
             hasLiveTrack = true
             isMockPreviewMode = false
             currentTrack = nextTrack
@@ -460,6 +609,8 @@ public final class PlaybackState: ObservableObject {
 
     private func clearLiveTrackIfNeeded() {
         guard !isMockPreviewMode else { return }
+        alignmentTask?.cancel()
+        didAutoAlignForIdentity = nil
         let hadLiveState = hasLiveTrack || lyricsSession.activeIdentity != nil || !lyrics.isEmpty
         hasLiveTrack = false
         if hadLiveState {

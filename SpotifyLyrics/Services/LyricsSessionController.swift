@@ -160,6 +160,79 @@ public final class LyricsSessionController: ObservableObject {
         applyLoadedDocument(document, identity: document.identity)
     }
 
+
+    /// Keep plain lyrics visible while alignment runs.
+    public func beginAlignment(identity: TrackIdentity, plain: LyricsDocument) {
+        guard activeIdentity == identity else { return }
+        cancelCurrentRequest()
+        revision &+= 1
+        lyrics = plain.lines
+        isSynchronized = false
+        state = .alignmentRunning(identity, plain, 0)
+        LyricsE2ELog.log("SESSION alignmentRunning start lines=\(plain.lines.count)")
+    }
+
+    public func updateAlignmentProgress(identity: TrackIdentity, plain: LyricsDocument, progress: Double) {
+        guard activeIdentity == identity else { return }
+        if case .alignmentRunning = state {
+            state = .alignmentRunning(identity, plain, min(1, max(0, progress)))
+        }
+    }
+
+    /// Preview timed lyrics without committing as final locked/synced state.
+    public func presentAlignmentPreview(
+        identity: TrackIdentity,
+        plain: LyricsDocument,
+        timed: LyricsDocument,
+        report: AlignmentReport
+    ) {
+        guard activeIdentity == identity else { return }
+        cancelCurrentRequest()
+        revision &+= 1
+        lyrics = timed.lines
+        isSynchronized = true // allow scrub preview; still marked as preview in state
+        state = .alignmentPreview(identity, plain: plain, timed: timed, report: report)
+        LyricsE2ELog.log("SESSION alignmentPreview lines=\(timed.lines.count) overall=\(report.overallConfidence) low=\(report.lowConfidenceCount)")
+    }
+
+    public func cancelAlignmentPreview(identity: TrackIdentity, plain: LyricsDocument) {
+        guard activeIdentity == identity else { return }
+        cancelCurrentRequest()
+        revision &+= 1
+        applyLoadedDocument(plain, identity: identity)
+        LyricsE2ELog.log("SESSION alignmentPreview cancelled -> plain")
+    }
+
+    public func confirmAlignment(
+        identity: TrackIdentity,
+        timed: LyricsDocument,
+        report: AlignmentReport,
+        saveLocal: Bool
+    ) throws -> URL? {
+        guard activeIdentity == identity else { return nil }
+        cancelCurrentRequest()
+        revision &+= 1
+        var confirmed = timed
+        // Confirm as synchronized automatic alignment result.
+        confirmed = LyricsDocument(
+            identity: timed.identity,
+            title: timed.title,
+            artist: timed.artist,
+            album: timed.album,
+            duration: timed.duration,
+            lines: timed.lines,
+            isSynchronized: true,
+            source: .automaticAlignment,
+            confidence: report.overallConfidence
+        )
+        lyrics = confirmed.lines
+        isSynchronized = true
+        state = .loaded(confirmed)
+        LyricsE2ELog.log("SESSION alignment confirmed lines=\(confirmed.lines.count)")
+        guard saveLocal else { return nil }
+        return try LocalAlignedLyricsStore.save(document: confirmed, report: report, manuallyCorrected: false)
+    }
+
     private func applyLoadedDocument(_ document: LyricsDocument, identity: TrackIdentity) {
         let enrichedLines = LyricsLayerEnricher.enrich(lines: document.lines)
         let enriched = LyricsDocument(

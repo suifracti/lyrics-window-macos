@@ -53,6 +53,61 @@ struct LyricsSessionContract {
         precondition(controller.lyrics.first?.originalText == "Mock only")
         controller.begin(track: trackB, identity: TrackIdentity(track: trackB))
         guard case .loading = controller.state else { fatalError("expected real session after mock") }
+
+        // Confirmed alignment may be marked manually corrected and locked;
+        // a later automatic save must not overwrite the locked file.
+        let storageDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("SpotifyLyricsAlignmentContract-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: storageDirectory) }
+        let storageIdentity = TrackIdentity(track: trackB)
+        let storageLine = AlignedLyricLine(
+            originalText: "锁定测试",
+            startTime: 1,
+            confidence: 1,
+            status: .aligned
+        )
+        let storageReport = AlignmentReport(
+            identity: storageIdentity,
+            lines: [storageLine],
+            audioDuration: 10,
+            audioSHA256: "contract-hash",
+            modelID: "contract-model",
+            usedVocalsStem: false,
+            overallConfidence: 1
+        )
+        let storageDocument = LyricsDocument(
+            identity: storageIdentity,
+            title: trackB.title,
+            artist: trackB.artist,
+            album: trackB.album,
+            duration: 10,
+            lines: [storageLine.asLyricLine()],
+            source: .automaticAlignment,
+            confidence: 1
+        )
+        let storageURL = try! LocalAlignedLyricsStore.save(
+            document: storageDocument,
+            report: storageReport,
+            manuallyCorrected: true,
+            locked: true,
+            directory: storageDirectory
+        )
+        let savedBody = try! String(contentsOf: storageURL, encoding: .utf8)
+        precondition(savedBody.contains("# manuallyCorrected=true"))
+        precondition(savedBody.contains("# locked=true"))
+        do {
+            _ = try LocalAlignedLyricsStore.save(
+                document: storageDocument,
+                report: storageReport,
+                directory: storageDirectory
+            )
+            fatalError("locked alignment must not be overwritten")
+        } catch LocalAlignedLyricsStoreError.locked(let blockedURL) {
+            precondition(blockedURL == storageURL)
+        } catch {
+            fatalError("unexpected locked save error: \(error)")
+        }
+
         print("lyrics session contract passed")
     }
 }

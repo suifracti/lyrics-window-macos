@@ -14,11 +14,51 @@ struct LyricsCanvasView: View {
                     statusView(
                         icon: "timeline.selection",
                         message: "待对齐时间轴",
-                        detail: "已获取歌词正文；原文/假名/罗马音独立保存。当前无可靠时间轴，不会伪造同步高亮。"
+                        detail: state.songSearchSelectionMessage.isEmpty
+                            ? "已获取歌词正文；原文/假名/罗马音独立保存。当前无可靠时间轴，不会伪造同步高亮。"
+                            : state.songSearchSelectionMessage
                     ) {
-                        retryButton
+                        VStack(spacing: 8) {
+                            Button("自动排轴") {
+                                state.alignCurrentLyricsWithLocalAudio()
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(LyricsDesignTokens.accent)
+                            retryButton
+                        }
                     }
-                    .frame(maxHeight: 120)
+                    .frame(maxHeight: 160)
+                }
+            case .alignmentRunning(_, _, let progress):
+                VStack(spacing: 10) {
+                    lyricsScroll
+                    statusView(
+                        icon: "waveform",
+                        message: "正在自动排轴… \(Int(progress * 100))%",
+                        detail: state.songSearchSelectionMessage.isEmpty ? "识别音频并与已知歌词逐行对齐" : state.songSearchSelectionMessage
+                    ) {
+                        Button("取消") { state.cancelAlignmentPreview() }
+                            .buttonStyle(.bordered)
+                    }
+                    .frame(maxHeight: 140)
+                }
+            case .alignmentPreview(_, _, _, let report):
+                VStack(spacing: 10) {
+                    lyricsScroll
+                    statusView(
+                        icon: "checkmark.circle",
+                        message: String(format: "排轴预览 · 置信度 %.0f%%", report.overallConfidence * 100),
+                        detail: "低置信/未匹配 \(report.lowConfidenceCount) 行已标出。确认前不会覆盖保存；可试听 seek。"
+                    ) {
+                        HStack(spacing: 8) {
+                            Button("确认并保存") { state.confirmAlignmentPreview(saveLocal: true) }
+                                .buttonStyle(.borderedProminent)
+                                .tint(LyricsDesignTokens.accent)
+                            Button("放弃") { state.cancelAlignmentPreview() }
+                                .buttonStyle(.bordered)
+                        }
+                    }
+                    .frame(maxHeight: 160)
                 }
             case .loading:
                 statusView(icon: "magnifyingglass", message: "正在自动补全歌词…", detail: "Local → LRCLIB → 网易云/QQ（实验）多别名查询中")

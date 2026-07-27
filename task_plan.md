@@ -202,6 +202,20 @@ Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 | 同名旧手工进程遮蔽 DerivedData 产物 | 1 | 先通过应用菜单退出 `build/SpotifyLyrics.app`，再启动并用 `ps` 验证 DerivedData 可执行文件路径 |
 | Dynamic Lyrics 二次读取超时 | 1 | 不重复操作；沿用已保存的黑盒截图/WindowServer 证据，并将胶囊具体展开态标为未验证 |
 
+## Phase 25: Known Lyrics + Local Audio Line Alignment V1 — in progress (runtime correction)
+- [x] 修复 `PlaybackState` 自动排轴环境钩子并通过接线红绿契约
+- [x] 运行逐行对齐合同、正常签名 Debug 构建和 codesign 检查
+- [x] 发现并复现错误：79.8255 秒 TTS 夹具被用于 171.177 秒 Spotify 歌曲，导致 1:18 结束和前置误动
+- [x] 增加时长兼容保护、前置未匹配行的首锚点保护，并在真实 App 显示明确失败状态
+- [ ] 使用与当前 Spotify 版本匹配的完整本地音频完成 QQ 32 行 → 有效逐行预览 → 确认保存
+- [ ] 验证真实歌曲的开口起点、全曲尾点、播放跟随和确认前后播放位置不变
+- [x] 保存时长拒绝的真实 App 截图、分层日志与回归合同
+- [ ] 仅提交本阶段源代码、合同和更正后的验收证据；不提交 DerivedData 或备份目录
+
+### Phase 25 Scope
+- 只做已知纯文本歌词与用户本地音频的逐行自动排轴。
+- 不新增歌词 Provider、音频下载、系统音频捕获、ASR-from-scratch、逐字时间轴或完整编辑器。
+
 ## Notes
 - 任何无法真实验证的项目必须明确标记为“未验证”，不能推断为完成。
 - 审计结束前不修改产品代码或工程配置。

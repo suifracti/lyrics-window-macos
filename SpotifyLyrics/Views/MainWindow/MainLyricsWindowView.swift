@@ -202,7 +202,7 @@ struct MainLyricsWindowView: View {
             } else if state.canControlSpotify {
                 let showAutoComplete: Bool = {
                     switch state.lyricsState {
-                    case .failed, .noMatch, .noLyrics, .alignmentQueued, .candidates, .loading:
+                    case .failed, .noMatch, .noLyrics, .alignmentQueued, .alignmentRunning, .alignmentPreview, .candidates, .loading:
                         return true
                     default:
                         return false

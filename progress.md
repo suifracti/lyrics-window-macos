@@ -507,3 +507,21 @@
 - Red contract `./Tests/japanese_alias_contract.sh` fails on missing production sources as intended.
 - Read-only survey: LRCLIB misses あやふや; hits Lemon/Pretender; NetEase finds あやふや catalog id but live/studio ambiguity remains.
 - Waiting for user confirmation before coding models/planner/matcher.
+## 2026-07-27 — Alignment V1 continuation
+
+- 读取并恢复现有规划文件；保留工作区所有未提交排轴改动和 `DerivedData.bak.*`，未做破坏性清理。
+- 复现当前签名关闭构建：失败退出码 `65`，唯一明确 Swift 错误为 `PlaybackState.tryAutoAlignIfRequested` 缺失。
+- 新增 `Tests/alignment_wiring_contract.sh` 并先运行红灯，退出码 `1`，证明接线契约能捕获当前缺失。
+- 实现按 `TrackIdentity` 一次性的环境自动排轴钩子；修复逐行对齐器的连续未匹配尾部插值，并让排轴依赖进入 Xcode target。
+- 全部合同通过：alignment wiring、line alignment、Japanese alias、两种布局 UI、real track/session/provider failure、song search 和 Spotify Desktop provider。
+- 清理仓库 `DerivedData` 后正常签名 Debug 构建 `** BUILD SUCCEEDED **`；目标 App 路径、修改时间、arm64 Mach-O 和 ad hoc `Sign to Run Locally` codesign 均已验证。
+- 在该绝对路径 App 中以 Spotify 实际当前 identity `水曜日の約束 / Kawasaki.Rio` 运行：QQ 返回 32 行纯文本，UI 实际进入排轴预览并确认保存；确认前后播放位置日志相同，最终 SwiftUI 显示逐行时间轴并跟随播放。
+- 证据位于 `docs/superpowers/specs/acceptance-2026-07-27-alignment-v1/`；用户本地结果位于 `~/Music/SpotifyLyrics/Lyrics/Kawasaki.Rio - 水曜日の約束.aligned.lrc`。未加入新 Provider、音频下载、系统捕获、ASR 主路径、逐字排轴或完整编辑器。
+
+## 2026-07-28 — Alignment V1 runtime correction
+
+- 用户真实运行发现：旧 TTS 夹具只有 79.8255 秒，而当前 Spotify「水曜日の約束 / Kawasaki.Rio」为 171.177 秒；旧的 1:18 结束时间轴和“歌手未开口即开始”的表现均属错误结果。
+- 先写红色合同再修复：时长不匹配必须拒绝；前置未匹配歌词不得早于第一条真实识别锚点。`./Tests/line_alignment_contract.sh` 已由红转绿。
+- `SpeechForcedAlignmentService` 现在在语音识别前执行 `AlignmentDurationValidator`；失败时保留纯文本、回到 `alignmentQueued`，不保存或覆盖同步歌词。UI 会显示具体时长错误。
+- 用全新正常签名 DerivedData App 真实运行验证：QQ 仍返回 32 行，日志记录 `UI align failed ... 79.8 秒与 ... 171.2 秒不匹配`；`~/Music/SpotifyLyrics/Lyrics/Kawasaki.Rio - 水曜日の約束.aligned.lrc` 不存在；播放位置未被排轴改变。
+- 本阶段状态改为**部分完成/待真实音频**：没有对应完整本地音频，不再声称该曲已成功生成有效时间轴。

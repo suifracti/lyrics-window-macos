@@ -155,7 +155,9 @@ struct LyricsCorrectnessContract {
         let candidateB = LyricsCandidate(
             id: "candidate-b",
             identity: TrackIdentity(track: trackB),
-            title: trackB.title,
+            // A version-tagged result must remain an explicit candidate even
+            // when the base title/artist/album otherwise match.
+            title: "Track B (Live)",
             artist: trackB.artist,
             album: trackB.album,
             duration: trackB.duration,
@@ -178,7 +180,8 @@ struct LyricsCorrectnessContract {
         ])
         let controller = LyricsSessionController(provider: sequence)
         controller.begin(track: trackB, identity: TrackIdentity(track: trackB))
-        try? await Task.sleep(nanoseconds: 10_000_000)
+        // Wait for the manager task and MainActor state publication.
+        try? await Task.sleep(nanoseconds: 100_000_000)
         guard case .candidates(_, let candidates) = controller.state,
               candidates.count == 1,
               controller.lyrics.isEmpty else {
@@ -216,6 +219,7 @@ struct LyricsCorrectnessContract {
         )
         let recoveryProvider = SequenceLyricsProvider(results: [
             .failed(.networkUnavailable),
+            .failed(.networkUnavailable),
             .match(recoveryDocument),
             .match(recoveryDocument)
         ])
@@ -229,10 +233,11 @@ struct LyricsCorrectnessContract {
         }
         precondition(recoveryController.retryAfterNetworkRecovery(track: trackB, identity: recoveryIdentity))
         precondition(!recoveryController.retryAfterNetworkRecovery(track: trackB, identity: recoveryIdentity))
-        try? await Task.sleep(nanoseconds: 10_000_000)
+        // The retry crosses the manager task and MainActor apply hop.
+        try? await Task.sleep(nanoseconds: 100_000_000)
         guard let _ = recoveryController.state.document,
-              recoveryProvider.calls == 2 else {
-            fatalError("network recovery retry must be bounded to one automatic attempt")
+              recoveryProvider.calls == 3 else {
+            fatalError("network recovery retry must be bounded to one automatic attempt after all variants fail state=\(recoveryController.state) calls=\(recoveryProvider.calls)")
         }
 
         controller.begin(track: trackA, identity: TrackIdentity(track: trackA))

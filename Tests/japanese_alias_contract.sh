@@ -43,6 +43,7 @@ SOURCES=(
   SpotifyLyrics/Models/Models.swift
   SpotifyLyrics/Lyrics/TrackIdentity.swift
   SpotifyLyrics/Lyrics/LyricsModels.swift
+  SpotifyLyrics/Lyrics/AlignmentModels.swift
   SpotifyLyrics/Lyrics/TrackAlias.swift
   SpotifyLyrics/Lyrics/TrackMetadata.swift
   SpotifyLyrics/Lyrics/TrackTextNormalizer.swift

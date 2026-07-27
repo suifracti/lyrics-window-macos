@@ -1,0 +1,19 @@
+[2026-07-27T16:01:08Z] LOG_RESET
+[2026-07-27T16:01:08Z] PlaybackState init providers=Local LRC,LRCLIB,NetEase Experimental,QQ Music Experimental
+[2026-07-27T16:01:08Z] Playback trackChange identity=spotify-id:spotify:track:5mqkkcsrujqyakvolven0w|metadata:水曜日の約束|kawasakirio|水曜日の約束|171 title=水曜日の約束 artist=Kawasaki.Rio duration=171.177
+[2026-07-27T16:01:08Z] SESSION begin rev=1 identity=spotify-id:spotify:track:5mqkkcsrujqyakvolven0w|metadata:水曜日の約束|kawasakirio|水曜日の約束|171 title=水曜日の約束 artist=Kawasaki.Rio duration=171.177 spotifyId=spotify:track:5MqkkCSrUjqyaKVOlvEn0w
+[2026-07-27T16:01:08Z] MANAGER start title=水曜日の約束 artist=Kawasaki.Rio variants=2 providers=["Local LRC","LRCLIB","NetEase Experimental","QQ Music Experimental"]
+[2026-07-27T16:01:13Z] QQ best mid-candidate title=水曜日の約束 artist=Kawasaki.Rio conf=1.0 lines=32 sync=false
+[2026-07-27T16:01:13Z] QQ MATCH lines=32 conf=1.0 first=「これでおわり」って言われた夜
+[2026-07-27T16:01:13Z] MANAGER AUTO_ADOPT provider=QQ Music Experimental strategy=primaryOriginal tier=autoHigh score=0.9799999999999999 lines=32 sync=false first=「これでおわり」って言われた夜
+[2026-07-27T16:01:13Z] SESSION search finished rev=1 result=match(qqExperimental,lines=32,sync=false) diag=4
+[2026-07-27T16:01:13Z]   DIAG Local LRC@primaryOriginal noMatch 0.01s
+[2026-07-27T16:01:13Z]   DIAG LRCLIB@primaryOriginal noMatch 2.63s
+[2026-07-27T16:01:13Z]   DIAG NetEase Experimental@primaryOriginal candidates(3) 0.46s
+[2026-07-27T16:01:13Z]   DIAG QQ Music Experimental@primaryOriginal match 0.93s
+[2026-07-27T16:01:13Z] SESSION apply alignmentQueued source=qqExperimental lines=32 first=「これでおわり」って言われた夜
+[2026-07-27T16:01:13Z] UI autoAlign env trigger identity=spotify-id:spotify:track:5mqkkcsrujqyakvolven0w|metadata:水曜日の約束|kawasakirio|水曜日の約束|171
+[2026-07-27T16:01:13Z] UI align start identity=spotify-id:spotify:track:5mqkkcsrujqyakvolven0w|metadata:水曜日の約束|kawasakirio|水曜日の約束|171 audio=kawasaki_tts.wav pos=51.57819354534174
+[2026-07-27T16:01:13Z] SESSION alignmentRunning start lines=32
+[2026-07-27T16:01:13Z] SESSION apply alignmentQueued source=qqExperimental lines=32 first=「これでおわり」って言われた夜
+[2026-07-27T16:01:13Z] UI align failed 所选音频时长 79.8 秒与当前歌曲 171.2 秒不匹配，未生成时间轴
