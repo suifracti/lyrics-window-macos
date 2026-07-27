@@ -311,3 +311,47 @@
 - **Status:** complete
 - 已提交独立主窗口 refinement commit：`Refine verified main lyrics window`（最终 hash 由 Git 记录）。
 - 本提交只包含主窗口 refinement、合约测试、规划记录和两张主窗口截图；未包含 DerivedData、build 或参考应用资源。
+
+## Session: 2026-07-27 — Local Spotify Desktop Provider
+
+### Phase 11: Environment and Dictionary Audit
+- **Status:** complete
+- 当前工作目录：`/Users/apple/backup/sptifylyrics`；分支：`ui-redesign-phase-1`；工作区在本阶段开始时干净。
+- `/Applications/Spotify.app` 存在，版本 `1.2.94.583`，Bundle ID `com.spotify.client`。
+- 已实际执行 `sdef /Applications/Spotify.app`，确认 `current track`、`player position`、`artwork url`、`spotify url`、`id`、`play`、`pause`、`previous track`、`next track` 等真实字典项。
+- 直接 Apple Events probe 成功读取真实当前歌曲：`IDOLPOWER` / `M!LK` / `IDOLPOWER`，位置约 `148.444s`，时长 `230453ms`，封面 URL、Spotify URI 和 Track ID 均返回。
+
+### Phase 11: Provider Contract
+- **Status:** red observed
+- 新增 `Tests/spotify_provider_contract.sh`，先运行并按预期因 `SpotifyLyrics/Providers/PlaybackProvider.swift` 尚不存在而失败。
+
+### Phase 12: Provider and State Synchronization
+- **Status:** complete
+- 新增 `PlaybackProvider`、`SpotifyDesktopProvider` 和 `MockPlaybackProvider`；Apple Events 脚本只使用本机 `sdef` 确认的字段/命令。
+- 读取歌曲名、艺人、专辑、毫秒时长、播放位置、播放状态、`artwork url`、Spotify URI 和 track ID；命令覆盖 play/pause/previous/next/seek。
+- 用时间锚点在 0.2s UI tick 中插值，约 2s 重新读取 Spotify；暂停、seek、命令和切歌后重置锚点。命令返回 `missing value` 的真实 AppleScript 行为已修复为成功，不再误回退 Mock。
+- 合约测试在实现后通过；组件 Debug build 通过。
+
+### Phase 13: Artwork and Main Window Wiring
+- **Status:** complete
+- `ArtworkImageLoader` 以 `NSCache` 缓存远程封面，失败时保留现有 Mock 渐变占位；主窗口只依赖 `PlaybackState`，没有直接引用 Spotify 实现。
+- 主窗口新增 Provider 状态胶囊、重试入口和真实播放控制；歌词数组仍为 MockData，没有接入歌词源。
+- 已真实显示 Spotify 封面和歌曲元数据，并保留 Spotify 不可用时的 Mock 预览。
+
+### Phase 14: Signing and Permission Gate
+- **Status:** verified with limitation
+- 正常签名 Debug 构建成功；`NSAppleEventsUsageDescription` 和 `com.apple.security.automation.apple-events` 已在产物中验证。
+- TCC 只读记录显示 `com.spotifylyrics.app → com.spotify.client` 的 `auth_value=2`，`last_modified` 为本次首次签名 Debug 启动期间的 `2026-07-27 14:20:04 +0800`；签名 app 的 in-app Apple Events 查询和控制成功。捕获状态时没有残留权限弹窗；没有重置用户 TCC 权限。
+
+### Phase 15: Real Spotify Acceptance
+- **Status:** complete with dictionary limitation documented
+- 实际验证至少八首真实歌曲，覆盖普通歌曲、长/括号标题、多艺人曲目、播放/暂停/恢复、进度 seek、连续切歌、封面切换和 Spotify 退出/重开。
+- 多艺人曲目 `Die With A Smile` 在 Spotify UI 显示 Lady Gaga 与 Bruno Mars，但当前安装版本的 AppleScript `artist`/`album artist` 字段均只返回 Lady Gaga；未调用 Web API，也未伪造艺人字符串。
+- 真实运行截图保存在 `spotify-provider-assets/`；退出态明确显示 `Spotify.app 未运行 · 正在使用 Mock 预览`。
+
+### Phase 16: Build and Commit
+- **Status:** complete
+- 已完成无签名 Debug build、正常签名 Debug build、codesign 验证、合约测试和真实 Spotify 运行验证。
+- 最终无签名和正常签名 Debug 日志均以 `** BUILD SUCCEEDED **` 结尾；产物路径为 `/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app`。
+- 已提交独立 commit：`3fcc104 Add verified Spotify desktop provider`。
+- 下一阶段仍未开始：LocalProvider + LRCLIBProvider；本阶段没有接入歌词源、Web API、OAuth、SQLite 或 AI。

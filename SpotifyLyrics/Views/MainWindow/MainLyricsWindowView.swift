@@ -37,6 +37,10 @@ struct MainLyricsWindowView: View {
                     Divider()
                         .overlay(LyricsDesignTokens.controlBorder)
 
+                    providerStatusBar
+                        .padding(.horizontal, 28)
+                        .padding(.top, 10)
+
                     LyricsCanvasView(state: state)
 
                     playbackBar
@@ -50,6 +54,9 @@ struct MainLyricsWindowView: View {
             minHeight: LyricsDesignTokens.minimumMainWindowSize.height
         )
         .preferredColorScheme(.dark)
+        .task {
+            state.startProvider()
+        }
     }
 
     private var header: some View {
@@ -124,7 +131,7 @@ struct MainLyricsWindowView: View {
                     get: { state.currentTime },
                     set: { state.seek(to: $0) }
                 ),
-                in: 0...state.currentTrack.duration
+                in: 0...max(0.1, state.currentTrack.duration)
             )
             .tint(LyricsDesignTokens.accent)
 
@@ -132,9 +139,11 @@ struct MainLyricsWindowView: View {
                 transportButton(
                     systemImage: "backward.fill",
                     label: "上一首",
-                    help: "单曲 Mock 暂无上一首",
-                    isEnabled: false
-                ) {}
+                    help: state.canControlSpotify ? "上一首" : "Spotify 未连接",
+                    isEnabled: state.canControlSpotify
+                ) {
+                    state.previousTrack()
+                }
 
                 Button {
                     state.togglePlayPause()
@@ -151,9 +160,11 @@ struct MainLyricsWindowView: View {
                 transportButton(
                     systemImage: "forward.fill",
                     label: "下一首",
-                    help: "单曲 Mock 暂无下一首",
-                    isEnabled: false
-                ) {}
+                    help: state.canControlSpotify ? "下一首" : "Spotify 未连接",
+                    isEnabled: state.canControlSpotify
+                ) {
+                    state.nextTrack()
+                }
 
                 Text("\(formatTime(state.currentTime)) / \(formatTime(state.currentTrack.duration))")
                     .font(.system(size: 12, design: .rounded).monospacedDigit())
@@ -166,6 +177,43 @@ struct MainLyricsWindowView: View {
                     .foregroundStyle(LyricsDesignTokens.mutedText)
             }
         }
+    }
+
+    private var providerStatusBar: some View {
+        HStack(spacing: 8) {
+            Circle()
+                .fill(state.canControlSpotify ? Color.green : Color.orange)
+                .frame(width: 7, height: 7)
+
+            Text(state.providerStatusMessage)
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundStyle(LyricsDesignTokens.mutedText)
+                .lineLimit(1)
+
+            Spacer(minLength: 8)
+
+            if state.isUsingMockPreview {
+                Button("重试 Spotify") {
+                    state.reconnectSpotify()
+                }
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .buttonStyle(.borderless)
+                .foregroundStyle(LyricsDesignTokens.accent)
+                .help("重新读取 Spotify Desktop 的播放状态")
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(
+            Capsule(style: .continuous)
+                .fill(LyricsDesignTokens.controlBackground.opacity(0.52))
+        )
+        .overlay(
+            Capsule(style: .continuous)
+                .stroke(LyricsDesignTokens.controlBorder.opacity(0.7), lineWidth: 1)
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("播放来源：\(state.providerStatusMessage)")
     }
 
     private func transportButton(

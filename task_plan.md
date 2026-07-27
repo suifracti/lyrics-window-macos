@@ -1,21 +1,21 @@
-# Task Plan: SpotifyLyrics UI Redesign Phase 1
+# Task Plan: SpotifyLyrics Local Spotify Desktop Provider
 
 ## Goal
-在 `ui-redesign-phase-1` 分支上实现已确认的主窗口阶段 0/1：Canvas-first 单画布、独立视觉 token、当前/相邻歌词层级和设置 popover；不修改悬浮歌词、顶部胶囊、全屏窗口、数据含义或外部功能。
+在已提交的主窗口基础上，实现下载后即可使用的本机 Spotify Desktop 播放链路：通过真实 Apple Events 读取 Spotify 当前歌曲、封面 URL、播放状态和进度，并提供播放控制；UI 只依赖 `PlaybackProvider` 协议；Spotify 不可用时明确显示并回退 Mock 预览。本阶段不实现 Web API、OAuth、SQLite、歌词 Provider 或在线歌词源。
 
 ## Next Step
-完成已确认的主窗口 refinement：Mock 封面、三键播放控制、宽窗口动态布局、较轻的非当前歌词模糊和明确的窗口模式入口；重新构建、运行取证并提交独立主窗口 commit。
+完成真实 Spotify Desktop Provider 的红色契约、Apple Events 实现、状态同步/封面缓存、主窗口接线和签名权限验证；最后用至少五首真实歌曲做运行验收并提交独立 commit。
 
 ## Current Phase
-Phase 7 — Main Window Refinement Contract
+Phase 16 — Build and Commit (complete)
 
 ## Scope & Boundaries
 - 唯一正式项目：`/Users/apple/backup/sptifylyrics`
 - 黑盒 UI 参考：`/Applications/Dynamic Lyrics.app`（只读）
 - 文档/截图参考：`Lyricify-App-main` 或未来的 `References/Lyricify-App`（只读）
 - 歌词格式参考：未来的 `References/Lyricify-Lyrics-Helper`（只读；不复制或链接代码）
-- 本轮允许写入：主窗口 Swift 组件、Target 文件引用、`Tests/phase1_ui_contract.sh`、`task_plan.md`、`progress.md`、`ui-redesign-assets/`
-- 本轮禁止修改：`MockData.swift`、`PlaybackState.swift`、`WindowManager.swift`、悬浮/胶囊/全屏窗口行为、`Dynamic Lyrics.app`、`Lyricify-App-main/`、Spotify/歌词 Provider/SQLite/AI/自动排轴
+- 本轮允许写入：Provider 协议/实现、PlaybackState 的 Provider 接线、Track/封面缓存模型、主窗口状态提示、Info.plist/Apple Events entitlement、测试契约、`task_plan.md`、`progress.md` 和真实 Spotify 运行截图
+- 本轮禁止：Spotify Web API、OAuth、SQLite、LocalProvider/LRCLIB、AI、自动排轴、任何歌词源；不修改 Dynamic Lyrics、Lyricify-App-main 或参考应用资源；不改变悬浮/胶囊/全屏视觉实现
 
 ## Phases
 
@@ -73,6 +73,37 @@ Phase 7 — Main Window Refinement Contract
 - [x] 展示最终 `git status`、`git diff --stat`、构建日志结尾、app 路径和截图
 - [x] 提交：`Refine verified main lyrics window`
 - [x] 不进入 Provider、SQLite、Spotify 或悬浮/胶囊/全屏视觉实现
+
+### Phase 11: Spotify Desktop Provider Contract — in_progress
+- [x] 记录真实 Spotify.app 路径、版本和完整 `sdef` 字段/命令
+- [x] 先写协议、状态和权限/回退契约，并确认红色失败
+
+### Phase 12: Provider and State Synchronization — pending
+- [x] 实现 `PlaybackProvider` 协议和 `SpotifyDesktopProvider`
+- [x] 实现 Apple Events 读取歌曲、艺人、专辑、时长、位置、播放状态、封面 URL、Spotify URL/Track ID
+- [x] 实现 play/pause/previous/next/seek
+- [x] 加入本地时间插值、定期校准、暂停/seek/切歌重新同步
+- [x] 实现 Spotify 不可用状态和 Mock 回退
+
+### Phase 13: Artwork and Main Window Wiring — pending
+- [x] 异步下载 artwork URL，增加内存/磁盘缓存和 Mock 封面回退
+- [x] 主窗口接入真实 Track、封面、播放状态和进度；歌词数组保持 Mock，不接歌词源
+- [x] 显示未安装、未运行、无歌曲、权限拒绝和连接失败状态
+
+### Phase 14: Signing and Permission Gate — pending
+- [x] 添加 `NSAppleEventsUsageDescription`
+- [x] 添加 Apple Events entitlement
+- [x] 用不带 `CODE_SIGNING_ALLOWED=NO` 的 Debug 构建启动应用并实际读取 Spotify 控制权限状态（TCC 在首次签名启动期间写入授权记录；未重置权限）
+
+### Phase 15: Real Spotify Acceptance — pending
+- [x] 使用至少五首真实歌曲，覆盖普通歌曲、长歌名、多艺人、暂停/恢复、切歌、seek、封面切换
+- [x] 验证 Spotify 退出后重新打开和状态恢复
+- [x] 保存真实歌曲运行截图并记录每首歌曲的可复核证据
+
+### Phase 16: Build and Commit — pending
+- [x] 运行无签名构建和正常签名 Debug 构建，均保留结果
+- [x] 输出工作目录、修改文件、diff、xcodebuild、app 路径、权限和真实运行验证
+- [x] 提交独立 commit：`3fcc104 Add verified Spotify desktop provider`
 
 ## Decisions Made
 | Decision | Rationale |

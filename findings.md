@@ -124,6 +124,41 @@
 - 直接调用 Xcode toolchain 的 Swift，并显式指定 macOS SDK 后，可继续进行只读 WindowServer 查询而不接受许可；第三次尝试成功。
 - WindowServer `optionAll` 显示已关闭的辅助窗口对象仍被 `WindowManager` 保留，但不带 `kCGWindowIsOnscreen=1`；这与代码通过 `orderOut` 隐藏而非销毁窗口一致。
 
+## 2026-07-27 Spotify Desktop Provider Findings
+
+### Installed application and scripting dictionary
+- `/Applications/Spotify.app` exists; `CFBundleShortVersionString` and `CFBundleVersion` are both `1.2.94.583`; bundle identifier is `com.spotify.client`.
+- The real dictionary was read with `sdef /Applications/Spotify.app` before implementing the provider. It exposes:
+  - application properties: `current track`, `player state`, `player position`;
+  - track properties: `name`, `artist`, `album`, `duration`, `artwork url`, `spotify url`, `id`, and `album artist`;
+  - commands: `play`, `pause`, `playpause`, `previous track`, and `next track`.
+- The dictionary declares Apple Events access groups `com.spotify.playback` and `com.spotify.library`; `artwork` is deprecated and `artwork url` is the supported cover field.
+- Player-state enumeration values in the installed dictionary are `stopped`, `playing`, and `paused`.
+
+### Direct Apple Events probe
+- A direct `osascript` probe using only the properties above succeeded against the running Spotify.app without assuming undocumented fields.
+- Observed live snapshot: `playing`, position about `148.444` seconds, track `IDOLPOWER`, artist `M!LK`, album `IDOLPOWER`, duration `230453` (Spotify dictionary duration units are milliseconds), artwork URL `https://i.scdn.co/image/ab67616d0000b2730147cecbbbc8b8237ed95dc9`, Spotify URI `spotify:track:5LP9UNPCIkgHkh7x1AMHnw`, and the same track identifier from `id`.
+- The first probe launched Spotify because it was not running before the probe; the Spotify process was present afterward. Permission behavior for the signed SpotifyLyrics app still requires a normal signed Debug build and an in-app first-run verification.
+
+### Provider design decisions
+- Use a `PlaybackProvider` protocol and keep `PlaybackState` dependent on that protocol, never on `SpotifyDesktopProvider` directly.
+- Use Apple Events through `NSAppleScript`/`NSAppleEventDescriptor`, with scripts derived from the installed dictionary. This avoids depending on generated ScriptingBridge headers while retaining the real Apple Events contract.
+- Map Spotify duration milliseconds to `TimeInterval` seconds at the provider boundary.
+- Keep a local interpolation anchor (`providerPosition`, `providerSyncDate`, `isPlaying`) and refresh Spotify periodically; do not poll Apple Events at every UI tick.
+- Use a cached asynchronous artwork loader for `artwork url`; the existing generated Mock artwork remains the fallback when Spotify cover loading fails.
+- Preserve the current Mock lyrics array because this stage explicitly stops before LocalProvider/LRCLIB lyrics work.
+
+### 2026-07-27 Verified Spotify Desktop runtime
+- The normal signed Debug build was created without `CODE_SIGNING_ALLOWED=NO`. Xcode used the local `Sign to Run Locally` identity; `codesign --verify --deep --strict` passed, and the app contains `com.apple.security.automation.apple-events` plus `get-task-allow` in its entitlements.
+- The generated Info.plist contains `NSAppleEventsUsageDescription`: `SpotifyLyrics 需要控制 Spotify 以读取当前歌曲、播放状态和封面。`.
+- A read-only TCC query shows `kTCCServiceAppleEvents | com.spotifylyrics.app | auth_value=2 | auth_reason=3 | com.spotify.client`; its `last_modified` value converted to `2026-07-27 14:20:04 +0800`, during the first signed Debug launch. The first in-app state transitioned from the fallback/connecting state to `Spotify Desktop 已连接`, and subsequent reads/commands succeeded. No permission modal remained on screen when the state was captured; the timestamped TCC grant plus successful in-app Apple Events read are the reproducible permission evidence, and TCC was not reset.
+- DerivedData app runtime connected to real Spotify and displayed asynchronously loaded covers. The connected status bar was visible in `spotify-provider-assets/status-fixed-connected.png`; the cover for `Die With A Smile` was loaded from Spotify's `artwork url`.
+- Verified real songs through the app: `Missing` / `BE:FIRST` / `Missing` (172s), `夢中` / `BE:FIRST` / `夢中` (189s), `BE:FIRST ALL DAY` / `BE:FIRST` / `BE:FIRST ALL DAY` (155s), `Doesn't Really Matter (Remix)` / `Janet Jackson` / `Doesn't Really Matter (Remix)` (175s), `Why, Why` / `BE:FIRST` / `Missing` (187s), `Rondo` / `BE:FIRST` / `BE:FIRST ALL DAY` (200s), `Toyfriend` / `SB19` / `Wakas At Simula` (201s), and `Die With A Smile` / AppleScript artist `Lady Gaga` / `Die With A Smile` (251s). Each was a real Spotify track and produced a new cover/track snapshot; evidence screenshots are in `spotify-provider-assets/`.
+- The Spotify UI shows `Die With A Smile` with `Lady Gaga, Bruno Mars`, but the installed AppleScript dictionary returns only `artist = Lady Gaga` and `album artist = Lady Gaga`. The provider keeps the exact value exposed by the approved desktop dictionary and does not invent secondary artists or call the Web API.
+- Play/pause was verified with real Spotify state: time advanced by local interpolation while playing, then stopped at the calibrated position while paused, without the prior `missing value` false-error. Seek was verified by clicking the app slider around 75s; the app and Spotify converged near `74.94s`. Previous/next commands were issued through the provider, with next-track switching confirmed after Spotify's asynchronous update.
+- Spotify was quit with Apple Events: the app displayed `Spotify.app 未运行 · 正在使用 Mock 预览`, disabled previous/next, and preserved the generated Mock cover (`spotify-provider-assets/spotify-quit-fixed.png`). Spotify was reopened, automatic polling reconnected, and the app returned to the real `Die With A Smile` track (`spotify-provider-assets/spotify-reopen-fixed.png`).
+- Runtime screenshots contain only observations of the running SpotifyLyrics window. No Spotify.app resources, binaries, artwork files, or extracted bundle assets were copied into the repository.
+
 ## 2026-07-26 Verified Xcode Build Baseline
 
 ### Environment and Scheme

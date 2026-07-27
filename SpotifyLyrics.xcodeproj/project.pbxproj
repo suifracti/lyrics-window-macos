@@ -19,6 +19,10 @@
 		1100000A2D83400100000001 /* TrackHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100000A2D83400100000000 /* TrackHeaderView.swift */; };
 		1100000B2D83400100000001 /* LyricsPreferencesPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100000B2D83400100000000 /* LyricsPreferencesPopover.swift */; };
 		1100000C2D83400100000001 /* LyricsDesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100000C2D83400100000000 /* LyricsDesignTokens.swift */; };
+		1100000D2D83400100000001 /* PlaybackProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100000D2D83400100000000 /* PlaybackProvider.swift */; };
+		1100000E2D83400100000001 /* SpotifyDesktopProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100000E2D83400100000000 /* SpotifyDesktopProvider.swift */; };
+		1100000F2D83400100000001 /* MockPlaybackProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100000F2D83400100000000 /* MockPlaybackProvider.swift */; };
+		110000102D83400100000001 /* ArtworkImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000102D83400100000000 /* ArtworkImageLoader.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +39,11 @@
 		1100000A2D83400100000000 /* TrackHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackHeaderView.swift; sourceTree = "<group>"; };
 		1100000B2D83400100000000 /* LyricsPreferencesPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsPreferencesPopover.swift; sourceTree = "<group>"; };
 		1100000C2D83400100000000 /* LyricsDesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsDesignTokens.swift; sourceTree = "<group>"; };
+		1100000D2D83400100000000 /* PlaybackProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackProvider.swift; sourceTree = "<group>"; };
+		1100000E2D83400100000000 /* SpotifyDesktopProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyDesktopProvider.swift; sourceTree = "<group>"; };
+		1100000F2D83400100000000 /* MockPlaybackProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockPlaybackProvider.swift; sourceTree = "<group>"; };
+		110000102D83400100000000 /* ArtworkImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkImageLoader.swift; sourceTree = "<group>"; };
+		110000112D83400100000000 /* SpotifyLyrics.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SpotifyLyrics.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -55,6 +64,8 @@
 				110000042D83400100000000 /* PlaybackState.swift */,
 				110000052D83400100000000 /* WindowManager.swift */,
 				110000062D83400100000000 /* LyricsViews.swift */,
+				110000002D83400000000024 /* Providers */,
+				110000112D83400100000000 /* SpotifyLyrics.entitlements */,
 				110000002D83400000000020 /* Views */,
 				110000002D83400000000023 /* Design */,
 			);
@@ -95,6 +106,17 @@
 				1100000C2D83400100000000 /* LyricsDesignTokens.swift */,
 			);
 			path = Design;
+			sourceTree = "<group>";
+		};
+		110000002D83400000000024 /* Providers */ = {
+			isa = PBXGroup;
+			children = (
+				1100000D2D83400100000000 /* PlaybackProvider.swift */,
+				1100000E2D83400100000000 /* SpotifyDesktopProvider.swift */,
+				1100000F2D83400100000000 /* MockPlaybackProvider.swift */,
+				110000102D83400100000000 /* ArtworkImageLoader.swift */,
+			);
+			path = Providers;
 			sourceTree = "<group>";
 		};
 		110000002D83400000000003 /* Products */ = {
@@ -172,6 +194,10 @@
 				1100000A2D83400100000001 /* TrackHeaderView.swift in Sources */,
 				1100000B2D83400100000001 /* LyricsPreferencesPopover.swift in Sources */,
 				1100000C2D83400100000001 /* LyricsDesignTokens.swift in Sources */,
+				1100000D2D83400100000001 /* PlaybackProvider.swift in Sources */,
+				1100000E2D83400100000001 /* SpotifyDesktopProvider.swift in Sources */,
+				1100000F2D83400100000001 /* MockPlaybackProvider.swift in Sources */,
+				110000102D83400100000001 /* ArtworkImageLoader.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -184,10 +210,12 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_ENTITLEMENTS = SpotifyLyrics/SpotifyLyrics.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHighResolutionCapable = YES;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "SpotifyLyrics 需要控制 Spotify 以读取当前歌曲、播放状态和封面。";
 				INFOPLIST_KEY_LSMinimumSystemVersion = "14.0";
 				INFOPLIST_KEY_CFBundleDisplayName = SpotifyLyrics;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
@@ -203,10 +231,12 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_ENTITLEMENTS = SpotifyLyrics/SpotifyLyrics.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHighResolutionCapable = YES;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "SpotifyLyrics 需要控制 Spotify 以读取当前歌曲、播放状态和封面。";
 				INFOPLIST_KEY_LSMinimumSystemVersion = "14.0";
 				INFOPLIST_KEY_CFBundleDisplayName = SpotifyLyrics;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;

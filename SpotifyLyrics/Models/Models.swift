@@ -10,8 +10,21 @@ public struct Track: Identifiable, Equatable, Hashable {
     public let artworkName: String
     public let isrc: String?
     public let spotifyId: String?
+    public let artworkURL: URL?
+    public let spotifyURL: URL?
     
-    public init(id: String = UUID().uuidString, title: String, artist: String, album: String, duration: TimeInterval, artworkName: String = "music.note", isrc: String? = nil, spotifyId: String? = nil) {
+    public init(
+        id: String = UUID().uuidString,
+        title: String,
+        artist: String,
+        album: String,
+        duration: TimeInterval,
+        artworkName: String = "music.note",
+        isrc: String? = nil,
+        spotifyId: String? = nil,
+        artworkURL: URL? = nil,
+        spotifyURL: URL? = nil
+    ) {
         self.id = id
         self.title = title
         self.artist = artist
@@ -20,6 +33,8 @@ public struct Track: Identifiable, Equatable, Hashable {
         self.artworkName = artworkName
         self.isrc = isrc
         self.spotifyId = spotifyId
+        self.artworkURL = artworkURL
+        self.spotifyURL = spotifyURL
     }
 }
 

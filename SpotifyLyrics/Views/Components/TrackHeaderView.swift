@@ -1,11 +1,50 @@
+import AppKit
 import SwiftUI
 
 struct TrackArtworkView: View {
     let track: Track
     let size: CGFloat
     var showsAlbumLabel: Bool = true
+    @State private var remoteArtwork: NSImage?
 
     var body: some View {
+        ZStack {
+            fallbackArtwork
+
+            if let remoteArtwork {
+                Image(nsImage: remoteArtwork)
+                    .resizable()
+                    .scaledToFill()
+                    .overlay(Color.black.opacity(showsAlbumLabel ? 0.04 : 0.13))
+                    .transition(.opacity)
+            }
+
+            if showsAlbumLabel {
+                VStack {
+                    Spacer()
+                    Text(track.album.uppercased())
+                        .font(.system(size: max(8, size * 0.1), weight: .bold, design: .rounded))
+                        .tracking(1.2)
+                        .foregroundStyle(LyricsDesignTokens.primaryText.opacity(0.78))
+                        .padding(.bottom, size * 0.1)
+                }
+            }
+        }
+        .frame(width: size, height: size)
+        .clipShape(RoundedRectangle(cornerRadius: size * 0.18, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: size * 0.18, style: .continuous)
+                .stroke(LyricsDesignTokens.controlBorder, lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(showsAlbumLabel ? 0.28 : 0.18), radius: size * 0.08, y: size * 0.04)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("专辑封面，\(track.album)")
+        .task(id: track.artworkURL?.absoluteString ?? "") {
+            remoteArtwork = await ArtworkImageLoader.shared.image(for: track.artworkURL)
+        }
+    }
+
+    private var fallbackArtwork: some View {
         ZStack {
             RoundedRectangle(cornerRadius: size * 0.18, style: .continuous)
                 .fill(
@@ -29,27 +68,7 @@ struct TrackArtworkView: View {
                 .font(.system(size: size * 0.31, weight: .medium))
                 .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(LyricsDesignTokens.primaryText)
-
-            if showsAlbumLabel {
-                VStack {
-                    Spacer()
-                    Text(track.album.uppercased())
-                        .font(.system(size: max(8, size * 0.1), weight: .bold, design: .rounded))
-                        .tracking(1.2)
-                        .foregroundStyle(LyricsDesignTokens.primaryText.opacity(0.78))
-                        .padding(.bottom, size * 0.1)
-                }
-            }
         }
-        .frame(width: size, height: size)
-        .clipShape(RoundedRectangle(cornerRadius: size * 0.18, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: size * 0.18, style: .continuous)
-                .stroke(LyricsDesignTokens.controlBorder, lineWidth: 1)
-        }
-        .shadow(color: .black.opacity(showsAlbumLabel ? 0.28 : 0.18), radius: size * 0.08, y: size * 0.04)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("专辑封面，\(track.album)")
     }
 }
 
