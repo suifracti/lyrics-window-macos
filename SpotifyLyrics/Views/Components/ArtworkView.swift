@@ -6,6 +6,9 @@ struct ArtworkView: View {
     let track: Track
     let size: CGFloat
     var showsAlbumLabel: Bool = true
+    /// V2 keeps its established icon-like radius; V3 opts into a small
+    /// album-cover radius without changing the shared component's default.
+    var cornerRadiusRatio: CGFloat = 0.18
     @State private var remoteArtwork: NSImage?
 
     var body: some View {
@@ -32,9 +35,9 @@ struct ArtworkView: View {
             }
         }
         .frame(width: size, height: size)
-        .clipShape(RoundedRectangle(cornerRadius: size * 0.18, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: size * cornerRadiusRatio, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: size * 0.18, style: .continuous)
+            RoundedRectangle(cornerRadius: size * cornerRadiusRatio, style: .continuous)
                 .stroke(LyricsDesignTokens.controlBorder, lineWidth: 1)
         }
         .shadow(color: .black.opacity(showsAlbumLabel ? 0.28 : 0.18), radius: size * 0.08, y: size * 0.04)

@@ -1,0 +1,678 @@
+import SwiftUI
+
+/// Independent Apple Music-inspired main canvas. V2 and Lyrics Focus remain
+/// separate layouts; this view owns only the V3 canvas and its transient tools.
+struct AppleMusicImmersiveV3WindowView: View {
+    @ObservedObject var state: PlaybackState
+    @AppStorage("mainWindowLayoutStyle") private var layoutStyleRawValue = MainWindowLayoutStyle.appleMusicImmersiveV3.rawValue
+
+    @State private var isPreferencesPresented = false
+    @State private var isSearchPresented = false
+    @State private var toolsVisible = true
+    @State private var interactionToken = 0
+
+    private let wideBreakpoint: CGFloat = 1_080
+    private let minimumWidth: CGFloat = 800
+    private let minimumHeight: CGFloat = 600
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .topTrailing) {
+                AppleMusicImmersiveV3BackdropView(
+                    track: state.currentTrack,
+                    identity: state.currentTrackIdentity
+                )
+
+                layout(for: geometry)
+
+                toolBar
+                    .padding(.top, 18)
+                    .padding(.trailing, 26)
+                    .opacity(toolsVisible ? 1 : 0)
+                    .allowsHitTesting(toolsVisible)
+                    .animation(.easeInOut(duration: 0.24), value: toolsVisible)
+            }
+            .contentShape(Rectangle())
+            .onContinuousHover(coordinateSpace: .local) { _ in
+                revealTools()
+            }
+            .onAppear {
+                revealTools()
+            }
+            .task(id: interactionToken) {
+                guard interactionToken > 0 else { return }
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                guard !Task.isCancelled else { return }
+                withAnimation(.easeInOut(duration: 0.24)) {
+                    toolsVisible = false
+                }
+            }
+        }
+        .frame(minWidth: minimumWidth, minHeight: minimumHeight)
+        .preferredColorScheme(.dark)
+    }
+
+    @ViewBuilder
+    private func layout(for geometry: GeometryProxy) -> some View {
+        if geometry.size.width >= wideBreakpoint {
+            wideLayout(in: geometry)
+        } else if geometry.size.width >= minimumWidth {
+            compactSplitLayout(in: geometry)
+        } else {
+            stackedLayout(in: geometry)
+        }
+    }
+
+    private func wideLayout(in geometry: GeometryProxy) -> some View {
+        let horizontalPadding: CGFloat = 64
+        let verticalPadding: CGFloat = 48
+        let contentWidth = max(1, geometry.size.width - horizontalPadding * 2)
+        let leftWidth = contentWidth * 0.45
+        let rightWidth = contentWidth * 0.55
+        let coverSize = min(leftWidth * 0.8, geometry.size.height * 0.55)
+
+        return HStack(spacing: 0) {
+            trackColumn(
+                width: leftWidth,
+                availableHeight: geometry.size.height - verticalPadding * 2,
+                coverSize: coverSize,
+                alignment: .leading,
+                compact: false
+            )
+            .frame(width: leftWidth)
+            .frame(maxHeight: .infinity)
+
+            lyricsColumn(width: rightWidth, compact: false)
+                .frame(width: rightWidth)
+                .frame(maxHeight: .infinity)
+        }
+        .frame(
+            width: contentWidth,
+            height: max(1, geometry.size.height - verticalPadding * 2),
+            alignment: .center
+        )
+        .padding(.horizontal, horizontalPadding)
+        .padding(.vertical, verticalPadding)
+    }
+
+    private func compactSplitLayout(in geometry: GeometryProxy) -> some View {
+        let horizontalPadding: CGFloat = 32
+        let verticalPadding: CGFloat = 28
+        let contentWidth = max(1, geometry.size.width - horizontalPadding * 2)
+        let leftWidth = contentWidth * 0.4
+        let rightWidth = contentWidth * 0.6
+        let coverSize = min(leftWidth * 0.76, geometry.size.height * 0.42)
+
+        return HStack(spacing: 0) {
+            trackColumn(
+                width: leftWidth,
+                availableHeight: geometry.size.height - verticalPadding * 2,
+                coverSize: max(190, coverSize),
+                alignment: .leading,
+                compact: true
+            )
+            .frame(width: leftWidth)
+            .frame(maxHeight: .infinity)
+
+            lyricsColumn(width: rightWidth, compact: true)
+                .frame(width: rightWidth)
+                .frame(maxHeight: .infinity)
+        }
+        .frame(
+            width: contentWidth,
+            height: max(1, geometry.size.height - verticalPadding * 2),
+            alignment: .center
+        )
+        .padding(.horizontal, horizontalPadding)
+        .padding(.vertical, verticalPadding)
+    }
+
+    private func stackedLayout(in geometry: GeometryProxy) -> some View {
+        let horizontalPadding: CGFloat = 24
+        let coverSize = min(geometry.size.width * 0.62, geometry.size.height * 0.34)
+
+        return ScrollView(.vertical) {
+            VStack(alignment: .center, spacing: 24) {
+                trackColumn(
+                    width: geometry.size.width - horizontalPadding * 2,
+                    availableHeight: coverSize + 190,
+                    coverSize: max(180, coverSize),
+                    alignment: .center,
+                    compact: true
+                )
+                .frame(maxWidth: .infinity)
+
+                lyricsColumn(
+                    width: geometry.size.width - horizontalPadding * 2,
+                    compact: true
+                )
+                .frame(minHeight: max(420, geometry.size.height * 0.62))
+            }
+            .padding(.horizontal, horizontalPadding)
+            .padding(.vertical, 28)
+        }
+        .scrollIndicators(.hidden)
+    }
+
+    private func trackColumn(
+        width: CGFloat,
+        availableHeight: CGFloat,
+        coverSize: CGFloat,
+        alignment: HorizontalAlignment,
+        compact: Bool
+    ) -> some View {
+        VStack(alignment: alignment, spacing: 0) {
+            ArtworkView(
+                track: state.currentTrack,
+                size: coverSize,
+                showsAlbumLabel: false,
+                cornerRadiusRatio: 0.04
+            )
+            .frame(maxWidth: width, alignment: alignment == .center ? .center : .leading)
+
+            Spacer().frame(height: compact ? 22 : 32)
+
+            TrackMetadataView(
+                track: state.currentTrack,
+                titleSize: min(compact ? 26 : 34, max(compact ? 18 : 22, coverSize * 0.09)),
+                alignment: alignment
+            )
+            .frame(maxWidth: width, alignment: alignment == .center ? .center : .leading)
+
+            Spacer().frame(height: compact ? 18 : 24)
+
+            AppleMusicImmersiveV3TransportControls(
+                state: state,
+                alignment: alignment
+            )
+            .frame(maxWidth: width, alignment: alignment == .center ? .center : .leading)
+        }
+        // Give the column the actual content height. Without an explicit
+        // proposal, the two flexible spacers can resolve against the
+        // intrinsic height of the lyrics column and push metadata/transport
+        // below the window on a 760pt-tall canvas.
+        .frame(
+            width: width,
+            height: max(1, availableHeight),
+            alignment: .center
+        )
+    }
+
+    private func lyricsColumn(width: CGFloat, compact: Bool) -> some View {
+        AppleMusicImmersiveV3LyricsViewport(
+            state: state,
+            availableWidth: max(240, width - (compact ? 22 : 34)),
+            compact: compact
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var toolBar: some View {
+        HStack(spacing: 8) {
+            windowModeMenu
+            providerStatusMenu
+            searchButton
+            layoutMenu
+            preferencesButton
+        }
+        .font(.system(size: 14, weight: .medium))
+        .foregroundStyle(.white.opacity(0.82))
+    }
+
+    private var windowModeMenu: some View {
+        Menu {
+            Button("主窗口", systemImage: "macwindow") {
+                state.currentMode = .mainWindow
+            }
+            Divider()
+            Button("悬浮歌词", systemImage: "rectangle.on.rectangle") {
+                WindowManager.shared.toggleFloatingWindow(state: state)
+            }
+            Button("顶部胶囊", systemImage: "capsule") {
+                WindowManager.shared.toggleCapsulePlayer(state: state)
+            }
+            Button("全屏歌词", systemImage: "arrow.up.left.and.arrow.down.right") {
+                WindowManager.shared.toggleFullScreen(state: state)
+            }
+        } label: {
+            iconLabel("rectangle.on.rectangle", description: "窗口模式")
+        }
+        .menuStyle(.borderlessButton)
+        .buttonStyle(.plain)
+        .accessibilityLabel("窗口模式")
+    }
+
+    private var providerStatusMenu: some View {
+        Menu {
+            Text(state.providerStatusMessage)
+            alignmentMenuContent
+
+            if state.isUsingMockPreview {
+                Button("退出 Mock Preview") { state.exitMockPreview() }
+            } else if !state.canControlSpotify {
+                Button("进入 Mock Preview") { state.enterMockPreview() }
+                Button("重试 Spotify") { state.reconnectSpotify() }
+            } else {
+                Button("自动补全歌词") { state.autoCompleteLyrics() }
+            }
+        } label: {
+            Circle()
+                .fill(state.canControlSpotify ? Color.green : Color.orange)
+                .frame(width: 8, height: 8)
+                .frame(width: 32, height: 32)
+        }
+        .menuStyle(.borderlessButton)
+        .buttonStyle(.plain)
+        .help("播放来源与歌词工具")
+        .accessibilityLabel("播放来源：\(state.providerStatusMessage)")
+    }
+
+    @ViewBuilder
+    private var alignmentMenuContent: some View {
+        switch state.lyricsState {
+        case .alignmentQueued:
+            Divider()
+            Text("歌词：待对齐时间轴")
+            Button("自动排轴") { state.alignCurrentLyricsWithLocalAudio() }
+        case .alignmentRunning:
+            Divider()
+            Text("歌词：正在排轴")
+            Button("取消排轴") { state.cancelAlignmentPreview() }
+        case .alignmentPreview:
+            Divider()
+            Text("歌词：排轴预览")
+            Button("确认并保存") { state.confirmAlignmentPreview(saveLocal: true) }
+            Button("放弃排轴") { state.cancelAlignmentPreview() }
+        case .loaded, .mockPreview:
+            EmptyView()
+        default:
+            Divider()
+            Text("歌词：\(state.lyricsStatusMessage)")
+        }
+    }
+
+    private var searchButton: some View {
+        Button {
+            isSearchPresented.toggle()
+        } label: {
+            iconLabel("magnifyingglass", description: "搜索歌曲")
+        }
+        .buttonStyle(.plain)
+        .popover(isPresented: $isSearchPresented, arrowEdge: .top) {
+            SongSearchPopover(
+                manager: state.songSearchManager,
+                playbackState: state
+            )
+        }
+        .accessibilityLabel("搜索歌曲")
+    }
+
+    private var layoutMenu: some View {
+        Menu {
+            Section("主窗口布局") {
+                ForEach(MainWindowLayoutStyle.allCases) { style in
+                    Button {
+                        layoutStyleRawValue = style.rawValue
+                    } label: {
+                        Label(style.title, systemImage: style.systemImage)
+                    }
+                }
+            }
+        } label: {
+            iconLabel("rectangle.split.2x1", description: "主窗口布局")
+        }
+        .menuStyle(.borderlessButton)
+        .buttonStyle(.plain)
+        .accessibilityLabel("主窗口布局：Apple Music 沉浸 V3")
+    }
+
+    private var preferencesButton: some View {
+        Button {
+            isPreferencesPresented.toggle()
+        } label: {
+            iconLabel("slider.horizontal.3", description: "显示设置")
+        }
+        .buttonStyle(.plain)
+        .popover(isPresented: $isPreferencesPresented, arrowEdge: .top) {
+            LyricsPreferencesPopover(
+                preferences: $state.preferences,
+                playbackState: state
+            )
+        }
+        .accessibilityLabel("显示设置")
+    }
+
+    private func iconLabel(_ systemImage: String, description: String) -> some View {
+        Image(systemName: systemImage)
+            .font(.system(size: 15, weight: .medium))
+            .foregroundStyle(.white.opacity(0.82))
+            .frame(width: 32, height: 32)
+            .contentShape(Rectangle())
+            .help(description)
+    }
+
+    private func revealTools() {
+        if !toolsVisible {
+            withAnimation(.easeInOut(duration: 0.24)) {
+                toolsVisible = true
+            }
+        }
+        interactionToken &+= 1
+    }
+}
+
+private struct AppleMusicImmersiveV3TransportControls: View {
+    @ObservedObject var state: PlaybackState
+    let alignment: HorizontalAlignment
+
+    var body: some View {
+        VStack(alignment: alignment, spacing: 13) {
+            Slider(
+                value: Binding(
+                    get: { state.currentTime },
+                    set: { state.seek(to: $0, source: "v3-progress-slider") }
+                ),
+                in: 0...max(0.1, state.currentTrack.duration)
+            )
+            .controlSize(.small)
+            .tint(.white.opacity(0.82))
+            .frame(height: 10)
+            .accessibilityLabel("播放进度")
+
+            HStack(spacing: 18) {
+                v3TransportButton("backward.fill", label: "上一首", enabled: state.canControlSpotify) {
+                    state.previousTrack()
+                }
+
+                Button {
+                    state.togglePlayPause()
+                } label: {
+                    Image(systemName: state.isPlaying ? "pause.fill" : "play.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 32, height: 32)
+                }
+                .buttonStyle(.plain)
+                .disabled(!state.canInteractWithPlayback)
+                .opacity(state.canInteractWithPlayback ? 1 : 0.42)
+                .accessibilityLabel(state.isPlaying ? "暂停" : "播放")
+
+                v3TransportButton("forward.fill", label: "下一首", enabled: state.canControlSpotify) {
+                    state.nextTrack()
+                }
+
+                Text("\(formatTime(state.currentTime)) / \(formatTime(state.currentTrack.duration))")
+                    .font(.system(size: 12, weight: .medium, design: .rounded).monospacedDigit())
+                    .foregroundStyle(.white.opacity(0.62))
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: alignment == .center ? .center : .leading)
+    }
+
+    private func v3TransportButton(
+        _ systemImage: String,
+        label: String,
+        enabled: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 28, height: 28)
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+        .opacity(enabled ? 1 : 0.4)
+        .accessibilityLabel(label)
+    }
+
+    private func formatTime(_ seconds: TimeInterval) -> String {
+        let minutes = Int(seconds) / 60
+        let remainder = Int(seconds) % 60
+        return String(format: "%02d:%02d", minutes, remainder)
+    }
+}
+
+private struct AppleMusicImmersiveV3LyricsViewport: View {
+    @ObservedObject var state: PlaybackState
+    let availableWidth: CGFloat
+    let compact: Bool
+
+    var body: some View {
+        if state.lyrics.isEmpty {
+            emptyState
+        } else {
+            lyricsScroll
+        }
+    }
+
+    private var emptyState: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Spacer()
+            Text(emptyTitle)
+                .font(.system(size: compact ? 24 : 30, weight: .semibold, design: .rounded))
+                .foregroundStyle(.white.opacity(0.88))
+            Text(emptyDetail)
+                .font(.system(size: compact ? 13 : 15, design: .rounded))
+                .foregroundStyle(.white.opacity(0.58))
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+
+    private var emptyTitle: String {
+        switch state.lyricsState {
+        case .loading: return "正在获取歌词…"
+        case .failed: return "歌词暂不可用"
+        case .noLyrics, .noMatch: return "暂无歌词"
+        case .candidates: return "请选择歌词候选"
+        case .idle: return "等待正在播放的歌曲"
+        default: return "歌词"
+        }
+    }
+
+    private var emptyDetail: String {
+        switch state.lyricsState {
+        case .failed(_, let failure): return failure.userFacingMessage
+        case .noLyrics, .noMatch: return "可从右上角工具菜单重试自动补全"
+        default: return ""
+        }
+    }
+
+    private var lyricsScroll: some View {
+        GeometryReader { geometry in
+            ScrollViewReader { proxy in
+                ScrollView(.vertical) {
+                    LazyVStack(alignment: .leading, spacing: rowSpacing) {
+                        ForEach(Array(state.lyrics.enumerated()), id: \.element.id) { index, line in
+                            row(for: line, index: index)
+                                .id(line.id)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, max(120, geometry.size.height * 0.48))
+                    .padding(.bottom, max(120, geometry.size.height * 0.48))
+                    .padding(.trailing, compact ? 10 : 18)
+                }
+                .scrollIndicators(.hidden)
+                .mask(
+                    LinearGradient(
+                        stops: [
+                            .init(color: .clear, location: 0),
+                            .init(color: .black, location: 0.15),
+                            .init(color: .black, location: 0.86),
+                            .init(color: .clear, location: 1)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .onAppear {
+                    scrollToCurrentLine(using: proxy, animated: false)
+                }
+                .onChange(of: state.currentLineIndex) { _, _ in
+                    scrollToCurrentLine(using: proxy, animated: true)
+                }
+                .onChange(of: state.lyricsSessionRevision) { _, _ in
+                    scrollToCurrentLine(using: proxy, animated: false)
+                }
+            }
+        }
+    }
+
+    private var rowSpacing: CGFloat {
+        let layerCount = (state.preferences.showRomaji ? 1 : 0)
+            + (state.preferences.showTranslation ? 1 : 0)
+        return max(20, (compact ? 24 : 30) - CGFloat(max(0, layerCount - 1)) * 2)
+    }
+
+    @ViewBuilder
+    private func row(for line: LyricLine, index: Int) -> some View {
+        let currentIndex = state.currentLineIndex
+        let synchronized = state.lyricsAreSynchronized
+        let isActive = synchronized && currentIndex == index
+        let distance = synchronized && currentIndex != nil
+            ? abs(index - (currentIndex ?? index))
+            : 0
+        let content = AppleMusicImmersiveV3LyricRow(
+            line: line,
+            isActive: isActive,
+            distance: distance,
+            isSynchronized: synchronized,
+            availableWidth: availableWidth,
+            compact: compact,
+            showRomaji: state.preferences.showRomaji,
+            showTranslation: state.preferences.showTranslation
+        )
+        if let timestamp = LyricsTimeline.validSeekTimestamp(
+            for: line,
+            isSynchronized: synchronized,
+            duration: state.currentTrack.duration
+        ) {
+            Button {
+                state.seek(to: timestamp, source: "v3-lyric-line")
+            } label: {
+                content
+            }
+            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityLabel(line.originalText)
+            .accessibilityHint("跳转到歌词时间")
+        } else {
+            content
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func scrollToCurrentLine(using proxy: ScrollViewProxy, animated: Bool) {
+        guard state.lyricsAreSynchronized,
+              let currentIndex = state.currentLineIndex,
+              state.lyrics.indices.contains(currentIndex) else {
+            return
+        }
+        let id = state.lyrics[currentIndex].id
+        let action = { proxy.scrollTo(id, anchor: .center) }
+        if animated {
+            withAnimation(.easeInOut(duration: 0.34), action)
+        } else {
+            action()
+        }
+    }
+}
+
+private struct AppleMusicImmersiveV3LyricRow: View {
+    let line: LyricLine
+    let isActive: Bool
+    let distance: Int
+    let isSynchronized: Bool
+    let availableWidth: CGFloat
+    let compact: Bool
+    let showRomaji: Bool
+    let showTranslation: Bool
+
+    private var layerCount: Int {
+        1 + (showRomaji ? 1 : 0) + (showTranslation && line.translationText != nil ? 1 : 0)
+    }
+
+    private var activeBaseSize: CGFloat {
+        let upperBound = compact ? 34 : 42
+        let lowerBound: CGFloat = compact ? 20 : 24
+        let characterCount = max(1, line.originalText.count)
+        let fitWidth = max(220, availableWidth - 24)
+        let estimatedWidth = CGFloat(characterCount) * CGFloat(upperBound) * 0.82
+        let fitScale = min(1, max(0.52, fitWidth / max(1, estimatedWidth)))
+        let layerPenalty = CGFloat(max(0, layerCount - 2)) * 1.7
+        return max(lowerBound, min(CGFloat(upperBound), CGFloat(upperBound) * fitScale - layerPenalty))
+    }
+
+    private var baseSize: CGFloat {
+        guard isSynchronized else {
+            return min(compact ? 28 : 32, activeBaseSize)
+        }
+        return isActive ? activeBaseSize : max(compact ? 18 : 20, activeBaseSize * (distance == 1 ? 0.91 : 0.86))
+    }
+
+    private var rubySize: CGFloat { max(11, baseSize * 0.55) }
+    private var auxiliarySize: CGFloat { min(compact ? 19 : 24, max(13, baseSize * 0.56)) }
+
+    private var rowOpacity: Double {
+        guard isSynchronized else { return 0.84 }
+        if isActive { return 1 }
+        return distance == 1 ? 0.56 : max(0.22, 0.42 - Double(distance - 2) * 0.05)
+    }
+
+    private var rowBlur: CGFloat {
+        guard isSynchronized, distance > 1 else { return 0 }
+        return min(2.2, CGFloat(distance - 1) * 0.72)
+    }
+
+    private var rowWeight: Font.Weight {
+        guard isSynchronized else { return .medium }
+        if isActive { return .heavy }
+        if distance == 1 { return .semibold }
+        return .regular
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let kana = line.kanaText, !kana.isEmpty {
+                RubyLineView(
+                    originalText: line.originalText,
+                    kanaText: kana,
+                    tokens: line.rubyTokens,
+                    baseFont: .system(size: baseSize, weight: rowWeight, design: .rounded),
+                    rubyFont: .system(size: rubySize, weight: rowWeight, design: .rounded),
+                    baseColor: .white,
+                    rubyColor: .white.opacity(0.82)
+                )
+            } else {
+                Text(line.originalText)
+                    .font(.system(size: baseSize, weight: rowWeight, design: .rounded))
+                    .foregroundStyle(.white)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if showRomaji, let romaji = line.romajiText, !romaji.isEmpty {
+                Text(romaji)
+                    .font(.system(size: auxiliarySize, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.65))
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if showTranslation, let translation = line.translationText, !translation.isEmpty {
+                Text(translation)
+                    .font(.system(size: max(12, auxiliarySize * 0.82), weight: .regular, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.58))
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .opacity(rowOpacity)
+        .blur(radius: rowBlur)
+        .animation(.easeInOut(duration: 0.3), value: isActive)
+        .animation(.easeInOut(duration: 0.3), value: isSynchronized)
+    }
+}

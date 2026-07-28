@@ -343,3 +343,25 @@ Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 
 ### Phase 32 Scope
 - 只新增假名替换显示层和三模式切换，不修改实验性自动排轴结果、不新增歌词 Provider、不修改播放位置。
+
+## Phase 33: Apple Music Immersive V3 Canvas — complete
+- [x] 新建独立 `AppleMusicImmersiveV3WindowView` 与异步低分辨率封面/噪点缓存；保留 V2、歌词专注、设置、悬浮/胶囊/全屏和 Provider 路径
+- [x] 以连续画布实现宽窗口 45/55 分栏、无物理 Divider/播放胶囊/常驻连接文字，保留工具菜单和原有播放控制
+- [x] 实现 800×600 最小尺寸、1152×720 默认尺寸、宽/中/窄响应式降级；工具按钮仅在交互后显示，不切换 NSWindow titlebar
+- [x] V3 保留 Ruby（假名在汉字上方）和独立罗马音；字号按区域宽度、文本长度和启用层数计算，相邻行不模糊，远行仅轻微 blur
+- [x] 对无时间轴纯文本保持静态展示，不伪造当前行或自动滚动；对真实有时间轴日语歌曲自动将当前行锚定到歌词区域中心
+- [x] 通过真实 Spotify `春を告げる / yama` + LRCLIB 同步歌词验收首段、中段、尾段滚动；通过 `水曜日の約束 / Kawasaki.Rio` 32 行纯文本验收静态 Ruby/罗马音
+- [x] 更新既有 Phase 1 合同以覆盖 V3 的默认尺寸和条件最小尺寸；新增 V3 结构合同
+
+### Phase 33 Evidence
+- V3 App：`/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app`
+- 真实进程：`/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics`
+- 正常签名 Debug：`** BUILD SUCCEEDED **`、`XCODEBUILD_EXIT=0`；`codesign --verify --deep --strict`：valid on disk
+- 全量回归日志：`/tmp/spotifylyrics-v3-regression.log`（Phase 1 合同更新后重跑，`REGRESSION_EXIT=0`）
+- V3 合同：`Tests/apple_music_immersive_v3_contract.sh` passed
+- 真实同步歌词截图：`/tmp/spotifylyrics-v3-haru-start.png`、`/tmp/spotifylyrics-v3-haru-mid.png`、`/tmp/spotifylyrics-v3-haru-end.png`
+- 真实无时间轴纯文本截图：`/tmp/spotifylyrics-v3-water-no-timeline-final.png`
+- 运行层日志：`/tmp/spotifylyrics-e2e.log` 记录 `春を告げる / yama` 为 `lines=36 sync=true`，以及 `水曜日の約束 / Kawasaki.Rio` 为 `lines=32 sync=false`
+
+### Phase 33 Scope
+- 本阶段只新增 Apple Music 沉浸 V3 主窗口及其合同/验收证据；不修改 Provider、排轴算法、设置窗口、悬浮歌词、顶部胶囊或全屏模式。

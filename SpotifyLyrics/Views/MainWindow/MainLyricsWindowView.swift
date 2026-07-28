@@ -11,6 +11,25 @@ struct MainLyricsWindowView: View {
     }
 
     var body: some View {
+        Group {
+            if layoutStyle == .appleMusicImmersiveV3 {
+                AppleMusicImmersiveV3WindowView(state: state)
+            } else {
+                legacyWindowBody
+            }
+        }
+        .frame(
+            minWidth: layoutStyle == .appleMusicImmersiveV3 ? 800 : LyricsDesignTokens.minimumMainWindowSize.width,
+            minHeight: layoutStyle == .appleMusicImmersiveV3 ? 600 : LyricsDesignTokens.minimumMainWindowSize.height
+        )
+        .preferredColorScheme(.dark)
+        .background(Color.clear)
+        .task {
+            state.startProvider()
+        }
+    }
+
+    private var legacyWindowBody: some View {
         GeometryReader { geometry in
             let topBarHeight: CGFloat = layoutStyle == .lyricsFocus ? 116 : 64
             let contentHeight = max(0, geometry.size.height - topBarHeight)
@@ -42,15 +61,6 @@ struct MainLyricsWindowView: View {
                 }
             }
         }
-        .frame(
-            minWidth: LyricsDesignTokens.minimumMainWindowSize.width,
-            minHeight: LyricsDesignTokens.minimumMainWindowSize.height
-        )
-        .preferredColorScheme(.dark)
-        .background(Color.clear)
-        .task {
-            state.startProvider()
-        }
     }
 
     @ViewBuilder
@@ -60,6 +70,8 @@ struct MainLyricsWindowView: View {
             lyricsFocusLayout
         case .immersiveSplit:
             ImmersiveSplitWindowView(state: state)
+        case .appleMusicImmersiveV3:
+            EmptyView()
         }
     }
 
