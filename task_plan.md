@@ -410,3 +410,31 @@ Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 
 ### Phase 35 Scope
 - 本阶段只修复 Spotify Desktop 当前歌曲识别的超时、取消、串行化和刷新清理；不新增歌词 Provider、不修改排轴结果、不修改 V3 视觉。
+
+## Phase 36: V3 Final Immersive Calibration — complete
+- [x] 保留 V3 缓存、组件结构、45/55 与 800×600/1152×720 响应式规则和现有 PlaybackState/lyrics session 接线；未新增 V4
+- [x] 改善确定性封面主色采样：从缩略图中区分 chromatic/vivid/supporting 色，保留歌词侧暗幕的可读性
+- [x] 在现有 320px 异步缓存缩略图上增加低半径纹理层和左侧柔光；保留 72pt 主模糊、噪点缓存、暗角和切歌交叉淡入，不随播放位置重算
+- [x] 将同步歌词景深调整为：当前行清晰；相邻行 opacity 0.44 且无 blur；距离两行 opacity 0.24、blur 1.1pt；更远行 opacity 逐步降低、blur 上限 2pt
+- [x] 当前行保留完整 Ruby/罗马音，相邻行弱化；距离两行以上隐藏 Ruby/罗马音；无时间轴全文仍不使用景深、自动滚动或伪同步
+- [x] 仅微调 V3 播放器：控制间距 18pt、主按钮 44pt、上一首/下一首 40pt、时间文字保留左间距；不增加胶囊或卡片背景
+- [x] 真实 App 验收：`春を告げる / yama` 前段、中段、后段；`水曜日の約束 / Kawasaki.Rio` 无时间轴全文；`fragrance - Remix / 茉ひる` 紫色封面
+- [x] 验收默认窗口和最小窗口，播放位置由外部测试脚本设置且未被 V3 代码重置；切歌后歌词 session 和背景均正常更新
+- [x] 完成正常签名 Debug 构建、codesign、全量合同回归和 CPU/线程采样
+
+### Phase 36 Evidence
+- App：`/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app`
+- 运行进程：`/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics`（PID 8591，验收时）
+- 构建：`/tmp/spotifylyrics-v3-final-calibration-build-final.log`，`** BUILD SUCCEEDED **`，`XCODEBUILD_EXIT=0`
+- 签名：`codesign --verify --deep --strict`，`CODESIGN_EXIT=0`
+- 全量合同：`/tmp/spotifylyrics-v3-final-calibration-regression.log`，`REGRESSION_EXIT=0`
+- 真实运行切歌：`/tmp/spotifylyrics-v3-final-calibration-runtime.log`；应用层日志 `/tmp/spotifylyrics-e2e.log` 记录 yama → 水曜日の約束 → fragrance 的 `Playback trackChange`、36/32/45 行歌词加载及同步状态
+- 同步歌词截图：`/tmp/spotifylyrics-v3-calibration-yama-start.png`、`/tmp/spotifylyrics-v3-calibration-yama-middle.png`、`/tmp/spotifylyrics-v3-calibration-yama-end.png`
+- 无时间轴全文截图：`/tmp/spotifylyrics-v3-calibration-water-plain.png`
+- 紫色/暖色封面截图：`/tmp/spotifylyrics-v3-calibration-fragrance.png`
+- 最小窗口截图：`/tmp/spotifylyrics-v3-calibration-water-min-800x600.png`；窗口请求尺寸 `800×600`
+- CPU/线程采样：`/tmp/spotifylyrics-v3-calibration-sample.txt`，`thread_headers=12`；未发现应用自有实时高半径 blur 调用栈，CoreImage/vImage 仅出现在已加载框架/系统栈信息中
+- 代码变化：`git diff --stat` 为 4 个批准文件、`97 insertions(+), 20 deletions(-)`；关键 diff 仅涉及 `BackdropPalette`、V3 backdrop、V3 window 和 V3 合同
+
+### Phase 36 Scope
+- 本阶段只校准 Apple Music Immersive V3 的背景、同步歌词景深、辅助读音显隐和播放器细节；不修改 V2、歌词专注模式、Provider、搜索、设置、排轴、播放同步或歌词数据模型。

@@ -384,7 +384,7 @@ private struct AppleMusicImmersiveV3TransportControls: View {
             .frame(height: 10)
             .accessibilityLabel("播放进度")
 
-            HStack(spacing: 22) {
+            HStack(spacing: 18) {
                 v3TransportButton("backward.fill", label: "上一首", enabled: state.canControlSpotify) {
                     state.previousTrack()
                 }
@@ -395,7 +395,7 @@ private struct AppleMusicImmersiveV3TransportControls: View {
                     Image(systemName: state.isPlaying ? "pause.fill" : "play.fill")
                         .font(.system(size: 22, weight: .semibold))
                         .foregroundStyle(.white)
-                        .frame(width: 40, height: 40)
+                        .frame(width: 44, height: 44)
                 }
                 .buttonStyle(.plain)
                 .disabled(!state.canInteractWithPlayback)
@@ -409,6 +409,7 @@ private struct AppleMusicImmersiveV3TransportControls: View {
                 Text("\(formatTime(state.currentTime)) / \(formatTime(state.currentTrack.duration))")
                     .font(.system(size: 12, weight: .medium, design: .rounded).monospacedDigit())
                     .foregroundStyle(.white.opacity(0.62))
+                    .padding(.leading, 4)
             }
         }
         .frame(maxWidth: .infinity, alignment: alignment == .center ? .center : .leading)
@@ -422,9 +423,9 @@ private struct AppleMusicImmersiveV3TransportControls: View {
     ) -> some View {
         Button(action: action) {
             Image(systemName: systemImage)
-                .font(.system(size: 18, weight: .semibold))
+                .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(.white)
-                .frame(width: 36, height: 36)
+                .frame(width: 40, height: 40)
         }
         .buttonStyle(.plain)
         .disabled(!enabled)
@@ -640,15 +641,44 @@ private struct AppleMusicImmersiveV3LyricRow: View {
     private var rubySize: CGFloat { max(compact ? 10 : 12, min(14, baseSize * 0.34)) }
     private var auxiliarySize: CGFloat { min(compact ? 16 : 18, max(14, baseSize * 0.44)) }
 
+    private var shouldShowRuby: Bool {
+        guard isSynchronized else { return true }
+        return distance <= 1
+    }
+
+    private var shouldShowRomaji: Bool {
+        guard showRomaji else { return false }
+        guard isSynchronized else { return true }
+        return distance <= 1
+    }
+
+    private var rubyOpacity: Double {
+        guard isSynchronized, distance == 1 else { return 0.62 }
+        return 0.46
+    }
+
+    private var romajiOpacity: Double {
+        guard isSynchronized, distance == 1 else { return 0.65 }
+        return 0.48
+    }
+
     private var rowOpacity: Double {
         guard isSynchronized else { return 1 }
         if isActive { return 1 }
-        return distance == 1 ? 0.62 : max(0.28, 0.44 - Double(distance - 2) * 0.045)
+        if distance <= 0 { return 0.58 }
+        switch distance {
+        case 1: return 0.44
+        case 2: return 0.24
+        default: return max(0.14, 0.22 - Double(distance - 3) * 0.025)
+        }
     }
 
     private var rowBlur: CGFloat {
         guard isSynchronized, distance > 1 else { return 0 }
-        return min(0.9, CGFloat(distance - 1) * 0.22)
+        switch distance {
+        case 2: return 1.1
+        default: return min(2.0, 1.1 + CGFloat(distance - 2) * 0.25)
+        }
     }
 
     private var rowWeight: Font.Weight {
@@ -660,7 +690,8 @@ private struct AppleMusicImmersiveV3LyricRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if let kana = line.kanaText,
+            if shouldShowRuby,
+               let kana = line.kanaText,
                !kana.isEmpty,
                let tokens = line.rubyTokens,
                tokens.contains(where: { $0.hasRuby }) {
@@ -671,7 +702,7 @@ private struct AppleMusicImmersiveV3LyricRow: View {
                     baseFont: .system(size: baseSize, weight: rowWeight, design: .rounded),
                     rubyFont: .system(size: rubySize, weight: .regular, design: .rounded),
                     baseColor: .white,
-                    rubyColor: .white.opacity(0.62),
+                    rubyColor: .white.opacity(rubyOpacity),
                     rubySpacing: 1,
                     tokenVerticalSpacing: 3
                 )
@@ -682,10 +713,10 @@ private struct AppleMusicImmersiveV3LyricRow: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            if showRomaji, let romaji = line.romajiText, !romaji.isEmpty {
+            if shouldShowRomaji, let romaji = line.romajiText, !romaji.isEmpty {
                 Text(romaji)
                     .font(.system(size: auxiliarySize, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.65))
+                    .foregroundStyle(.white.opacity(romajiOpacity))
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
             }

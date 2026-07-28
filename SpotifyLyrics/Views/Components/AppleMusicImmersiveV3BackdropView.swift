@@ -73,6 +73,17 @@ struct AppleMusicImmersiveV3BackdropView: View {
 
     @ViewBuilder
     private func artworkLayers(image: NSImage) -> some View {
+        // Keep a second, lower-radius pass over the cached thumbnail so the
+        // cover contributes visible texture instead of collapsing into one
+        // uniformly blurred theme color.
+        Image(nsImage: image)
+            .resizable()
+            .scaledToFill()
+            .scaleEffect(1.16)
+            .blur(radius: 24)
+            .blendMode(.screen)
+            .opacity(0.62)
+
         Image(nsImage: image)
             .resizable()
             .scaledToFill()
@@ -94,7 +105,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
 
         RadialGradient(
             colors: [
-                color(palette.glow).opacity(0.46),
+                color(palette.glow).opacity(0.62),
                 .clear
             ],
             center: UnitPoint(x: 0.16, y: 0.52),

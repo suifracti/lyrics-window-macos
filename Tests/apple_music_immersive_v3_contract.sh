@@ -47,17 +47,32 @@ grep -q 'Color.black.opacity(0.42)' "$backdrop_file"
 grep -q 'cornerRadiusRatio: 0.04' "$window_file"
 grep -q 'font(.system(size: 22, weight: .semibold))' "$window_file"
 grep -q 'frame(width: 40, height: 40)' "$window_file"
-grep -q 'font(.system(size: 18, weight: .semibold))' "$window_file"
-grep -q 'frame(width: 36, height: 36)' "$window_file"
+grep -q 'font(.system(size: 20, weight: .semibold))' "$window_file"
+grep -q 'frame(width: 40, height: 40)' "$window_file"
 grep -q 'let verticalPadding = synchronized' "$window_file"
 grep -q ': 28.0' "$window_file"
 grep -q 'min(14, baseSize \* 0.34)' "$window_file"
 grep -q 'min(compact ? 16 : 18' "$window_file"
-grep -q 'rubyColor: .white.opacity(0.62)' "$window_file"
+grep -q 'rubyColor: .white.opacity(rubyOpacity)' "$window_file"
 grep -q 'rubySpacing: 1' "$window_file"
 grep -q 'tokenVerticalSpacing: 3' "$window_file"
-grep -q 'distance == 1 ? 0.93' "$window_file"
-grep -q 'min(0.9' "$window_file"
+grep -q 'case 1: return 0.44' "$window_file"
+grep -q 'case 2: return 0.24' "$window_file"
+grep -q 'case 2: return 1.1' "$window_file"
+grep -q 'min(2.0' "$window_file"
+grep -q 'shouldShowRuby' "$window_file"
+grep -q 'shouldShowRomaji' "$window_file"
+grep -q 'distance <= 1' "$window_file"
+grep -q 'HStack(spacing: 18)' "$window_file"
+grep -q 'frame(width: 44, height: 44)' "$window_file"
+grep -q 'frame(width: 40, height: 40)' "$window_file"
+
+# V3 keeps the cached 320px artwork but exposes a second, lower-radius texture
+# layer so the cover does not collapse into a single theme-color wash.
+grep -q 'blur(radius: 24)' "$backdrop_file"
+grep -q 'blendMode(.screen)' "$backdrop_file"
+grep -q 'opacity(0.62)' "$backdrop_file"
+grep -q 'chromaticSamples' SpotifyLyrics/Design/BackdropPalette.swift
 
 grep -q '.defaultSize(width: 1152, height: 720)' SpotifyLyrics/Main.swift
 
