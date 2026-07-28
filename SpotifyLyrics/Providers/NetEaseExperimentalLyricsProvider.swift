@@ -215,7 +215,8 @@ public final class NetEaseExperimentalLyricsProvider: LyricsProvider, @unchecked
                 originalText: line.originalText,
                 translationText: tr,
                 romajiText: line.romajiText,
-                kanaText: line.kanaText
+                kanaText: line.kanaText,
+                rubyTokens: line.rubyTokens
             )
         }
     }

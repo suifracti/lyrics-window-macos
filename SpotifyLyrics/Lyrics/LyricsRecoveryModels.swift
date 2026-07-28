@@ -179,6 +179,8 @@ public enum LyricsLayerEnricher {
             // even when the original title uses Latin characters.
             let kana = layers.kanaText ?? reading?.kanaText
             let romaji = layers.romajiText ?? reading?.romajiText
+            let rubyTokens = line.rubyTokens
+                ?? reading?.tokens.map(LyricRubyToken.init(readingToken:))
             layers.applyAutomatic(kana: kana, romaji: romaji)
             return LyricLine(
                 id: line.id,
@@ -186,7 +188,8 @@ public enum LyricsLayerEnricher {
                 originalText: layers.originalText,
                 translationText: layers.translationText,
                 romajiText: layers.romajiText,
-                kanaText: layers.kanaText
+                kanaText: layers.kanaText,
+                rubyTokens: rubyTokens
             )
         }
     }

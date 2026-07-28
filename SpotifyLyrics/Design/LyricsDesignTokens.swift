@@ -9,7 +9,7 @@ enum LyricsDesignTokens {
 
     static let contentCornerRadius: CGFloat = 20
     static let headerSpacing: CGFloat = 16
-    static let lyricRowSpacing: CGFloat = 22
+    static let lyricRowSpacing: CGFloat = 24
     static let canvasHorizontalPadding: CGFloat = 40
     static let canvasVerticalPadding: CGFloat = 72
     static let artworkSize: CGFloat = 84
@@ -91,8 +91,8 @@ enum LyricsDesignTokens {
     static func lyricRowSpacing(for availableWidth: CGFloat, visibleLayerCount: Int) -> CGFloat {
         let width = min(max(availableWidth, 520), 1_360)
         let widthProgress = (width - 520) / 840
-        let layerPenalty = CGFloat(max(0, visibleLayerCount - 2)) * 2.5
-        return max(12, min(22, 14 + widthProgress * 8 - layerPenalty))
+        let layerPenalty = CGFloat(max(0, visibleLayerCount - 2)) * 1.5
+        return max(24, min(30, 24 + widthProgress * 6 - layerPenalty))
     }
 }
 

@@ -636,3 +636,31 @@ public enum JapaneseReadingPipeline {
         }
     }
 }
+
+public extension LyricRubyToken {
+    /// Converts one confirmed morphology token into a display token.
+    /// Kana-only, Latin, numeric and punctuation tokens remain base text only;
+    /// they do not receive a redundant ruby line above them.
+    init(readingToken: JapaneseReadingToken) {
+        let ruby = Self.containsHan(readingToken.originalText)
+            ? readingToken.kana
+            : nil
+        self.init(
+            id: readingToken.id,
+            surface: readingToken.originalText,
+            ruby: ruby,
+            romaji: readingToken.romaji,
+            confidence: readingToken.confidence
+        )
+    }
+
+    private static func containsHan(_ text: String) -> Bool {
+        text.unicodeScalars.contains { scalar in
+            let value = scalar.value
+            return (0x3400...0x4DBF).contains(value)
+                || (0x4E00...0x9FFF).contains(value)
+                || (0xF900...0xFAFF).contains(value)
+                || (0x20000...0x2FA1F).contains(value)
+        }
+    }
+}

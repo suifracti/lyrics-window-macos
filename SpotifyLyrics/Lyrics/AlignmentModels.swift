@@ -13,6 +13,7 @@ public struct AlignedLyricLine: Identifiable, Equatable, Sendable {
     public var kanaText: String?
     public var romajiText: String?
     public var translationText: String?
+    public var rubyTokens: [LyricRubyToken]?
     public var startTime: TimeInterval
     public var endTime: TimeInterval?
     public var confidence: Double
@@ -24,6 +25,7 @@ public struct AlignedLyricLine: Identifiable, Equatable, Sendable {
         kanaText: String? = nil,
         romajiText: String? = nil,
         translationText: String? = nil,
+        rubyTokens: [LyricRubyToken]? = nil,
         startTime: TimeInterval,
         endTime: TimeInterval? = nil,
         confidence: Double,
@@ -34,6 +36,7 @@ public struct AlignedLyricLine: Identifiable, Equatable, Sendable {
         self.kanaText = kanaText
         self.romajiText = romajiText
         self.translationText = translationText
+        self.rubyTokens = rubyTokens
         self.startTime = startTime
         self.endTime = endTime
         self.confidence = confidence
@@ -47,7 +50,8 @@ public struct AlignedLyricLine: Identifiable, Equatable, Sendable {
             originalText: originalText,
             translationText: translationText,
             romajiText: romajiText,
-            kanaText: kanaText
+            kanaText: kanaText,
+            rubyTokens: rubyTokens
         )
     }
 }

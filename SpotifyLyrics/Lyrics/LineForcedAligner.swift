@@ -49,6 +49,7 @@ public enum LineForcedAligner {
                         kanaText: line.kanaText,
                         romajiText: line.romajiText,
                         translationText: line.translationText,
+                        rubyTokens: line.rubyTokens,
                         startTime: results.last?.endTime ?? results.last?.startTime ?? 0,
                         endTime: nil,
                         confidence: 0.05,
@@ -85,6 +86,7 @@ public enum LineForcedAligner {
                         kanaText: line.kanaText,
                         romajiText: line.romajiText,
                         translationText: line.translationText,
+                        rubyTokens: line.rubyTokens,
                         startTime: start,
                         endTime: end,
                         confidence: conf,
@@ -99,6 +101,7 @@ public enum LineForcedAligner {
                         kanaText: line.kanaText,
                         romajiText: line.romajiText,
                         translationText: line.translationText,
+                        rubyTokens: line.rubyTokens,
                         startTime: -1, // mark for interpolation
                         endTime: nil,
                         confidence: 0.1,
@@ -227,6 +230,7 @@ public enum LineForcedAligner {
                 kanaText: line.kanaText,
                 romajiText: line.romajiText,
                 translationText: line.translationText,
+                rubyTokens: line.rubyTokens,
                 startTime: start,
                 endTime: start + step,
                 confidence: 0.12,
@@ -254,7 +258,8 @@ public enum LineForcedAligner {
                         originalText: $0.originalText,
                         translationText: $0.translationText,
                         romajiText: $0.romajiText,
-                        kanaText: $0.kanaText
+                        kanaText: $0.kanaText,
+                        rubyTokens: $0.rubyTokens
                     )
                 },
                 duration: duration,

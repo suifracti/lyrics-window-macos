@@ -236,7 +236,7 @@ Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 - 任何无法真实验证的项目必须明确标记为“未验证”，不能推断为完成。
 - 审计结束前不修改产品代码或工程配置。
 
-## Phase 27: Native macOS Immersive Split V2 — in progress
+## Phase 27: Native macOS Immersive Split V2 — complete
 - [x] 根据用户修正后的约束收敛范围：只改沉浸分栏主窗口，不改设置、悬浮/胶囊/全屏、Provider 或排轴
 - [x] 输出文件范围、组件结构和响应式规则；新增红色视觉合同
 - [x] 实现封面变化触发的异步主色提取/缓存、材料背景和稳定切换
@@ -255,3 +255,20 @@ Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 - 正常签名 Debug `xcodebuild`：`** BUILD SUCCEEDED **`；最终 App 路径为 `/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app`。
 - 真实 Spotify `水曜日の約束 / Kawasaki.Rio` 运行验收：AX 树同时读到原文、假名和罗马音；截图 `/tmp/spotifylyrics-native-ui-final.png`。
 - 验收保持真实歌曲当前播放位置，不触发自动排轴；歌词仍明确显示“待对齐时间轴”。
+
+## Phase 28: Ruby Lyrics Presentation — complete
+- [x] 为 `LyricLine` 增加独立 `LyricRubyToken` 层，保留原文并沿对齐/Provider 转换链路传递
+- [x] 从已确认的日语形态分析结果生成逐词注音；未知读音不猜测，缺少映射时安全回退为整行注音
+- [x] 使用 SwiftUI token blocks + `RubyTokenFlowLayout` 实现注音在正文上方、长注音自然溢出和整词换行；未采用 `CTRubyAnnotation`
+- [x] 实现响应式字号、注音/罗马音层级透明度、3pt 注音间距、7pt 辅助层间距和 24pt 以上行块间距
+- [x] 真实 App 验收 `水曜日の約束 / Kawasaki.Rio`，同时显示原文、假名、罗马音；未触发实验性排轴
+- [x] 正常签名 Debug 构建、回归合同和独立 commit
+
+### Phase 28 Evidence
+- `Tests/ruby_layout_contract.sh`：PASS；并通过 native material、Phase 1/2 UI、alignment wiring、line alignment、song search、real track lyrics 回归合同。
+- 正常签名 Debug `xcodebuild`：`** BUILD SUCCEEDED **`；最终 App：`/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app`。
+- 真实 Spotify 当前曲目保持 `00:56 / 02:51`，UI 显示“待对齐时间轴”，未使用 TTS/平均铺开时间或修改播放位置。
+- 真实 App 截图：`/tmp/spotifylyrics-ruby-final.png`。
+
+### Phase 28 Scope
+- 本阶段只改日语歌词的注音视觉层，不修改实验性自动排轴结果，不新增歌词 Provider，不做 CoreText 富文本或完整编辑器。
