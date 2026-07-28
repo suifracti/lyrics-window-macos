@@ -272,3 +272,17 @@ Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 
 ### Phase 28 Scope
 - 本阶段只改日语歌词的注音视觉层，不修改实验性自动排轴结果，不新增歌词 Provider，不做 CoreText 富文本或完整编辑器。
+
+## Phase 29: Ruby Baseline Alignment Correction — complete
+- [x] 让注音词块显式传递正文的 `lastTextBaseline`，使无注音假名与有注音汉字共享同一底部基线
+- [x] 让正文宽度驱动词块布局；长注音只做水平悬垂，不撑开相邻正文
+- [x] 收紧注音间距至 2pt，并保留约 55% 正文字号比例
+- [x] 修复暂停时歌词 Session 已加载但主窗口仍显示旧 no-match/loading 状态的发布时序
+- [x] 使用真实运行 App + 临时本地歌词夹具验证基线、注音和正文连续性；夹具已移除，未修改用户歌词目录
+- [x] 正常签名 Debug clean build、codesign、回归合同和独立 commit
+
+### Phase 29 Evidence
+- `/tmp/spotifylyrics-ruby-baseline-fixed-window.png`：真实 DerivedData App 窗口截图，原文/假名/罗马音可见，汉字正文基线连续。
+- 回归合同通过：ruby layout、native material、Phase 1/2 UI、alignment wiring、line alignment、song search、real track lyrics（含 UI state propagation）。
+- `xcodebuild` clean Debug：`** BUILD SUCCEEDED **`；`codesign --verify --deep --strict`：valid on disk。
+- 仍未触发自动排轴，也未改变 Spotify 播放位置或排轴结果。

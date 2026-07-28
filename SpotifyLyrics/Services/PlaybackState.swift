@@ -70,8 +70,14 @@ public final class PlaybackState: ObservableObject {
         self.lyricsSessionCancellable = nil
         self.lyricsSessionCancellable = self.lyricsSession.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
-            Task { @MainActor in
-                self?.tryAutoAlignIfRequested()
+            // `@Published` emits objectWillChange before the session property
+            // is mutated. Forwarding only that pre-change pulse can leave a
+            // paused UI showing the previous loading/no-match state forever;
+            // publish once on the next main-actor turn after the mutation too.
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.objectWillChange.send()
+                self.tryAutoAlignIfRequested()
             }
         }
     }

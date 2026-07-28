@@ -258,5 +258,9 @@ if rg -q 'state\.seek\(to: line\.timestamp' "$ROOT_DIR/SpotifyLyrics"; then
 fi
 rg -q 'retryAfterNetworkRecovery' "$ROOT_DIR/SpotifyLyrics/Services/LyricsSessionController.swift"
 rg -q 'NWPathMonitor|network-recovery' "$ROOT_DIR/SpotifyLyrics/Services/PlaybackState.swift"
+rg -q 'lyricsSession\.objectWillChange\.sink' "$ROOT_DIR/SpotifyLyrics/Services/PlaybackState.swift"
+rg -q 'Task \{ @MainActor \[weak self\]' "$ROOT_DIR/SpotifyLyrics/Services/PlaybackState.swift"
+rg -q 'self\.objectWillChange\.send\(\)' "$ROOT_DIR/SpotifyLyrics/Services/PlaybackState.swift"
+echo 'lyrics UI state propagation contract passed'
 
 echo "real track lyrics contract passed"

@@ -26,10 +26,13 @@ require "$ALIGN" 'rubyTokens' 'alignment preserves ruby tokens'
 
 # SwiftUI word blocks: ruby above base, with a flow layout for long lines.
 require "$LINE" 'RubyTokenFlowLayout' 'ruby flow layout'
-require "$LINE" 'VStack' 'ruby/base stacked word block'
+require "$LINE" 'RubyTokenBlockLayout' 'ruby/base token layout'
+require "$LINE" 'lastTextBaseline' 'shared base text baseline'
+require "$LINE" 'explicitAlignment' 'explicit ruby baseline propagation'
 require "$LINE" 'rubyFontSize' 'responsive ruby size'
 require "$LINE" '0\.5[0-9]' 'ruby is approximately half-to-sixty-percent of base'
 require "$LINE" 'fixedSize\(horizontal: true' 'ruby overhang is not compressed'
+require "$LINE" 'baseSize' 'base width drives token layout'
 
 # Visual hierarchy and rhythm.
 require "$LINE" 'rubyOpacity' 'ruby contrast hierarchy'

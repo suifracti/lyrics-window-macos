@@ -179,7 +179,7 @@ private struct RubyTokenBlock: View {
     let rubyColor: Color
 
     var body: some View {
-        VStack(alignment: .center, spacing: 3) {
+        RubyTokenBlockLayout(rubySpacing: 2) {
             if token.hasRuby, let ruby = token.ruby {
                 Text(ruby)
                     .font(rubyFont)
@@ -198,17 +198,112 @@ private struct RubyTokenBlock: View {
     }
 }
 
+/// Places ruby above the base text while keeping the base width authoritative.
+///
+/// A normal `VStack` takes the widest child as its width. That makes a reading
+/// such as `こころ` widen the layout box for the one-character base `心`, which
+/// breaks the baseline rhythm of the surrounding kana. This layout lets ruby
+/// overhang the base horizontally without pushing adjacent base characters
+/// apart, and explicitly exports the base's last text baseline to its parent.
+private struct RubyTokenBlockLayout: Layout {
+    let rubySpacing: CGFloat
+
+    func sizeThatFits(
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) -> CGSize {
+        guard let base = subviews.last else { return .zero }
+        let baseSize = baseSize(for: base)
+        let rubyHeight = subviews.dropLast().first.map { readingSize(for: $0).height } ?? 0
+        let height = rubyHeight > 0
+            ? rubyHeight + rubySpacing + baseSize.height
+            : baseSize.height
+        return CGSize(width: baseSize.width, height: height)
+    }
+
+    func placeSubviews(
+        in bounds: CGRect,
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) {
+        guard let base = subviews.last else { return }
+        let baseSize = baseSize(for: base)
+        let ruby = subviews.dropLast().first
+        let rubyDimensions: CGSize = ruby.map { readingSize(for: $0) } ?? CGSize.zero
+        let baseY = ruby == nil ? bounds.minY : bounds.minY + rubyDimensions.height + rubySpacing
+
+        if let ruby {
+            ruby.place(
+                at: CGPoint(
+                    x: bounds.midX - rubyDimensions.width / 2,
+                    y: bounds.minY
+                ),
+                anchor: .topLeading,
+                proposal: ProposedViewSize(width: rubyDimensions.width, height: rubyDimensions.height)
+            )
+        }
+
+        base.place(
+            at: CGPoint(x: bounds.minX, y: baseY),
+            anchor: .topLeading,
+            proposal: ProposedViewSize(width: baseSize.width, height: baseSize.height)
+        )
+    }
+
+    func explicitAlignment(
+        of alignment: VerticalAlignment,
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) -> CGFloat? {
+        guard alignment == .lastTextBaseline, let base = subviews.last else {
+            return nil
+        }
+
+        let baseSize = baseSize(for: base)
+        let baseDimensions = base.dimensions(
+            in: ProposedViewSize(width: baseSize.width, height: baseSize.height)
+        )
+        let rubyHeight = subviews.dropLast().first.map { readingSize(for: $0).height } ?? 0
+        let baseOffset = rubyHeight > 0 ? rubyHeight + rubySpacing : 0
+        return baseOffset + baseDimensions[.lastTextBaseline]
+    }
+
+    private func baseSize(for subview: LayoutSubview) -> CGSize {
+        subview.sizeThatFits(.unspecified)
+    }
+
+    private func readingSize(for subview: LayoutSubview) -> CGSize {
+        subview.sizeThatFits(.unspecified)
+    }
+}
+
 /// Wraps complete ruby/base word blocks without splitting a word in half.
-/// The individual block is still a VStack (ruby above base); this layout only
-/// adds a new row when the available width cannot fit the next block.
+/// Each block exports the base baseline, so kana-only tokens and ruby tokens
+/// share one bottom reading line within a row.
 private struct RubyTokenFlowLayout: Layout {
     let horizontalSpacing: CGFloat
     let verticalSpacing: CGFloat
 
+    private struct Item {
+        let index: Int
+        let size: CGSize
+        let baseline: CGFloat
+    }
+
     private struct Row {
-        var indices: [Int] = []
+        var items: [Item] = []
         var width: CGFloat = 0
-        var height: CGFloat = 0
+
+        var baseline: CGFloat {
+            items.map(\.baseline).max() ?? 0
+        }
+
+        var height: CGFloat {
+            items.map { baseline - $0.baseline + $0.size.height }.max() ?? 0
+        }
     }
 
     func sizeThatFits(
@@ -236,15 +331,14 @@ private struct RubyTokenFlowLayout: Layout {
 
         for row in rows {
             var x = bounds.minX
-            for index in row.indices {
-                let subview = subviews[index]
-                let size = subview.sizeThatFits(.unspecified)
+            for item in row.items {
+                let subview = subviews[item.index]
                 subview.place(
-                    at: CGPoint(x: x, y: y),
+                    at: CGPoint(x: x, y: y + row.baseline - item.baseline),
                     anchor: .topLeading,
-                    proposal: ProposedViewSize(width: size.width, height: size.height)
+                    proposal: ProposedViewSize(width: item.size.width, height: item.size.height)
                 )
-                x += size.width + horizontalSpacing
+                x += item.size.width + horizontalSpacing
             }
             y += row.height + verticalSpacing
         }
@@ -266,26 +360,36 @@ private struct RubyTokenFlowLayout: Layout {
         var current = Row()
 
         for index in subviews.indices {
-            let size = subviews[index].sizeThatFits(.unspecified)
-            let nextWidth = current.indices.isEmpty
-                ? size.width
-                : current.width + horizontalSpacing + size.width
+            let item = measuredItem(index: index, subview: subviews[index])
+            let nextWidth = current.items.isEmpty
+                ? item.size.width
+                : current.width + horizontalSpacing + item.size.width
 
-            if !current.indices.isEmpty, nextWidth > maxWidth {
+            if !current.items.isEmpty, nextWidth > maxWidth {
                 rows.append(current)
                 current = Row()
             }
 
-            current.indices.append(index)
-            current.width = current.indices.count == 1
-                ? size.width
-                : current.width + horizontalSpacing + size.width
-            current.height = max(current.height, size.height)
+            current.items.append(item)
+            current.width = current.items.count == 1
+                ? item.size.width
+                : current.width + horizontalSpacing + item.size.width
         }
 
-        if !current.indices.isEmpty {
+        if !current.items.isEmpty {
             rows.append(current)
         }
         return rows
+    }
+
+    private func measuredItem(index: Int, subview: LayoutSubview) -> Item {
+        let size = subview.sizeThatFits(.unspecified)
+        let dimensions = subview.dimensions(in: .unspecified)
+        let baseline = dimensions[.lastTextBaseline]
+        return Item(
+            index: index,
+            size: size,
+            baseline: baseline.isFinite && baseline >= 0 ? baseline : size.height
+        )
     }
 }
