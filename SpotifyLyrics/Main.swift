@@ -11,7 +11,7 @@ struct SpotifyLyricsApp: App {
                 .environmentObject(playbackState)
         }
         .defaultSize(width: 1040, height: 680)
-        .windowStyle(.titleBar)
+        .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(.unified)
     }
 }

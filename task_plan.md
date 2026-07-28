@@ -235,3 +235,23 @@ Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 ## Notes
 - 任何无法真实验证的项目必须明确标记为“未验证”，不能推断为完成。
 - 审计结束前不修改产品代码或工程配置。
+
+## Phase 27: Native macOS Immersive Split V2 — in progress
+- [x] 根据用户修正后的约束收敛范围：只改沉浸分栏主窗口，不改设置、悬浮/胶囊/全屏、Provider 或排轴
+- [x] 输出文件范围、组件结构和响应式规则；新增红色视觉合同
+- [x] 实现封面变化触发的异步主色提取/缓存、材料背景和稳定切换
+- [x] 实现按窗口宽度与启用歌词层数响应的原文/假名/罗马音/翻译排版
+- [x] 隐藏正常播放常驻连接文案，保留断连/错误提示和歌词专注模式切换
+- [x] 正常签名构建、合同测试、真实日语歌词运行截图和独立 commit
+
+### Phase 27 Scope
+- 沉浸分栏 V2 为主窗口默认布局；`lyricsFocus` 继续可切换。
+- 不使用统一非当前行 `scaleEffect`，不引入明显回弹动画。
+- 不改 `SpotifyLyrics/Views/LyricsViews.swift` 及辅助窗口模式。
+- 不新增歌词来源、不修改排轴算法或排轴结果。
+
+### Phase 27 Evidence
+- `Tests/native_material_ui_contract.sh`、Phase 1/2 UI、Spotify provider、日语读音、排轴和歌曲搜索合同通过。
+- 正常签名 Debug `xcodebuild`：`** BUILD SUCCEEDED **`；最终 App 路径为 `/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app`。
+- 真实 Spotify `水曜日の約束 / Kawasaki.Rio` 运行验收：AX 树同时读到原文、假名和罗马音；截图 `/tmp/spotifylyrics-native-ui-final.png`。
+- 验收保持真实歌曲当前播放位置，不触发自动排轴；歌词仍明确显示“待对齐时间轴”。

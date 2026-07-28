@@ -115,7 +115,13 @@ struct LyricsCanvasView: View {
                     HStack(spacing: 0) {
                         Spacer(minLength: 0)
 
-                        LazyVStack(alignment: .leading, spacing: LyricsDesignTokens.lyricRowSpacing) {
+                        LazyVStack(
+                            alignment: .leading,
+                            spacing: LyricsDesignTokens.lyricRowSpacing(
+                                for: geometry.size.width,
+                                visibleLayerCount: visibleLayerCount
+                            )
+                        ) {
                             ForEach(Array(state.lyrics.enumerated()), id: \.element.id) { index, line in
                                 if let seekTimestamp = LyricsTimeline.validSeekTimestamp(
                                     for: line,
@@ -125,7 +131,11 @@ struct LyricsCanvasView: View {
                                     Button {
                                         state.seek(to: seekTimestamp, source: "lyric-line")
                                     } label: {
-                                        lyricLineView(line: line, index: index)
+                                        lyricLineView(
+                                            line: line,
+                                            index: index,
+                                            availableWidth: geometry.size.width
+                                        )
                                     }
                                     .buttonStyle(.plain)
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -134,7 +144,11 @@ struct LyricsCanvasView: View {
                                     .accessibilityHint("跳转到歌词时间")
                                     .accessibilityIdentifier("lyrics-line-\(line.id.uuidString)")
                                 } else {
-                                    lyricLineView(line: line, index: index)
+                                    lyricLineView(
+                                        line: line,
+                                        index: index,
+                                        availableWidth: geometry.size.width
+                                    )
                                 }
                             }
                         }
@@ -158,6 +172,18 @@ struct LyricsCanvasView: View {
                     .padding(.vertical, LyricsDesignTokens.canvasVerticalPadding)
                 }
                 .scrollIndicators(.hidden)
+                .mask(
+                    LinearGradient(
+                        stops: [
+                            .init(color: .clear, location: 0),
+                            .init(color: .black, location: 0.13),
+                            .init(color: .black, location: 0.87),
+                            .init(color: .clear, location: 1)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
                 .accessibilityElement(children: .contain)
                 .onAppear {
                     scrollToCurrentLine(using: proxy, animated: false)
@@ -248,13 +274,19 @@ struct LyricsCanvasView: View {
     }
 
     @ViewBuilder
-    private func lyricLineView(line: LyricLine, index: Int) -> some View {
+    private func lyricLineView(
+        line: LyricLine,
+        index: Int,
+        availableWidth: CGFloat
+    ) -> some View {
         LyricLineView(
             line: line,
             isActive: state.currentLineIndex == index,
             distance: distance(from: index),
             isSynchronized: state.lyricsAreSynchronized,
-            preferences: state.preferences
+            preferences: state.preferences,
+            availableWidth: availableWidth,
+            visibleLayerCount: visibleLayerCount
         )
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
@@ -270,9 +302,20 @@ struct LyricsCanvasView: View {
         }
 
         if animated {
-            withAnimation(.easeInOut(duration: 0.28), action)
+            withAnimation(.easeInOut(duration: 0.24), action)
         } else {
             action()
         }
+    }
+
+    private var visibleLayerCount: Int {
+        [
+            state.preferences.showOriginal,
+            state.preferences.showKana,
+            state.preferences.showRomaji,
+            state.preferences.showTranslation
+        ]
+        .filter { $0 }
+        .count
     }
 }

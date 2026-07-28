@@ -2,23 +2,24 @@ import SwiftUI
 
 struct MainLyricsWindowView: View {
     @EnvironmentObject private var state: PlaybackState
-    @AppStorage("mainWindowLayoutStyle") private var layoutStyleRawValue = MainWindowLayoutStyle.lyricsFocus.rawValue
+    @AppStorage("mainWindowLayoutStyle") private var layoutStyleRawValue = MainWindowLayoutStyle.immersiveSplit.rawValue
     @State private var isPreferencesPresented = false
     @State private var isSearchPresented = false
 
     private var layoutStyle: MainWindowLayoutStyle {
-        MainWindowLayoutStyle(rawValue: layoutStyleRawValue) ?? .lyricsFocus
+        MainWindowLayoutStyle(rawValue: layoutStyleRawValue) ?? .immersiveSplit
     }
 
     var body: some View {
         GeometryReader { geometry in
-            let topBarHeight: CGFloat = layoutStyle == .lyricsFocus ? 116 : 68
+            let topBarHeight: CGFloat = layoutStyle == .lyricsFocus ? 116 : 64
             let contentHeight = max(0, geometry.size.height - topBarHeight)
 
             ZStack(alignment: .top) {
                 ArtworkBackgroundView(state: state)
 
                 layoutBody
+                    .animation(.easeInOut(duration: 0.24), value: layoutStyle)
                     .frame(maxWidth: .infinity)
                     .frame(height: contentHeight, alignment: .top)
                     .offset(y: topBarHeight)
@@ -26,15 +27,19 @@ struct MainLyricsWindowView: View {
                 VStack(spacing: 0) {
                     topBar
                         .padding(.horizontal, LyricsDesignTokens.immersiveWindowPadding)
-                        .padding(.top, 18)
-                        .padding(.bottom, 14)
+                        .padding(.top, layoutStyle == .lyricsFocus ? 18 : 8)
+                        .padding(.bottom, layoutStyle == .lyricsFocus ? 14 : 8)
 
                     Divider()
                         .overlay(LyricsDesignTokens.controlBorder)
 
                 }
                 .frame(height: topBarHeight)
-                .background(Color.black.opacity(0.14))
+                .background {
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .opacity(layoutStyle == .lyricsFocus ? 0.22 : 0.14)
+                }
             }
         }
         .frame(
@@ -42,6 +47,7 @@ struct MainLyricsWindowView: View {
             minHeight: LyricsDesignTokens.minimumMainWindowSize.height
         )
         .preferredColorScheme(.dark)
+        .background(Color.clear)
         .task {
             state.startProvider()
         }
@@ -64,13 +70,9 @@ struct MainLyricsWindowView: View {
             if layoutStyle == .lyricsFocus {
                 TrackHeaderView(track: state.currentTrack)
             } else {
-                HStack(spacing: 10) {
-                    Image(systemName: MainWindowLayoutStyle.immersiveSplit.systemImage)
-                        .foregroundStyle(LyricsDesignTokens.accent)
-                    Text(MainWindowLayoutStyle.immersiveSplit.title)
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundStyle(LyricsDesignTokens.primaryText)
-                }
+                Image(systemName: MainWindowLayoutStyle.immersiveSplit.systemImage)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(LyricsDesignTokens.accent)
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel("当前主窗口布局：沉浸分栏")
             }
@@ -222,15 +224,14 @@ struct MainLyricsWindowView: View {
                 }
             }
         } label: {
-            HStack(spacing: 6) {
-                Circle()
-                    .fill(state.canControlSpotify ? Color.green : Color.orange)
-                    .frame(width: 7, height: 7)
-                Text(state.canControlSpotify ? "Spotify 已连接" : "播放来源")
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .foregroundStyle(LyricsDesignTokens.mutedText)
-                    .lineLimit(1)
-            }
+            Circle()
+                .fill(state.canControlSpotify ? Color.green : Color.orange)
+                .frame(width: 8, height: 8)
+                .padding(14)
+                .background(
+                    Circle()
+                        .fill(LyricsDesignTokens.controlBackground.opacity(0.58))
+                )
         }
         .menuStyle(.borderlessButton)
         .buttonStyle(.plain)

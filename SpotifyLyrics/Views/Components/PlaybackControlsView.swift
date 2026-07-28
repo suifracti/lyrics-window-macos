@@ -27,6 +27,17 @@ struct PlaybackControlsView: View {
                 }
             }
         }
+        .padding(.horizontal, vertical ? 14 : 16)
+        .padding(.vertical, vertical ? 12 : 10)
+        .background {
+            Capsule(style: .continuous)
+                .fill(.regularMaterial)
+        }
+        .overlay {
+            Capsule(style: .continuous)
+                .stroke(LyricsDesignTokens.controlBorder.opacity(0.9), lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(0.18), radius: 16, y: 8)
         .accessibilityElement(children: .contain)
     }
 

@@ -57,7 +57,16 @@ public struct BackdropPalette: Equatable, Sendable {
     )
 
     public static func from(image: NSImage) -> BackdropPalette {
-        guard let representation = bitmapRepresentation(for: image) else {
+        guard let imageData = image.tiffRepresentation else {
+            return .neutral
+        }
+        return from(imageData: imageData)
+    }
+
+    /// Computes the palette from immutable image data so callers can move the
+    /// work off the main actor. The result is deterministic for a given cover.
+    public static func from(imageData: Data) -> BackdropPalette {
+        guard let representation = NSBitmapImageRep(data: imageData) else {
             return .neutral
         }
 
@@ -118,14 +127,6 @@ public struct BackdropPalette: Equatable, Sendable {
         )
     }
 
-    private static func bitmapRepresentation(for image: NSImage) -> NSBitmapImageRep? {
-        if let representation = image.representations.compactMap({ $0 as? NSBitmapImageRep }).first {
-            return representation
-        }
-        guard let tiff = image.tiffRepresentation else { return nil }
-        return NSBitmapImageRep(data: tiff)
-    }
-
     private static func luminance(of color: BackdropColor) -> Double {
         (color.red * 0.2126) + (color.green * 0.7152) + (color.blue * 0.0722)
     }
@@ -144,5 +145,49 @@ public struct BackdropPalette: Equatable, Sendable {
             green: lhs.green + (rhs.green - lhs.green) * amount,
             blue: lhs.blue + (rhs.blue - lhs.blue) * amount
         )
+    }
+}
+
+/// Track-bound cache for the relatively expensive cover sampling step.
+///
+/// Playback position never participates in the cache key. A new palette is
+/// computed only when the track/artwork identity changes, and the sampling is
+/// performed in a detached utility task rather than in a SwiftUI body.
+public actor BackdropPaletteCache {
+    public static let shared = BackdropPaletteCache()
+
+    private var values: [String: BackdropPalette] = [:]
+    private var order: [String] = []
+    private var inFlight: [String: Task<BackdropPalette, Never>] = [:]
+    private let capacity = 64
+
+    public init() {}
+
+    public func palette(for key: String, imageData: Data) async -> BackdropPalette {
+        if let cached = values[key] {
+            return cached
+        }
+
+        if let task = inFlight[key] {
+            return await task.value
+        }
+
+        let task = Task.detached(priority: .utility) {
+            BackdropPalette.from(imageData: imageData)
+        }
+        inFlight[key] = task
+
+        let palette = await task.value
+        inFlight[key] = nil
+        values[key] = palette
+        order.removeAll { $0 == key }
+        order.append(key)
+
+        if order.count > capacity, let evicted = order.first {
+            order.removeFirst()
+            values[evicted] = nil
+        }
+
+        return palette
     }
 }

@@ -57,9 +57,13 @@ struct TrackBackdropView: View {
             Image(nsImage: payload.image)
                 .resizable()
                 .scaledToFill()
-                .scaleEffect(1.24)
-                .blur(radius: 34)
+                .scaleEffect(1.34)
+                .blur(radius: 72)
                 .opacity(palette.textureOpacity)
+
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .opacity(0.34)
 
             LinearGradient(
                 colors: [
@@ -103,10 +107,24 @@ struct TrackBackdropView: View {
         }
         guard key == requestKey, !Task.isCancelled else { return }
 
+        guard let imageData = image.tiffRepresentation else {
+            guard key == requestKey, !Task.isCancelled else { return }
+            outgoingPayload = nil
+            return
+        }
+
+        // Palette sampling is keyed only by the current track/artwork and is
+        // performed off the main actor. Playback progress never re-enters it.
+        let palette = await BackdropPaletteCache.shared.palette(
+            for: key,
+            imageData: imageData
+        )
+        guard key == requestKey, !Task.isCancelled else { return }
+
         let payload = BackdropPayload(
             key: key,
             image: image,
-            palette: BackdropPalette.from(image: image)
+            palette: palette
         )
         withAnimation(.easeInOut(duration: 0.42)) {
             currentPayload = payload

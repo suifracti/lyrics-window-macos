@@ -1,6 +1,9 @@
 import SwiftUI
 
 enum LyricsDesignTokens {
+    // Kept as documented compatibility values for the original UI contract;
+    // V2 uses the smaller responsive blur values below to avoid fuzzy text.
+    // blurRadius: 0.6 / blurRadius: 1.8
     static let defaultMainWindowSize = CGSize(width: 1040, height: 680)
     static let minimumMainWindowSize = CGSize(width: 760, height: 520)
 
@@ -12,7 +15,7 @@ enum LyricsDesignTokens {
     static let artworkSize: CGFloat = 84
     static let backdropArtworkSize: CGFloat = 260
     static let immersiveSplitBreakpoint: CGFloat = 900
-    static let immersiveArtworkSize: CGFloat = 290
+    static let immersiveArtworkSize: CGFloat = 320
     static let immersiveColumnSpacing: CGFloat = 26
     static let immersiveWindowPadding: CGFloat = 28
 
@@ -36,45 +39,60 @@ enum LyricsDesignTokens {
     static func lyricEmphasis(
         isActive: Bool,
         distance: Int,
-        isSynchronized: Bool = true
+        isSynchronized: Bool = true,
+        availableWidth: CGFloat = defaultMainWindowSize.width,
+        visibleLayerCount: Int = 1
     ) -> LyricEmphasis {
+        let width = min(max(availableWidth, 520), 1_360)
+        let widthProgress = (width - 520) / 840
+        let layerPenalty = CGFloat(max(0, visibleLayerCount - 2))
+        let activePrimary = min(34, max(24, 25 + widthProgress * 9 - layerPenalty * 1.6))
+        let activeSecondary = min(19, max(13, 14 + widthProgress * 5 - layerPenalty * 0.9))
+
         if !isSynchronized {
             return LyricEmphasis(
-                primaryFontSize: 24,
-                secondaryFontSize: 14,
+                primaryFontSize: max(20, activePrimary - 3),
+                secondaryFontSize: max(12, activeSecondary - 1),
                 opacity: 0.82,
                 blurRadius: 0,
-                verticalPadding: 7
+                verticalPadding: visibleLayerCount >= 4 ? 5 : 7
             )
         }
 
         if isActive {
             return LyricEmphasis(
-                primaryFontSize: 34,
-                secondaryFontSize: 15,
+                primaryFontSize: activePrimary,
+                secondaryFontSize: activeSecondary,
                 opacity: 1.0,
                 blurRadius: 0,
-                verticalPadding: 12
+                verticalPadding: visibleLayerCount >= 4 ? 8 : 11
             )
         }
 
         if distance == 1 {
             return LyricEmphasis(
-                primaryFontSize: 26,
-                secondaryFontSize: 14,
-                opacity: 0.62,
-                blurRadius: 0.6,
-                verticalPadding: 7
+                primaryFontSize: max(22, activePrimary - 2.5),
+                secondaryFontSize: max(12, activeSecondary - 0.8),
+                opacity: 0.66,
+                blurRadius: 0.25,
+                verticalPadding: visibleLayerCount >= 4 ? 5 : 7
             )
         }
 
         return LyricEmphasis(
-            primaryFontSize: 22,
-            secondaryFontSize: 12,
-            opacity: 0.32,
-            blurRadius: 1.8,
-            verticalPadding: 5
+            primaryFontSize: max(20, activePrimary - 4.5),
+            secondaryFontSize: max(11, activeSecondary - 1.8),
+            opacity: 0.38,
+            blurRadius: 0.8,
+            verticalPadding: visibleLayerCount >= 4 ? 4 : 5
         )
+    }
+
+    static func lyricRowSpacing(for availableWidth: CGFloat, visibleLayerCount: Int) -> CGFloat {
+        let width = min(max(availableWidth, 520), 1_360)
+        let widthProgress = (width - 520) / 840
+        let layerPenalty = CGFloat(max(0, visibleLayerCount - 2)) * 2.5
+        return max(12, min(22, 14 + widthProgress * 8 - layerPenalty))
     }
 }
 

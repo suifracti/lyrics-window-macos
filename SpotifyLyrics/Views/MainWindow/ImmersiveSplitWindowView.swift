@@ -16,14 +16,22 @@ struct ImmersiveSplitWindowView: View {
 
     private var wideLayout: some View {
         GeometryReader { geometry in
+            let columnWidth = min(
+                max(geometry.size.width * 0.4, 300),
+                max(300, min(430, geometry.size.width * 0.42))
+            )
+            let availableArtwork = min(
+                max(geometry.size.height - 274, 190),
+                columnWidth - 44
+            )
+            let artworkSize = min(
+                LyricsDesignTokens.immersiveArtworkSize,
+                max(190, availableArtwork)
+            )
+
             HStack(spacing: 0) {
-                artworkColumn(
-                    size: min(
-                        230,
-                        max(180, geometry.size.height - 330)
-                    )
-                )
-                .frame(minWidth: 290, idealWidth: 360, maxWidth: 430)
+                artworkColumn(size: artworkSize)
+                    .frame(width: columnWidth)
 
                 Divider()
                     .overlay(LyricsDesignTokens.controlBorder.opacity(0.8))
@@ -33,24 +41,31 @@ struct ImmersiveSplitWindowView: View {
             }
         }
         .padding(.horizontal, LyricsDesignTokens.immersiveWindowPadding)
-        .padding(.vertical, 22)
+        .padding(.vertical, 20)
     }
 
     private var narrowLayout: some View {
-        ScrollView(.vertical) {
-            VStack(spacing: 20) {
-                artworkColumn(size: 220)
-                lyricsColumn
-                    .frame(minHeight: 360)
+        GeometryReader { geometry in
+            ScrollView(.vertical) {
+                VStack(spacing: 20) {
+                    artworkColumn(
+                        size: min(
+                            270,
+                            max(190, geometry.size.width - 76)
+                        )
+                    )
+                    lyricsColumn
+                        .frame(minHeight: 360)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 18)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 18)
+            .scrollIndicators(.hidden)
         }
-        .scrollIndicators(.hidden)
     }
 
     private func artworkColumn(size: CGFloat) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .center, spacing: 16) {
             HStack {
                 Spacer(minLength: 0)
                 ArtworkView(
@@ -61,7 +76,11 @@ struct ImmersiveSplitWindowView: View {
                 Spacer(minLength: 0)
             }
 
-            TrackMetadataView(track: state.currentTrack, titleSize: 24)
+            TrackMetadataView(
+                track: state.currentTrack,
+                titleSize: min(24, max(19, size * 0.075)),
+                alignment: .center
+            )
 
             HStack(spacing: 10) {
                 Button {
@@ -89,6 +108,7 @@ struct ImmersiveSplitWindowView: View {
 
                 Spacer()
             }
+            .frame(maxWidth: 220)
 
             PlaybackControlsView(state: state, vertical: true)
 
@@ -96,8 +116,8 @@ struct ImmersiveSplitWindowView: View {
                 statusSummary
             }
         }
-        .frame(maxHeight: .infinity, alignment: .top)
-        .padding(.trailing, 26)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.horizontal, 14)
     }
 
     private var lyricsColumn: some View {
@@ -108,10 +128,11 @@ struct ImmersiveSplitWindowView: View {
                     .foregroundStyle(LyricsDesignTokens.mutedText)
                     .textCase(.uppercase)
                 Spacer()
-                if state.canControlSpotify {
-                    Label("Spotify 已连接", systemImage: "circle.fill")
-                        .font(.system(size: 11, design: .rounded))
-                        .foregroundStyle(Color.green.opacity(0.86))
+                if !state.canControlSpotify || state.isUsingMockPreview {
+                    Circle()
+                        .fill(state.isUsingMockPreview ? Color.orange : Color.orange.opacity(0.86))
+                        .frame(width: 7, height: 7)
+                        .accessibilityLabel("播放来源异常或为预览模式")
                 }
             }
             .padding(.horizontal, 10)
