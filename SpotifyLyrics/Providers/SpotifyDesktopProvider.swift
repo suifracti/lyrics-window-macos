@@ -1,4 +1,5 @@
 import AppKit
+import Darwin
 import Foundation
 
 @MainActor
@@ -8,8 +9,25 @@ public final class SpotifyDesktopProvider: PlaybackProvider {
     private let applicationPath = "/Applications/Spotify.app"
     private let bundleIdentifier = "com.spotify.client"
     private let fieldSeparator = String(UnicodeScalar(30))
+    private let scriptRunner: @Sendable (String, TimeInterval) async throws -> String?
 
-    public init() {}
+    private static let refreshScriptTimeout: TimeInterval = 3
+    private static let commandScriptTimeout: TimeInterval = 5
+
+    public init() {
+        self.scriptRunner = { script, timeout in
+            try await SpotifyAppleScriptProcessRunner.shared.run(
+                script: script,
+                timeout: timeout
+            )
+        }
+    }
+
+    /// Test seam for the parser and connection state contract. Production
+    /// calls use the bounded, serial AppleScript process runner above.
+    init(scriptRunner: @escaping @Sendable (String, TimeInterval) async throws -> String?) {
+        self.scriptRunner = scriptRunner
+    }
 
     public func refresh() async -> PlaybackSnapshot {
         guard FileManager.default.fileExists(atPath: applicationPath) else {
@@ -80,21 +98,14 @@ public final class SpotifyDesktopProvider: PlaybackProvider {
     }
 
     private func executeCommand(_ script: String) async throws {
-        _ = try await execute(script: script)
+        _ = try await execute(script: script, timeout: Self.commandScriptTimeout)
     }
 
-    private func execute(script: String) async throws -> String? {
-        try await Task.detached(priority: .userInitiated) {
-            var errorInfo: NSDictionary?
-            let appleScript = NSAppleScript(source: script)
-            let descriptor = appleScript?.executeAndReturnError(&errorInfo)
-            if let errorInfo {
-                let number = (errorInfo[NSAppleScript.errorNumber] as? NSNumber)?.intValue
-                let message = errorInfo[NSAppleScript.errorMessage] as? String ?? "Apple Events 执行失败"
-                throw AppleScriptExecutionError(number: number, message: message)
-            }
-            return descriptor?.stringValue
-        }.value
+    private func execute(
+        script: String,
+        timeout: TimeInterval = 3
+    ) async throws -> String? {
+        try await scriptRunner(script, timeout)
     }
 
     private func parseSnapshot(_ value: String) -> PlaybackSnapshot {
@@ -165,6 +176,129 @@ public final class SpotifyDesktopProvider: PlaybackProvider {
 
     private static func appleScriptNumber(_ value: TimeInterval) -> String {
         String(format: "%.3f", locale: Locale(identifier: "en_US_POSIX"), value)
+    }
+}
+
+/// NSAppleScript has no reliable cancellation or timeout once an Apple Event
+/// is waiting on Spotify. Running one bounded `/usr/bin/osascript` process at a
+/// time lets a stalled event be terminated instead of accumulating detached
+/// threads and freezing the current-track stream.
+private actor SpotifyAppleScriptProcessRunner {
+    static let shared = SpotifyAppleScriptProcessRunner()
+
+    private var isRunning = false
+    private var waiters: [CheckedContinuation<Void, Never>] = []
+
+    func run(script: String, timeout: TimeInterval) async throws -> String? {
+        await acquire()
+        defer { release() }
+
+        let processTask = Task.detached(priority: .userInitiated) {
+            try Self.runProcess(script: script, timeout: timeout)
+        }
+        return try await withTaskCancellationHandler(operation: {
+            try await processTask.value
+        }, onCancel: {
+            processTask.cancel()
+        })
+    }
+
+    private func acquire() async {
+        if !isRunning {
+            isRunning = true
+            return
+        }
+
+        await withCheckedContinuation { continuation in
+            waiters.append(continuation)
+        }
+    }
+
+    private func release() {
+        if let continuation = waiters.first {
+            waiters.removeFirst()
+            continuation.resume()
+        } else {
+            isRunning = false
+        }
+    }
+
+    private nonisolated static func runProcess(
+        script: String,
+        timeout: TimeInterval
+    ) throws -> String? {
+        let outputPipe = Pipe()
+        let errorPipe = Pipe()
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
+        process.arguments = ["-e", script]
+        process.standardOutput = outputPipe
+        process.standardError = errorPipe
+
+        do {
+            try process.run()
+        } catch {
+            throw AppleScriptExecutionError(
+                number: nil,
+                message: "无法启动 osascript：\(error.localizedDescription)"
+            )
+        }
+
+        let deadline = Date().addingTimeInterval(max(0.2, timeout))
+        while process.isRunning {
+            if Task.isCancelled {
+                terminate(process)
+                throw CancellationError()
+            }
+            if Date() >= deadline {
+                terminate(process)
+                throw AppleScriptExecutionError(
+                    number: nil,
+                    message: "Spotify Apple Events 请求超时"
+                )
+            }
+            Thread.sleep(forTimeInterval: 0.05)
+        }
+
+        let output = outputPipe.fileHandleForReading.readDataToEndOfFile()
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        let standardOutput = String(data: output, encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let standardError = String(data: errorData, encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard process.terminationStatus == 0 else {
+            let message = standardError?.isEmpty == false
+                ? standardError!
+                : "Apple Events 执行失败（\(process.terminationStatus)）"
+            throw AppleScriptExecutionError(
+                number: parseErrorNumber(from: message),
+                message: message
+            )
+        }
+        return standardOutput
+    }
+
+    private nonisolated static func terminate(_ process: Process) {
+        guard process.isRunning else { return }
+        process.terminate()
+        let deadline = Date().addingTimeInterval(0.25)
+        while process.isRunning, Date() < deadline {
+            Thread.sleep(forTimeInterval: 0.02)
+        }
+        if process.isRunning {
+            kill(process.processIdentifier, SIGKILL)
+            process.waitUntilExit()
+        }
+    }
+
+    private nonisolated static func parseErrorNumber(from message: String) -> Int? {
+        guard let open = message.lastIndex(of: "("),
+              let close = message[open...].firstIndex(of: ")") else {
+            return nil
+        }
+        let numberStart = message.index(after: open)
+        return Int(message[numberStart..<close])
     }
 }
 

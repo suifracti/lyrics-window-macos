@@ -561,13 +561,21 @@ public final class PlaybackState: ObservableObject {
         let generation = providerRefreshGeneration
         isRefreshingProvider = true
         refreshRequestedWhileBusy = false
+        defer {
+            // A cancelled or failed refresh must release the single-flight
+            // guard as well. Otherwise a stale Apple Events task can leave
+            // the state permanently disconnected.
+            isRefreshingProvider = false
+        }
         let snapshot = await provider.refresh()
-        isRefreshingProvider = false
+        // Throttle from the end of every bounded attempt, including an
+        // unavailable/timeout result. Do not start a new task every timer tick
+        // while a previous Apple Events request is unwinding.
+        lastProviderRefreshDate = Date()
 
         let shouldApply = !Task.isCancelled && generation == providerRefreshGeneration && !isMockPreviewMode
         if shouldApply {
             synchronize(with: snapshot)
-            lastProviderRefreshDate = Date()
         }
 
         let shouldQueueRefresh = refreshRequestedWhileBusy

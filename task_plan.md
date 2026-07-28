@@ -388,3 +388,25 @@ Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 
 ### Phase 34 Scope
 - 本阶段只校准 Apple Music 沉浸 V3 主窗口视觉与对应合同/截图证据；不新增主窗口模式，不修改 V2、歌词专注模式、设置、搜索、Provider 或排轴结果。
+
+## Phase 35: Spotify Desktop Reconnect Hardening — complete
+- [x] 复现空闲后 Spotify 已切歌但 App 停留旧歌曲的断联；确认 Spotify 本身可读，旧实现的并发 `NSAppleScript` / Apple Events 请求发生阻塞
+- [x] 将桌面桥接改为串行、有限时长的 `/usr/bin/osascript` runner：刷新 3 秒、播放控制 5 秒，支持取消、terminate 和 SIGKILL 清理
+- [x] 为 `PlaybackState.refreshProvider()` 增加失败/取消路径的 guard 清理，并从每次有界尝试结束后重新节流，避免卡住或快速堆积刷新任务
+- [x] 保持 Spotify Desktop 播放控制、歌词 Provider、搜索和 V3 UI 不变；Provider 失败只产生不可用快照，不覆盖其他歌词链路
+- [x] 用真实 App 依次切换 `fragrance - Remix → 水曜日の約束 → 春を告げる → fragrance - Remix`，四次 `Playback trackChange` 均进入当前 App，未再停留旧歌曲
+- [x] 运行采样确认仅 9 个线程、无 `NSAppleScript`/SpotifyDesktopProvider 阻塞栈；唯一 `AESendMessage` 来自 LaunchServices 通知回调，不是 Spotify 桥接调用
+- [x] 正常签名 Debug 构建、codesign、连接合同、全量合同和绝对路径 App 截图验证
+
+### Phase 35 Evidence
+- 精确 App：`/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app`
+- 精确运行进程：`/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics`
+- 构建日志：`/tmp/spotifylyrics-connection-fix-build-release.log`，`** BUILD SUCCEEDED **`
+- 连接合同：`Tests/spotify_connection_contract.sh` passed；全量回归：`/tmp/spotifylyrics-connection-regression-final.log`，`REGRESSION_EXIT=0`
+- 真实运行日志：`/tmp/spotifylyrics-connection-final-runtime.log`，记录四次 `Playback trackChange` 和对应歌词 Session
+- 采样：`/tmp/spotifylyrics-connection-final-runtime-sample.txt`，`thread_headers=9`，无 Spotify bridge 阻塞栈
+- codesign：`codesign --verify --deep --strict` 返回 `CODESIGN_EXIT=0`
+- 真实 App 截图：`/tmp/spotifylyrics-connection-final-ui-2.png`，显示当前 `fragrance - Remix / 茉ひる`，与 Spotify 当前播放一致
+
+### Phase 35 Scope
+- 本阶段只修复 Spotify Desktop 当前歌曲识别的超时、取消、串行化和刷新清理；不新增歌词 Provider、不修改排轴结果、不修改 V3 视觉。
