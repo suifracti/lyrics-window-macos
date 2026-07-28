@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT_DIR"
+TMP_DIR="$(mktemp -d /tmp/spotifylyrics-sqlite.XXXXXX)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+cp Tests/sqlite_persistence_contract.swift "$TMP_DIR/main.swift"
+
+swiftc -parse-as-library \
+  SpotifyLyrics/Models/Models.swift \
+  SpotifyLyrics/Lyrics/TrackIdentity.swift \
+  SpotifyLyrics/Lyrics/LyricsModels.swift \
+  SpotifyLyrics/Lyrics/AlignmentModels.swift \
+  SpotifyLyrics/Lyrics/TrackAlias.swift \
+  SpotifyLyrics/Lyrics/TrackMetadata.swift \
+  SpotifyLyrics/Lyrics/TrackTextNormalizer.swift \
+  SpotifyLyrics/Lyrics/JapaneseRomanizer.swift \
+  SpotifyLyrics/Lyrics/JapaneseReadingPipeline.swift \
+  SpotifyLyrics/Lyrics/JapaneseKanaGenerator.swift \
+  SpotifyLyrics/Lyrics/LyricsMatcher.swift \
+  SpotifyLyrics/Persistence/DatabaseModels.swift \
+  SpotifyLyrics/Persistence/DatabaseMigrator.swift \
+  SpotifyLyrics/Persistence/LyricsRepository.swift \
+  SpotifyLyrics/Persistence/LyricsPersistenceMapper.swift \
+  SpotifyLyrics/Persistence/SQLiteLyricsRepository.swift \
+  "$TMP_DIR/main.swift" \
+  -o "$TMP_DIR/sqlite-persistence-contract"
+
+"$TMP_DIR/sqlite-persistence-contract"

@@ -48,7 +48,8 @@ public final class LocalLyricsProvider: LyricsProvider, @unchecked Sendable {
             lines: document.lines,
             isSynchronized: document.isSynchronized,
             source: .local,
-            confidence: document.confidence
+            confidence: document.confidence,
+            providerSourceID: document.providerSourceID
         )
         return .candidates([candidate])
     }

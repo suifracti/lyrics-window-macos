@@ -29,6 +29,7 @@ public final class PlaybackState: ObservableObject {
 
     private let provider: PlaybackProvider
     private let lyricsSession: LyricsSessionController
+    private let lyricsRepository: (any LyricsRepository)
     public let songSearchManager: SongSearchManager
     private var lyricsSessionCancellable: AnyCancellable?
     private var timer: Timer?
@@ -37,6 +38,7 @@ public final class PlaybackState: ObservableObject {
     private var providerRefreshGeneration: UInt64 = 0
     private var refreshRequestedWhileBusy = false
     private var providerRefreshTask: Task<Void, Never>?
+    private var persistencePreparationTask: Task<Void, Never>?
     private var networkRecoveryMonitor: NWPathMonitor?
     private var networkWasSatisfied = false
     private var playbackAnchorPosition: TimeInterval = 0
@@ -47,7 +49,8 @@ public final class PlaybackState: ObservableObject {
 
     public init(
         provider: PlaybackProvider? = nil,
-        lyricsProvider: LyricsProvider? = nil
+        lyricsProvider: LyricsProvider? = nil,
+        lyricsRepository: (any LyricsRepository)? = nil
     ) {
         let resolvedProvider = provider ?? SpotifyDesktopProvider()
         self.provider = resolvedProvider
@@ -58,9 +61,14 @@ public final class PlaybackState: ObservableObject {
         } else {
             lyricsProviders = Self.makeDefaultLyricsProviders(index: sharedIndex)
         }
+        let resolvedRepository: any LyricsRepository = lyricsRepository ?? SQLiteLyricsRepository()
         LyricsE2ELog.reset()
         LyricsE2ELog.log("PlaybackState init providers=" + lyricsProviders.map { $0.name }.joined(separator: ","))
-        self.lyricsSession = LyricsSessionController(providers: lyricsProviders)
+        self.lyricsRepository = resolvedRepository
+        self.lyricsSession = LyricsSessionController(
+            providers: lyricsProviders,
+            repository: resolvedRepository
+        )
         // Track search is metadata-only: local index + current Spotify track.
         // LRCLIB stays isolated inside the lyrics session path.
         self.songSearchManager = SongSearchManager(providers: [
@@ -84,10 +92,15 @@ public final class PlaybackState: ObservableObject {
 
 
     private static func makeDefaultLyricsProviders(index: LocalLyricsIndex) -> [LyricsProvider] {
-        var providers: [LyricsProvider] = [
-            LocalLyricsProvider(index: index),
-            LRCLIBLyricsProvider()
-        ]
+        var providers: [LyricsProvider] = [LocalLyricsProvider(index: index)]
+        // Test-only offline acceptance switch. It leaves the normal provider
+        // order unchanged while allowing a restart to prove SQLite recovery
+        // without making a network request to LRCLIB.
+        if ProcessInfo.processInfo.environment["SPOTIFYLYRICS_DISABLE_LRCLIB"] != "1" {
+            providers.append(LRCLIBLyricsProvider())
+        } else {
+            LyricsE2ELog.log("Lyrics provider disabled by environment: LRCLIB")
+        }
         // Experimental NetEase: catalog≠body (あやふや / 水曜日の約束 Kawasaki.Rio empty lrc).
         if ProcessInfo.processInfo.environment["SPOTIFYLYRICS_DISABLE_NETEASE"] != "1" {
             providers.append(NetEaseExperimentalLyricsProvider())
@@ -102,6 +115,7 @@ public final class PlaybackState: ObservableObject {
     deinit {
         timer?.invalidate()
         providerRefreshTask?.cancel()
+        persistencePreparationTask?.cancel()
         networkRecoveryMonitor?.cancel()
         lyricsSessionCancellable?.cancel()
     }
@@ -137,7 +151,11 @@ public final class PlaybackState: ObservableObject {
     }
 
     public var lyricsStatusMessage: String {
-        lyricsState.userFacingMessage
+        if let persistenceStatus = lyricsSession.persistenceStatusMessage, !persistenceStatus.isEmpty {
+            let stateMessage = lyricsState.userFacingMessage
+            return stateMessage.isEmpty ? persistenceStatus : "\(stateMessage) · \(persistenceStatus)"
+        }
+        return lyricsState.userFacingMessage
     }
 
     public func startProvider() {
@@ -145,6 +163,17 @@ public final class PlaybackState: ObservableObject {
         isProviderStarted = true
         startTimer()
         startNetworkRecoveryMonitor()
+        persistencePreparationTask = Task { [weak self, lyricsRepository] in
+            do {
+                try await lyricsRepository.prepare()
+                LyricsE2ELog.log("PERSISTENCE startup ready")
+            } catch {
+                LyricsE2ELog.log("PERSISTENCE startup failed error=\(error.localizedDescription)")
+                await MainActor.run {
+                    self?.objectWillChange.send()
+                }
+            }
+        }
         providerRefreshTask = Task { @MainActor [weak self] in
             await self?.refreshProvider()
         }
@@ -503,7 +532,8 @@ public final class PlaybackState: ObservableObject {
                 lines: lyrics.lines,
                 isSynchronized: lyrics.isSynchronized,
                 source: lyrics.source,
-                confidence: metadataConfidence
+                confidence: metadataConfidence,
+                providerSourceID: lyrics.providerSourceID
             )
             lyricsSession.adopt(document: remapped)
             songSearchSelectionMessage = "已加载搜索结果歌词，播放位置未改变"

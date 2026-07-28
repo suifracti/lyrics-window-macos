@@ -92,7 +92,8 @@ public final class LyricsSearchManager: @unchecked Sendable {
                         lines: document.lines,
                         isSynchronized: document.isSynchronized,
                         source: document.source,
-                        confidence: document.confidence
+                        confidence: document.confidence,
+                        providerSourceID: document.providerSourceID
                     )
                     let decision = LyricsSafeMatcher.decide(
                         candidate: candidate,
@@ -141,7 +142,8 @@ public final class LyricsSearchManager: @unchecked Sendable {
                                 lines: item.lines,
                                 isSynchronized: item.isSynchronized,
                                 source: item.source,
-                                confidence: item.confidence
+                                confidence: item.confidence,
+                                providerSourceID: item.providerSourceID
                             )
                             let enriched = Self.finalizeDocument(document, identity: identity)
                             LyricsE2ELog.log("MANAGER AUTO_ADOPT from-candidates provider=\(provider.name) strategy=\(variant.strategy.rawValue) tier=\(decision.tier) lines=\(enriched.lines.count) first=\(enriched.lines.first?.originalText ?? "")")
@@ -224,7 +226,8 @@ public final class LyricsSearchManager: @unchecked Sendable {
             lines: lines,
             isSynchronized: document.isSynchronized,
             source: document.source,
-            confidence: document.confidence
+            confidence: document.confidence,
+            providerSourceID: document.providerSourceID
         )
     }
 
@@ -239,7 +242,8 @@ public final class LyricsSearchManager: @unchecked Sendable {
             lines: LyricsLayerEnricher.enrich(lines: candidate.lines),
             isSynchronized: candidate.isSynchronized,
             source: candidate.source,
-            confidence: candidate.confidence
+            confidence: candidate.confidence,
+            providerSourceID: candidate.providerSourceID
         )
     }
 }

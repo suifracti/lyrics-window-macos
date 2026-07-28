@@ -154,7 +154,8 @@ public struct AlignmentReport: Equatable, Sendable {
             lines: lines.map { $0.asLyricLine() },
             isSynchronized: true,
             source: source,
-            confidence: overallConfidence
+            confidence: overallConfidence,
+            providerSourceID: base.providerSourceID
         )
     }
 }

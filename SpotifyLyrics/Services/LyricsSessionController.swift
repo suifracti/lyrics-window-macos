@@ -8,14 +8,22 @@ public final class LyricsSessionController: ObservableObject {
     @Published public private(set) var isSynchronized = true
     @Published public private(set) var activeIdentity: TrackIdentity?
     @Published public private(set) var revision: UInt64 = 0
+    @Published public private(set) var persistenceStatusMessage: String?
 
     private let searchManager: LyricsSearchManager
+    private let repository: (any LyricsRepository)?
     private var requestTask: Task<Void, Never>?
     private var automaticRecoveryRetryIdentity: TrackIdentity?
+    private var activeTrack: Track?
 
     /// Primary production path: multi-variant LyricsSearchManager (not a dead Orchestrator).
-    public init(providers: [LyricsProvider], name: String = "LyricsSearchManager") {
+    public init(
+        providers: [LyricsProvider],
+        name: String = "LyricsSearchManager",
+        repository: (any LyricsRepository)? = nil
+    ) {
         self.searchManager = LyricsSearchManager(providers: providers, name: name)
+        self.repository = repository
     }
 
     /// Test/compat wrapper around a single composite provider.
@@ -43,6 +51,8 @@ public final class LyricsSessionController: ObservableObject {
             automaticRecoveryRetryIdentity = nil
         }
         activeIdentity = identity
+        activeTrack = track
+        persistenceStatusMessage = nil
         lyrics = []
         isSynchronized = true
         state = .loading(identity)
@@ -51,8 +61,35 @@ public final class LyricsSessionController: ObservableObject {
             "SESSION begin rev=\(requestRevision) identity=\(identity.stableKey) title=\(track.title) artist=\(track.artist) duration=\(track.duration) spotifyId=\(track.spotifyId ?? "")"
         )
 
-        requestTask = Task { [weak self, searchManager] in
-            let outcome = await searchManager.search(track: track, identity: identity)
+        requestTask = Task { [weak self, searchManager, repository] in
+            var outcome: SearchOutcome?
+            var persistenceError: String?
+            var repositoryReady = false
+
+            if let repository {
+                do {
+                    try await repository.prepare()
+                    repositoryReady = true
+                    if let cached = try await repository.loadBest(track: track, identity: identity) {
+                        LyricsE2ELog.log(
+                            "SESSION persistence hit rev=\(requestRevision) source=\(cached.source) provider=\(cached.providerSourceID ?? "") lines=\(cached.lines.count) sync=\(cached.isSynchronized)"
+                        )
+                        outcome = SearchOutcome(result: .match(cached), diagnostics: [])
+                    } else {
+                        LyricsE2ELog.log("SESSION persistence miss rev=\(requestRevision) identity=\(identity.stableKey)")
+                    }
+                } catch {
+                    persistenceError = error.localizedDescription
+                    LyricsE2ELog.log("PERSISTENCE prepare/load failed rev=\(requestRevision) error=\(error.localizedDescription)")
+                }
+            }
+
+            if outcome == nil, !Task.isCancelled {
+                let searched = await searchManager.search(track: track, identity: identity)
+                outcome = searched
+            }
+
+            guard let outcome else { return }
             guard !Task.isCancelled else {
                 LyricsE2ELog.log("SESSION cancelled before apply rev=\(requestRevision)")
                 return
@@ -61,8 +98,46 @@ public final class LyricsSessionController: ObservableObject {
             for d in outcome.diagnostics {
                 LyricsE2ELog.log("  DIAG \(d.provider) \(Self.describeDiag(d.outcome)) \(String(format: "%.2f", d.duration))s")
             }
-            await MainActor.run {
-                self?.apply(outcome.result, identity: identity, requestRevision: requestRevision)
+            let didApply = await MainActor.run { [weak self] () -> Bool in
+                guard let self,
+                      self.activeIdentity == identity,
+                      self.revision == requestRevision else {
+                    let currentRevision = self?.revision.description ?? "none"
+                    LyricsE2ELog.log("SESSION drop stale result rev=\(requestRevision) current=\(currentRevision)")
+                    return false
+                }
+                self.persistenceStatusMessage = persistenceError
+                self.apply(outcome.result, identity: identity, requestRevision: requestRevision)
+                return true
+            }
+
+            // Persist only after the current Session has accepted the match.
+            // This prevents a late result from a cancelled track request from
+            // being written as if it belonged to the next playback session.
+            if didApply,
+               repositoryReady,
+               case .match(let document) = outcome.result,
+               !Task.isCancelled,
+               document.identity == identity,
+               !document.lines.isEmpty,
+               LyricsMatcher.isHighConfidence(document.confidence) {
+                do {
+                    let saved = try await repository?.save(
+                        track: track,
+                        identity: identity,
+                        document: document
+                    )
+                    LyricsE2ELog.log(
+                        "SESSION persistence save rev=\(requestRevision) disposition=\(String(describing: saved?.disposition)) lines=\(document.lines.count)"
+                    )
+                } catch {
+                    let message = error.localizedDescription
+                    LyricsE2ELog.log("PERSISTENCE save failed rev=\(requestRevision) error=\(message)")
+                    await MainActor.run { [weak self] in
+                        guard let self, self.activeIdentity == identity else { return }
+                        self.persistenceStatusMessage = message
+                    }
+                }
             }
         }
     }
@@ -108,6 +183,7 @@ public final class LyricsSessionController: ObservableObject {
         cancelCurrentRequest()
         revision &+= 1
         activeIdentity = nil
+        activeTrack = nil
         automaticRecoveryRetryIdentity = nil
         lyrics = []
         isSynchronized = true
@@ -119,6 +195,7 @@ public final class LyricsSessionController: ObservableObject {
         cancelCurrentRequest()
         revision &+= 1
         activeIdentity = nil
+        activeTrack = nil
         automaticRecoveryRetryIdentity = nil
         lyrics = lines
         isSynchronized = true
@@ -145,9 +222,11 @@ public final class LyricsSessionController: ObservableObject {
             lines: candidate.lines,
             isSynchronized: candidate.isSynchronized,
             source: candidate.source,
-            confidence: candidate.confidence
+            confidence: candidate.confidence,
+            providerSourceID: candidate.providerSourceID
         )
         applyLoadedDocument(document, identity: candidate.identity)
+        persistAdoptedDocument(document)
     }
 
     public func adopt(document: LyricsDocument) {
@@ -158,6 +237,7 @@ public final class LyricsSessionController: ObservableObject {
         cancelCurrentRequest()
         revision &+= 1
         applyLoadedDocument(document, identity: document.identity)
+        persistAdoptedDocument(document)
     }
 
 
@@ -223,12 +303,14 @@ public final class LyricsSessionController: ObservableObject {
             lines: timed.lines,
             isSynchronized: true,
             source: .automaticAlignment,
-            confidence: report.overallConfidence
+            confidence: report.overallConfidence,
+            providerSourceID: timed.providerSourceID
         )
         lyrics = confirmed.lines
         isSynchronized = true
         state = .loaded(confirmed)
         LyricsE2ELog.log("SESSION alignment confirmed lines=\(confirmed.lines.count)")
+        persistAdoptedDocument(confirmed)
         guard saveLocal else { return nil }
         return try LocalAlignedLyricsStore.save(document: confirmed, report: report, manuallyCorrected: false)
     }
@@ -244,7 +326,8 @@ public final class LyricsSessionController: ObservableObject {
             lines: enrichedLines,
             isSynchronized: document.isSynchronized,
             source: document.source,
-            confidence: document.confidence
+            confidence: document.confidence,
+            providerSourceID: document.providerSourceID
         )
         lyrics = enriched.lines
         isSynchronized = enriched.isSynchronized
@@ -306,6 +389,31 @@ public final class LyricsSessionController: ObservableObject {
     private func cancelCurrentRequest() {
         requestTask?.cancel()
         requestTask = nil
+    }
+
+    private func persistAdoptedDocument(_ document: LyricsDocument) {
+        guard let repository, let activeTrack,
+              activeIdentity == document.identity,
+              !document.lines.isEmpty else { return }
+        let identity = document.identity
+        Task { [weak self] in
+            do {
+                let result = try await repository.save(
+                    track: activeTrack,
+                    identity: identity,
+                    document: document
+                )
+                LyricsE2ELog.log(
+                    "SESSION adopted persistence disposition=\(String(describing: result.disposition)) source=\(document.source) lines=\(document.lines.count)"
+                )
+            } catch {
+                LyricsE2ELog.log("PERSISTENCE adopted save failed error=\(error.localizedDescription)")
+                await MainActor.run {
+                    guard let self, self.activeIdentity == identity else { return }
+                    self.persistenceStatusMessage = error.localizedDescription
+                }
+            }
+        }
     }
 
     private static func describe(_ result: LyricsLookupResult) -> String {

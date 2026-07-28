@@ -75,6 +75,11 @@
 		1100004D2D83400100000001 /* JapaneseReadingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */; };
 		110000502D83400100000001 /* AppleMusicImmersiveV3WindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000502D83400100000000 /* AppleMusicImmersiveV3WindowView.swift */; };
 		110000512D83400100000001 /* AppleMusicImmersiveV3BackdropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000512D83400100000000 /* AppleMusicImmersiveV3BackdropView.swift */; };
+		110000522D83400100000001 /* DatabaseModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000522D83400100000000 /* DatabaseModels.swift */; };
+		110000532D83400100000001 /* DatabaseMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000532D83400100000000 /* DatabaseMigrator.swift */; };
+		110000542D83400100000001 /* LyricsRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000542D83400100000000 /* LyricsRepository.swift */; };
+		110000552D83400100000001 /* LyricsPersistenceMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000552D83400100000000 /* LyricsPersistenceMapper.swift */; };
+		110000562D83400100000001 /* SQLiteLyricsRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000562D83400100000000 /* SQLiteLyricsRepository.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -148,6 +153,11 @@
 		1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JapaneseReadingPipeline.swift; sourceTree = "<group>"; };
 		110000502D83400100000000 /* AppleMusicImmersiveV3WindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicImmersiveV3WindowView.swift; sourceTree = "<group>"; };
 		110000512D83400100000000 /* AppleMusicImmersiveV3BackdropView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicImmersiveV3BackdropView.swift; sourceTree = "<group>"; };
+		110000522D83400100000000 /* DatabaseModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseModels.swift; sourceTree = "<group>"; };
+		110000532D83400100000000 /* DatabaseMigrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseMigrator.swift; sourceTree = "<group>"; };
+		110000542D83400100000000 /* LyricsRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsRepository.swift; sourceTree = "<group>"; };
+		110000552D83400100000000 /* LyricsPersistenceMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsPersistenceMapper.swift; sourceTree = "<group>"; };
+		110000562D83400100000000 /* SQLiteLyricsRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteLyricsRepository.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -176,6 +186,7 @@
 				110000112D83400100000000 /* SpotifyLyrics.entitlements */,
 				110000002D83400000000020 /* Views */,
 				110000002D83400000000023 /* Design */,
+				110000002D83400000000027 /* Persistence */,
 			);
 			path = SpotifyLyrics;
 			sourceTree = "<group>";
@@ -289,6 +300,18 @@
 				110000282D83400100000000 /* SongSearchManager.swift */,
 			);
 			path = Search;
+			sourceTree = "<group>";
+		};
+		110000002D83400000000027 /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+				110000522D83400100000000 /* DatabaseModels.swift */,
+				110000532D83400100000000 /* DatabaseMigrator.swift */,
+				110000542D83400100000000 /* LyricsRepository.swift */,
+				110000552D83400100000000 /* LyricsPersistenceMapper.swift */,
+				110000562D83400100000000 /* SQLiteLyricsRepository.swift */,
+			);
+			path = Persistence;
 			sourceTree = "<group>";
 		};
 		110000002D83400000000003 /* Products */ = {
@@ -430,6 +453,11 @@
 				110000352D83400100000001 /* LyricsQueryPlanner.swift in Sources */,
 				110000362D83400100000001 /* LyricsSafeMatcher.swift in Sources */,
 				110000372D83400100000001 /* LyricsRecoveryModels.swift in Sources */,
+				110000522D83400100000001 /* DatabaseModels.swift in Sources */,
+				110000532D83400100000001 /* DatabaseMigrator.swift in Sources */,
+				110000542D83400100000001 /* LyricsRepository.swift in Sources */,
+				110000552D83400100000001 /* LyricsPersistenceMapper.swift in Sources */,
+				110000562D83400100000001 /* SQLiteLyricsRepository.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -46,7 +46,8 @@ public final class NetEaseExperimentalLyricsProvider: LyricsProvider, @unchecked
                         lines: document.lines,
                         isSynchronized: document.isSynchronized,
                         source: .neteaseExperimental,
-                        confidence: score(song: song, track: track)
+                        confidence: score(song: song, track: track),
+                        providerSourceID: "netease:\(song.id)"
                     )
                 )
             }
@@ -69,7 +70,8 @@ public final class NetEaseExperimentalLyricsProvider: LyricsProvider, @unchecked
                         lines: best.lines,
                         isSynchronized: best.isSynchronized,
                         source: .neteaseExperimental,
-                        confidence: best.confidence
+                        confidence: best.confidence,
+                        providerSourceID: best.providerSourceID
                     )
                 )
             }
@@ -158,7 +160,8 @@ public final class NetEaseExperimentalLyricsProvider: LyricsProvider, @unchecked
                 lines: lines,
                 isSynchronized: synced.isSynchronized,
                 source: .neteaseExperimental,
-                confidence: score(song: song, track: track)
+                confidence: score(song: song, track: track),
+                providerSourceID: "netease:\(song.id)"
             )
         }
 
@@ -177,7 +180,8 @@ public final class NetEaseExperimentalLyricsProvider: LyricsProvider, @unchecked
             lines: plain,
             isSynchronized: false,
             source: .neteaseExperimental,
-            confidence: score(song: song, track: track)
+            confidence: score(song: song, track: track),
+            providerSourceID: "netease:\(song.id)"
         )
     }
 

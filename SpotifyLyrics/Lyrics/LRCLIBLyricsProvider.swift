@@ -189,7 +189,8 @@ public final class LRCLIBLyricsProvider: LyricsProvider, @unchecked Sendable {
                 lines: parsed.lines,
                 isSynchronized: parsed.isSynchronized,
                 source: .lrclib,
-                confidence: 0
+                confidence: 0,
+                providerSourceID: "lrclib:\(record.id.map(String.init) ?? String(index))"
             )
             let score = LyricsMatcher.score(track: track, candidate: base)
             candidates.append(
@@ -203,7 +204,8 @@ public final class LRCLIBLyricsProvider: LyricsProvider, @unchecked Sendable {
                     lines: base.lines,
                     isSynchronized: base.isSynchronized,
                     source: .lrclib,
-                    confidence: score
+                    confidence: score,
+                    providerSourceID: base.providerSourceID
                 )
             )
         }
@@ -231,7 +233,8 @@ public final class LRCLIBLyricsProvider: LyricsProvider, @unchecked Sendable {
                     lines: best.lines,
                     isSynchronized: best.isSynchronized,
                     source: .lrclib,
-                    confidence: best.confidence
+                    confidence: best.confidence,
+                    providerSourceID: best.providerSourceID
                 )
             )
         }

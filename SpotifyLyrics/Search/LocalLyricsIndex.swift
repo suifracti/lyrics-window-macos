@@ -97,7 +97,8 @@ public final class LocalLyricsIndex: @unchecked Sendable {
                 lines: parsed.lines,
                 isSynchronized: parsed.isSynchronized,
                 source: .local,
-                confidence: confidence
+                confidence: confidence,
+                providerSourceID: entry.resultID
             )
         }
     }

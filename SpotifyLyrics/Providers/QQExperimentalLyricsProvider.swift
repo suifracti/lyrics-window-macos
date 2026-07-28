@@ -65,7 +65,8 @@ public final class QQExperimentalLyricsProvider: LyricsProvider, @unchecked Send
                         lines: lines,
                         isSynchronized: synced,
                         source: .qqExperimental,
-                        confidence: conf
+                        confidence: conf,
+                        providerSourceID: "qq:\(song.songmid)"
                     )
                 )
             }
@@ -91,7 +92,8 @@ public final class QQExperimentalLyricsProvider: LyricsProvider, @unchecked Send
                         lines: best.lines,
                         isSynchronized: best.isSynchronized,
                         source: .qqExperimental,
-                        confidence: best.confidence
+                        confidence: best.confidence,
+                        providerSourceID: best.providerSourceID
                     )
                 )
             }

@@ -32,6 +32,9 @@ public struct LyricsDocument: Equatable, Sendable {
     public let isSynchronized: Bool
     public let source: LyricsSource
     public let confidence: Double
+    /// Provider record identifier used for persistence de-duplication. It is
+    /// optional to keep existing Provider/fixture initializers source-compatible.
+    public let providerSourceID: String?
 
     public init(
         identity: TrackIdentity,
@@ -42,7 +45,8 @@ public struct LyricsDocument: Equatable, Sendable {
         lines: [LyricLine],
         isSynchronized: Bool = true,
         source: LyricsSource,
-        confidence: Double = 1
+        confidence: Double = 1,
+        providerSourceID: String? = nil
     ) {
         self.identity = identity
         self.title = title
@@ -53,6 +57,7 @@ public struct LyricsDocument: Equatable, Sendable {
         self.isSynchronized = isSynchronized
         self.source = source
         self.confidence = confidence
+        self.providerSourceID = providerSourceID
     }
 }
 
@@ -67,6 +72,7 @@ public struct LyricsCandidate: Identifiable, Equatable, Sendable {
     public let isSynchronized: Bool
     public let source: LyricsSource
     public let confidence: Double
+    public let providerSourceID: String?
 
     public init(
         id: String,
@@ -78,7 +84,8 @@ public struct LyricsCandidate: Identifiable, Equatable, Sendable {
         lines: [LyricLine],
         isSynchronized: Bool = true,
         source: LyricsSource,
-        confidence: Double
+        confidence: Double,
+        providerSourceID: String? = nil
     ) {
         self.id = id
         self.identity = identity
@@ -90,6 +97,7 @@ public struct LyricsCandidate: Identifiable, Equatable, Sendable {
         self.isSynchronized = isSynchronized
         self.source = source
         self.confidence = confidence
+        self.providerSourceID = providerSourceID
     }
 }
 

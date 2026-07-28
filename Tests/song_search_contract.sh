@@ -78,6 +78,7 @@ COMMON=(
   "SpotifyLyrics/Lyrics/CompositeLyricsProvider.swift"
   "SpotifyLyrics/Lyrics/LocalAlignedLyricsStore.swift"
   "SpotifyLyrics/Services/LyricsSessionController.swift"
+  "SpotifyLyrics/Persistence/LyricsRepository.swift"
   "SpotifyLyrics/Providers/PlaybackProvider.swift"
   "SpotifyLyrics/Search/LocalLyricsIndex.swift"
   "SpotifyLyrics/Search/TrackSearchModels.swift"
