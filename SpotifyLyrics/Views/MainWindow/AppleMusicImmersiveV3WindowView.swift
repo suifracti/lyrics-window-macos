@@ -4,7 +4,7 @@ import SwiftUI
 /// separate layouts; this view owns only the V3 canvas and its transient tools.
 struct AppleMusicImmersiveV3WindowView: View {
     @ObservedObject var state: PlaybackState
-    @AppStorage("mainWindowLayoutStyle") private var layoutStyleRawValue = MainWindowLayoutStyle.appleMusicImmersiveV3.rawValue
+    @Binding var layoutStyleRawValue: String
 
     @State private var isPreferencesPresented = false
     @State private var isSearchPresented = false
@@ -565,6 +565,8 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
             isSynchronized: synchronized,
             availableWidth: availableWidth,
             compact: compact,
+            showOriginal: state.preferences.showOriginal,
+            kanaDisplayMode: state.preferences.kanaDisplayMode,
             showRomaji: state.preferences.showRomaji,
             showTranslation: state.preferences.showTranslation
         )
@@ -611,6 +613,8 @@ private struct AppleMusicImmersiveV3LyricRow: View {
     let isSynchronized: Bool
     let availableWidth: CGFloat
     let compact: Bool
+    let showOriginal: Bool
+    let kanaDisplayMode: KanaDisplayMode
     let showRomaji: Bool
     let showTranslation: Bool
 
@@ -642,8 +646,69 @@ private struct AppleMusicImmersiveV3LyricRow: View {
     private var auxiliarySize: CGFloat { min(compact ? 16 : 18, max(14, baseSize * 0.44)) }
 
     private var shouldShowRuby: Bool {
+        guard kanaDisplayMode == .inlineRuby else { return false }
         guard isSynchronized else { return true }
         return distance <= 1
+    }
+
+    private var shouldShowKana: Bool {
+        guard kanaDisplayMode != .hidden,
+              line.kanaText?.isEmpty == false else { return false }
+        guard isSynchronized else { return true }
+        return distance <= 1
+    }
+
+    private var displayKanaText: String? {
+        line.kanaText.map(JapaneseRomanizer.displayKana)
+    }
+
+    /// Keep a confirmed token mapping when one exists. For older lyric data
+    /// without token-level readings, `RubyLineView` receives nil and safely
+    /// falls back to a word-level annotation instead of dropping kana.
+    private var inlineRubyTokens: [LyricRubyToken]? {
+        guard let tokens = line.rubyTokens,
+              tokens.contains(where: { $0.hasDisplayRuby }) else {
+            return nil
+        }
+        return tokens
+    }
+
+    private var shouldRenderInlineRuby: Bool {
+        guard showOriginal,
+              shouldShowRuby,
+              let kana = displayKanaText,
+              !kana.isEmpty else {
+            return false
+        }
+
+        // Do not create a redundant ruby block for an already-hiragana line.
+        // Kanji and katakana surfaces both benefit from a confirmed reading.
+        return line.originalText.unicodeScalars.contains { scalar in
+            (0x3400...0x4DBF).contains(scalar.value)
+                || (0x4E00...0x9FFF).contains(scalar.value)
+                || (0xF900...0xFAFF).contains(scalar.value)
+                || (0x30A1...0x30FA).contains(scalar.value)
+        }
+    }
+
+    private var distinctRomaji: String? {
+        guard showRomaji,
+              let romaji = line.romajiText?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !romaji.isEmpty else { return nil }
+        // A malformed provider payload sometimes repeats the kana layer in
+        // `romajiText`. Do not show the same reading twice in independent-line
+        // mode; legitimate Latin Hepburn remains unchanged.
+        if let kana = displayKanaText,
+           normalizedDisplayText(romaji) == normalizedDisplayText(kana) {
+            return nil
+        }
+        return romaji
+    }
+
+    private func normalizedDisplayText(_ text: String) -> String {
+        JapaneseRomanizer.displayKana(text)
+            .split(whereSeparator: { $0.isWhitespace })
+            .joined()
     }
 
     private var shouldShowRomaji: Bool {
@@ -690,15 +755,12 @@ private struct AppleMusicImmersiveV3LyricRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if shouldShowRuby,
-               let kana = line.kanaText,
-               !kana.isEmpty,
-               let tokens = line.rubyTokens,
-               tokens.contains(where: { $0.hasRuby }) {
+            if shouldRenderInlineRuby,
+               let kana = displayKanaText {
                 RubyLineView(
                     originalText: line.originalText,
                     kanaText: kana,
-                    tokens: tokens,
+                    tokens: inlineRubyTokens,
                     baseFont: .system(size: baseSize, weight: rowWeight, design: .rounded),
                     rubyFont: .system(size: rubySize, weight: .regular, design: .rounded),
                     baseColor: .white,
@@ -706,14 +768,39 @@ private struct AppleMusicImmersiveV3LyricRow: View {
                     rubySpacing: 1,
                     tokenVerticalSpacing: 3
                 )
-            } else {
+            } else if showOriginal, kanaDisplayMode == .kanaReplacement, shouldShowKana,
+                      let kana = displayKanaText {
+                KanaReplacementLineView(
+                    originalText: line.originalText,
+                    kanaText: kana,
+                    tokens: line.rubyTokens,
+                    showsOriginalAnnotation: true,
+                    baseFont: .system(size: baseSize, weight: rowWeight, design: .rounded),
+                    annotationFont: .system(size: rubySize, weight: .regular, design: .rounded),
+                    baseColor: .white,
+                    annotationColor: .white.opacity(rubyOpacity)
+                )
+            } else if showOriginal {
                 Text(line.originalText)
+                    .font(.system(size: baseSize, weight: rowWeight, design: .rounded))
+                    .foregroundStyle(.white)
+                    .fixedSize(horizontal: false, vertical: true)
+                if kanaDisplayMode == .independentLine, shouldShowKana,
+                   let kana = displayKanaText {
+                    Text(kana)
+                        .font(.system(size: auxiliarySize, weight: .medium, design: .rounded))
+                        .foregroundStyle(.white.opacity(rubyOpacity))
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            } else if shouldShowKana, let kana = displayKanaText {
+                Text(kana)
                     .font(.system(size: baseSize, weight: rowWeight, design: .rounded))
                     .foregroundStyle(.white)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            if shouldShowRomaji, let romaji = line.romajiText, !romaji.isEmpty {
+            if shouldShowRomaji, let romaji = distinctRomaji {
                 Text(romaji)
                     .font(.system(size: auxiliarySize, weight: .medium, design: .rounded))
                     .foregroundStyle(.white.opacity(romajiOpacity))

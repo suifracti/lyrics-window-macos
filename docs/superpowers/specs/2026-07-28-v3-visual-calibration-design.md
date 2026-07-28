@@ -31,7 +31,7 @@
 
 ## 文件边界
 
-- 修改 `SpotifyLyrics/Design/BackdropPalette.swift`：只改善 V3 可用的确定性主色采样，不改变 Track/歌词模型。
+- 保留 `SpotifyLyrics/Design/BackdropPalette.swift` 的共享实现不变，避免影响 V2 的 `TrackBackdropView`；V3 只消费其现有的三色结果。
 - 修改 `SpotifyLyrics/Views/Components/AppleMusicImmersiveV3BackdropView.swift`：只调整缓存快照的显示图层和异步过渡。
 - 修改 `SpotifyLyrics/Views/MainWindow/AppleMusicImmersiveV3WindowView.swift`：只调整 V3 播放器、同步行景深和辅助层显隐。
 - 更新 V3 合同与验收记录；不改变其他窗口和业务合同。

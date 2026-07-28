@@ -13,7 +13,10 @@ struct MainLyricsWindowView: View {
     var body: some View {
         Group {
             if layoutStyle == .appleMusicImmersiveV3 {
-                AppleMusicImmersiveV3WindowView(state: state)
+                AppleMusicImmersiveV3WindowView(
+                    state: state,
+                    layoutStyleRawValue: $layoutStyleRawValue
+                )
             } else {
                 legacyWindowBody
             }

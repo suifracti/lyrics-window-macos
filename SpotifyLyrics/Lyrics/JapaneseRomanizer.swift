@@ -42,7 +42,7 @@ public enum JapaneseRomanizer {
         var out = String.UnicodeScalarView()
         for s in text.unicodeScalars {
             let v = s.value
-            if (0x30A1...0x30F6).contains(v) {
+            if (0x30A1...0x30FA).contains(v) {
                 // Katakana to hiragana
                 if let h = UnicodeScalar(v - 0x60) {
                     out.append(h)
@@ -54,6 +54,15 @@ public enum JapaneseRomanizer {
             }
         }
         return String(out)
+    }
+
+    /// Normalizes a confirmed reading for presentation only.
+    ///
+    /// Provider and morphology payloads may use katakana even when the lyric
+    /// surface is intended for a hiragana ruby annotation.  Keep the stored
+    /// source layers untouched and fold only the value rendered in the UI.
+    public static func displayKana(_ text: String) -> String {
+        toHiraganaPreservingLatin(text)
     }
 
     private static func romanizeHiragana(_ text: String, capitalize: Bool) -> String {

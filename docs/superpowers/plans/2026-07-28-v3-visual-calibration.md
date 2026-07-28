@@ -4,7 +4,7 @@
 
 **Goal:** 在现有 Apple Music Immersive V3 中完成背景空间层次、同步歌词景深、辅助读音显隐和播放器间距的最后一轮视觉校准。
 
-**Architecture:** 保留现有 `AppleMusicImmersiveV3WindowView`、`AppleMusicImmersiveV3BackdropView`、`AppleMusicImmersiveV3BackdropCache` 和当前播放/歌词接线。仅在 V3 的 SwiftUI 图层和 V3 使用的背景采样结果上做局部调整；无时间轴继续走独立全文阅读分支。
+**Architecture:** 保留现有 `AppleMusicImmersiveV3WindowView`、`AppleMusicImmersiveV3BackdropView`、`AppleMusicImmersiveV3BackdropCache` 和当前播放/歌词接线。仅在 V3 的 SwiftUI 图层和现有缓存背景结果的显示组合上做局部调整；无时间轴继续走独立全文阅读分支。
 
 **Tech Stack:** SwiftUI、AppKit `NSImage`、CoreGraphics/ImageIO、Swift shell 合同测试、xcodebuild。
 
@@ -35,12 +35,12 @@ Expected: FAIL because the current V3 still uses the old neighbor opacity/blur a
 ### Task 2: Calibrate the cached V3 backdrop
 
 **Files:**
-- Modify: `SpotifyLyrics/Design/BackdropPalette.swift`
+- Keep unchanged: `SpotifyLyrics/Design/BackdropPalette.swift` (shared by V2)
 - Modify: `SpotifyLyrics/Views/Components/AppleMusicImmersiveV3BackdropView.swift`
 
-- [ ] **Step 1: Improve deterministic palette sampling without changing public callers**
+- [ ] **Step 1: Keep the shared palette sampler unchanged**
 
-Keep `BackdropPalette` compatible with `TrackBackdropView` and its contract. Make the primary/secondary/glow result preserve dark readability while retaining a distinct vivid accent from the reduced artwork.
+Do not change `BackdropPalette.swift`, because V2 also consumes it. Keep its existing three-color result and make the V3-specific texture, glow, veil and vignette provide the additional spatial separation.
 
 - [ ] **Step 2: Adjust only the V3 artwork layer composition**
 

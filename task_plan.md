@@ -413,7 +413,7 @@ Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 
 ## Phase 36: V3 Final Immersive Calibration — complete
 - [x] 保留 V3 缓存、组件结构、45/55 与 800×600/1152×720 响应式规则和现有 PlaybackState/lyrics session 接线；未新增 V4
-- [x] 改善确定性封面主色采样：从缩略图中区分 chromatic/vivid/supporting 色，保留歌词侧暗幕的可读性
+- [x] 保持 V2 共用的 `BackdropPalette.swift` 不变；V3 继续使用其现有三色缓存结果，并通过独立纹理层、柔光、暗幕和暗角增加空间层次
 - [x] 在现有 320px 异步缓存缩略图上增加低半径纹理层和左侧柔光；保留 72pt 主模糊、噪点缓存、暗角和切歌交叉淡入，不随播放位置重算
 - [x] 将同步歌词景深调整为：当前行清晰；相邻行 opacity 0.44 且无 blur；距离两行 opacity 0.24、blur 1.1pt；更远行 opacity 逐步降低、blur 上限 2pt
 - [x] 当前行保留完整 Ruby/罗马音，相邻行弱化；距离两行以上隐藏 Ruby/罗马音；无时间轴全文仍不使用景深、自动滚动或伪同步
@@ -434,7 +434,20 @@ Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 - 紫色/暖色封面截图：`/tmp/spotifylyrics-v3-calibration-fragrance.png`
 - 最小窗口截图：`/tmp/spotifylyrics-v3-calibration-water-min-800x600.png`；窗口请求尺寸 `800×600`
 - CPU/线程采样：`/tmp/spotifylyrics-v3-calibration-sample.txt`，`thread_headers=12`；未发现应用自有实时高半径 blur 调用栈，CoreImage/vImage 仅出现在已加载框架/系统栈信息中
-- 代码变化：`git diff --stat` 为 4 个批准文件、`97 insertions(+), 20 deletions(-)`；关键 diff 仅涉及 `BackdropPalette`、V3 backdrop、V3 window 和 V3 合同
+- 代码变化：最终 V3 修改仅涉及 V3 backdrop、V3 window、V3 合同和验收记录；`BackdropPalette.swift` 未保留改动，确保 V2 行为不变
 
 ### Phase 36 Scope
 - 本阶段只校准 Apple Music Immersive V3 的背景、同步歌词景深、辅助读音显隐和播放器细节；不修改 V2、歌词专注模式、Provider、搜索、设置、排轴、播放同步或歌词数据模型。
+
+## Phase 37: Kana Display and Legacy Playback Regression — complete
+- [x] 修复长注音词块的测量和基准线布局：注音宽度纳入自身布局框，正文居中放置，不再从左侧被裁切
+- [x] 将确认读音的显示层统一规范为平假名；片假名词在悬浮注音模式显示平假名辅助读音，原文层不变
+- [x] 让独立行、汉字上方、假名替换三种模式分别读取当前设置；兼容/悬浮/全屏歌词也复用同一显示规范
+- [x] 对误存为假名的 `romajiText` 做显示层去重，不修改持久化数据
+- [x] 让歌词画布观察已发布的播放时钟并按行索引去重滚动，修复歌词专注布局切换后停止刷新的问题
+- [x] 为 V3 提供缺少 token 映射时的安全整词注音回退；无汉字/片假名表面不伪造 Ruby
+- [x] 完成红绿显示回归合同、全量合同、正常签名 Debug 构建和精确 DerivedData App 运行验证；不生成截图
+
+### Phase 37 Scope
+- 只修复日语显示模式、读音显示规范和旧主窗口歌词刷新；不新增 Provider、搜索、排轴或音频能力。
+- 沉浸分栏不作为本轮验收目标，保留现有实现，不继续做截图校准。

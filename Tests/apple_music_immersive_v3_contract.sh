@@ -72,7 +72,6 @@ grep -q 'frame(width: 40, height: 40)' "$window_file"
 grep -q 'blur(radius: 24)' "$backdrop_file"
 grep -q 'blendMode(.screen)' "$backdrop_file"
 grep -q 'opacity(0.62)' "$backdrop_file"
-grep -q 'chromaticSamples' SpotifyLyrics/Design/BackdropPalette.swift
 
 grep -q '.defaultSize(width: 1152, height: 720)' SpotifyLyrics/Main.swift
 

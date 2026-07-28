@@ -55,14 +55,37 @@ struct LyricLineView: View {
 
     private var auxiliaryTopSpacing: CGFloat { 7 }
 
+    private var displayKanaText: String? {
+        line.kanaText.map(JapaneseRomanizer.displayKana)
+    }
+
+    /// A few older/provider payloads accidentally put the confirmed kana in
+    /// `romajiText` as well.  Rendering both layers makes the independent-line
+    /// mode look duplicated, so fail closed when the two display strings are
+    /// the same after katakana-to-hiragana normalization.
+    private var distinctRomaji: String? {
+        guard preferences.showRomaji,
+              let romaji = line.romajiText?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !romaji.isEmpty else {
+            return nil
+        }
+
+        if let kana = displayKanaText,
+           !kana.isEmpty,
+           normalizedDisplayText(romaji) == normalizedDisplayText(kana) {
+            return nil
+        }
+        return romaji
+    }
+
     private var hasVisibleRomaji: Bool {
-        preferences.showRomaji && !(line.romajiText ?? "").isEmpty
+        distinctRomaji != nil
     }
 
     private var hasVisibleContent: Bool {
         (preferences.showOriginal && !line.originalText.isEmpty)
             || (preferences.showTranslation && !(line.translationText ?? "").isEmpty)
-            || (preferences.showRomaji && !(line.romajiText ?? "").isEmpty)
+            || distinctRomaji != nil
             || (preferences.showKana && !(line.kanaText ?? "").isEmpty)
     }
 
@@ -71,7 +94,7 @@ struct LyricLineView: View {
         if hasVisibleContent {
             VStack(alignment: .leading, spacing: 0) {
                 if preferences.kanaDisplayMode == .kanaReplacement,
-                   let kana = line.kanaText,
+                   let kana = displayKanaText,
                    !kana.isEmpty {
                     KanaReplacementLineView(
                         originalText: line.originalText,
@@ -98,7 +121,7 @@ struct LyricLineView: View {
                             .foregroundStyle(LyricsDesignTokens.primaryText.opacity(emphasis.opacity))
                             .lineSpacing(isActive ? 3 : 2)
 
-                        if let kana = line.kanaText, !kana.isEmpty {
+                        if let kana = displayKanaText, !kana.isEmpty {
                             Text(kana)
                                 .font(.system(size: emphasis.secondaryFontSize, weight: fontWeight, design: .rounded))
                                 .foregroundStyle(LyricsDesignTokens.secondaryText.opacity(rubyOpacity))
@@ -106,7 +129,7 @@ struct LyricLineView: View {
                                 .padding(.top, 2)
                         }
                     } else if preferences.kanaDisplayMode == .inlineRuby,
-                              let kana = line.kanaText,
+                              let kana = displayKanaText,
                               !kana.isEmpty {
                         RubyLineView(
                             originalText: line.originalText,
@@ -132,7 +155,7 @@ struct LyricLineView: View {
                             .lineSpacing(isActive ? 3 : 2)
                     }
                 } else if preferences.kanaDisplayMode != .hidden,
-                          let kana = line.kanaText,
+                          let kana = displayKanaText,
                           !kana.isEmpty {
                     // If the user hides the base text, keep the kana layer
                     // useful as ordinary text rather than rendering detached
@@ -143,7 +166,7 @@ struct LyricLineView: View {
                         .lineSpacing(2)
                 }
 
-                if preferences.showRomaji, let romaji = line.romajiText, !romaji.isEmpty {
+                if let romaji = distinctRomaji {
                     Text(romaji)
                         .font(.system(size: emphasis.secondaryFontSize, weight: .regular, design: .rounded))
                         .foregroundStyle(LyricsDesignTokens.mutedText.opacity(emphasis.opacity * 0.64))
@@ -165,6 +188,12 @@ struct LyricLineView: View {
             .animation(.easeInOut(duration: 0.24), value: isActive)
             .animation(.easeInOut(duration: 0.24), value: visibleLayerCount)
         }
+    }
+
+    private func normalizedDisplayText(_ text: String) -> String {
+        JapaneseRomanizer.displayKana(text)
+            .split(whereSeparator: { $0.isWhitespace })
+            .joined()
     }
 }
 
@@ -234,7 +263,7 @@ private struct KanaReplacementTokenBlock: View {
     let annotationColor: Color
 
     private var annotation: String? {
-        guard showsOriginalAnnotation, token.hasRuby else { return nil }
+        guard showsOriginalAnnotation, token.hasDisplayRuby else { return nil }
         return token.surface
     }
 
@@ -248,7 +277,7 @@ private struct KanaReplacementTokenBlock: View {
                     .fixedSize(horizontal: true, vertical: false)
             }
 
-            Text(token.kanaReplacementText)
+            Text(JapaneseRomanizer.displayKana(token.kanaReplacementText))
                 .font(baseFont)
                 .foregroundStyle(baseColor)
                 .lineLimit(1)
@@ -257,9 +286,10 @@ private struct KanaReplacementTokenBlock: View {
     }
 }
 
-/// Keeps the kana width authoritative and lets the smaller original Kanji
-/// annotation overhang it horizontally above the kana. The base last baseline
-/// is exported so kana-only and annotated blocks remain on one stable line.
+/// Measures the replacement text and its original annotation together so a
+/// long annotation cannot extend outside the token's layout box. The base is
+/// centered inside that measured box and its last baseline is exported so
+/// kana-only and annotated blocks remain on one stable line.
 private struct KanaReplacementTokenBlockLayout: Layout {
     let annotationSpacing: CGFloat
 
@@ -270,13 +300,13 @@ private struct KanaReplacementTokenBlockLayout: Layout {
     ) -> CGSize {
         guard let base = subviews.last else { return .zero }
         let baseSize = base.sizeThatFits(.unspecified)
-        let annotationHeight = subviews.dropLast().first.map {
-            $0.sizeThatFits(.unspecified).height
-        } ?? 0
+        let annotationSize = subviews.dropLast().first?.sizeThatFits(.unspecified) ?? .zero
+        let contentWidth = max(baseSize.width, annotationSize.width)
+        let annotationHeight = annotationSize.height
         let height = annotationHeight > 0
             ? baseSize.height + annotationSpacing + annotationHeight
             : baseSize.height
-        return CGSize(width: baseSize.width, height: height)
+        return CGSize(width: contentWidth, height: height)
     }
 
     func placeSubviews(
@@ -289,6 +319,7 @@ private struct KanaReplacementTokenBlockLayout: Layout {
         let baseSize = base.sizeThatFits(.unspecified)
         let annotation = subviews.dropLast().first
         let annotationSize = annotation?.sizeThatFits(.unspecified) ?? .zero
+        let contentWidth = max(baseSize.width, annotationSize.width)
         let baseY = annotation == nil
             ? bounds.minY
             : bounds.minY + annotationSize.height + annotationSpacing
@@ -304,8 +335,9 @@ private struct KanaReplacementTokenBlockLayout: Layout {
             )
         }
 
+        let baseX = bounds.minX + max(0, (contentWidth - baseSize.width) / 2)
         base.place(
-            at: CGPoint(x: bounds.minX, y: baseY),
+            at: CGPoint(x: baseX, y: baseY),
             anchor: .topLeading,
             proposal: ProposedViewSize(width: baseSize.width, height: baseSize.height)
         )
@@ -416,7 +448,7 @@ private struct RubyTokenBlock: View {
 
     var body: some View {
         RubyTokenBlockLayout(rubySpacing: rubySpacing) {
-            if token.hasRuby, let ruby = token.ruby {
+            if let ruby = token.displayRubyText {
                 Text(ruby)
                     .font(rubyFont)
                     .foregroundStyle(rubyColor)
@@ -434,13 +466,37 @@ private struct RubyTokenBlock: View {
     }
 }
 
-/// Places ruby above the base text while keeping the base width authoritative.
-///
-/// A normal `VStack` takes the widest child as its width. That makes a reading
-/// such as `こころ` widen the layout box for the one-character base `心`, which
-/// breaks the baseline rhythm of the surrounding kana. This layout lets ruby
-/// overhang the base horizontally without pushing adjacent base characters
-/// apart, and explicitly exports the base's last text baseline to its parent.
+/// Returns the reading shown above a token without changing the stored
+/// original/kana layers.  Kanji uses the confirmed provider/morphology ruby;
+/// full-width katakana gets a small hiragana annotation so it is readable in
+/// the same inline-Ruby mode.  Plain hiragana, Latin, digits and punctuation
+/// do not receive a redundant annotation.
+extension LyricRubyToken {
+    var displayRubyText: String? {
+        if hasRuby, let ruby {
+            return JapaneseRomanizer.displayKana(ruby)
+        }
+
+        guard surface.unicodeScalars.contains(where: { scalar in
+            (0x30A1...0x30FA).contains(scalar.value)
+        }) else {
+            return nil
+        }
+
+        let reading = JapaneseRomanizer.displayKana(kanaSurface ?? surface)
+        guard !reading.isEmpty, reading != surface else { return nil }
+        return reading
+    }
+
+    var hasDisplayRuby: Bool {
+        displayRubyText != nil
+    }
+}
+
+/// Places ruby above the base text and measures the wider child as part of the
+/// token box. A reading such as `こころ` therefore remains fully visible and
+/// is centered over the one-character base `心`, while the base's last text
+/// baseline is explicitly exported to its parent.
 private struct RubyTokenBlockLayout: Layout {
     let rubySpacing: CGFloat
 
@@ -451,11 +507,13 @@ private struct RubyTokenBlockLayout: Layout {
     ) -> CGSize {
         guard let base = subviews.last else { return .zero }
         let baseSize = baseSize(for: base)
-        let rubyHeight = subviews.dropLast().first.map { readingSize(for: $0).height } ?? 0
+        let rubySize = subviews.dropLast().first.map { readingSize(for: $0) } ?? .zero
+        let contentWidth = max(baseSize.width, rubySize.width)
+        let rubyHeight = rubySize.height
         let height = rubyHeight > 0
             ? rubyHeight + rubySpacing + baseSize.height
             : baseSize.height
-        return CGSize(width: baseSize.width, height: height)
+        return CGSize(width: contentWidth, height: height)
     }
 
     func placeSubviews(
@@ -468,6 +526,7 @@ private struct RubyTokenBlockLayout: Layout {
         let baseSize = baseSize(for: base)
         let ruby = subviews.dropLast().first
         let rubyDimensions: CGSize = ruby.map { readingSize(for: $0) } ?? CGSize.zero
+        let contentWidth = max(baseSize.width, rubyDimensions.width)
         let baseY = ruby == nil ? bounds.minY : bounds.minY + rubyDimensions.height + rubySpacing
 
         if let ruby {
@@ -481,8 +540,9 @@ private struct RubyTokenBlockLayout: Layout {
             )
         }
 
+        let baseX = bounds.minX + max(0, (contentWidth - baseSize.width) / 2)
         base.place(
-            at: CGPoint(x: bounds.minX, y: baseY),
+            at: CGPoint(x: baseX, y: baseY),
             anchor: .topLeading,
             proposal: ProposedViewSize(width: baseSize.width, height: baseSize.height)
         )

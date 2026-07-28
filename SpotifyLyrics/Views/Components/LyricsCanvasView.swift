@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LyricsCanvasView: View {
     @ObservedObject var state: PlaybackState
+    @State private var lastScrolledLineIndex: Int?
 
     var body: some View {
         Group {
@@ -186,10 +187,19 @@ struct LyricsCanvasView: View {
                 )
                 .accessibilityElement(children: .contain)
                 .onAppear {
+                    lastScrolledLineIndex = nil
                     scrollToCurrentLine(using: proxy, animated: false)
                 }
-                .onChange(of: state.currentLineIndex) { _, _ in
+                // Observe the published playback clock and derive the active
+                // row inside the callback. `currentLineIndex` is computed from
+                // several published values, and observing that computed value
+                // directly can stop refreshing after a layout/mode rebuild.
+                .onChange(of: state.currentTime) { _, _ in
                     scrollToCurrentLine(using: proxy, animated: true)
+                }
+                .onChange(of: state.lyricsSessionRevision) { _, _ in
+                    lastScrolledLineIndex = nil
+                    scrollToCurrentLine(using: proxy, animated: false)
                 }
             }
         }
@@ -295,10 +305,15 @@ struct LyricsCanvasView: View {
 
     private func scrollToCurrentLine(using proxy: ScrollViewProxy, animated: Bool) {
         guard let currentIndex = state.currentLineIndex,
-              state.lyrics.indices.contains(currentIndex) else { return }
+              state.lyrics.indices.contains(currentIndex),
+              lastScrolledLineIndex != currentIndex else { return }
 
         let action = {
             proxy.scrollTo(state.lyrics[currentIndex].id, anchor: .center)
+            // Mark it only after asking the proxy to locate the row. If the
+            // first request happens while LazyVStack is still materializing,
+            // a later clock tick can retry the same target.
+            lastScrolledLineIndex = currentIndex
         }
 
         if animated {

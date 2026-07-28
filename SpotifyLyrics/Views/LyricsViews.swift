@@ -29,10 +29,32 @@ struct LineDisplayView: View {
         isActive ? .accentColor.opacity(0.8) : .secondary.opacity(0.7)
     }
 
+    private var displayKanaText: String? {
+        line.kanaText.map(JapaneseRomanizer.displayKana)
+    }
+
+    /// Keep the compatibility/floating/full-screen renderer consistent with
+    /// the main lyric canvas. Some older payloads duplicate the confirmed
+    /// kana in `romajiText`; do not render that same layer twice.
+    private var distinctRomaji: String? {
+        guard prefs.showRomaji,
+              let romaji = line.romajiText?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !romaji.isEmpty else {
+            return nil
+        }
+
+        if let kana = displayKanaText,
+           !kana.isEmpty,
+           normalizedDisplayText(romaji) == normalizedDisplayText(kana) {
+            return nil
+        }
+        return romaji
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             if prefs.kanaDisplayMode == .kanaReplacement,
-               let kana = line.kanaText,
+               let kana = displayKanaText,
                !kana.isEmpty {
                 KanaReplacementLineView(
                     originalText: line.originalText,
@@ -46,7 +68,7 @@ struct LineDisplayView: View {
                 )
             } else if prefs.showOriginal, !line.originalText.isEmpty {
                 if prefs.kanaDisplayMode == .inlineRuby,
-                   let kana = line.kanaText,
+                   let kana = displayKanaText,
                    !kana.isEmpty {
                     RubyLineView(
                         originalText: line.originalText,
@@ -67,18 +89,18 @@ struct LineDisplayView: View {
 
                 if prefs.kanaDisplayMode == .independentLine,
                    prefs.showKana,
-                   let kana = line.kanaText,
+                   let kana = displayKanaText,
                    !kana.isEmpty {
                     Text(kana)
                         .font(.system(size: prefs.fontSize * 0.65, weight: .medium, design: .rounded))
                         .foregroundColor(rubyColor)
                 }
-            } else if prefs.showKana, let kana = line.kanaText, !kana.isEmpty {
+            } else if prefs.showKana, let kana = displayKanaText, !kana.isEmpty {
                 Text(kana)
                     .font(.system(size: prefs.fontSize * 0.65, weight: .light, design: .rounded))
                     .foregroundColor(isActive ? .accentColor.opacity(0.8) : .secondary)
             }
-            if prefs.showRomaji, let romaji = line.romajiText, !romaji.isEmpty {
+            if let romaji = distinctRomaji {
                 Text(romaji)
                     .font(.system(size: prefs.fontSize * 0.75, weight: .regular, design: .monospaced))
                     .foregroundColor(isActive ? .accentColor : .secondary.opacity(0.7))
@@ -90,6 +112,12 @@ struct LineDisplayView: View {
             }
         }
         .padding(.vertical, 4)
+    }
+
+    private func normalizedDisplayText(_ text: String) -> String {
+        JapaneseRomanizer.displayKana(text)
+            .split(whereSeparator: { $0.isWhitespace })
+            .joined()
     }
 }
 

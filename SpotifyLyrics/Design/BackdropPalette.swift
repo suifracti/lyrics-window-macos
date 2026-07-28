@@ -95,25 +95,12 @@ public struct BackdropPalette: Equatable, Sendable {
             green: samples.map { $0.color.green }.reduce(0, +) / Double(samples.count),
             blue: samples.map { $0.color.blue }.reduce(0, +) / Double(samples.count)
         )
-        let chromaticSamples = samples.filter {
-            $0.saturation >= 0.12 && $0.luminance > 0.04
-        }
-        let vividPool = chromaticSamples.isEmpty ? samples : chromaticSamples
-        let vivid = vividPool.max { lhs, rhs in
+        let vivid = samples.max { lhs, rhs in
             (lhs.saturation * 0.8 + lhs.luminance * 0.2) < (rhs.saturation * 0.8 + rhs.luminance * 0.2)
         }?.color ?? average
-        let supporting = chromaticSamples
-            .max { lhs, rhs in
-                colorDistance(lhs.color, vivid) < colorDistance(rhs.color, vivid)
-            }?.color ?? average
-        let shadow = BackdropColor(red: 0.018, green: 0.024, blue: 0.055)
-        let primary = blend(average, vivid, amount: 0.72)
-        let secondary = blend(
-            blend(average, supporting, amount: 0.34),
-            shadow,
-            amount: 0.52
-        )
-        let glow = blend(vivid, supporting, amount: 0.28)
+        let primary = blend(average, vivid, amount: 0.62)
+        let secondary = blend(primary, BackdropColor(red: 0.02, green: 0.03, blue: 0.08), amount: 0.45)
+        let glow = blend(vivid, BackdropColor(red: 0.8, green: 0.55, blue: 0.32), amount: 0.22)
         let averageLuminance = luminance(of: average)
         let averageSaturation = samples.map(\.saturation).reduce(0, +) / Double(samples.count)
 
@@ -149,13 +136,6 @@ public struct BackdropPalette: Equatable, Sendable {
         let minimum = min(color.red, color.green, color.blue)
         guard maximum > 0 else { return 0 }
         return (maximum - minimum) / maximum
-    }
-
-    private static func colorDistance(_ lhs: BackdropColor, _ rhs: BackdropColor) -> Double {
-        let red = lhs.red - rhs.red
-        let green = lhs.green - rhs.green
-        let blue = lhs.blue - rhs.blue
-        return (red * red) + (green * green) + (blue * blue)
     }
 
     private static func blend(_ lhs: BackdropColor, _ rhs: BackdropColor, amount: Double) -> BackdropColor {
