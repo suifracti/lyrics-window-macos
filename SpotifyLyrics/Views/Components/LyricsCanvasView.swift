@@ -311,7 +311,7 @@ struct LyricsCanvasView: View {
     private var visibleLayerCount: Int {
         [
             state.preferences.showOriginal,
-            state.preferences.showKana,
+            state.preferences.kanaDisplayMode != .hidden,
             state.preferences.showRomaji,
             state.preferences.showTranslation
         ]

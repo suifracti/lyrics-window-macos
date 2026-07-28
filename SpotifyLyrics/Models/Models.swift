@@ -114,12 +114,66 @@ public enum LyricsDisplayMode: String, CaseIterable, Identifiable {
     public var id: String { rawValue }
 }
 
+/// Controls how the confirmed kana layer is presented in the main lyrics view.
+///
+/// `showKana` remains as a source-compatible computed property for older
+/// callers. Setting that property preserves the previous independent-line
+/// behavior rather than silently changing the presentation style.
+public enum KanaDisplayMode: String, CaseIterable, Identifiable, Codable, Sendable {
+    case independentLine = "independentLine"
+    case inlineRuby = "inlineRuby"
+    case hidden = "hidden"
+
+    public var id: String { rawValue }
+
+    public var title: String {
+        switch self {
+        case .independentLine: return "独立行"
+        case .inlineRuby: return "悬浮注音"
+        case .hidden: return "隐藏"
+        }
+    }
+
+    public var detail: String {
+        switch self {
+        case .independentLine: return "整行显示假名，适合初学者对照阅读"
+        case .inlineRuby: return "假名贴在对应汉字上方，保持正文连续"
+        case .hidden: return "不显示假名层"
+        }
+    }
+}
+
 public struct DisplayPreferences: Equatable {
     public var showOriginal: Bool = true
     public var showTranslation: Bool = true
     public var showRomaji: Bool = true
-    public var showKana: Bool = false
+    public var kanaDisplayMode: KanaDisplayMode
     public var fontSize: CGFloat = 18
     public var opacity: Double = 0.85
     public var alwaysOnTop: Bool = true
+
+    /// Compatibility bridge for the previous Boolean setting.
+    public var showKana: Bool {
+        get { kanaDisplayMode != .hidden }
+        set { kanaDisplayMode = newValue ? .independentLine : .hidden }
+    }
+
+    public init(
+        showOriginal: Bool = true,
+        showTranslation: Bool = true,
+        showRomaji: Bool = true,
+        showKana: Bool = false,
+        kanaDisplayMode: KanaDisplayMode? = nil,
+        fontSize: CGFloat = 18,
+        opacity: Double = 0.85,
+        alwaysOnTop: Bool = true
+    ) {
+        self.showOriginal = showOriginal
+        self.showTranslation = showTranslation
+        self.showRomaji = showRomaji
+        self.kanaDisplayMode = kanaDisplayMode ?? (showKana ? .independentLine : .hidden)
+        self.fontSize = fontSize
+        self.opacity = opacity
+        self.alwaysOnTop = alwaysOnTop
+    }
 }

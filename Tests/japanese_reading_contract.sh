@@ -10,6 +10,7 @@ TMP_DIR="$(mktemp -d /tmp/jp-reading.XXXXXX)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 SOURCES=(
+  SpotifyLyrics/Models/Models.swift
   SpotifyLyrics/Lyrics/JapaneseRomanizer.swift
   SpotifyLyrics/Lyrics/JapaneseReadingPipeline.swift
   SpotifyLyrics/Lyrics/JapaneseKanaGenerator.swift

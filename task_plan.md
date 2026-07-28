@@ -286,3 +286,20 @@ Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 - 回归合同通过：ruby layout、native material、Phase 1/2 UI、alignment wiring、line alignment、song search、real track lyrics（含 UI state propagation）。
 - `xcodebuild` clean Debug：`** BUILD SUCCEEDED **`；`codesign --verify --deep --strict`：valid on disk。
 - 仍未触发自动排轴，也未改变 Spotify 播放位置或排轴结果。
+
+## Phase 30: Switchable Kana Presentation — complete
+- [x] 恢复上一版本的独立假名行，并与当前悬浮注音、隐藏模式并列为可切换显示模式
+- [x] 保留旧版 `showKana` Boolean 兼容层；旧调用映射到悬浮注音，不破坏现有 UI/设置调用
+- [x] 在歌词显示设置中加入“独立行 / 悬浮注音 / 隐藏”选择器，并接入主沉浸歌词窗口
+- [x] 独立行使用响应式字号、正文/假名独立层级和稳定间距，不修改原文、罗马音或排轴数据
+- [x] 增加假名显示合同；修正日语读音合同遗漏 `Models.swift` 的测试编译输入
+- [x] 正常签名 Debug 构建、codesign、全量合同和真实 App UI 截图验证
+
+### Phase 30 Evidence
+- 真实 DerivedData App：`/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app`
+- 真实 App 截图：`/tmp/spotifylyrics-kana-independent-final3.png`；设置截图：同一窗口右侧的假名模式选择器
+- 运行时 AX 文本同时出现原文、独立假名行和罗马音；当前歌曲为 `水曜日の約束 / Kawasaki.Rio`，未触发自动排轴
+- `Tests/kana_display_mode_contract.sh` 与 `Tests/*.sh` 全量合同通过；回归日志：`/tmp/spotifylyrics-kana-regression-final2.log`
+
+### Phase 30 Scope
+- 只恢复假名显示模式，不新增歌词 Provider、不修改自动排轴结果、不做 UI 其他窗口模式重构。

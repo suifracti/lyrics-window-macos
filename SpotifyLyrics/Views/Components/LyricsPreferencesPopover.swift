@@ -19,7 +19,7 @@ struct LyricsPreferencesPopover: View {
                 preferenceToggle("原文", systemImage: "textformat", isOn: $preferences.showOriginal)
                 preferenceToggle("翻译", systemImage: "character.bubble", isOn: $preferences.showTranslation)
                 preferenceToggle("罗马音", systemImage: "textformat.abc", isOn: $preferences.showRomaji)
-                preferenceToggle("假名", systemImage: "character.book.closed", isOn: $preferences.showKana)
+                kanaDisplayPicker
             }
 
             Divider().overlay(LyricsDesignTokens.controlBorder)
@@ -41,9 +41,31 @@ struct LyricsPreferencesPopover: View {
             }
         }
         .padding(22)
-        .frame(width: 292)
+        .frame(width: 344)
         .background(.ultraThinMaterial)
         .preferredColorScheme(.dark)
+    }
+
+    private var kanaDisplayPicker: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Label("假名显示", systemImage: "character.book.closed")
+                .font(.system(size: 13, design: .rounded))
+                .foregroundStyle(LyricsDesignTokens.secondaryText)
+
+            Picker("假名显示模式", selection: $preferences.kanaDisplayMode) {
+                ForEach(KanaDisplayMode.allCases) { mode in
+                    Text(mode.title).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .accessibilityLabel("假名显示模式")
+
+            Text(preferences.kanaDisplayMode.detail)
+                .font(.system(size: 11, design: .rounded))
+                .foregroundStyle(LyricsDesignTokens.mutedText)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 
     private func preferenceToggle(_ title: String, systemImage: String, isOn: Binding<Bool>) -> some View {

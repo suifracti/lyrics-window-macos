@@ -71,7 +71,22 @@ struct LyricLineView: View {
         if hasVisibleContent {
             VStack(alignment: .leading, spacing: 0) {
                 if preferences.showOriginal, !line.originalText.isEmpty {
-                    if preferences.showKana, let kana = line.kanaText, !kana.isEmpty {
+                    if preferences.kanaDisplayMode == .independentLine {
+                        Text(line.originalText)
+                            .font(.system(size: emphasis.primaryFontSize, weight: fontWeight, design: .rounded))
+                            .foregroundStyle(LyricsDesignTokens.primaryText.opacity(emphasis.opacity))
+                            .lineSpacing(isActive ? 3 : 2)
+
+                        if let kana = line.kanaText, !kana.isEmpty {
+                            Text(kana)
+                                .font(.system(size: emphasis.secondaryFontSize, weight: fontWeight, design: .rounded))
+                                .foregroundStyle(LyricsDesignTokens.secondaryText.opacity(rubyOpacity))
+                                .lineSpacing(2)
+                                .padding(.top, 2)
+                        }
+                    } else if preferences.kanaDisplayMode == .inlineRuby,
+                              let kana = line.kanaText,
+                              !kana.isEmpty {
                         RubyLineView(
                             originalText: line.originalText,
                             kanaText: kana,
@@ -95,7 +110,9 @@ struct LyricLineView: View {
                             .foregroundStyle(LyricsDesignTokens.primaryText.opacity(emphasis.opacity))
                             .lineSpacing(isActive ? 3 : 2)
                     }
-                } else if preferences.showKana, let kana = line.kanaText, !kana.isEmpty {
+                } else if preferences.kanaDisplayMode != .hidden,
+                          let kana = line.kanaText,
+                          !kana.isEmpty {
                     // If the user hides the base text, keep the kana layer
                     // useful as ordinary text rather than rendering detached
                     // ruby with no base to annotate.
