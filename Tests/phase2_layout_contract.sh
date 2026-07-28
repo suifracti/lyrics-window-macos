@@ -39,9 +39,11 @@ for file in "${required_files[@]}"; do
   grep -q "$basename" SpotifyLyrics.xcodeproj/project.pbxproj
 done
 
-if git diff --name-only -- SpotifyLyrics/Views/LyricsViews.swift | grep -q .; then
-  echo "auxiliary floating/capsule/fullscreen views must remain untouched" >&2
-  exit 1
-fi
+# The kana display modes are shared by the main, floating and fullscreen lyric
+# surfaces.  Keep the legacy surfaces in the contract while allowing them to
+# consume the same mode selection instead of freezing them at the old layout.
+grep -q 'kanaDisplayMode' SpotifyLyrics/Views/LyricsViews.swift
+grep -q 'KanaReplacementLineView' SpotifyLyrics/Views/LyricsViews.swift
+grep -q 'RubyLineView' SpotifyLyrics/Views/LyricsViews.swift
 
 echo "phase2 layout contract passed"

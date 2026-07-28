@@ -76,6 +76,22 @@ struct JapaneseReadingContract {
         precondition(official.tokens[0].source == .providerOfficial)
         precondition(official.tokens[0].confidence == 1.0)
 
+        // A romaji value in a provider's kana field is not a confirmed kana
+        // layer. It must fail closed rather than being rendered as ruby.
+        let invalidProvider = JapaneseReadingPipeline.analyze(
+            originalText: "言われた",
+            providerKana: "iwareta"
+        )
+        precondition(invalidProvider.source != .providerOfficial)
+        precondition(invalidProvider.kanaText == "いわれた")
+
+        let symbolProvider = JapaneseReadingPipeline.analyze(
+            originalText: "言われた",
+            providerKana: "!!!"
+        )
+        precondition(symbolProvider.source != .providerOfficial)
+        precondition(symbolProvider.kanaText == "いわれた")
+
         // An unresolvable Han token fails closed.  It must never receive a
         // Chinese/Unicode fallback reading and must not enter alignment.
         let unknown = JapaneseReadingPipeline.analyze(originalText: "𩸽定食")

@@ -70,7 +70,28 @@ struct LyricLineView: View {
     var body: some View {
         if hasVisibleContent {
             VStack(alignment: .leading, spacing: 0) {
-                if preferences.showOriginal, !line.originalText.isEmpty {
+                if preferences.kanaDisplayMode == .kanaReplacement,
+                   let kana = line.kanaText,
+                   !kana.isEmpty {
+                    KanaReplacementLineView(
+                        originalText: line.originalText,
+                        kanaText: kana,
+                        tokens: line.rubyTokens,
+                        showsOriginalAnnotation: preferences.showOriginal && !line.originalText.isEmpty,
+                        baseFont: .system(
+                            size: emphasis.primaryFontSize,
+                            weight: fontWeight,
+                            design: .rounded
+                        ),
+                        annotationFont: .system(
+                            size: rubyFontSize,
+                            weight: fontWeight,
+                            design: .rounded
+                        ),
+                        baseColor: LyricsDesignTokens.primaryText.opacity(emphasis.opacity),
+                        annotationColor: LyricsDesignTokens.secondaryText.opacity(rubyOpacity)
+                    )
+                } else if preferences.showOriginal, !line.originalText.isEmpty {
                     if preferences.kanaDisplayMode == .independentLine {
                         Text(line.originalText)
                             .font(.system(size: emphasis.primaryFontSize, weight: fontWeight, design: .rounded))
@@ -147,9 +168,173 @@ struct LyricLineView: View {
     }
 }
 
+/// Renders the kana as the primary line and keeps the original Kanji as a
+/// small annotation above the corresponding kana span. This is a third,
+/// independent presentation mode: it does not enable or disable either of
+/// the other two modes, and it never mutates the stored lyric layers.
+struct KanaReplacementLineView: View {
+    let originalText: String
+    let kanaText: String
+    let tokens: [LyricRubyToken]?
+    let showsOriginalAnnotation: Bool
+    let baseFont: Font
+    let annotationFont: Font
+    let baseColor: Color
+    let annotationColor: Color
+
+    private var displayTokens: [LyricRubyToken] {
+        guard let tokens, !tokens.isEmpty else {
+            return [
+                LyricRubyToken(
+                    id: 0,
+                    surface: originalText,
+                    // Without a token-level confirmation there is no safe
+                    // Han span to annotate. Keep the confirmed kana as the
+                    // base text and fail closed on the original annotation.
+                    ruby: nil,
+                    kanaSurface: kanaText
+                )
+            ]
+        }
+        return tokens
+    }
+
+    private var displayTokenGroups: [[LyricRubyToken]] {
+        rubyTokenGroups(displayTokens)
+    }
+
+    var body: some View {
+        RubyTokenFlowLayout(horizontalSpacing: 0, verticalSpacing: 5) {
+            ForEach(Array(displayTokenGroups.enumerated()), id: \.offset) { _, group in
+                HStack(alignment: .lastTextBaseline, spacing: 0) {
+                    ForEach(group) { token in
+                        KanaReplacementTokenBlock(
+                            token: token,
+                            showsOriginalAnnotation: showsOriginalAnnotation,
+                            baseFont: baseFont,
+                            annotationFont: annotationFont,
+                            baseColor: baseColor,
+                            annotationColor: annotationColor
+                        )
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(originalText)
+    }
+}
+
+private struct KanaReplacementTokenBlock: View {
+    let token: LyricRubyToken
+    let showsOriginalAnnotation: Bool
+    let baseFont: Font
+    let annotationFont: Font
+    let baseColor: Color
+    let annotationColor: Color
+
+    private var annotation: String? {
+        guard showsOriginalAnnotation, token.hasRuby else { return nil }
+        return token.surface
+    }
+
+    var body: some View {
+        KanaReplacementTokenBlockLayout(annotationSpacing: 2) {
+            if let annotation {
+                Text(annotation)
+                    .font(annotationFont)
+                    .foregroundStyle(annotationColor)
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+            }
+
+            Text(token.kanaReplacementText)
+                .font(baseFont)
+                .foregroundStyle(baseColor)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
+        }
+    }
+}
+
+/// Keeps the kana width authoritative and lets the smaller original Kanji
+/// annotation overhang it horizontally above the kana. The base last baseline
+/// is exported so kana-only and annotated blocks remain on one stable line.
+private struct KanaReplacementTokenBlockLayout: Layout {
+    let annotationSpacing: CGFloat
+
+    func sizeThatFits(
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) -> CGSize {
+        guard let base = subviews.last else { return .zero }
+        let baseSize = base.sizeThatFits(.unspecified)
+        let annotationHeight = subviews.dropLast().first.map {
+            $0.sizeThatFits(.unspecified).height
+        } ?? 0
+        let height = annotationHeight > 0
+            ? baseSize.height + annotationSpacing + annotationHeight
+            : baseSize.height
+        return CGSize(width: baseSize.width, height: height)
+    }
+
+    func placeSubviews(
+        in bounds: CGRect,
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) {
+        guard let base = subviews.last else { return }
+        let baseSize = base.sizeThatFits(.unspecified)
+        let annotation = subviews.dropLast().first
+        let annotationSize = annotation?.sizeThatFits(.unspecified) ?? .zero
+        let baseY = annotation == nil
+            ? bounds.minY
+            : bounds.minY + annotationSize.height + annotationSpacing
+
+        if let annotation {
+            annotation.place(
+                at: CGPoint(
+                    x: bounds.midX - annotationSize.width / 2,
+                    y: bounds.minY
+                ),
+                anchor: .topLeading,
+                proposal: ProposedViewSize(width: annotationSize.width, height: annotationSize.height)
+            )
+        }
+
+        base.place(
+            at: CGPoint(x: bounds.minX, y: baseY),
+            anchor: .topLeading,
+            proposal: ProposedViewSize(width: baseSize.width, height: baseSize.height)
+        )
+    }
+
+    func explicitAlignment(
+        of alignment: VerticalAlignment,
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) -> CGFloat? {
+        guard alignment == .lastTextBaseline, let base = subviews.last else {
+            return nil
+        }
+        let baseSize = base.sizeThatFits(.unspecified)
+        let dimensions = base.dimensions(
+            in: ProposedViewSize(width: baseSize.width, height: baseSize.height)
+        )
+        let annotationHeight = subviews.dropLast().first.map {
+            $0.sizeThatFits(.unspecified).height
+        } ?? 0
+        let baseOffset = annotationHeight > 0 ? annotationHeight + annotationSpacing : 0
+        return baseOffset + dimensions[.lastTextBaseline]
+    }
+}
+
 /// A line-level ruby fallback that keeps the confirmed kana together with
 /// the whole original line when no per-token mapping is available.
-private struct RubyLineView: View {
+struct RubyLineView: View {
     let originalText: String
     let kanaText: String
     let tokens: [LyricRubyToken]?
@@ -171,21 +356,49 @@ private struct RubyLineView: View {
         return tokens
     }
 
+    private var displayTokenGroups: [[LyricRubyToken]] {
+        rubyTokenGroups(displayTokens)
+    }
+
     var body: some View {
         RubyTokenFlowLayout(horizontalSpacing: 0, verticalSpacing: 5) {
-            ForEach(displayTokens) { token in
-                RubyTokenBlock(
-                    token: token,
-                    baseFont: baseFont,
-                    rubyFont: rubyFont,
-                    baseColor: baseColor,
-                    rubyColor: rubyColor
-                )
+            ForEach(Array(displayTokenGroups.enumerated()), id: \.offset) { _, group in
+                HStack(alignment: .lastTextBaseline, spacing: 0) {
+                    ForEach(group) { token in
+                        RubyTokenBlock(
+                            token: token,
+                            baseFont: baseFont,
+                            rubyFont: rubyFont,
+                            baseColor: baseColor,
+                            rubyColor: rubyColor
+                        )
+                    }
+                }
             }
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(originalText)
     }
+}
+
+/// Builder IDs reserve the high digits for the morphology token and the low
+/// digits for its surface runs. Grouping by that stable prefix prevents
+/// `言`/`われ` or `思`/`い` from being wrapped onto different rows while
+/// retaining the corrected per-span ruby mapping.
+private func rubyTokenGroups(_ tokens: [LyricRubyToken]) -> [[LyricRubyToken]] {
+    var groups: [[LyricRubyToken]] = []
+    var currentKey: Int?
+
+    for token in tokens {
+        let key = token.id / 10_000
+        if currentKey == key, !groups.isEmpty {
+            groups[groups.count - 1].append(token)
+        } else {
+            groups.append([token])
+            currentKey = key
+        }
+    }
+    return groups
 }
 
 private struct RubyTokenBlock: View {

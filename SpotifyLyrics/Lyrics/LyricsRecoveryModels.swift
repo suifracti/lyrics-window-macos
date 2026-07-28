@@ -168,19 +168,26 @@ public enum LyricsLayerEnricher {
                     || (0xF900...0xFAFF).contains(value)
                     || (0x20000...0x2FA1F).contains(value)
             }
-            let reading: JapaneseReadingResult? = (hasJapaneseScript || layers.kanaText != nil)
+            let suppliedKana = layers.kanaText
+            let reading: JapaneseReadingResult? = (hasJapaneseScript || suppliedKana != nil)
                 ? JapaneseReadingPipeline.analyze(
                     originalText: line.originalText,
-                    providerKana: layers.kanaText
+                    providerKana: suppliedKana
                 )
                 : nil
             // Do not turn ordinary English/Latin lyric lines into a duplicate
             // "romaji" layer. A provider-supplied kana layer is authoritative
-            // even when the original title uses Latin characters.
+            // only after the reading pipeline accepts it; malformed values are
+            // cleared so they cannot reach independent/ruby/replacement UI.
+            if suppliedKana != nil,
+               reading?.source != .providerOfficial,
+               layers.kanaLock == .unlocked {
+                layers.kanaText = nil
+            }
             let kana = layers.kanaText ?? reading?.kanaText
             let romaji = layers.romajiText ?? reading?.romajiText
             let rubyTokens = line.rubyTokens
-                ?? reading?.tokens.map(LyricRubyToken.init(readingToken:))
+                ?? reading?.tokens.flatMap { JapaneseReadingPipeline.rubyTokens(for: $0) }
             layers.applyAutomatic(kana: kana, romaji: romaji)
             return LyricLine(
                 id: line.id,

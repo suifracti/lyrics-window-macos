@@ -19,7 +19,7 @@ struct LyricsPreferencesPopover: View {
                 preferenceToggle("原文", systemImage: "textformat", isOn: $preferences.showOriginal)
                 preferenceToggle("翻译", systemImage: "character.bubble", isOn: $preferences.showTranslation)
                 preferenceToggle("罗马音", systemImage: "textformat.abc", isOn: $preferences.showRomaji)
-                kanaDisplayPicker
+                kanaDisplayControls
             }
 
             Divider().overlay(LyricsDesignTokens.controlBorder)
@@ -46,26 +46,39 @@ struct LyricsPreferencesPopover: View {
         .preferredColorScheme(.dark)
     }
 
-    private var kanaDisplayPicker: some View {
+    private var kanaDisplayControls: some View {
         VStack(alignment: .leading, spacing: 7) {
-            Label("假名显示", systemImage: "character.book.closed")
-                .font(.system(size: 13, design: .rounded))
-                .foregroundStyle(LyricsDesignTokens.secondaryText)
+            preferenceToggle("假名", systemImage: "character.book.closed", isOn: $preferences.showKana)
 
-            Picker("假名显示模式", selection: $preferences.kanaDisplayMode) {
-                ForEach(KanaDisplayMode.allCases) { mode in
-                    Text(mode.title).tag(mode)
-                }
+            Picker("假名显示方式", selection: kanaDisplayModeBinding) {
+                Text("独立行").tag(KanaDisplayMode.independentLine)
+                Text("汉字上方").tag(KanaDisplayMode.inlineRuby)
+                Text("假名替换").tag(KanaDisplayMode.kanaReplacement)
             }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .accessibilityLabel("假名显示模式")
+            .pickerStyle(.radioGroup)
+            .font(.system(size: 12, design: .rounded))
+            .accessibilityLabel("假名显示方式")
 
             Text(preferences.kanaDisplayMode.detail)
                 .font(.system(size: 11, design: .rounded))
                 .foregroundStyle(LyricsDesignTokens.mutedText)
                 .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    private var kanaDisplayModeBinding: Binding<KanaDisplayMode> {
+        Binding(
+            get: {
+                preferences.kanaDisplayMode == .hidden
+                    ? .independentLine
+                    : preferences.kanaDisplayMode
+            },
+            set: { mode in
+                // Choosing any of the three presentations is sufficient to
+                // enable that presentation; none is gated by the old Boolean.
+                preferences.kanaDisplayMode = mode
+            }
+        )
     }
 
     private func preferenceToggle(_ title: String, systemImage: String, isOn: Binding<Bool>) -> some View {

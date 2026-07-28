@@ -316,7 +316,7 @@ public enum JapaneseReadingPipeline {
         engine: any JapaneseMorphologyEngine
     ) -> JapaneseReadingResult {
         let provider = providerKana?.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let provider, !provider.isEmpty {
+        if let provider, !provider.isEmpty, isValidProviderKana(provider) {
             let kana = JapaneseRomanizer.toHiraganaPreservingLatin(provider)
             let token = JapaneseReadingToken(
                 id: 0,
@@ -390,6 +390,30 @@ public enum JapaneseReadingPipeline {
             source: source,
             confidence: confidence
         )
+    }
+
+    /// Provider kana is authoritative only when it is actually Japanese
+    /// reading text. A provider occasionally returns romaji in a kana field;
+    /// accepting that value would put Latin text into ruby and make the third
+    /// display mode look like a false reading. Fail closed and let local
+    /// morphology decide instead.
+    private static func isValidProviderKana(_ text: String) -> Bool {
+        let scalars = Array(text.unicodeScalars)
+        guard scalars.contains(where: { scalar in
+            (0x3040...0x30FF).contains(scalar.value)
+        }) else {
+            return false
+        }
+
+        return scalars.allSatisfy { scalar in
+            let value = scalar.value
+            let isJapaneseKana = (0x3040...0x30FF).contains(value)
+            let isIterationMark = value == 0x3005
+            let isWhitespace = CharacterSet.whitespacesAndNewlines.contains(scalar)
+            let isPunctuation = CharacterSet.punctuationCharacters.contains(scalar)
+            let isSymbol = CharacterSet.symbols.contains(scalar)
+            return isJapaneseKana || isIterationMark || isWhitespace || isPunctuation || isSymbol
+        }
     }
 
     private static func readingToken(
@@ -637,24 +661,265 @@ public enum JapaneseReadingPipeline {
     }
 }
 
-public extension LyricRubyToken {
-    /// Converts one confirmed morphology token into a display token.
-    /// Kana-only, Latin, numeric and punctuation tokens remain base text only;
-    /// they do not receive a redundant ruby line above them.
-    init(readingToken: JapaneseReadingToken) {
-        let ruby = Self.containsHan(readingToken.originalText)
-            ? readingToken.kana
-            : nil
-        self.init(
-            id: readingToken.id,
+public extension JapaneseReadingPipeline {
+    /// Builds ruby display tokens without duplicating okurigana.
+    ///
+    /// The confirmed full kana/romaji layers remain untouched. This is only a
+    /// presentation mapping: kana that already exists in the original surface
+    /// stays in the base text, while ruby is assigned to the Han span before
+    /// that kana. When the mapping is ambiguous, the builder falls back to a
+    /// word-level ruby token rather than inventing a reading.
+    static func rubyTokens(
+        for readingToken: JapaneseReadingToken,
+        engine: (any JapaneseMorphologyEngine)? = nil
+    ) -> [LyricRubyToken] {
+        JapaneseRubyTokenBuilder.build(
+            readingToken,
+            engine: engine ?? JapaneseMeCabEngine()
+        )
+    }
+}
+
+/// Deterministic surface/kana alignment for display-only ruby tokens.
+fileprivate enum JapaneseRubyTokenBuilder {
+    private enum SurfaceKind: Equatable {
+        case han
+        case kana
+        case plain
+    }
+
+    private struct SurfaceRun: Equatable {
+        let text: String
+        let kind: SurfaceKind
+    }
+
+    private struct Match {
+        let start: Int
+        let end: Int
+    }
+
+    static func build(
+        _ readingToken: JapaneseReadingToken,
+        engine: any JapaneseMorphologyEngine
+    ) -> [LyricRubyToken] {
+        let surface = readingToken.originalText
+        guard !surface.isEmpty,
+              let kana = readingToken.kana,
+              !kana.isEmpty,
+              containsHan(surface) else {
+            return [baseToken(for: readingToken, segment: 0)]
+        }
+
+        let runs = surfaceRuns(surface)
+        let readingCharacters = Array(JapaneseRomanizer.toHiraganaPreservingLatin(kana))
+        let anchorRuns = runs.enumerated().filter { $0.element.kind == .kana }
+
+        // Iteration marks are not Han characters. If a dictionary can resolve
+        // the repeated base character independently, show only that reading
+        // above the actual Han character and leave 々 in the base line.
+        if anchorRuns.isEmpty,
+           let iterationIndex = runs.firstIndex(where: { containsIterationMark($0.text) }),
+           let hanIndex = runs[..<iterationIndex].lastIndex(where: { $0.kind == .han }),
+           let singleReading = singleSurfaceReading(runs[hanIndex].text, engine: engine),
+           readingCharacters.starts(with: Array(singleReading)) {
+            var kanaSurfaceByRun: [Int: String] = [:]
+            for (index, run) in runs.enumerated() where run.kind != .han {
+                kanaSurfaceByRun[index] = run.text
+            }
+            let remainingReading = String(readingCharacters.dropFirst(singleReading.count))
+            if !remainingReading.isEmpty {
+                // `日々` is represented as `日:ひ` + `々:び`. The iteration
+                // mark has no independent ruby annotation, but it still
+                // needs its replacement kana in the kana-primary mode.
+                kanaSurfaceByRun[iterationIndex] = remainingReading
+            }
+            kanaSurfaceByRun[hanIndex] = singleReading
+            return makeTokens(
+                runs: runs,
+                rubyByRun: [hanIndex: singleReading],
+                kanaSurfaceByRun: kanaSurfaceByRun,
+                readingToken: readingToken
+            )
+        }
+
+        guard !anchorRuns.isEmpty else {
+            return [wordToken(for: readingToken, ruby: kana)]
+        }
+
+        guard let matches = matchAnchors(
+            anchorRuns.map { normalizedCharacters($0.element.text) },
+            in: readingCharacters
+        ) else {
+            return [wordToken(for: readingToken, ruby: kana)]
+        }
+
+        var rubyByRun: [Int: String] = [:]
+        var previousReadingEnd = 0
+        var previousAnchorRunIndex: Int?
+
+        for (anchorOffset, anchor) in anchorRuns.enumerated() {
+            let match = matches[anchorOffset]
+            let readingPart = String(readingCharacters[previousReadingEnd..<match.start])
+            let rangeStart = (previousAnchorRunIndex.map { $0 + 1 } ?? 0)
+            let rangeEnd = anchor.offset
+            let hanRuns = runs[rangeStart..<rangeEnd].enumerated().compactMap { offset, run in
+                run.kind == .han ? rangeStart + offset : nil
+            }
+
+            if !readingPart.isEmpty {
+                guard hanRuns.count == 1 else {
+                    return [wordToken(for: readingToken, ruby: kana)]
+                }
+                rubyByRun[hanRuns[0]] = readingPart
+            }
+
+            previousReadingEnd = match.end
+            previousAnchorRunIndex = anchor.offset
+        }
+
+        let trailingReading = String(readingCharacters[previousReadingEnd...])
+        let trailingStart = (previousAnchorRunIndex.map { $0 + 1 } ?? 0)
+        let trailingHanRuns = runs[trailingStart...].enumerated().compactMap { offset, run in
+            run.kind == .han ? trailingStart + offset : nil
+        }
+        if !trailingReading.isEmpty {
+            guard trailingHanRuns.count == 1 else {
+                return [wordToken(for: readingToken, ruby: kana)]
+            }
+            rubyByRun[trailingHanRuns[0]] = trailingReading
+        }
+
+        guard rubyByRun.count == runs.filter({ $0.kind == .han }).count else {
+            return [wordToken(for: readingToken, ruby: kana)]
+        }
+
+        return makeTokens(
+            runs: runs,
+            rubyByRun: rubyByRun,
+            readingToken: readingToken
+        )
+    }
+
+    private static func makeTokens(
+        runs: [SurfaceRun],
+        rubyByRun: [Int: String],
+        kanaSurfaceByRun: [Int: String] = [:],
+        readingToken: JapaneseReadingToken
+    ) -> [LyricRubyToken] {
+        runs.enumerated().map { index, run in
+            let ruby = rubyByRun[index]
+            let kanaSurface = kanaSurfaceByRun[index]
+                ?? ruby
+                ?? (run.kind == .han ? nil : run.text)
+            return LyricRubyToken(
+                id: readingToken.id * 10_000 + index,
+                surface: run.text,
+                ruby: ruby,
+                kanaSurface: kanaSurface,
+                romaji: ruby.map(JapaneseRomanizer.romanizeConfirmedKana),
+                confidence: readingToken.confidence
+            )
+        }
+    }
+
+    private static func baseToken(
+        for readingToken: JapaneseReadingToken,
+        segment: Int
+    ) -> LyricRubyToken {
+        LyricRubyToken(
+            id: readingToken.id * 10_000 + segment,
             surface: readingToken.originalText,
-            ruby: ruby,
-            romaji: readingToken.romaji,
+            ruby: nil,
+            kanaSurface: nil,
+            romaji: nil,
             confidence: readingToken.confidence
         )
     }
 
-    private static func containsHan(_ text: String) -> Bool {
+    private static func wordToken(
+        for readingToken: JapaneseReadingToken,
+        ruby: String
+    ) -> LyricRubyToken {
+        LyricRubyToken(
+            id: readingToken.id * 10_000,
+            surface: readingToken.originalText,
+            ruby: containsHan(readingToken.originalText) ? ruby : nil,
+            kanaSurface: containsHan(readingToken.originalText) ? ruby : nil,
+            romaji: JapaneseRomanizer.romanizeConfirmedKana(ruby),
+            confidence: readingToken.confidence
+        )
+    }
+
+    private static func surfaceRuns(_ surface: String) -> [SurfaceRun] {
+        var runs: [SurfaceRun] = []
+        for character in surface {
+            let kind: SurfaceKind
+            if isHan(character) {
+                kind = .han
+            } else if isKana(character) {
+                kind = .kana
+            } else {
+                kind = .plain
+            }
+
+            if let last = runs.last, last.kind == kind {
+                runs[runs.count - 1] = SurfaceRun(
+                    text: last.text + String(character),
+                    kind: kind
+                )
+            } else {
+                runs.append(SurfaceRun(text: String(character), kind: kind))
+            }
+        }
+        return runs
+    }
+
+    private static func matchAnchors(
+        _ anchors: [[Character]],
+        in reading: [Character]
+    ) -> [Match]? {
+        func occurrences(_ pattern: [Character], from start: Int) -> [Match] {
+            guard !pattern.isEmpty, start <= reading.count - pattern.count else { return [] }
+            return (start...(reading.count - pattern.count)).compactMap { index in
+                Array(reading[index..<(index + pattern.count)]) == pattern
+                    ? Match(start: index, end: index + pattern.count)
+                    : nil
+            }
+        }
+
+        func search(_ anchorIndex: Int, from readingStart: Int) -> [Match]? {
+            guard anchorIndex < anchors.count else { return [] }
+            for match in occurrences(anchors[anchorIndex], from: readingStart) {
+                if let rest = search(anchorIndex + 1, from: match.end) {
+                    return [match] + rest
+                }
+            }
+            return nil
+        }
+
+        return search(0, from: 0)
+    }
+
+    private static func singleSurfaceReading(
+        _ surface: String,
+        engine: any JapaneseMorphologyEngine
+    ) -> String? {
+        guard let token = (try? engine.tokenize(surface))?.first,
+              token.originalText == surface,
+              let raw = token.readingKatakana,
+              raw != "*",
+              !raw.isEmpty else {
+            return nil
+        }
+        let kana = JapaneseRomanizer.toHiraganaPreservingLatin(raw)
+        return containsHan(kana) ? nil : kana
+    }
+
+    private static func normalizedCharacters(_ text: String) -> [Character] {
+        Array(JapaneseRomanizer.toHiraganaPreservingLatin(text))
+    }
+
+    fileprivate static func containsHan(_ text: String) -> Bool {
         text.unicodeScalars.contains { scalar in
             let value = scalar.value
             return (0x3400...0x4DBF).contains(value)
@@ -662,5 +927,39 @@ public extension LyricRubyToken {
                 || (0xF900...0xFAFF).contains(value)
                 || (0x20000...0x2FA1F).contains(value)
         }
+    }
+
+    private static func isHan(_ character: Character) -> Bool {
+        containsHan(String(character))
+    }
+
+    private static func isKana(_ character: Character) -> Bool {
+        character.unicodeScalars.contains { scalar in
+            (0x3040...0x30FF).contains(scalar.value)
+        }
+    }
+
+    private static func containsIterationMark(_ text: String) -> Bool {
+        text.unicodeScalars.contains { $0.value == 0x3005 }
+    }
+}
+
+public extension LyricRubyToken {
+    /// Compatibility initializer for callers that still need one word-level
+    /// token. The main lyrics renderer uses `JapaneseReadingPipeline.rubyTokens`
+    /// so okurigana can be split into separate base-text tokens.
+    init(readingToken: JapaneseReadingToken) {
+        self.init(
+            id: readingToken.id,
+            surface: readingToken.originalText,
+            ruby: JapaneseRubyTokenBuilder.containsHan(readingToken.originalText)
+                ? readingToken.kana
+                : nil,
+            kanaSurface: JapaneseRubyTokenBuilder.containsHan(readingToken.originalText)
+                ? readingToken.kana
+                : nil,
+            romaji: readingToken.romaji,
+            confidence: readingToken.confidence
+        )
     }
 }

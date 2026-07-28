@@ -48,21 +48,57 @@ public struct LyricRubyToken: Identifiable, Equatable, Hashable, Codable, Sendab
     public let id: Int
     public let surface: String
     public let ruby: String?
+    /// The confirmed kana text that replaces `surface` in the kana-primary
+    /// presentation. This is separate from `ruby`: for a token such as
+    /// `々`, there may be replacement kana without an annotation to show.
+    public let kanaSurface: String?
     public let romaji: String?
     public let confidence: Double
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case surface
+        case ruby
+        case kanaSurface
+        case romaji
+        case confidence
+    }
 
     public init(
         id: Int,
         surface: String,
         ruby: String?,
+        kanaSurface: String? = nil,
         romaji: String? = nil,
         confidence: Double = 0
     ) {
         self.id = id
         self.surface = surface
         self.ruby = ruby
+        self.kanaSurface = kanaSurface
         self.romaji = romaji
         self.confidence = confidence
+    }
+
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(Int.self, forKey: .id)
+        surface = try values.decode(String.self, forKey: .surface)
+        ruby = try values.decodeIfPresent(String.self, forKey: .ruby)
+        // Older saved token payloads do not have this key.
+        kanaSurface = try values.decodeIfPresent(String.self, forKey: .kanaSurface)
+        romaji = try values.decodeIfPresent(String.self, forKey: .romaji)
+        confidence = try values.decodeIfPresent(Double.self, forKey: .confidence) ?? 0
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(id, forKey: .id)
+        try values.encode(surface, forKey: .surface)
+        try values.encodeIfPresent(ruby, forKey: .ruby)
+        try values.encodeIfPresent(kanaSurface, forKey: .kanaSurface)
+        try values.encodeIfPresent(romaji, forKey: .romaji)
+        try values.encode(confidence, forKey: .confidence)
     }
 
     public var isWhitespace: Bool {
@@ -74,6 +110,19 @@ public struct LyricRubyToken: Identifiable, Equatable, Hashable, Codable, Sendab
     public var hasRuby: Bool {
         guard let ruby, !ruby.isEmpty, !isWhitespace else { return false }
         return true
+    }
+
+    /// Kana-primary text for the third display mode. It never falls back to
+    /// a guessed reading; callers only receive a ruby value when the reading
+    /// pipeline confirmed one.
+    public var kanaReplacementText: String {
+        if let kanaSurface, !kanaSurface.isEmpty {
+            return kanaSurface
+        }
+        if hasRuby, let ruby, !ruby.isEmpty {
+            return ruby
+        }
+        return surface
     }
 }
 
@@ -117,11 +166,12 @@ public enum LyricsDisplayMode: String, CaseIterable, Identifiable {
 /// Controls how the confirmed kana layer is presented in the main lyrics view.
 ///
 /// `showKana` remains as a source-compatible computed property for older
-/// callers. Setting that property preserves the previous independent-line
-/// behavior rather than silently changing the presentation style.
+/// callers. Turning the layer off/on preserves the last selected visible
+/// mode, while choosing a mode directly never depends on that Boolean.
 public enum KanaDisplayMode: String, CaseIterable, Identifiable, Codable, Sendable {
     case independentLine = "independentLine"
     case inlineRuby = "inlineRuby"
+    case kanaReplacement = "kanaReplacement"
     case hidden = "hidden"
 
     public var id: String { rawValue }
@@ -130,6 +180,7 @@ public enum KanaDisplayMode: String, CaseIterable, Identifiable, Codable, Sendab
         switch self {
         case .independentLine: return "独立行"
         case .inlineRuby: return "悬浮注音"
+        case .kanaReplacement: return "假名替换"
         case .hidden: return "隐藏"
         }
     }
@@ -138,6 +189,7 @@ public enum KanaDisplayMode: String, CaseIterable, Identifiable, Codable, Sendab
         switch self {
         case .independentLine: return "整行显示假名，适合初学者对照阅读"
         case .inlineRuby: return "假名贴在对应汉字上方，保持正文连续"
+        case .kanaReplacement: return "假名替换汉字，原汉字置于上方作为辅助标注"
         case .hidden: return "不显示假名层"
         }
     }
@@ -147,15 +199,38 @@ public struct DisplayPreferences: Equatable {
     public var showOriginal: Bool = true
     public var showTranslation: Bool = true
     public var showRomaji: Bool = true
-    public var kanaDisplayMode: KanaDisplayMode
+    private var storedKanaDisplayMode: KanaDisplayMode
+    private var lastVisibleKanaDisplayMode: KanaDisplayMode
     public var fontSize: CGFloat = 18
     public var opacity: Double = 0.85
     public var alwaysOnTop: Bool = true
 
-    /// Compatibility bridge for the previous Boolean setting.
+    public var kanaDisplayMode: KanaDisplayMode {
+        get { storedKanaDisplayMode }
+        set {
+            storedKanaDisplayMode = newValue
+            if newValue != .hidden {
+                lastVisibleKanaDisplayMode = newValue
+            }
+        }
+    }
+
+    /// Compatibility bridge for the previous Boolean setting. It is only a
+    /// visibility switch; it does not choose between the three presentations.
     public var showKana: Bool {
         get { kanaDisplayMode != .hidden }
-        set { kanaDisplayMode = newValue ? .independentLine : .hidden }
+        set {
+            if newValue {
+                if storedKanaDisplayMode == .hidden {
+                    storedKanaDisplayMode = lastVisibleKanaDisplayMode
+                }
+            } else {
+                if storedKanaDisplayMode != .hidden {
+                    lastVisibleKanaDisplayMode = storedKanaDisplayMode
+                }
+                storedKanaDisplayMode = .hidden
+            }
+        }
     }
 
     public init(
@@ -171,7 +246,11 @@ public struct DisplayPreferences: Equatable {
         self.showOriginal = showOriginal
         self.showTranslation = showTranslation
         self.showRomaji = showRomaji
-        self.kanaDisplayMode = kanaDisplayMode ?? (showKana ? .independentLine : .hidden)
+        let selectedMode = kanaDisplayMode ?? (showKana ? .independentLine : .hidden)
+        self.storedKanaDisplayMode = selectedMode
+        self.lastVisibleKanaDisplayMode = selectedMode == .hidden
+            ? .independentLine
+            : selectedMode
         self.fontSize = fontSize
         self.opacity = opacity
         self.alwaysOnTop = alwaysOnTop

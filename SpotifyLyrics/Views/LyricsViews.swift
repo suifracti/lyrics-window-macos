@@ -5,19 +5,78 @@ struct LineDisplayView: View {
     let isActive: Bool
     let prefs: DisplayPreferences
 
+    private var baseFont: Font {
+        .system(
+            size: prefs.fontSize,
+            weight: isActive ? .bold : .medium,
+            design: .rounded
+        )
+    }
+
+    private var rubyFont: Font {
+        .system(
+            size: max(11, prefs.fontSize * 0.55),
+            weight: isActive ? .bold : .medium,
+            design: .rounded
+        )
+    }
+
+    private var baseColor: Color {
+        isActive ? .primary : .secondary.opacity(0.8)
+    }
+
+    private var rubyColor: Color {
+        isActive ? .accentColor.opacity(0.8) : .secondary.opacity(0.7)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            if prefs.showKana, let kana = line.kanaText, !kana.isEmpty {
+            if prefs.kanaDisplayMode == .kanaReplacement,
+               let kana = line.kanaText,
+               !kana.isEmpty {
+                KanaReplacementLineView(
+                    originalText: line.originalText,
+                    kanaText: kana,
+                    tokens: line.rubyTokens,
+                    showsOriginalAnnotation: prefs.showOriginal && !line.originalText.isEmpty,
+                    baseFont: baseFont,
+                    annotationFont: rubyFont,
+                    baseColor: baseColor,
+                    annotationColor: rubyColor
+                )
+            } else if prefs.showOriginal, !line.originalText.isEmpty {
+                if prefs.kanaDisplayMode == .inlineRuby,
+                   let kana = line.kanaText,
+                   !kana.isEmpty {
+                    RubyLineView(
+                        originalText: line.originalText,
+                        kanaText: kana,
+                        tokens: line.rubyTokens,
+                        baseFont: baseFont,
+                        rubyFont: rubyFont,
+                        baseColor: baseColor,
+                        rubyColor: rubyColor
+                    )
+                } else {
+                    Text(line.originalText)
+                        .font(baseFont)
+                        .foregroundColor(baseColor)
+                        .scaleEffect(isActive ? 1.03 : 1.0, anchor: .leading)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isActive)
+                }
+
+                if prefs.kanaDisplayMode == .independentLine,
+                   prefs.showKana,
+                   let kana = line.kanaText,
+                   !kana.isEmpty {
+                    Text(kana)
+                        .font(.system(size: prefs.fontSize * 0.65, weight: .medium, design: .rounded))
+                        .foregroundColor(rubyColor)
+                }
+            } else if prefs.showKana, let kana = line.kanaText, !kana.isEmpty {
                 Text(kana)
                     .font(.system(size: prefs.fontSize * 0.65, weight: .light, design: .rounded))
                     .foregroundColor(isActive ? .accentColor.opacity(0.8) : .secondary)
-            }
-            if prefs.showOriginal {
-                Text(line.originalText)
-                    .font(.system(size: prefs.fontSize, weight: isActive ? .bold : .medium, design: .rounded))
-                    .foregroundColor(isActive ? .primary : .secondary.opacity(0.8))
-                    .scaleEffect(isActive ? 1.03 : 1.0, anchor: .leading)
-                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isActive)
             }
             if prefs.showRomaji, let romaji = line.romajiText, !romaji.isEmpty {
                 Text(romaji)
@@ -167,6 +226,7 @@ struct FullScreenLyricsView: View {
                                 showTranslation: state.preferences.showTranslation,
                                 showRomaji: state.preferences.showRomaji,
                                 showKana: state.preferences.showKana,
+                                kanaDisplayMode: state.preferences.kanaDisplayMode,
                                 fontSize: 32,
                                 opacity: 1.0,
                                 alwaysOnTop: false
@@ -180,6 +240,7 @@ struct FullScreenLyricsView: View {
                                 showTranslation: state.preferences.showTranslation,
                                 showRomaji: state.preferences.showRomaji,
                                 showKana: state.preferences.showKana,
+                                kanaDisplayMode: state.preferences.kanaDisplayMode,
                                 fontSize: 32,
                                 opacity: 1.0,
                                 alwaysOnTop: false

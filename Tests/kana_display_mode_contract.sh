@@ -7,11 +7,17 @@ PREFERENCES="$ROOT/SpotifyLyrics/Views/Components/LyricsPreferencesPopover.swift
 LINE="$ROOT/SpotifyLyrics/Views/Components/LyricLineView.swift"
 
 grep -Eq 'enum KanaDisplayMode' "$MODELS"
-grep -Eq 'independentLine|inlineRuby|hidden' "$MODELS"
+grep -Eq 'independentLine|inlineRuby|kanaReplacement|hidden' "$MODELS"
 grep -Eq 'kanaDisplayMode' "$PREFERENCES"
-grep -Eq 'Picker\("假名显示模式"' "$PREFERENCES"
+grep -Eq '汉字上方' "$PREFERENCES"
+grep -Eq '假名替换' "$PREFERENCES"
+grep -Eq 'showKana' "$PREFERENCES"
 grep -Eq 'independentLine' "$LINE"
 grep -Eq 'inlineRuby' "$LINE"
+grep -Eq 'kanaReplacement' "$LINE"
+grep -Eq 'KanaReplacementLineView' "$LINE"
+grep -Eq 'rubyTokenGroups' "$LINE"
+grep -Eq 'annotation above|置于上方' "$LINE" "$MODELS"
 
 TMP_DIR="$(mktemp -d /tmp/kana-display-mode-contract.XXXXXX)"
 trap 'rm -rf "$TMP_DIR"' EXIT
@@ -34,6 +40,17 @@ struct KanaDisplayModeContract {
         precondition(independent.showKana)
         precondition(independent.kanaDisplayMode.title == "独立行")
         precondition(independent.kanaDisplayMode.detail.contains("整行"))
+
+        let replacement = DisplayPreferences(kanaDisplayMode: .kanaReplacement)
+        precondition(replacement.showKana)
+        precondition(replacement.kanaDisplayMode.title == "假名替换")
+        precondition(replacement.kanaDisplayMode.detail.contains("汉字"))
+
+        var visibility = replacement
+        visibility.showKana = false
+        precondition(visibility.kanaDisplayMode == .hidden)
+        visibility.showKana = true
+        precondition(visibility.kanaDisplayMode == .kanaReplacement)
 
         print("kana display mode contract passed")
     }

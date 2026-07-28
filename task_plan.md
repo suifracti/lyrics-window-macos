@@ -289,8 +289,8 @@ Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 
 ## Phase 30: Switchable Kana Presentation — complete
 - [x] 恢复上一版本的独立假名行，并与当前悬浮注音、隐藏模式并列为可切换显示模式
-- [x] 保留旧版 `showKana` Boolean 兼容层；旧调用映射到悬浮注音，不破坏现有 UI/设置调用
-- [x] 在歌词显示设置中加入“独立行 / 悬浮注音 / 隐藏”选择器，并接入主沉浸歌词窗口
+- [x] 保留旧版 `showKana` Boolean 兼容层；旧调用继续映射到独立假名行，不破坏现有 UI/设置调用
+- [x] 在歌词显示设置中加入“假名”开关和“汉字上方注音”开关，并接入主沉浸歌词窗口
 - [x] 独立行使用响应式字号、正文/假名独立层级和稳定间距，不修改原文、罗马音或排轴数据
 - [x] 增加假名显示合同；修正日语读音合同遗漏 `Models.swift` 的测试编译输入
 - [x] 正常签名 Debug 构建、codesign、全量合同和真实 App UI 截图验证
@@ -303,3 +303,43 @@ Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 
 ### Phase 30 Scope
 - 只恢复假名显示模式，不新增歌词 Provider、不修改自动排轴结果、不做 UI 其他窗口模式重构。
+
+## Phase 31: Okurigana-Safe Ruby and Explicit Ruby Switch — complete
+- [x] 追踪并修复整个形态词元读音被重复放到整词上方的问题
+- [x] 只为汉字片段生成 ruby；言われ→い + われ、流れ→なが + れ、思い出す→おも + い + だ + す
+- [x] 对日々使用词典确认的首个汉字读音显示 `ひ`，不为迭代符号 `々` 猜读音
+- [x] 保持完整 `kanaText`、`romajiText` 和原文不变；独立行模式仍显示完整假名
+- [x] 将第三张图的汉字上方注音改为设置中的明确开关
+- [x] 增加红绿合同覆盖 okurigana、复合词、迭代符号和显示开关
+- [x] 正常签名 Debug 构建、codesign、全量合同和真实 App 验收
+
+### Phase 31 Evidence
+- 真实 App 截图：`/tmp/spotifylyrics-ruby-okurigana-fixed.png`
+- 运行时显示 `い` 位于 `言` 上方、`よる` 位于 `夜` 上方；设置中可见“假名”和“汉字上方注音”两个开关
+- 诊断输出：`流れた→流|なが、れ；日々→日|ひ、々；思い出す→思|おも、い、出|だ、す`
+- `Tests/ruby_layout_contract.sh`、`Tests/kana_display_mode_contract.sh` 与 `Tests/*.sh` 全量通过；回归日志：`/tmp/spotifylyrics-ruby-okurigana-regression.log`
+
+### Phase 31 Scope
+- 只修复注音展示映射和开关，不修改完整假名/罗马音文本、不修改排轴结果、不新增歌词来源。
+
+## Phase 32: Kana-Replacement Presentation — complete
+- [x] 新增第三种独立呈现：假名替换对应汉字，原汉字作为小号辅助标注置于上方；不依赖独立行或汉字上方注音模式
+- [x] `LyricRubyToken` 增加兼容的 `kanaSurface` 层；保留 `surface`、完整 `kanaText` 和 `romajiText`，为 `日々` 保留 `ひ` / `び` 的替换片段
+- [x] 设置中改为无前置依赖的三选一显示方式：独立行、汉字上方、假名替换；旧 `showKana` 仍只作为显隐兼容层
+- [x] 为非法 provider romaji 读音增加 fail-closed 校验，避免错误内容进入 ruby 或假名替换层
+- [x] 增加第三模式、替换片段、provider 读音安全合同；真实 App 在 `水曜日の約束 / Kawasaki.Rio` 上切换并截图验证
+- [x] 正常签名 Debug 构建、codesign、全量合同回归和绝对路径运行进程验证
+
+### Phase 32 Evidence
+- App：`/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app`
+- 真实运行进程：`/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics`，当前歌曲保持 `01:28 / 02:51`
+- 三模式设置截图：`/tmp/spotifylyrics-kana-replacement-final4-third.png`
+- 第三模式歌词区域截图：`/tmp/spotifylyrics-kana-replacement-final4-lines.png`
+- 关闭设置后的主窗口截图：`/tmp/spotifylyrics-kana-replacement-final4-clean.png`
+- App 窗口裁剪截图：`/tmp/spotifylyrics-kana-replacement-final4-windowcrop.png`
+- 回归日志：`/tmp/spotifylyrics-kana-replacement-regression-final3.log`，`REGRESSION_EXIT=0`
+- 正常签名 Debug：`** BUILD SUCCEEDED **`、`XCODEBUILD_EXIT=0`；`codesign --verify --deep --strict`：valid on disk
+- `phase2_layout_contract` 已更新为验证旧悬浮/全屏路径同步消费三种假名模式，而非禁止其读取模式状态
+
+### Phase 32 Scope
+- 只新增假名替换显示层和三模式切换，不修改实验性自动排轴结果、不新增歌词 Provider、不修改播放位置。
