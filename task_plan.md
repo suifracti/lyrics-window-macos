@@ -365,3 +365,26 @@ Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 
 ### Phase 33 Scope
 - 本阶段只新增 Apple Music 沉浸 V3 主窗口及其合同/验收证据；不修改 Provider、排轴算法、设置窗口、悬浮歌词、顶部胶囊或全屏模式。
+
+## Phase 34: V3 Visual Calibration — complete
+- [x] 仅调整 V3 视觉：封面绑定的低分辨率背景纹理、主色渐变、左侧光晕、暗角和弱程序化噪点均按 Track identity/artwork 缓存，不随播放位置重算
+- [x] 收紧封面圆角与左侧布局，放大无背景容器的上一首/播放/下一首按钮，并保持封面、歌曲信息、进度条左边缘对齐
+- [x] 校准同步歌词层级：原文动态字号、较弱 Ruby 假名、独立罗马音、邻近行可读，距离两行以上才使用轻微 blur；当前行锚定约 47% 高度
+- [x] 无时间轴歌词改为全文阅读面：不生成当前行、不自动滚动、不使用远近层级；待排轴只保留在工具菜单状态中
+- [x] 工具栏初始隐藏，仅在鼠标接近顶部时淡入；不切换 NSWindow titlebar，不修改 V2、歌词专注、Provider、排轴、搜索或设置
+- [x] 使用真实 Spotify `春を告げる / yama`（LRCLIB，36 行同步歌词）验证首段/中段/尾段，并使用真实 `水曜日の約束 / Kawasaki.Rio`（QQ，32 行无时间轴）验证全文 Ruby/罗马音
+- [x] 使用紫色与蓝绿色两种真实封面、1152×720 默认尺寸和 800×600 最小尺寸完成截图验收
+
+### Phase 34 Evidence
+- V3 App：`/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app`
+- 真实运行进程：`/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics`（PID 84112，验收期间由该绝对路径启动）
+- 正常签名 Debug：`** BUILD SUCCEEDED **`、`XCODEBUILD_EXIT=0`；`codesign --verify --deep --strict`：valid on disk，`CODESIGN_EXIT=0`
+- 全量回归日志：`/tmp/spotifylyrics-v3-visual-regression.log`，`REGRESSION_EXIT=0`
+- V3 合同：`Tests/apple_music_immersive_v3_contract.sh` passed
+- 真实同步歌词截图：`/tmp/spotifylyrics-v3-haru-start-calibrated.png`、`/tmp/spotifylyrics-v3-haru-middle-calibrated.png`、`/tmp/spotifylyrics-v3-haru-end-calibrated.png`
+- 真实无时间轴截图：`/tmp/spotifylyrics-v3-water-calibrated.png`
+- 尺寸截图：`/tmp/spotifylyrics-v3-default-1152x720.png`、`/tmp/spotifylyrics-v3-min-800x600.png`
+- 运行层日志：`/tmp/spotifylyrics-e2e.log` 记录 yama `lines=36 sync=true` 与 Kawasaki.Rio `lines=32 sync=false`；Spotify 重启后实际曲目事件重新进入当前 App，未修改 Provider 或播放控制逻辑
+
+### Phase 34 Scope
+- 本阶段只校准 Apple Music 沉浸 V3 主窗口视觉与对应合同/截图证据；不新增主窗口模式，不修改 V2、歌词专注模式、设置、搜索、Provider 或排轴结果。

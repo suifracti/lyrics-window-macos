@@ -342,6 +342,10 @@ struct RubyLineView: View {
     let rubyFont: Font
     let baseColor: Color
     let rubyColor: Color
+    /// Kept configurable so V3 can tighten the ruby cluster without
+    /// changing the established V2/focus presentation defaults.
+    var rubySpacing: CGFloat = 2
+    var tokenVerticalSpacing: CGFloat = 5
 
     private var displayTokens: [LyricRubyToken] {
         guard let tokens, !tokens.isEmpty else {
@@ -361,7 +365,7 @@ struct RubyLineView: View {
     }
 
     var body: some View {
-        RubyTokenFlowLayout(horizontalSpacing: 0, verticalSpacing: 5) {
+        RubyTokenFlowLayout(horizontalSpacing: 0, verticalSpacing: tokenVerticalSpacing) {
             ForEach(Array(displayTokenGroups.enumerated()), id: \.offset) { _, group in
                 HStack(alignment: .lastTextBaseline, spacing: 0) {
                     ForEach(group) { token in
@@ -370,7 +374,8 @@ struct RubyLineView: View {
                             baseFont: baseFont,
                             rubyFont: rubyFont,
                             baseColor: baseColor,
-                            rubyColor: rubyColor
+                            rubyColor: rubyColor,
+                            rubySpacing: rubySpacing
                         )
                     }
                 }
@@ -407,9 +412,10 @@ private struct RubyTokenBlock: View {
     let rubyFont: Font
     let baseColor: Color
     let rubyColor: Color
+    let rubySpacing: CGFloat
 
     var body: some View {
-        RubyTokenBlockLayout(rubySpacing: 2) {
+        RubyTokenBlockLayout(rubySpacing: rubySpacing) {
             if token.hasRuby, let ruby = token.ruby {
                 Text(ruby)
                     .font(rubyFont)

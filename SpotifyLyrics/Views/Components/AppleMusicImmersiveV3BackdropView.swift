@@ -33,7 +33,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
             }
 
             // The veil is intentionally independent of playback position.
-            Color.black.opacity(0.42)
+            Color.black.opacity(max(0.22, palette.readabilityVeilOpacity * 0.68))
         }
         .ignoresSafeArea()
         .allowsHitTesting(false)
@@ -49,14 +49,26 @@ struct AppleMusicImmersiveV3BackdropView: View {
     }
 
     private var neutralBackground: some View {
-        LinearGradient(
-            colors: [
-                color(BackdropPalette.neutral.primary),
-                color(BackdropPalette.neutral.secondary)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+        ZStack {
+            LinearGradient(
+                colors: [
+                    color(BackdropPalette.neutral.primary),
+                    color(BackdropPalette.neutral.secondary),
+                    color(BackdropPalette.neutral.glow)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            RadialGradient(
+                colors: [
+                    color(BackdropPalette.neutral.glow).opacity(0.42),
+                    .clear
+                ],
+                center: UnitPoint(x: 0.16, y: 0.5),
+                startRadius: 20,
+                endRadius: 520
+            )
+        }
     }
 
     @ViewBuilder
@@ -64,15 +76,17 @@ struct AppleMusicImmersiveV3BackdropView: View {
         Image(nsImage: image)
             .resizable()
             .scaledToFill()
-            .scaleEffect(1.5)
-            .blur(radius: 120)
-            .opacity(0.58)
+            .scaleEffect(1.34)
+            // The cache stores a 320px image, so a lower blur keeps cover
+            // texture visible without doing full-resolution work per tick.
+            .blur(radius: 72)
+            .opacity(0.72)
 
         LinearGradient(
             colors: [
-                color(palette.primary).opacity(0.78),
-                color(palette.secondary).opacity(0.9),
-                color(palette.glow).opacity(0.52)
+                color(palette.primary).opacity(0.48),
+                color(palette.secondary).opacity(0.56),
+                color(palette.glow).opacity(0.30)
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
@@ -80,19 +94,40 @@ struct AppleMusicImmersiveV3BackdropView: View {
 
         RadialGradient(
             colors: [
-                color(palette.glow).opacity(0.28),
+                color(palette.glow).opacity(0.46),
                 .clear
             ],
-            center: .topTrailing,
-            startRadius: 12,
-            endRadius: 620
+            center: UnitPoint(x: 0.16, y: 0.52),
+            startRadius: 16,
+            endRadius: 540
+        )
+
+        // Keep the lyric half calm without flattening the cover half.
+        LinearGradient(
+            colors: [
+                .clear,
+                Color.black.opacity(0.10),
+                Color.black.opacity(0.30)
+            ],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+
+        RadialGradient(
+            colors: [
+                .clear,
+                Color.black.opacity(0.42)
+            ],
+            center: .center,
+            startRadius: 150,
+            endRadius: 900
         )
 
         if let noiseImage {
             Image(nsImage: noiseImage)
                 .resizable(resizingMode: .tile)
                 .blendMode(.overlay)
-                .opacity(0.035)
+                .opacity(0.05)
         }
     }
 

@@ -26,7 +26,7 @@ grep -q 'wideBreakpoint: CGFloat = 1_080' "$window_file"
 grep -q 'onContinuousHover' "$window_file"
 grep -q 'RubyLineView' "$window_file"
 grep -q 'LyricsTimeline.validSeekTimestamp' "$window_file"
-grep -q 'scrollTo(id, anchor: .center)' "$window_file"
+grep -q 'scrollTo(id, anchor: UnitPoint(x: 0.5, y: 0.47))' "$window_file"
 # V3 must not reuse the V2 status panel or its fake-current-line behavior.
 ! grep -q 'LyricsCanvasView' "$window_file"
 grep -q 'distance > 1' "$window_file"
@@ -34,9 +34,30 @@ grep -q 'distance == 1 ? 0' "$window_file"
 
 grep -q 'task(id: requestKey)' "$backdrop_file"
 grep -q 'Task.detached(priority: .utility)' "$backdrop_file"
-grep -q 'blur(radius: 120)' "$backdrop_file"
+grep -q 'blur(radius: 72)' "$backdrop_file"
 grep -q 'noiseData' "$backdrop_file"
 grep -q 'maxPixel: 320' "$backdrop_file"
+grep -q 'opacity(0.72)' "$backdrop_file"
+grep -q 'UnitPoint(x: 0.16, y: 0.52)' "$backdrop_file"
+grep -q 'Color.black.opacity(0.42)' "$backdrop_file"
+
+# Visual calibration guardrails: keep the cover readable, keep ruby subordinate,
+# and make the unsynchronised path a plain reading surface rather than a fake
+# timeline.
+grep -q 'cornerRadiusRatio: 0.04' "$window_file"
+grep -q 'font(.system(size: 22, weight: .semibold))' "$window_file"
+grep -q 'frame(width: 40, height: 40)' "$window_file"
+grep -q 'font(.system(size: 18, weight: .semibold))' "$window_file"
+grep -q 'frame(width: 36, height: 36)' "$window_file"
+grep -q 'let verticalPadding = synchronized' "$window_file"
+grep -q ': 28.0' "$window_file"
+grep -q 'min(14, baseSize \* 0.34)' "$window_file"
+grep -q 'min(compact ? 16 : 18' "$window_file"
+grep -q 'rubyColor: .white.opacity(0.62)' "$window_file"
+grep -q 'rubySpacing: 1' "$window_file"
+grep -q 'tokenVerticalSpacing: 3' "$window_file"
+grep -q 'distance == 1 ? 0.93' "$window_file"
+grep -q 'min(0.9' "$window_file"
 
 grep -q '.defaultSize(width: 1152, height: 720)' SpotifyLyrics/Main.swift
 

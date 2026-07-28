@@ -8,7 +8,10 @@ struct AppleMusicImmersiveV3WindowView: View {
 
     @State private var isPreferencesPresented = false
     @State private var isSearchPresented = false
-    @State private var toolsVisible = true
+    // The canvas starts clean. Controls reveal only when the pointer reaches
+    // the top edge, so playback remains content-first without sacrificing
+    // access to search, layout, and settings.
+    @State private var toolsVisible = false
     @State private var interactionToken = 0
 
     private let wideBreakpoint: CGFloat = 1_080
@@ -33,11 +36,13 @@ struct AppleMusicImmersiveV3WindowView: View {
                     .animation(.easeInOut(duration: 0.24), value: toolsVisible)
             }
             .contentShape(Rectangle())
-            .onContinuousHover(coordinateSpace: .local) { _ in
-                revealTools()
-            }
-            .onAppear {
-                revealTools()
+            .onContinuousHover(coordinateSpace: .local) { phase in
+                switch phase {
+                case .active(let location) where location.y <= 96:
+                    revealTools()
+                case .active(_), .ended:
+                    break
+                }
             }
             .task(id: interactionToken) {
                 guard interactionToken > 0 else { return }
@@ -69,7 +74,7 @@ struct AppleMusicImmersiveV3WindowView: View {
         let contentWidth = max(1, geometry.size.width - horizontalPadding * 2)
         let leftWidth = contentWidth * 0.45
         let rightWidth = contentWidth * 0.55
-        let coverSize = min(leftWidth * 0.8, geometry.size.height * 0.55)
+        let coverSize = min(leftWidth * 0.84, geometry.size.height * 0.52)
 
         return HStack(spacing: 0) {
             trackColumn(
@@ -174,7 +179,7 @@ struct AppleMusicImmersiveV3WindowView: View {
 
             TrackMetadataView(
                 track: state.currentTrack,
-                titleSize: min(compact ? 26 : 34, max(compact ? 18 : 22, coverSize * 0.09)),
+                titleSize: min(compact ? 26 : 30, max(compact ? 18 : 22, coverSize * 0.075)),
                 alignment: alignment
             )
             .frame(maxWidth: width, alignment: alignment == .center ? .center : .leading)
@@ -379,7 +384,7 @@ private struct AppleMusicImmersiveV3TransportControls: View {
             .frame(height: 10)
             .accessibilityLabel("播放进度")
 
-            HStack(spacing: 18) {
+            HStack(spacing: 22) {
                 v3TransportButton("backward.fill", label: "上一首", enabled: state.canControlSpotify) {
                     state.previousTrack()
                 }
@@ -388,9 +393,9 @@ private struct AppleMusicImmersiveV3TransportControls: View {
                     state.togglePlayPause()
                 } label: {
                     Image(systemName: state.isPlaying ? "pause.fill" : "play.fill")
-                        .font(.system(size: 18, weight: .semibold))
+                        .font(.system(size: 22, weight: .semibold))
                         .foregroundStyle(.white)
-                        .frame(width: 32, height: 32)
+                        .frame(width: 40, height: 40)
                 }
                 .buttonStyle(.plain)
                 .disabled(!state.canInteractWithPlayback)
@@ -417,9 +422,9 @@ private struct AppleMusicImmersiveV3TransportControls: View {
     ) -> some View {
         Button(action: action) {
             Image(systemName: systemImage)
-                .font(.system(size: 13, weight: .semibold))
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(.white)
-                .frame(width: 28, height: 28)
+                .frame(width: 36, height: 36)
         }
         .buttonStyle(.plain)
         .disabled(!enabled)
@@ -484,7 +489,11 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
     private var lyricsScroll: some View {
         GeometryReader { geometry in
             ScrollViewReader { proxy in
-                ScrollView(.vertical) {
+                let synchronized = state.lyricsAreSynchronized
+                let verticalPadding = synchronized
+                    ? max(120, geometry.size.height * 0.47)
+                    : 28.0
+                let scroll = ScrollView(.vertical) {
                     LazyVStack(alignment: .leading, spacing: rowSpacing) {
                         ForEach(Array(state.lyrics.enumerated()), id: \.element.id) { index, line in
                             row(for: line, index: index)
@@ -492,23 +501,32 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, max(120, geometry.size.height * 0.48))
-                    .padding(.bottom, max(120, geometry.size.height * 0.48))
+                    .padding(.top, verticalPadding)
+                    .padding(.bottom, verticalPadding)
                     .padding(.trailing, compact ? 10 : 18)
                 }
                 .scrollIndicators(.hidden)
-                .mask(
-                    LinearGradient(
-                        stops: [
-                            .init(color: .clear, location: 0),
-                            .init(color: .black, location: 0.15),
-                            .init(color: .black, location: 0.86),
-                            .init(color: .clear, location: 1)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
+
+                Group {
+                    if synchronized {
+                        scroll.mask(
+                            LinearGradient(
+                                stops: [
+                                    .init(color: .clear, location: 0),
+                                    .init(color: .black, location: 0.12),
+                                    .init(color: .black, location: 0.88),
+                                    .init(color: .clear, location: 1)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                    } else {
+                        // Plain lyrics are a reading surface: no fake current
+                        // line, no distance hierarchy, no clipped first/last row.
+                        scroll
+                    }
+                }
                 .onAppear {
                     scrollToCurrentLine(using: proxy, animated: false)
                 }
@@ -525,7 +543,10 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
     private var rowSpacing: CGFloat {
         let layerCount = (state.preferences.showRomaji ? 1 : 0)
             + (state.preferences.showTranslation ? 1 : 0)
-        return max(20, (compact ? 24 : 30) - CGFloat(max(0, layerCount - 1)) * 2)
+        if !state.lyricsAreSynchronized {
+            return max(18, (compact ? 21 : 24) - CGFloat(max(0, layerCount - 1)))
+        }
+        return max(20, (compact ? 24 : 28) - CGFloat(max(0, layerCount - 1)) * 2)
     }
 
     @ViewBuilder
@@ -573,7 +594,7 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
             return
         }
         let id = state.lyrics[currentIndex].id
-        let action = { proxy.scrollTo(id, anchor: .center) }
+        let action = { proxy.scrollTo(id, anchor: UnitPoint(x: 0.5, y: 0.47)) }
         if animated {
             withAnimation(.easeInOut(duration: 0.34), action)
         } else {
@@ -598,38 +619,40 @@ private struct AppleMusicImmersiveV3LyricRow: View {
 
     private var activeBaseSize: CGFloat {
         let upperBound = compact ? 34 : 42
-        let lowerBound: CGFloat = compact ? 20 : 24
+        let lowerBound: CGFloat = compact ? 22 : 28
         let characterCount = max(1, line.originalText.count)
         let fitWidth = max(220, availableWidth - 24)
         let estimatedWidth = CGFloat(characterCount) * CGFloat(upperBound) * 0.82
-        let fitScale = min(1, max(0.52, fitWidth / max(1, estimatedWidth)))
+        // Prefer a large display face and allow a long lyric to wrap rather
+        // than collapsing every active line into a small subtitle size.
+        let fitScale = min(1, max(0.72, fitWidth / max(1, estimatedWidth)))
         let layerPenalty = CGFloat(max(0, layerCount - 2)) * 1.7
         return max(lowerBound, min(CGFloat(upperBound), CGFloat(upperBound) * fitScale - layerPenalty))
     }
 
     private var baseSize: CGFloat {
         guard isSynchronized else {
-            return min(compact ? 28 : 32, activeBaseSize)
+            return min(compact ? 30 : 36, activeBaseSize)
         }
-        return isActive ? activeBaseSize : max(compact ? 18 : 20, activeBaseSize * (distance == 1 ? 0.91 : 0.86))
+        return isActive ? activeBaseSize : max(compact ? 20 : 24, activeBaseSize * (distance == 1 ? 0.93 : 0.88))
     }
 
-    private var rubySize: CGFloat { max(11, baseSize * 0.55) }
-    private var auxiliarySize: CGFloat { min(compact ? 19 : 24, max(13, baseSize * 0.56)) }
+    private var rubySize: CGFloat { max(compact ? 10 : 12, min(14, baseSize * 0.34)) }
+    private var auxiliarySize: CGFloat { min(compact ? 16 : 18, max(14, baseSize * 0.44)) }
 
     private var rowOpacity: Double {
-        guard isSynchronized else { return 0.84 }
+        guard isSynchronized else { return 1 }
         if isActive { return 1 }
-        return distance == 1 ? 0.56 : max(0.22, 0.42 - Double(distance - 2) * 0.05)
+        return distance == 1 ? 0.62 : max(0.28, 0.44 - Double(distance - 2) * 0.045)
     }
 
     private var rowBlur: CGFloat {
         guard isSynchronized, distance > 1 else { return 0 }
-        return min(2.2, CGFloat(distance - 1) * 0.72)
+        return min(0.9, CGFloat(distance - 1) * 0.22)
     }
 
     private var rowWeight: Font.Weight {
-        guard isSynchronized else { return .medium }
+        guard isSynchronized else { return .regular }
         if isActive { return .heavy }
         if distance == 1 { return .semibold }
         return .regular
@@ -637,15 +660,20 @@ private struct AppleMusicImmersiveV3LyricRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if let kana = line.kanaText, !kana.isEmpty {
+            if let kana = line.kanaText,
+               !kana.isEmpty,
+               let tokens = line.rubyTokens,
+               tokens.contains(where: { $0.hasRuby }) {
                 RubyLineView(
                     originalText: line.originalText,
                     kanaText: kana,
-                    tokens: line.rubyTokens,
+                    tokens: tokens,
                     baseFont: .system(size: baseSize, weight: rowWeight, design: .rounded),
-                    rubyFont: .system(size: rubySize, weight: rowWeight, design: .rounded),
+                    rubyFont: .system(size: rubySize, weight: .regular, design: .rounded),
                     baseColor: .white,
-                    rubyColor: .white.opacity(0.82)
+                    rubyColor: .white.opacity(0.62),
+                    rubySpacing: 1,
+                    tokenVerticalSpacing: 3
                 )
             } else {
                 Text(line.originalText)
