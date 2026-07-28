@@ -11,7 +11,17 @@ public enum JapaneseRomanizer {
     public static func romanize(_ text: String, style: Style = .hepburnASCII) -> String {
         _ = style
         let kana = toHiraganaPreservingLatin(text)
-        return romanizeHiragana(kana)
+        return romanizeHiragana(kana, capitalize: true)
+    }
+
+    /// Romaji for an already confirmed kana layer.
+    ///
+    /// Unlike `romanize`, this method deliberately keeps lyric text lowercase
+    /// and never attempts to interpret kanji. It is the only entry point the
+    /// morphology pipeline uses for local/provider-confirmed readings.
+    public static func romanizeConfirmedKana(_ text: String) -> String {
+        let kana = toHiraganaPreservingLatin(text)
+        return romanizeHiragana(kana, capitalize: false)
     }
 
     /// Returns romaji only when the Japanese portion is mostly kana (safe for titles like あやふや).
@@ -46,7 +56,7 @@ public enum JapaneseRomanizer {
         return String(out)
     }
 
-    private static func romanizeHiragana(_ text: String) -> String {
+    private static func romanizeHiragana(_ text: String, capitalize: Bool) -> String {
         // Longest-match table
         let table: [(String, String)] = [
             ("きゃ", "kya"), ("きゅ", "kyu"), ("きょ", "kyo"),
@@ -63,7 +73,7 @@ public enum JapaneseRomanizer {
             ("ふぁ", "fa"), ("ふぃ", "fi"), ("ふぇ", "fe"), ("ふぉ", "fo"),
             ("てぃ", "ti"), ("でぃ", "di"), ("とぅ", "tu"), ("どぅ", "du"),
             ("うぃ", "wi"), ("うぇ", "we"), ("うぉ", "wo"),
-            ("ヴぁ", "va"), ("ヴぃ", "vi"), ("ヴ", "vu"), ("ヴぇ", "ve"), ("ヴぉ", "vo"),
+            ("ゔぁ", "va"), ("ゔぃ", "vi"), ("ゔ", "vu"), ("ゔぇ", "ve"), ("ゔぉ", "vo"),
             ("あ", "a"), ("い", "i"), ("う", "u"), ("え", "e"), ("お", "o"),
             ("か", "ka"), ("き", "ki"), ("く", "ku"), ("け", "ke"), ("こ", "ko"),
             ("さ", "sa"), ("し", "shi"), ("す", "su"), ("せ", "se"), ("そ", "so"),
@@ -100,20 +110,36 @@ public enum JapaneseRomanizer {
                     } else {
                         pieces.append("t")
                     }
+                } else {
+                    // A morphology token may end at っ while the following
+                    // consonant is in the next token (e.g. なかっ + た).
+                    pieces.append("t")
                 }
                 i = nextStart
                 continue
             }
-            // chōonpu ー: lengthen previous vowel as ou/uu style (double vowel -> ou for o)
+            // Hepburn disambiguates ん before a vowel or y with an apostrophe.
+            // This conversion is based only on the confirmed kana sequence.
+            if rest.hasPrefix("ん") {
+                let nextStart = text.index(after: i)
+                if nextStart < text.endIndex {
+                    let nextRomaji = peekRomaji(String(text[nextStart...]), table: table)
+                    if let first = nextRomaji.first, "aiueoy".contains(first) {
+                        pieces.append("n'")
+                    } else {
+                        pieces.append("n")
+                    }
+                } else {
+                    pieces.append("n")
+                }
+                i = nextStart
+                continue
+            }
+            // chōonpu ー explicitly repeats the preceding vowel. The kana
+            // sequence おう is kept as o + u and therefore remains "ou".
             if rest.hasPrefix("ー") {
                 if let last = pieces.last, let v = last.last, "aiueo".contains(v) {
-                    if v == "o" {
-                        pieces.append("u") // ou
-                    } else if v == "u" {
-                        pieces.append("u")
-                    } else {
-                        pieces.append(String(v))
-                    }
+                    pieces.append(String(v))
                 }
                 i = text.index(after: i)
                 continue
@@ -136,14 +162,11 @@ public enum JapaneseRomanizer {
         }
 
         var joined = pieces.joined()
-        // syllable n + vowel disambiguation: n' before a/i/u/e/o/y
-        joined = joined.replacingOccurrences(of: "n'a", with: "n'a") // already
-        // Fix n + vowel when produced as na from ん+a separately - our table gives "n"+"a" = "na" which is ambiguous.
-        // Use simple pass: "n" before vowel letters that came from separate ん - hard without markers.
-        // Accept Hepburn ambiguity for v1.
-
-        // Spacing: insert spaces around latin words boundaries already present.
+        // Preserve source spacing; the morphology pipeline controls any
+        // additional word grouping before it calls this method.
         joined = joined.replacingOccurrences(of: "  ", with: " ")
+        guard capitalize else { return joined }
+
         // Title-style: capitalize first letter of each whitespace-separated token for display aliases
         let tokens = joined.split(separator: " ", omittingEmptySubsequences: true).map { token -> String in
             let t = String(token)

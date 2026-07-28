@@ -1,13 +1,13 @@
 import Foundation
 
-/// Dictionary + rule based Japanese reading generator.
+/// Compatibility facade for the Japanese morphology reading pipeline.
 ///
-/// - Provider-supplied kana always wins (handled by `LyricsLayerEnricher`).
-/// - Local engine uses longest-match against a kanji reading dictionary exported
-///   from a Japanese transliteration lexicon (pykakasi/kanwa), plus lyric particle rules.
-/// - This is **not** a full morphological analyzer (MeCab/UniDic). It is real lexicon
-///   lookup, not Chinese Unihan guessing. Unresolved kanji remain marked nil.
+/// New code must use `JapaneseReadingPipeline`, which invokes the installed
+/// MeCab/IPADIC morphology and dictionary reader. The legacy dictionary type
+/// below remains source-compatible for older callers and fixtures, but is no
+/// longer used as the primary engine and is never consulted by this facade.
 public enum JapaneseKanaGenerator {
+    @available(*, deprecated, message: "Use JapaneseReadingPipeline instead of the legacy finite dictionary")
     public static var sharedDictionary: JapaneseReadingDictionary = {
         JapaneseReadingDictionary.loadDefault()
     }()
@@ -22,23 +22,24 @@ public enum JapaneseKanaGenerator {
     }
 
     public static func hasKanji(_ text: String) -> Bool {
-        text.unicodeScalars.contains { (0x4E00...0x9FFF).contains($0.value) }
+        text.unicodeScalars.contains { scalar in
+            let value = scalar.value
+            return (0x3400...0x4DBF).contains(value)
+                || (0x4E00...0x9FFF).contains(value)
+                || (0xF900...0xFAFF).contains(value)
+                || (0x20000...0x2FA1F).contains(value)
+        }
     }
 
-    /// Returns hiragana reading when the line can be fully resolved by lexicon/rules.
+    /// Returns hiragana only when the morphology pipeline fully resolves the
+    /// line. Unknown Han tokens fail closed; no single-character or Chinese
+    /// reading fallback is allowed.
     public static func kanaPreservingOriginal(_ text: String) -> String? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
-
-        if !hasKanji(trimmed) {
-            // Kana/latin only: normalize katakana → hiragana, keep latin/digits.
-            return applyParticleReadings(JapaneseRomanizer.toHiraganaPreservingLatin(trimmed))
-        }
-
-        guard let converted = sharedDictionary.reading(for: trimmed) else {
-            return nil
-        }
-        return applyParticleReadings(converted)
+        let result = JapaneseReadingPipeline.analyze(originalText: trimmed)
+        guard !result.containsUnknown else { return nil }
+        return result.kanaText
     }
 
     /// Lyric-oriented particle readings after segmentation.

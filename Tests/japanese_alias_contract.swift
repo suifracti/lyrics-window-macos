@@ -198,13 +198,14 @@ struct JapaneseAliasContract {
         precondition(kanaOnly == "あやふや")
         let romajiTitle = JapaneseRomanizer.romanize("あやふや")
         precondition(TrackTextNormalizer.normalize(romajiTitle).contains("ayafuya"))
-        // Kanji lines use lexicon longest-match (not Chinese Unihan guessing)
+        // Kanji lines use the real morphology/dictionary pipeline (not a
+        // finite longest-match or Chinese Unihan fallback).
         let wed = JapaneseKanaGenerator.kanaPreservingOriginal("水曜日の約束")
         precondition(wed != nil)
         precondition(wed!.contains("すいようび"))
         precondition(wed!.contains("やくそく"))
         // Unknown rare kanji compound should fail closed (nil), not invent
-        precondition(JapaneseKanaGenerator.kanaPreservingOriginal("𩸽定食") == nil || true)
+        precondition(JapaneseKanaGenerator.kanaPreservingOriginal("𩸽定食") == nil)
 
         let enriched = LyricsLayerEnricher.enrich(lines: [
             LyricLine(timestamp: 0, originalText: "あやふや")

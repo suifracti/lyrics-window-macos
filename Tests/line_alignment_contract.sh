@@ -11,6 +11,7 @@ swiftc -parse-as-library \
   SpotifyLyrics/Lyrics/LyricsModels.swift \
   SpotifyLyrics/Lyrics/AlignmentModels.swift \
   SpotifyLyrics/Lyrics/JapaneseRomanizer.swift \
+  SpotifyLyrics/Lyrics/JapaneseReadingPipeline.swift \
   SpotifyLyrics/Lyrics/JapaneseKanaGenerator.swift \
   SpotifyLyrics/Lyrics/LineForcedAligner.swift \
   "$TMP/main.swift" -o "$TMP/align"

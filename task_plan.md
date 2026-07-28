@@ -216,6 +216,22 @@ Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 - 只做已知纯文本歌词与用户本地音频的逐行自动排轴。
 - 不新增歌词 Provider、音频下载、系统音频捕获、ASR-from-scratch、逐字时间轴或完整编辑器。
 
+## Phase 26: Japanese Morphology Reading Pipeline — complete
+- [x] 先写真实 MeCab/IPADIC 读音合同并确认红灯，再实现生产代码
+- [x] 用 MeCab Ochasen 形态分析和词典读音替代有限最长匹配作为主引擎
+- [x] 保留 originalText，独立生成 kanaText/romajiText；Provider 官方 kana 优先
+- [x] 处理活用、助词 は/へ/を、促音、拗音、长音、拉丁字母、数字、SNS、标点和空格边界
+- [x] 本地无法解析的 Han token 返回 unknown/0 置信度，不使用中文或单字猜读音
+- [x] 逐词合同覆盖：言われた、言えなかった、日々、戻れない、流れた、混じった、歩いた、景色、紛れてく、SNS
+- [x] 更新 LyricsLayerEnricher；普通 Latin 歌词不重复生成伪罗马音，排轴代码和时间轴结果未修改
+- [x] 新管线已进入 SpotifyLyrics target；正常签名 Debug 构建、codesign 和真实 App 运行截图验证
+- [x] 提交独立 commit；真实歌曲完整音频到位后再进行唯一一次排轴验收
+
+### Phase 26 Scope
+- 当前自动排轴仍保持实验性、未验收；本阶段不生成或重新验收时间轴。
+- MeCab 通过 `SPOTIFYLYRICS_MECAB_PATH` 或系统安装路径发现，不依赖项目根目录 Lyrics/。
+- 不接入新歌词 Provider，不做音频下载、ASR 或逐字排轴。
+
 ## Notes
 - 任何无法真实验证的项目必须明确标记为“未验证”，不能推断为完成。
 - 审计结束前不修改产品代码或工程配置。

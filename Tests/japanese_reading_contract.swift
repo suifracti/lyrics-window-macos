@@ -1,0 +1,94 @@
+import Foundation
+
+/// Contract for the production Japanese morphology → kana → romaji pipeline.
+///
+/// This test intentionally exercises real MeCab/IPADIC output rather than a
+/// finite longest-match reading table.  Every printed row is the data that a
+/// caller may use for diagnostics or a later alignment gate.
+@main
+struct JapaneseReadingContract {
+    struct Fixture {
+        let text: String
+        let surfaces: [String]
+        let lemmas: [String]
+        let kana: String
+        let romaji: String
+    }
+
+    static func main() {
+        let fixtures = [
+            Fixture(text: "言われた", surfaces: ["言わ", "れ", "た"], lemmas: ["言う", "れる", "た"], kana: "いわれた", romaji: "iwareta"),
+            Fixture(text: "言えなかった", surfaces: ["言え", "なかっ", "た"], lemmas: ["言える", "ない", "た"], kana: "いえなかった", romaji: "ienakatta"),
+            Fixture(text: "日々", surfaces: ["日々"], lemmas: ["日々"], kana: "ひび", romaji: "hibi"),
+            Fixture(text: "戻れない", surfaces: ["戻れ", "ない"], lemmas: ["戻れる", "ない"], kana: "もどれない", romaji: "modorenai"),
+            Fixture(text: "流れた", surfaces: ["流れ", "た"], lemmas: ["流れる", "た"], kana: "ながれた", romaji: "nagareta"),
+            Fixture(text: "混じった", surfaces: ["混じっ", "た"], lemmas: ["混じる", "た"], kana: "まじった", romaji: "majitta"),
+            Fixture(text: "歩いた", surfaces: ["歩い", "た"], lemmas: ["歩く", "た"], kana: "あるいた", romaji: "aruita"),
+            Fixture(text: "景色", surfaces: ["景色"], lemmas: ["景色"], kana: "けしき", romaji: "keshiki"),
+            Fixture(text: "紛れてく", surfaces: ["紛れ", "て", "く"], lemmas: ["紛れる", "て", "く"], kana: "まぎれてく", romaji: "magireteku")
+        ]
+
+        for fixture in fixtures {
+            let result = JapaneseReadingPipeline.analyze(originalText: fixture.text)
+            precondition(result.originalText == fixture.text, "original text was changed for \(fixture.text)")
+            precondition(result.tokens.map(\.originalText) == fixture.surfaces, "surface tokenization failed for \(fixture.text)")
+            precondition(result.tokens.map { $0.lemma ?? "<nil>" } == fixture.lemmas, "lemma failed for \(fixture.text)")
+            precondition(result.tokens.compactMap(\.kana).joined() == fixture.kana, "kana failed for \(fixture.text)")
+            precondition(result.kanaText == fixture.kana, "line kana failed for \(fixture.text)")
+            precondition(result.romajiText == fixture.romaji, "romaji failed for \(fixture.text): \(result.romajiText ?? "<nil>")")
+            precondition(!result.containsUnknown, "known regression became unknown: \(fixture.text)")
+
+            for token in result.tokens {
+                print("TOKEN original=\(token.originalText) lemma=\(token.lemma ?? "<nil>") kana=\(token.kana ?? "<unknown>") romaji=\(token.romaji ?? "<unknown>") source=\(token.source.rawValue) confidence=\(String(format: "%.2f", token.confidence))")
+            }
+        }
+
+        // Particle pronunciation is determined by morphology, not by a
+        // character-wide replacement rule.
+        let particles = JapaneseReadingPipeline.analyze(originalText: "私は学校へ行く水を飲む")
+        precondition(particles.kanaText == "わたしわがっこうえいくみずおのむ", "particle readings were not morphology-aware")
+
+        // Long vowels, sokuon, yoon, punctuation, latin and digits remain
+        // deterministic and do not destroy the original script.
+        let orthography = JapaneseReadingPipeline.analyze(originalText: "「きょう」コーヒー きって SNS １２３")
+        precondition(orthography.originalText == "「きょう」コーヒー きって SNS １２３")
+        precondition(orthography.romajiText?.contains("kyou") == true)
+        precondition(orthography.romajiText?.contains("koohii") == true)
+        precondition(orthography.romajiText?.contains("kitte") == true)
+        precondition(orthography.romajiText?.contains("SNS") == true)
+        precondition(orthography.romajiText?.contains("123") == true || orthography.romajiText?.contains("１２３") == true)
+
+        let sns = JapaneseReadingPipeline.analyze(originalText: "SNS")
+        precondition(sns.tokens.count == 1)
+        precondition(sns.tokens[0].originalText == "SNS")
+        precondition(sns.tokens[0].kana == "SNS")
+        precondition(sns.tokens[0].romaji == "SNS")
+        precondition(sns.tokens[0].source == .literalPreserved)
+        precondition(sns.tokens[0].confidence == 1.0)
+
+        // Official/provider kana is a line-level authoritative override and
+        // must win over local morphology.
+        let official = JapaneseReadingPipeline.analyze(originalText: "言われた", providerKana: "イワレタ")
+        precondition(official.originalText == "言われた")
+        precondition(official.kanaText == "いわれた")
+        precondition(official.romajiText == "iwareta")
+        precondition(official.tokens.count == 1)
+        precondition(official.tokens[0].source == .providerOfficial)
+        precondition(official.tokens[0].confidence == 1.0)
+
+        // An unresolvable Han token fails closed.  It must never receive a
+        // Chinese/Unicode fallback reading and must not enter alignment.
+        let unknown = JapaneseReadingPipeline.analyze(originalText: "𩸽定食")
+        precondition(unknown.containsUnknown)
+        precondition(unknown.kanaText == nil)
+        precondition(unknown.romajiText == nil)
+        precondition(unknown.tokens.contains { $0.source == .unknown && $0.confidence == 0.0 })
+
+        // The compatibility generator delegates to the morphology pipeline,
+        // not to its old finite dictionary as the primary engine.
+        precondition(JapaneseKanaGenerator.kanaPreservingOriginal("水曜日の約束") == "すいようびのやくそく")
+        precondition(JapaneseKanaGenerator.kanaPreservingOriginal("𩸽定食") == nil)
+
+        print("japanese reading contract passed")
+    }
+}

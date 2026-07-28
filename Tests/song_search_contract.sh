@@ -66,6 +66,7 @@ COMMON=(
   "SpotifyLyrics/Lyrics/TrackMetadata.swift"
   "SpotifyLyrics/Lyrics/TrackTextNormalizer.swift"
   "SpotifyLyrics/Lyrics/JapaneseRomanizer.swift"
+  "SpotifyLyrics/Lyrics/JapaneseReadingPipeline.swift"
   "SpotifyLyrics/Lyrics/JapaneseKanaGenerator.swift"
   "SpotifyLyrics/Lyrics/LyricsQueryPlanner.swift"
   "SpotifyLyrics/Lyrics/LyricsSafeMatcher.swift"

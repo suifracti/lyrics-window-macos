@@ -72,6 +72,7 @@
 		1100004A2D83400100000001 /* LineForcedAligner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004A2D83400100000000 /* LineForcedAligner.swift */; };
 		1100004B2D83400100000001 /* SpeechForcedAlignmentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004B2D83400100000000 /* SpeechForcedAlignmentService.swift */; };
 		1100004C2D83400100000001 /* LocalAlignedLyricsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */; };
+		1100004D2D83400100000001 /* JapaneseReadingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -142,6 +143,7 @@
 		1100004A2D83400100000000 /* LineForcedAligner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineForcedAligner.swift; sourceTree = "<group>"; };
 		1100004B2D83400100000000 /* SpeechForcedAlignmentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechForcedAlignmentService.swift; sourceTree = "<group>"; };
 		1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAlignedLyricsStore.swift; sourceTree = "<group>"; };
+		1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JapaneseReadingPipeline.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -255,6 +257,7 @@
 				110000312D83400100000000 /* TrackMetadata.swift */,
 				110000322D83400100000000 /* TrackTextNormalizer.swift */,
 				110000332D83400100000000 /* JapaneseRomanizer.swift */,
+				1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */,
 				110000342D83400100000000 /* JapaneseKanaGenerator.swift */,
 				110000352D83400100000000 /* LyricsQueryPlanner.swift */,
 				110000362D83400100000000 /* LyricsSafeMatcher.swift */,
@@ -414,6 +417,7 @@
 				110000312D83400100000001 /* TrackMetadata.swift in Sources */,
 				110000322D83400100000001 /* TrackTextNormalizer.swift in Sources */,
 				110000332D83400100000001 /* JapaneseRomanizer.swift in Sources */,
+				1100004D2D83400100000001 /* JapaneseReadingPipeline.swift in Sources */,
 				110000342D83400100000001 /* JapaneseKanaGenerator.swift in Sources */,
 				110000352D83400100000001 /* LyricsQueryPlanner.swift in Sources */,
 				110000362D83400100000001 /* LyricsSafeMatcher.swift in Sources */,
