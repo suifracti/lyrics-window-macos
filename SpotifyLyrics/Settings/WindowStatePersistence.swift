@@ -96,3 +96,30 @@ struct WindowStateAccessor: NSViewRepresentable {
         }
     }
 }
+
+/// Keeps the native Settings window out of the Stage Manager primary-window
+/// group. SwiftUI's `Settings` scene otherwise becomes the app's active stage
+/// on some macOS configurations, which sends the main window to the Stage
+/// Manager strip when Settings is opened.
+struct SettingsWindowBehavior: NSViewRepresentable {
+    func makeNSView(context: Context) -> SettingsWindowProbeView {
+        SettingsWindowProbeView()
+    }
+
+    func updateNSView(_ nsView: SettingsWindowProbeView, context: Context) {
+        nsView.configureWindow()
+    }
+}
+
+final class SettingsWindowProbeView: NSView {
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        configureWindow()
+    }
+
+    func configureWindow() {
+        guard let window else { return }
+        window.collectionBehavior = [.canJoinAllApplications, .moveToActiveSpace]
+        window.hidesOnDeactivate = false
+    }
+}
