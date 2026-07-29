@@ -46,12 +46,32 @@ private final class CountingSpotifyTokenStore: SpotifyTokenStore, @unchecked Sen
         stored = nil
     }
 }
+
+private func requestBodyData(_ request: URLRequest) -> Data {
+    if let body = request.httpBody {
+        return body
+    }
+    guard let stream = request.httpBodyStream else {
+        return Data()
+    }
+    stream.open()
+    defer { stream.close() }
+    var result = Data()
+    var buffer = [UInt8](repeating: 0, count: 1024)
+    while stream.hasBytesAvailable {
+        let count = stream.read(&buffer, maxLength: buffer.count)
+        guard count > 0 else { break }
+        result.append(buffer, count: count)
+    }
+    return result
+}
 #endif
 
 @main
 struct SpotifyWebCatalogContract {
     static func main() async throws {
-        precondition(SpotifyOAuthConfiguration.redirectURI == "http://127.0.0.1:49153/callback")
+        precondition(SpotifyOAuthConfiguration.dashboardRedirectURI == "http://127.0.0.1/callback")
+        precondition(SpotifyOAuthConfiguration.redirectURI(port: 49153) == "http://127.0.0.1:49153/callback")
         precondition(SongSearchQuery(text: "https://open.spotify.com/track/0123456789012345678901?si=x").spotifyTrackID == "0123456789012345678901")
         precondition(SongSearchQuery(text: "spotify:track:0123456789012345678901").spotifyTrackID == "0123456789012345678901")
         precondition(SongSearchQuery(text: "not-a-track-id").spotifyTrackID == nil)
@@ -127,19 +147,43 @@ struct SpotifyWebCatalogContract {
             .replacingOccurrences(of: "0123456789012345678901", with: "1111111111111111111111")
             .data(using: .utf8)!
 
+        let runtimeRedirectURI = SpotifyOAuthConfiguration.redirectURI(port: 43210)
         let authURL = try service.authorizationURL(
             clientID: "client-id",
             state: "state-value",
             codeChallenge: "challenge-value",
-            redirectURI: "http://127.0.0.1:43210/callback"
+            redirectURI: runtimeRedirectURI
         )
         let authComponents = URLComponents(url: authURL, resolvingAgainstBaseURL: false)!
-        let authItems = Dictionary(uniqueKeysWithValues: (authComponents.queryItems ?? []).map { ($0.name, $0.value ?? "") })
+        let authQueryItems: [URLQueryItem] = authComponents.queryItems ?? []
+        let authItems: [String: String] = Dictionary(uniqueKeysWithValues: authQueryItems.map { ($0.name, $0.value ?? "") })
         precondition(authItems["code_challenge_method"] == "S256")
-        precondition(authItems["redirect_uri"] == "http://127.0.0.1:43210/callback")
+        precondition(authItems["redirect_uri"] == runtimeRedirectURI)
         precondition(authItems["state"] == "state-value")
 
         let tokenJSON = "{\"access_token\":\"\(refreshedFixture)\",\"token_type\":\"Bearer\",\"expires_in\":3600,\"refresh_token\":\"\(refreshedFixture)\",\"scope\":\"\"}".data(using: .utf8)!
+        StubURLProtocol.handler = { request in
+            guard request.url?.path == tokenEndpoint.path,
+                  let bodyString = String(data: requestBodyData(request), encoding: .utf8),
+                  let redirectField = bodyString
+                    .split(separator: "&")
+                    .map(String.init)
+                    .first(where: { $0.hasPrefix("redirect_uri=") }) else {
+                fatalError("unexpected authorization-code exchange request")
+            }
+            let redirectValue = String(redirectField.dropFirst("redirect_uri=".count))
+                .removingPercentEncoding ?? redirectField
+            precondition(redirectValue == runtimeRedirectURI)
+            return (200, ["Content-Type": "application/json"], tokenJSON)
+        }
+        let exchanged = try await service.exchangeAuthorizationCode(
+            clientID: "client-id",
+            code: "authorization-code",
+            codeVerifier: "code-verifier",
+            redirectURI: runtimeRedirectURI
+        )
+        precondition(exchanged.accessToken == refreshedFixture)
+
         let tokenStore = InMemorySpotifyTokenStore(record: SpotifyTokenRecord(
             accessToken: accessFixture,
             refreshToken: accessFixture,

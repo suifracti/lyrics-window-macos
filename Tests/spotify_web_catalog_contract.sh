@@ -32,3 +32,7 @@ swiftc -D DEBUG -parse-as-library \
 grep -q 'kSecUseDataProtectionKeychain' SpotifyLyrics/Spotify/SpotifyTokenStore.swift
 grep -q 'spotify-oauth.v3' SpotifyLyrics/Spotify/SpotifyTokenStore.swift
 grep -q 'SecAccessCreate' SpotifyLyrics/Spotify/SpotifyTokenStore.swift
+grep -q 'dashboardRedirectURI = "http://127.0.0.1/callback"' SpotifyLyrics/Spotify/SpotifyCatalogService.swift
+grep -q 'port: .any' SpotifyLyrics/Spotify/SpotifyAuthorizationManager.swift
+grep -q 'redirectURI(port: port)' SpotifyLyrics/Spotify/SpotifyAuthorizationManager.swift
+grep -q 'redirectURI: pending.redirectURI' SpotifyLyrics/Spotify/SpotifyAuthorizationManager.swift

@@ -58,8 +58,9 @@ public enum SpotifyAuthorizationError: Error, Equatable, Sendable, LocalizedErro
 public final class SpotifyAuthorizationManager: ObservableObject {
     @Published public private(set) var state: SpotifyAuthorizationState
     @Published public private(set) var clientID: String?
+    @Published public private(set) var localRedirectURI: String?
 
-    public let redirectURI = SpotifyOAuthConfiguration.redirectURI
+    public let dashboardRedirectURI = SpotifyOAuthConfiguration.dashboardRedirectURI
 
     private let tokenStore: any SpotifyTokenStore
     private let catalogService: SpotifyCatalogService
@@ -92,6 +93,7 @@ public final class SpotifyAuthorizationManager: ObservableObject {
         self.clientID = configuration.clientID
         self.tokenStore = tokenStore
         self.catalogService = catalogService
+        self.localRedirectURI = nil
 
         if configuration.clientID == nil {
             self.state = .notConfigured
@@ -114,6 +116,12 @@ public final class SpotifyAuthorizationManager: ObservableObject {
 
     public var isConfigured: Bool { clientID != nil }
 
+    /// Compatibility accessor for callers that used the old single URI field.
+    /// It never claims that the Dashboard must register a dynamic port.
+    public var redirectURI: String {
+        localRedirectURI ?? dashboardRedirectURI
+    }
+
     public func updateClientID(_ value: String) {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         let next = trimmed.isEmpty ? nil : trimmed
@@ -133,8 +141,9 @@ public final class SpotifyAuthorizationManager: ObservableObject {
         }
     }
 
-    /// Opens the system browser. The callback is delivered to the short-lived
-    /// 127.0.0.1 loopback receiver and completed by handleCallback(_:).
+    /// Opens the system browser. The callback is delivered to a short-lived
+    /// 127.0.0.1 loopback receiver. Its port is allocated dynamically and the
+    /// same runtime URI is used for authorization and token exchange.
     public func authorize() {
         guard let clientID else {
             state = .notConfigured
@@ -145,9 +154,8 @@ public final class SpotifyAuthorizationManager: ObservableObject {
             let verifier = try Self.randomURLSafeString(length: 64)
             let oauthState = try Self.randomURLSafeString(length: 32)
             callbackServer?.cancel()
-            let server = try SpotifyLoopbackCallbackServer(
-                port: SpotifyOAuthConfiguration.redirectPort
-            ) { [weak self] url in
+            localRedirectURI = nil
+            let server = try SpotifyLoopbackCallbackServer { [weak self] url in
                 Task { @MainActor [weak self] in
                     self?.handleCallback(url)
                 }
@@ -158,9 +166,18 @@ public final class SpotifyAuthorizationManager: ObservableObject {
                 Task { @MainActor [weak self] in
                     guard let self else { return }
                     switch result {
-                    case .success:
+                    case .success(let port):
                         do {
-                            let redirectURI = SpotifyOAuthConfiguration.redirectURI
+                            guard let port = UInt16(exactly: port), port > 0 else {
+                                self.pendingFlow = nil
+                                self.callbackServer?.cancel()
+                                self.callbackServer = nil
+                                self.localRedirectURI = nil
+                                self.state = .failed("无法确定本机授权回调端口")
+                                return
+                            }
+                            let redirectURI = SpotifyOAuthConfiguration.redirectURI(port: port)
+                            self.localRedirectURI = redirectURI
                             let url = try self.catalogService.authorizationURL(
                                 clientID: clientID,
                                 state: oauthState,
@@ -176,6 +193,7 @@ public final class SpotifyAuthorizationManager: ObservableObject {
                                 self.pendingFlow = nil
                                 self.callbackServer?.cancel()
                                 self.callbackServer = nil
+                                self.localRedirectURI = nil
                                 self.state = .failed("无法打开系统浏览器")
                                 return
                             }
@@ -183,17 +201,20 @@ public final class SpotifyAuthorizationManager: ObservableObject {
                             self.pendingFlow = nil
                             self.callbackServer?.cancel()
                             self.callbackServer = nil
+                            self.localRedirectURI = nil
                             self.state = .failed(error.localizedDescription)
                         }
                     case .failure:
                         self.pendingFlow = nil
                         self.callbackServer = nil
+                        self.localRedirectURI = nil
                         self.state = .failed("无法启动本机授权回调")
                     }
                 }
             }
         } catch {
             pendingFlow = nil
+            localRedirectURI = nil
             state = .failed(error.localizedDescription)
         }
     }
@@ -213,6 +234,7 @@ public final class SpotifyAuthorizationManager: ObservableObject {
             pendingFlow = nil
             callbackServer?.cancel()
             callbackServer = nil
+            localRedirectURI = nil
             state = clientID == nil ? .notConfigured : .signedOut
         } catch {
             state = .failed("无法删除 Spotify 授权凭据")
@@ -330,6 +352,15 @@ public final class SpotifyAuthorizationManager: ObservableObject {
             state = .failed("Spotify 授权会话已过期，请重新授权")
             return
         }
+        guard let expectedPort = URL(string: pending.redirectURI)?.port,
+              url.port == expectedPort else {
+            pendingFlow = nil
+            callbackServer?.cancel()
+            callbackServer = nil
+            localRedirectURI = nil
+            state = .failed(SpotifyAuthorizationError.invalidCallback.localizedDescription)
+            return
+        }
         guard values["state"] == pending.state else {
             pendingFlow = nil
             state = .failed(SpotifyAuthorizationError.stateMismatch.localizedDescription)
@@ -338,6 +369,7 @@ public final class SpotifyAuthorizationManager: ObservableObject {
         pendingFlow = nil
         callbackServer?.cancel()
         callbackServer = nil
+        localRedirectURI = nil
 
         if let error = values["error"] {
             state = .failed(SpotifyAuthorizationError.denied(error).localizedDescription)
@@ -428,9 +460,8 @@ private extension Data {
 }
 
 /// A short-lived loopback HTTP receiver. Binding is restricted to the local
-/// endpoint and local-only connections. The port is fixed because the current
-/// developer dashboard rejects the otherwise-valid portless loopback entry;
-/// the registered URI and authorization request therefore match exactly.
+/// endpoint and local-only connections. The operating system allocates a free
+/// port; the resulting runtime callback URI is kept with the pending PKCE flow.
 private final class SpotifyLoopbackCallbackServer: @unchecked Sendable {
     typealias Callback = @Sendable (URL) -> Void
     typealias Completion = @Sendable (Result<Int, Error>) -> Void
@@ -442,14 +473,11 @@ private final class SpotifyLoopbackCallbackServer: @unchecked Sendable {
     private var completion: Completion?
     private var didComplete = false
 
-    init(port: UInt16, callback: @escaping Callback) throws {
+    init(callback: @escaping Callback) throws {
         let parameters = NWParameters.tcp
-        guard let endpointPort = NWEndpoint.Port(rawValue: port) else {
-            throw CallbackServerError.invalidPort
-        }
         parameters.requiredLocalEndpoint = .hostPort(
             host: .ipv4(.loopback),
-            port: endpointPort
+            port: .any
         )
         parameters.acceptLocalOnly = true
         self.listener = try NWListener(using: parameters, on: .any)
@@ -511,7 +539,9 @@ private final class SpotifyLoopbackCallbackServer: @unchecked Sendable {
             if combined.range(of: Data("\r\n\r\n".utf8)) != nil {
                 let target = Self.requestTarget(from: combined)
                 self.respond(to: connection)
-                if let target, let url = URL(string: "http://127.0.0.1\(target)") {
+                if let target,
+                   let port = self.listener.port?.rawValue,
+                   let url = URL(string: "http://127.0.0.1:\(port)\(target)") {
                     self.callback(url)
                 }
                 return
@@ -543,7 +573,6 @@ private final class SpotifyLoopbackCallbackServer: @unchecked Sendable {
 
     private enum CallbackServerError: Error {
         case noPort
-        case invalidPort
         case listenerFailed
         case cancelled
     }

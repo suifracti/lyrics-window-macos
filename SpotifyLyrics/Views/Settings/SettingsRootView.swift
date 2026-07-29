@@ -223,11 +223,19 @@ private struct SpotifySettingsView: View {
                     Button("清除 Keychain Token") { authorization.disconnect() }
                         .disabled(!authorization.state.isAuthorized)
                 }
-                LabeledContent("OAuth 回调地址") {
-                    Text(authorization.redirectURI)
+                LabeledContent("Dashboard 注册地址") {
+                    Text(authorization.dashboardRedirectURI)
                         .font(.system(.caption, design: .monospaced))
                         .textSelection(.enabled)
                 }
+                LabeledContent("当前本地监听地址") {
+                    Text(authorization.localRedirectURI ?? "未启动（授权时动态分配端口）")
+                        .font(.system(.caption, design: .monospaced))
+                        .textSelection(.enabled)
+                }
+                Text("Dashboard 只需注册不带端口的回环地址；授权时应用会临时监听一个动态端口，并在请求和换取 Token 时使用同一个完整地址。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 Text("授权失败不会影响 Spotify Desktop 当前播放和本地歌词链路。")
                     .font(.caption)
                     .foregroundStyle(.secondary)

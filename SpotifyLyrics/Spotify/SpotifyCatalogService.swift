@@ -33,12 +33,16 @@ public enum SpotifyCatalogError: Error, Equatable, Sendable, LocalizedError {
 }
 
 public struct SpotifyOAuthConfiguration: Equatable, Sendable {
-    /// The current Spotify dashboard shows the portless loopback URI as
-    /// insecure even though the OAuth documentation permits dynamic ports.
-    /// Use one fixed loopback port so the URI can be added to the dashboard
-    /// and exactly match the authorization request.
-    public static let redirectPort: UInt16 = 49153
-    public static let redirectURI = "http://127.0.0.1:49153/callback"
+    /// Register this portless loopback URI once in the Spotify Dashboard.
+    /// The local callback listener adds its dynamically allocated port at
+    /// authorization time; Spotify's loopback redirect rules deliberately do
+    /// not require every possible local port to be registered.
+    public static let dashboardRedirectURI = "http://127.0.0.1/callback"
+
+    public static func redirectURI(port: UInt16) -> String {
+        "http://127.0.0.1:\(port)/callback"
+    }
+
     public static let authorizationEndpoint = URL(string: "https://accounts.spotify.com/authorize")!
     public static let tokenEndpoint = URL(string: "https://accounts.spotify.com/api/token")!
     public static let apiBaseURL = URL(string: "https://api.spotify.com/v1")!
@@ -81,7 +85,7 @@ public final class SpotifyCatalogService: @unchecked Sendable {
         clientID: String,
         state: String,
         codeChallenge: String,
-        redirectURI: String = SpotifyOAuthConfiguration.redirectURI
+        redirectURI: String = SpotifyOAuthConfiguration.dashboardRedirectURI
     ) throws -> URL {
         guard var components = URLComponents(url: authorizationEndpoint, resolvingAgainstBaseURL: false) else {
             throw SpotifyCatalogError.invalidURL
@@ -102,7 +106,7 @@ public final class SpotifyCatalogService: @unchecked Sendable {
         clientID: String,
         code: String,
         codeVerifier: String,
-        redirectURI: String = SpotifyOAuthConfiguration.redirectURI
+        redirectURI: String = SpotifyOAuthConfiguration.dashboardRedirectURI
     ) async throws -> SpotifyTokenResponseDTO {
         var request = URLRequest(url: tokenEndpoint)
         request.httpMethod = "POST"
