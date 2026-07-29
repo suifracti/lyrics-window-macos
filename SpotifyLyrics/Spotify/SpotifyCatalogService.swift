@@ -1,0 +1,269 @@
+import Foundation
+
+public enum SpotifyCatalogError: Error, Equatable, Sendable, LocalizedError {
+    case unauthorized
+    case forbidden
+    case badRequest
+    case notFound
+    case rateLimited(TimeInterval?)
+    case networkUnavailable
+    case timedOut
+    case serverError(Int)
+    case parseFailure
+    case cancelled
+    case invalidURL
+    case unknown(String)
+
+    public var errorDescription: String? {
+        switch self {
+        case .unauthorized: return "Spotify 在线曲库未授权"
+        case .forbidden: return "Spotify 拒绝了目录请求"
+        case .badRequest: return "Spotify 搜索请求无效"
+        case .notFound: return "Spotify 曲目不存在"
+        case .rateLimited: return "Spotify 搜索服务限流"
+        case .networkUnavailable: return "Spotify 网络不可用"
+        case .timedOut: return "Spotify 搜索请求超时"
+        case .serverError(let status): return "Spotify 服务错误（HTTP \(status)）"
+        case .parseFailure: return "Spotify 响应解析失败"
+        case .cancelled: return "Spotify 搜索已取消"
+        case .invalidURL: return "Spotify 请求 URL 无效"
+        case .unknown(let value): return value.isEmpty ? "Spotify 未知错误" : value
+        }
+    }
+}
+
+public struct SpotifyOAuthConfiguration: Equatable, Sendable {
+    /// The current Spotify dashboard shows the portless loopback URI as
+    /// insecure even though the OAuth documentation permits dynamic ports.
+    /// Use one fixed loopback port so the URI can be added to the dashboard
+    /// and exactly match the authorization request.
+    public static let redirectPort: UInt16 = 49153
+    public static let redirectURI = "http://127.0.0.1:49153/callback"
+    public static let authorizationEndpoint = URL(string: "https://accounts.spotify.com/authorize")!
+    public static let tokenEndpoint = URL(string: "https://accounts.spotify.com/api/token")!
+    public static let apiBaseURL = URL(string: "https://api.spotify.com/v1")!
+
+    public let clientID: String?
+
+    public init(clientID: String?) {
+        let value = clientID?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.clientID = value?.isEmpty == false ? value : nil
+    }
+
+    public static func resolved() -> SpotifyOAuthConfiguration {
+        let defaults = UserDefaults.standard.string(forKey: "spotify.clientID")
+        let environment = ProcessInfo.processInfo.environment["SPOTIFY_CLIENT_ID"]
+        return SpotifyOAuthConfiguration(clientID: defaults ?? environment)
+    }
+}
+
+/// HTTP boundary for Spotify Web API and OAuth token exchange. It never logs
+/// Authorization headers or token response bodies.
+public final class SpotifyCatalogService: @unchecked Sendable {
+    private let session: URLSession
+    private let baseURL: URL
+    private let authorizationEndpoint: URL
+    private let tokenEndpoint: URL
+
+    public init(
+        session: URLSession = .shared,
+        baseURL: URL = SpotifyOAuthConfiguration.apiBaseURL,
+        authorizationEndpoint: URL = SpotifyOAuthConfiguration.authorizationEndpoint,
+        tokenEndpoint: URL = SpotifyOAuthConfiguration.tokenEndpoint
+    ) {
+        self.session = session
+        self.baseURL = baseURL
+        self.authorizationEndpoint = authorizationEndpoint
+        self.tokenEndpoint = tokenEndpoint
+    }
+
+    func authorizationURL(
+        clientID: String,
+        state: String,
+        codeChallenge: String,
+        redirectURI: String = SpotifyOAuthConfiguration.redirectURI
+    ) throws -> URL {
+        guard var components = URLComponents(url: authorizationEndpoint, resolvingAgainstBaseURL: false) else {
+            throw SpotifyCatalogError.invalidURL
+        }
+        components.queryItems = [
+            URLQueryItem(name: "client_id", value: clientID),
+            URLQueryItem(name: "response_type", value: "code"),
+            URLQueryItem(name: "redirect_uri", value: redirectURI),
+            URLQueryItem(name: "state", value: state),
+            URLQueryItem(name: "code_challenge_method", value: "S256"),
+            URLQueryItem(name: "code_challenge", value: codeChallenge)
+        ]
+        guard let url = components.url else { throw SpotifyCatalogError.invalidURL }
+        return url
+    }
+
+    func exchangeAuthorizationCode(
+        clientID: String,
+        code: String,
+        codeVerifier: String,
+        redirectURI: String = SpotifyOAuthConfiguration.redirectURI
+    ) async throws -> SpotifyTokenResponseDTO {
+        var request = URLRequest(url: tokenEndpoint)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 20
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        request.httpBody = formData([
+            ("client_id", clientID),
+            ("grant_type", "authorization_code"),
+            ("code", code),
+            ("redirect_uri", redirectURI),
+            ("code_verifier", codeVerifier)
+        ])
+        return try await sendTokenRequest(request)
+    }
+
+    func refresh(
+        clientID: String,
+        refreshToken: String
+    ) async throws -> SpotifyTokenResponseDTO {
+        var request = URLRequest(url: tokenEndpoint)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 20
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        request.httpBody = formData([
+            ("client_id", clientID),
+            ("grant_type", "refresh_token"),
+            ("refresh_token", refreshToken)
+        ])
+        return try await sendTokenRequest(request)
+    }
+
+    func searchTracks(
+        query: String,
+        accessToken: String,
+        limit: Int = 20,
+        offset: Int = 0
+    ) async throws -> SpotifySearchResponseDTO {
+        guard var components = URLComponents(
+            url: baseURL.appendingPathComponent("search"),
+            resolvingAgainstBaseURL: false
+        ) else { throw SpotifyCatalogError.invalidURL }
+        components.queryItems = [
+            URLQueryItem(name: "q", value: query),
+            URLQueryItem(name: "type", value: "track"),
+            // Spotify's current Search API caps this parameter at 10. Keep
+            // the cap at the HTTP boundary so every caller remains valid.
+            URLQueryItem(name: "limit", value: String(min(10, max(1, limit)))),
+            URLQueryItem(name: "offset", value: String(max(0, offset)))
+        ]
+        guard let url = components.url else { throw SpotifyCatalogError.invalidURL }
+        let data = try await sendAPIRequest(url: url, accessToken: accessToken)
+        do {
+            return try JSONDecoder().decode(SpotifySearchResponseDTO.self, from: data)
+        } catch {
+            throw SpotifyCatalogError.parseFailure
+        }
+    }
+
+    func fetchTrack(id: String, accessToken: String) async throws -> SpotifyTrackDTO {
+        let url = baseURL.appendingPathComponent("tracks").appendingPathComponent(id)
+        let data = try await sendAPIRequest(url: url, accessToken: accessToken)
+        do {
+            return try JSONDecoder().decode(SpotifyTrackDTO.self, from: data)
+        } catch {
+            throw SpotifyCatalogError.parseFailure
+        }
+    }
+
+    private func sendTokenRequest(_ request: URLRequest) async throws -> SpotifyTokenResponseDTO {
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch is CancellationError {
+            throw SpotifyCatalogError.cancelled
+        } catch let error as URLError {
+            throw mapURLError(error)
+        } catch {
+            throw SpotifyCatalogError.networkUnavailable
+        }
+
+        guard let http = response as? HTTPURLResponse else {
+            throw SpotifyCatalogError.unknown("Spotify 返回了无效响应")
+        }
+        guard (200..<300).contains(http.statusCode) else {
+            throw mapHTTPError(status: http.statusCode, data: data, response: http)
+        }
+        do {
+            return try JSONDecoder().decode(SpotifyTokenResponseDTO.self, from: data)
+        } catch {
+            throw SpotifyCatalogError.parseFailure
+        }
+    }
+
+    private func sendAPIRequest(url: URL, accessToken: String) async throws -> Data {
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.timeoutInterval = 15
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch is CancellationError {
+            throw SpotifyCatalogError.cancelled
+        } catch let error as URLError {
+            throw mapURLError(error)
+        } catch {
+            throw SpotifyCatalogError.networkUnavailable
+        }
+
+        guard let http = response as? HTTPURLResponse else {
+            throw SpotifyCatalogError.unknown("Spotify 返回了无效响应")
+        }
+        guard (200..<300).contains(http.statusCode) else {
+            throw mapHTTPError(status: http.statusCode, data: data, response: http)
+        }
+        return data
+    }
+
+    private func mapHTTPError(status: Int, data: Data, response: HTTPURLResponse) -> SpotifyCatalogError {
+        switch status {
+        case 400: return .badRequest
+        case 401: return .unauthorized
+        case 403: return .forbidden
+        case 404: return .notFound
+        case 429:
+            let seconds = response.value(forHTTPHeaderField: "Retry-After").flatMap(TimeInterval.init)
+            return .rateLimited(seconds)
+        case 500...599: return .serverError(status)
+        default:
+            if let body = try? JSONDecoder().decode(SpotifyAPIErrorEnvelope.self, from: data),
+               let message = body.error.message {
+                return .unknown(message)
+            }
+            return .serverError(status)
+        }
+    }
+
+    private func mapURLError(_ error: URLError) -> SpotifyCatalogError {
+        switch error.code {
+        case .cancelled: return .cancelled
+        case .timedOut: return .timedOut
+        case .notConnectedToInternet, .networkConnectionLost, .cannotFindHost,
+             .cannotConnectToHost, .dnsLookupFailed: return .networkUnavailable
+        default: return .unknown(error.localizedDescription)
+        }
+    }
+
+    private func formData(_ values: [(String, String)]) -> Data {
+        let body = values.map { key, value in
+            "\(formEncode(key))=\(formEncode(value))"
+        }.joined(separator: "&")
+        return Data(body.utf8)
+    }
+
+    private func formEncode(_ value: String) -> String {
+        var allowed = CharacterSet.urlQueryAllowed
+        allowed.remove(charactersIn: "+&=")
+        return value.addingPercentEncoding(withAllowedCharacters: allowed) ?? value
+    }
+}

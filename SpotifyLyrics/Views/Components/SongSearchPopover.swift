@@ -1,9 +1,12 @@
 import SwiftUI
+import AppKit
 
 struct SongSearchPopover: View {
     @ObservedObject var manager: SongSearchManager
     @ObservedObject var playbackState: PlaybackState
     @State private var query = ""
+    @State private var clientIDDraft = ""
+    @State private var isAuthorizationGuidePresented = false
     @FocusState private var isSearchFieldFocused: Bool
 
     var body: some View {
@@ -32,9 +35,11 @@ struct SongSearchPopover: View {
                     .fill(LyricsDesignTokens.controlBackground)
             )
 
-            Text("搜索仅通过 Spotify 当前歌曲、本地歌词目录和 LRCLIB 返回统一结果")
+            Text("在线目录搜索需要 Spotify Web 授权；歌词正文仍由当前歌词 Provider 链负责")
                 .font(.system(size: 11, design: .rounded))
                 .foregroundStyle(LyricsDesignTokens.mutedText)
+
+            spotifyAuthorizationSection
 
             content
         }
@@ -45,8 +50,72 @@ struct SongSearchPopover: View {
             if let existing = manager.state.query?.text, !existing.isEmpty {
                 query = existing
             }
+            clientIDDraft = playbackState.spotifyAuthorizationManager.clientID ?? ""
             isSearchFieldFocused = true
         }
+        .onChange(of: query) { _, value in
+            let next = SongSearchQuery(text: value)
+            manager.search(query: next, debounceNanoseconds: 300_000_000)
+        }
+    }
+
+    private var spotifyAuthorizationSection: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(spacing: 7) {
+                Image(systemName: playbackState.spotifyAuthorizationManager.state.isAuthorized ? "checkmark.seal.fill" : "globe")
+                    .foregroundStyle(playbackState.spotifyAuthorizationManager.state.isAuthorized ? LyricsDesignTokens.accent : LyricsDesignTokens.mutedText)
+                Text(playbackState.spotifyAuthorizationManager.state.userFacingMessage)
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundStyle(LyricsDesignTokens.mutedText)
+                Spacer(minLength: 6)
+
+                if playbackState.spotifyAuthorizationManager.state.isAuthorized {
+                    Button("断开") {
+                        playbackState.spotifyAuthorizationManager.disconnect()
+                    }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(LyricsDesignTokens.mutedText)
+                } else {
+                    Button("授权 Spotify") {
+                        if playbackState.spotifyAuthorizationManager.clientID == nil {
+                            playbackState.spotifyAuthorizationManager.updateClientID(clientIDDraft)
+                        }
+                        playbackState.spotifyAuthorizationManager.authorize()
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .tint(LyricsDesignTokens.accent)
+                }
+            }
+
+            if !playbackState.spotifyAuthorizationManager.isConfigured {
+                TextField("Spotify Client ID（不需要 Client Secret）", text: $clientIDDraft)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 11, design: .rounded))
+
+                HStack(spacing: 10) {
+                    Button("查看填写教程") {
+                        isAuthorizationGuidePresented = true
+                    }
+                    .buttonStyle(.link)
+                    .font(.system(size: 11, design: .rounded))
+                    .popover(isPresented: $isAuthorizationGuidePresented, arrowEdge: .leading) {
+                        SpotifyAuthorizationGuideView()
+                    }
+
+                    Text("回调地址：\(SpotifyOAuthConfiguration.redirectURI)")
+                        .font(.system(size: 9, design: .monospaced))
+                        .foregroundStyle(LyricsDesignTokens.mutedText)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+            }
+        }
+        .padding(9)
+        .background(
+            RoundedRectangle(cornerRadius: 9, style: .continuous)
+                .fill(LyricsDesignTokens.controlBackground.opacity(0.62))
+        )
     }
 
     @ViewBuilder
@@ -58,20 +127,22 @@ struct SongSearchPopover: View {
             emptyState(
                 icon: "hourglass",
                 title: "正在搜索…",
-                detail: "正在匹配本地歌词索引与 Spotify 当前歌曲"
+                detail: "正在匹配本地索引、当前歌曲和 Spotify 在线曲库"
             )
         case .noResults:
-            // After architecture split, free-text track search has no online catalog
-            // provider yet. Surface that limitation instead of looking like a crash
-            // or empty-folder fault.
             emptyState(
                 icon: "books.vertical",
                 title: "暂无可用曲库来源",
-                detail: "当前只支持本地歌词与 Spotify 当前歌曲。未接入在线曲库时，其他关键词不会返回目录结果。"
+                detail: "Spotify 在线曲库没有返回匹配结果；本地和当前歌曲也没有可用候选。"
             )
         case .failed(_, let message):
             VStack(alignment: .leading, spacing: 10) {
-                emptyState(icon: "exclamationmark.triangle", title: "搜索失败", detail: message)
+                let needsAuthorization = message.contains("Client ID") || message.contains("未授权")
+                emptyState(
+                    icon: needsAuthorization ? "person.badge.key" : "exclamationmark.triangle",
+                    title: needsAuthorization ? "需要授权 Spotify" : "搜索失败",
+                    detail: message
+                )
                 Button("重新搜索", action: search)
                     .buttonStyle(.bordered)
                     .tint(LyricsDesignTokens.accent)
@@ -96,10 +167,11 @@ struct SongSearchPopover: View {
     }
 
     private func resultRow(_ result: SongSearchResult) -> some View {
-        Button {
-            playbackState.loadSearchResult(result)
-        } label: {
-            HStack(spacing: 10) {
+        HStack(spacing: 8) {
+            Button {
+                playbackState.loadSearchResult(result)
+            } label: {
+                HStack(spacing: 10) {
                 Image(systemName: result.lyrics == nil ? "music.note" : "text.quote")
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(LyricsDesignTokens.accent)
@@ -115,6 +187,12 @@ struct SongSearchPopover: View {
                         .font(.system(size: 11, design: .rounded))
                         .foregroundStyle(LyricsDesignTokens.mutedText)
                         .lineLimit(1)
+                    if let metadata = result.catalogMetadata {
+                        Text("\(formatDuration(metadata.duration)) · \(metadata.releaseDate ?? "发行日期未知")\(metadata.explicit ? " · Explicit" : "")")
+                            .font(.system(size: 9, design: .rounded))
+                            .foregroundStyle(LyricsDesignTokens.mutedText.opacity(0.82))
+                            .lineLimit(1)
+                    }
                 }
 
                 Spacer(minLength: 6)
@@ -123,21 +201,35 @@ struct SongSearchPopover: View {
                     Text(result.source.displayName)
                         .font(.system(size: 10, weight: .medium, design: .rounded))
                         .foregroundStyle(LyricsDesignTokens.mutedText)
-                    Text(result.lyrics == nil ? "加载当前歌词" : "加载歌词")
+                    Text(result.lyrics == nil ? "查看歌词" : "加载歌词")
                         .font(.system(size: 10, weight: .semibold, design: .rounded))
                         .foregroundStyle(LyricsDesignTokens.accent)
                 }
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 9)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 9)
-            .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(LyricsDesignTokens.controlBackground.opacity(0.72))
-            )
+            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if result.source == .spotifyCatalog,
+               let url = result.track.spotifyURL {
+                Button {
+                    NSWorkspace.shared.open(url)
+                } label: {
+                    Image(systemName: "arrow.up.right.square")
+                        .foregroundStyle(LyricsDesignTokens.mutedText)
+                }
+                .buttonStyle(.plain)
+                .help("在 Spotify 打开")
+            }
         }
-        .buttonStyle(.plain)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(LyricsDesignTokens.controlBackground.opacity(0.72))
+        )
         .accessibilityLabel("歌曲结果：\(result.track.title)，\(result.track.artist)")
-        .accessibilityHint(result.lyrics == nil ? "重新搜索当前歌曲歌词" : "加载这首歌的歌词")
+        .accessibilityHint(result.lyrics == nil ? "查看这首歌的歌词" : "加载这首歌的歌词")
     }
 
     private func emptyState(icon: String, title: String, detail: String) -> some View {
@@ -158,5 +250,83 @@ struct SongSearchPopover: View {
 
     private func search() {
         manager.search(query: SongSearchQuery(text: query))
+    }
+
+    private func formatDuration(_ seconds: TimeInterval) -> String {
+        guard seconds.isFinite, seconds >= 0 else { return "时长未知" }
+        return String(format: "%d:%02d", Int(seconds) / 60, Int(seconds) % 60)
+    }
+}
+
+private struct SpotifyAuthorizationGuideView: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 13) {
+                Label("Spotify 在线曲库配置", systemImage: "person.badge.key")
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .foregroundStyle(LyricsDesignTokens.primaryText)
+
+                Text("第一次使用需要在 Spotify Developer Dashboard 创建一个公开客户端。此 App 使用 PKCE，不需要 Client Secret。")
+                    .font(.system(size: 11, design: .rounded))
+                    .foregroundStyle(LyricsDesignTokens.mutedText)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                guideStep("1", "打开 Spotify Developer Dashboard，点击 Create app。")
+                guideValue("App name", "Lyrics Companion（不要以 Spot 开头）")
+                guideValue("App description", "A native macOS app for searching music tracks and displaying lyrics.")
+                guideValue("Website", "留空")
+                guideValue("Redirect URI", SpotifyOAuthConfiguration.redirectURI)
+
+                Text("在 Redirect URI 输入框右侧点击 Add，确认地址出现在列表后，再点击 Save。")
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundStyle(LyricsDesignTokens.accent)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                guideStep("2", "Which API/SDK 只勾选 Web API；勾选 Developer Terms 后保存。")
+                guideStep("3", "进入新建 App 的 Settings，复制 Client ID。不要复制 Client Secret。")
+                guideStep("4", "回到这里，把 Client ID 粘贴到输入框，点击授权 Spotify。")
+
+                Link("打开 Spotify Developer Dashboard", destination: URL(string: "https://developer.spotify.com/dashboard")!)
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundStyle(LyricsDesignTokens.accent)
+            }
+            .padding(18)
+        }
+        .frame(width: 430, height: 520)
+        .preferredColorScheme(.dark)
+    }
+
+    private func guideStep(_ number: String, _ text: String) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Text(number)
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .foregroundStyle(LyricsDesignTokens.accent)
+                .frame(width: 18, height: 18)
+                .background(Circle().fill(LyricsDesignTokens.controlBackground))
+            Text(text)
+                .font(.system(size: 11, design: .rounded))
+                .foregroundStyle(LyricsDesignTokens.primaryText)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func guideValue(_ label: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label)
+                .font(.system(size: 10, weight: .semibold, design: .rounded))
+                .foregroundStyle(LyricsDesignTokens.mutedText)
+            Text(value)
+                .font(.system(size: 11, design: label == "Redirect URI" ? .monospaced : .rounded))
+                .foregroundStyle(LyricsDesignTokens.primaryText)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(LyricsDesignTokens.controlBackground)
+                )
+        }
     }
 }

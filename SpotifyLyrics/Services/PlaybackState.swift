@@ -21,6 +21,7 @@ public final class PlaybackState: ObservableObject {
     @Published public private(set) var isMockPreviewMode = false
     @Published public private(set) var hasLiveTrack = false
     @Published public private(set) var songSearchSelectionMessage = ""
+    @Published public private(set) var searchPreviewTrack: Track?
 
     // Auxiliary display states remain available to the existing window manager.
     @Published public var showFloatingWindow = false
@@ -29,9 +30,13 @@ public final class PlaybackState: ObservableObject {
 
     private let provider: PlaybackProvider
     private let lyricsSession: LyricsSessionController
+    private let searchPreviewSession: LyricsSessionController
     private let lyricsRepository: (any LyricsRepository)
     public let songSearchManager: SongSearchManager
+    public let spotifyAuthorizationManager: SpotifyAuthorizationManager
     private var lyricsSessionCancellable: AnyCancellable?
+    private var searchPreviewSessionCancellable: AnyCancellable?
+    private var spotifyAuthorizationCancellable: AnyCancellable?
     private var timer: Timer?
     private var isProviderStarted = false
     private var isRefreshingProvider = false
@@ -39,6 +44,8 @@ public final class PlaybackState: ObservableObject {
     private var refreshRequestedWhileBusy = false
     private var providerRefreshTask: Task<Void, Never>?
     private var persistencePreparationTask: Task<Void, Never>?
+    private var searchPreviewTask: Task<Void, Never>?
+    private var searchPreviewGeneration: UInt64 = 0
     private var networkRecoveryMonitor: NWPathMonitor?
     private var networkWasSatisfied = false
     private var playbackAnchorPosition: TimeInterval = 0
@@ -55,6 +62,8 @@ public final class PlaybackState: ObservableObject {
         let resolvedProvider = provider ?? SpotifyDesktopProvider()
         self.provider = resolvedProvider
         let sharedIndex = LocalLyricsIndex.shared
+        let authorizationManager = SpotifyAuthorizationManager()
+        self.spotifyAuthorizationManager = authorizationManager
         let lyricsProviders: [LyricsProvider]
         if let lyricsProvider {
             lyricsProviders = [lyricsProvider]
@@ -65,18 +74,27 @@ public final class PlaybackState: ObservableObject {
         LyricsE2ELog.reset()
         LyricsE2ELog.log("PlaybackState init providers=" + lyricsProviders.map { $0.name }.joined(separator: ","))
         self.lyricsRepository = resolvedRepository
-        self.lyricsSession = LyricsSessionController(
+        let session = LyricsSessionController(
             providers: lyricsProviders,
             repository: resolvedRepository
         )
+        let previewSession = LyricsSessionController(
+            providers: lyricsProviders,
+            repository: resolvedRepository
+        )
+        self.lyricsSession = session
+        self.searchPreviewSession = previewSession
         // Track search is metadata-only: local index + current Spotify track.
         // LRCLIB stays isolated inside the lyrics session path.
         self.songSearchManager = SongSearchManager(providers: [
             LocalSearchProvider(index: sharedIndex),
-            CurrentTrackResolver(playbackProvider: resolvedProvider)
+            CurrentTrackResolver(playbackProvider: resolvedProvider),
+            SpotifySearchProvider(authorization: authorizationManager)
         ] as [TrackSearchProvider])
         self.lyricsSessionCancellable = nil
-        self.lyricsSessionCancellable = self.lyricsSession.objectWillChange.sink { [weak self] _ in
+        self.searchPreviewSessionCancellable = nil
+        self.spotifyAuthorizationCancellable = nil
+        self.lyricsSessionCancellable = session.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
             // `@Published` emits objectWillChange before the session property
             // is mutated. Forwarding only that pre-change pulse can leave a
@@ -87,6 +105,18 @@ public final class PlaybackState: ObservableObject {
                 self.objectWillChange.send()
                 self.tryAutoAlignIfRequested()
             }
+        }
+        self.searchPreviewSessionCancellable = previewSession.objectWillChange.sink { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.objectWillChange.send()
+            }
+        }
+        // The search popover observes PlaybackState. Forward the nested
+        // authorization manager's state changes so Client ID, authorizing,
+        // authorized, failure, and disconnect states become visible without
+        // requiring the popover to be recreated.
+        self.spotifyAuthorizationCancellable = authorizationManager.objectWillChange.sink { [weak self] _ in
+            self?.objectWillChange.send()
         }
     }
 
@@ -118,12 +148,28 @@ public final class PlaybackState: ObservableObject {
         persistencePreparationTask?.cancel()
         networkRecoveryMonitor?.cancel()
         lyricsSessionCancellable?.cancel()
+        searchPreviewSessionCancellable?.cancel()
+        spotifyAuthorizationCancellable?.cancel()
+        searchPreviewTask?.cancel()
     }
 
-    public var lyrics: [LyricLine] { lyricsSession.lyrics }
-    public var lyricsState: LyricsLoadState { lyricsSession.state }
-    public var lyricsAreSynchronized: Bool { lyricsSession.isSynchronized }
-    public var lyricsSessionRevision: UInt64 { lyricsSession.revision }
+    /// Lyrics preview for a searched track is kept separate from the live
+    /// Spotify session. This prevents selecting a catalog result from changing
+    /// the current-track identity, playback position, or Desktop commands.
+    public var isShowingSearchPreview: Bool { searchPreviewTrack != nil }
+    public var displayedTrack: Track { searchPreviewTrack ?? currentTrack }
+    public var lyrics: [LyricLine] {
+        isShowingSearchPreview ? searchPreviewSession.lyrics : lyricsSession.lyrics
+    }
+    public var lyricsState: LyricsLoadState {
+        isShowingSearchPreview ? searchPreviewSession.state : lyricsSession.state
+    }
+    public var lyricsAreSynchronized: Bool {
+        isShowingSearchPreview ? searchPreviewSession.isSynchronized : lyricsSession.isSynchronized
+    }
+    public var lyricsSessionRevision: UInt64 {
+        isShowingSearchPreview ? searchPreviewSession.revision : lyricsSession.revision
+    }
     public var currentTrackIdentity: TrackIdentity? {
         guard hasLiveTrack, !isMockPreviewMode else { return nil }
         return lyricsSession.activeIdentity
@@ -151,7 +197,8 @@ public final class PlaybackState: ObservableObject {
     }
 
     public var lyricsStatusMessage: String {
-        if let persistenceStatus = lyricsSession.persistenceStatusMessage, !persistenceStatus.isEmpty {
+        let session = isShowingSearchPreview ? searchPreviewSession : lyricsSession
+        if let persistenceStatus = session.persistenceStatusMessage, !persistenceStatus.isEmpty {
             let stateMessage = lyricsState.userFacingMessage
             return stateMessage.isEmpty ? persistenceStatus : "\(stateMessage) · \(persistenceStatus)"
         }
@@ -197,6 +244,7 @@ public final class PlaybackState: ObservableObject {
         providerRefreshTask?.cancel()
         alignmentTask?.cancel()
         didAutoAlignForIdentity = nil
+        clearSearchPreview()
         isMockPreviewMode = true
         hasLiveTrack = false
         providerStatus = .mockPreview
@@ -211,6 +259,7 @@ public final class PlaybackState: ObservableObject {
         refreshRequestedWhileBusy = true
         alignmentTask?.cancel()
         didAutoAlignForIdentity = nil
+        clearSearchPreview()
         isMockPreviewMode = false
         hasLiveTrack = false
         currentTrack = .emptyPlaybackPlaceholder
@@ -292,7 +341,13 @@ public final class PlaybackState: ObservableObject {
     }
 
     public func retryLyrics() {
-        autoCompleteLyrics()
+        if let previewTrack = searchPreviewTrack {
+            let identity = TrackIdentity(track: previewTrack)
+            searchPreviewSession.retry(track: previewTrack, identity: identity)
+            songSearchSelectionMessage = "正在重新搜索所选歌曲歌词…"
+        } else {
+            autoCompleteLyrics()
+        }
     }
 
     /// Product default: one-button lyrics auto-complete for the live TrackIdentity.
@@ -488,85 +543,90 @@ public final class PlaybackState: ObservableObject {
     }
 
 
-    /// Applies a selected track-search result to the current lyric session
-    /// without changing Spotify playback or its time anchor.
-    /// Track search results are metadata-only; local lyrics are resolved from
-    /// the shared read-only index when the selected track matches the live song.
+    /// Starts a lyrics preview for a selected catalog result. The preview uses
+    /// its own session, so selecting arbitrary Spotify catalog metadata never
+    /// changes the Desktop playback track or its time anchor.
     public func loadSearchResult(_ result: SongSearchResult) {
         guard !isMockPreviewMode else {
             songSearchSelectionMessage = "请先退出 Mock Preview，再加载真实歌曲歌词"
             return
         }
-        guard hasLiveTrack, let activeIdentity = currentTrackIdentity else {
-            songSearchSelectionMessage = "当前没有可加载歌词的 Spotify 歌曲"
-            return
-        }
+        searchPreviewGeneration &+= 1
+        let generation = searchPreviewGeneration
+        searchPreviewTask?.cancel()
 
-        let resolvedLyrics = result.lyrics ?? Self.localLyrics(for: result, identity: activeIdentity)
-
-        if let lyrics = resolvedLyrics {
-            let candidate = LyricsCandidate(
-                id: result.id,
-                identity: activeIdentity,
-                title: result.track.title,
-                artist: result.track.artist,
-                album: result.track.album,
-                duration: result.track.duration,
-                lines: lyrics.lines,
-                isSynchronized: lyrics.isSynchronized,
-                source: lyrics.source,
-                confidence: result.confidence
-            )
-            let metadataConfidence = LyricsMatcher.score(track: currentTrack, candidate: candidate)
-            guard LyricsMatcher.isHighConfidence(metadataConfidence) else {
-                songSearchSelectionMessage = "搜索结果与当前歌曲匹配度不足，未加载"
-                return
-            }
-
-            let remapped = LyricsDocument(
-                identity: activeIdentity,
-                title: lyrics.title ?? result.track.title,
-                artist: lyrics.artist ?? result.track.artist,
-                album: lyrics.album ?? result.track.album,
-                duration: lyrics.duration ?? result.track.duration,
-                lines: lyrics.lines,
-                isSynchronized: lyrics.isSynchronized,
-                source: lyrics.source,
-                confidence: metadataConfidence,
-                providerSourceID: lyrics.providerSourceID
-            )
-            lyricsSession.adopt(document: remapped)
-            songSearchSelectionMessage = "已加载搜索结果歌词，播放位置未改变"
-            return
-        }
-
-        let trackResult = result.asTrackSearchResult()
-        let metadataProbe = LyricsCandidate(
-            id: trackResult.id,
-            identity: activeIdentity,
-            title: trackResult.track.title,
-            artist: trackResult.track.artist,
-            album: trackResult.track.album,
-            duration: trackResult.track.duration,
-            lines: [LyricLine(timestamp: 0, originalText: ".")],
-            source: .local,
-            confidence: trackResult.confidence
+        let identity = TrackIdentity(track: result.track)
+        let metadata = TrackMetadata.bootstrap(
+            from: result.track,
+            catalogMetadata: result.catalogMetadata
         )
-        let metadataConfidence = LyricsMatcher.score(track: currentTrack, candidate: metadataProbe)
 
-        if TrackIdentity(track: result.track) == activeIdentity || LyricsMatcher.isHighConfidence(metadataConfidence) {
-            retryLyrics()
-            songSearchSelectionMessage = "已重新搜索当前歌曲歌词"
+        // Searching for the song that is actually playing should return to the
+        // live session so synchronized scrolling continues to follow Spotify.
+        // It still goes through the same SQLite-first path and never seeks.
+        if hasLiveTrack, let currentIdentity = currentTrackIdentity, identity == currentIdentity {
+            clearSearchPreview()
+            songSearchSelectionMessage = "已确认当前播放歌曲，正在读取 SQLite 与歌词；播放位置未改变"
+            searchPreviewTask = Task { @MainActor [weak self, lyricsRepository] in
+                guard let self else { return }
+                try? await lyricsRepository.saveTrackMetadata(metadata)
+                guard !Task.isCancelled, self.currentTrackIdentity == currentIdentity else { return }
+                self.lyricsSession.begin(track: self.currentTrack, identity: currentIdentity)
+            }
             return
         }
 
-        songSearchSelectionMessage = "该结果不是当前 Spotify 歌曲，未改变播放"
+        searchPreviewTrack = result.track
+        searchPreviewSession.beginLoadingPlaceholder(
+            identity: identity,
+            message: "正在读取 SQLite 与歌词 Provider…"
+        )
+        songSearchSelectionMessage = "已选择「\(result.track.title)」，正在读取歌词；播放位置未改变"
+
+        // Persist catalog metadata first, then start the session. This records
+        // the TrackRecord/aliases even when every lyrics provider returns no
+        // text, while never creating an empty LyricsVersion.
+        searchPreviewTask = Task { @MainActor [weak self, lyricsRepository] in
+            guard let self else { return }
+            do {
+                try await lyricsRepository.saveTrackMetadata(metadata)
+            } catch {
+                guard self.searchPreviewGeneration == generation else { return }
+                self.songSearchSelectionMessage = "歌词读取继续进行，但歌曲元数据未能写入 SQLite"
+            }
+            guard !Task.isCancelled,
+                  self.searchPreviewGeneration == generation,
+                  self.searchPreviewTrack == result.track else { return }
+
+            self.searchPreviewSession.begin(track: result.track, identity: identity)
+
+            // Legacy callers may still supply a body. Track search itself never
+            // does; when it does, only apply it to the isolated preview.
+            if let legacyLyrics = result.lyrics, !legacyLyrics.lines.isEmpty {
+                let document = LyricsDocument(
+                    identity: identity,
+                    title: legacyLyrics.title ?? result.track.title,
+                    artist: legacyLyrics.artist ?? result.track.artist,
+                    album: legacyLyrics.album ?? result.track.album,
+                    duration: legacyLyrics.duration ?? result.track.duration,
+                    lines: legacyLyrics.lines,
+                    isSynchronized: legacyLyrics.isSynchronized,
+                    source: legacyLyrics.source,
+                    confidence: min(result.confidence, legacyLyrics.confidence),
+                    providerSourceID: legacyLyrics.providerSourceID
+                )
+                self.searchPreviewSession.adopt(document: document)
+            }
+        }
     }
 
-    private static func localLyrics(for result: SongSearchResult, identity: TrackIdentity) -> LyricsDocument? {
-        guard result.source == .local else { return nil }
-        guard let entry = LocalLyricsIndex.shared.entry(id: result.id) else { return nil }
-        return LocalLyricsIndex.shared.document(for: entry, identity: identity, confidence: result.confidence)
+    public func clearSearchPreview() {
+        searchPreviewGeneration &+= 1
+        searchPreviewTask?.cancel()
+        searchPreviewTask = nil
+        searchPreviewTrack = nil
+        searchPreviewSession.clear()
+        songSearchSelectionMessage = ""
     }
 
     public func adoptLyricsCandidate(_ candidate: LyricsCandidate) {
@@ -574,7 +634,8 @@ public final class PlaybackState: ObservableObject {
     }
 
     public var currentLineIndex: Int? {
-        LyricsTimeline.activeLineIndex(
+        guard !isShowingSearchPreview else { return nil }
+        return LyricsTimeline.activeLineIndex(
             lines: lyrics,
             time: currentTime,
             isSynchronized: lyricsAreSynchronized
@@ -635,6 +696,7 @@ public final class PlaybackState: ObservableObject {
         if identityChanged {
             alignmentTask?.cancel()
             didAutoAlignForIdentity = nil
+            clearSearchPreview()
             hasLiveTrack = true
             isMockPreviewMode = false
             currentTrack = nextTrack
@@ -655,6 +717,7 @@ public final class PlaybackState: ObservableObject {
         guard !isMockPreviewMode else { return }
         alignmentTask?.cancel()
         didAutoAlignForIdentity = nil
+        clearSearchPreview()
         let hadLiveState = hasLiveTrack || lyricsSession.activeIdentity != nil || !lyrics.isEmpty
         hasLiveTrack = false
         if hadLiveState {

@@ -225,10 +225,16 @@ PLAYBACK_SOURCES=(
   "$ROOT_DIR/SpotifyLyrics/Search/SpotifyCurrentTrackProvider.swift"
   "$ROOT_DIR/SpotifyLyrics/Search/LRCLIBProvider.swift"
   "$ROOT_DIR/SpotifyLyrics/Search/SongSearchManager.swift"
+  "$ROOT_DIR/SpotifyLyrics/Search/SpotifySearchProvider.swift"
+  "$ROOT_DIR/SpotifyLyrics/Search/SpotifyTrackMapper.swift"
+  "$ROOT_DIR/SpotifyLyrics/Spotify/SpotifyAPIModels.swift"
+  "$ROOT_DIR/SpotifyLyrics/Spotify/SpotifyCatalogService.swift"
+  "$ROOT_DIR/SpotifyLyrics/Spotify/SpotifyTokenStore.swift"
+  "$ROOT_DIR/SpotifyLyrics/Spotify/SpotifyAuthorizationManager.swift"
   "$ROOT_DIR/SpotifyLyrics/Services/PlaybackState.swift"
   "$TMP_DIR/PlaybackStateMain.swift"
 )
-swiftc -parse-as-library -framework AppKit -framework Network -framework AVFoundation -framework Speech -framework CoreMedia "${PLAYBACK_SOURCES[@]}" -o "$TMP_DIR/playback-state-contract"
+swiftc -parse-as-library -framework AppKit -framework Network -framework Security -framework AVFoundation -framework Speech -framework CoreMedia "${PLAYBACK_SOURCES[@]}" -o "$TMP_DIR/playback-state-contract"
 "$TMP_DIR/playback-state-contract"
 
 cp "$ROOT_DIR/Tests/backdrop_palette_test.swift" "$TMP_DIR/BackdropPaletteMain.swift"
@@ -265,7 +271,7 @@ if rg -q 'state\.seek\(to: line\.timestamp' "$ROOT_DIR/SpotifyLyrics"; then
 fi
 rg -q 'retryAfterNetworkRecovery' "$ROOT_DIR/SpotifyLyrics/Services/LyricsSessionController.swift"
 rg -q 'NWPathMonitor|network-recovery' "$ROOT_DIR/SpotifyLyrics/Services/PlaybackState.swift"
-rg -q 'lyricsSession\.objectWillChange\.sink' "$ROOT_DIR/SpotifyLyrics/Services/PlaybackState.swift"
+rg -q 'session\.objectWillChange\.sink' "$ROOT_DIR/SpotifyLyrics/Services/PlaybackState.swift"
 rg -q 'Task \{ @MainActor \[weak self\]' "$ROOT_DIR/SpotifyLyrics/Services/PlaybackState.swift"
 rg -q 'self\.objectWillChange\.send\(\)' "$ROOT_DIR/SpotifyLyrics/Services/PlaybackState.swift"
 echo 'lyrics UI state propagation contract passed'

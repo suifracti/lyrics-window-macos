@@ -105,6 +105,26 @@ public enum LyricsPersistenceMapper {
         return aliases
     }
 
+    public static func aliasRecords(
+        metadata: TrackMetadata,
+        now: Date
+    ) -> [DatabaseTrackAliasRecord] {
+        _ = now
+        return metadata.aliases.map {
+            DatabaseTrackAliasRecord(
+                trackStableKey: metadata.identity.stableKey,
+                field: $0.field.rawValue,
+                kind: $0.kind.rawValue,
+                value: $0.value,
+                language: $0.language,
+                script: $0.script.rawValue,
+                source: $0.source.rawValue,
+                confidence: $0.confidence,
+                isOfficial: $0.isOfficial
+            )
+        }
+    }
+
     public static func versionRecord(
         document: LyricsDocument,
         identity: TrackIdentity,

@@ -1,5 +1,62 @@
 import Foundation
 
+/// Search-facing metadata. SwiftUI and the lyrics/session layers use this
+/// stable model instead of depending on Spotify Web API JSON DTOs.
+public struct TrackArtistMetadata: Equatable, Hashable, Sendable {
+    public let id: String?
+    public let name: String
+    public let uri: String?
+
+    public init(id: String? = nil, name: String, uri: String? = nil) {
+        self.id = id
+        self.name = name
+        self.uri = uri
+    }
+}
+
+public struct TrackSearchMetadata: Equatable, Hashable, Sendable {
+    public let spotifyID: String?
+    public let spotifyURI: String?
+    public let title: String
+    public let artists: [TrackArtistMetadata]
+    public let artistDisplay: String
+    public let album: String
+    public let duration: TimeInterval
+    public let artworkURL: URL?
+    public let isrc: String?
+    public let explicit: Bool
+    public let releaseDate: String?
+    public let popularity: Int?
+
+    public init(
+        spotifyID: String? = nil,
+        spotifyURI: String? = nil,
+        title: String,
+        artists: [TrackArtistMetadata],
+        artistDisplay: String? = nil,
+        album: String,
+        duration: TimeInterval,
+        artworkURL: URL? = nil,
+        isrc: String? = nil,
+        explicit: Bool = false,
+        releaseDate: String? = nil,
+        popularity: Int? = nil
+    ) {
+        self.spotifyID = spotifyID
+        self.spotifyURI = spotifyURI
+        self.title = title
+        self.artists = artists
+        self.artistDisplay = artistDisplay ?? artists.map(\.name).joined(separator: ", ")
+        self.album = album
+        self.duration = duration
+        self.artworkURL = artworkURL
+        self.isrc = isrc
+        self.explicit = explicit
+        self.releaseDate = releaseDate
+        self.popularity = popularity
+    }
+}
+
 /// Metadata-only track search hit. Must never carry lyrics body text.
 public struct TrackSearchResult: Identifiable, Equatable {
     public let id: String
@@ -7,20 +64,30 @@ public struct TrackSearchResult: Identifiable, Equatable {
     public let track: Track
     public let confidence: Double
     public let artworkURL: URL?
+    public let catalogMetadata: TrackSearchMetadata?
 
     public init(
         id: String,
         source: SongSearchSource,
         track: Track,
         confidence: Double,
-        artworkURL: URL? = nil
+        artworkURL: URL? = nil,
+        catalogMetadata: TrackSearchMetadata? = nil
     ) {
         self.id = id
         self.source = source
         self.track = track
         self.confidence = max(0, min(confidence, 1))
         self.artworkURL = artworkURL
+        self.catalogMetadata = catalogMetadata
     }
+
+    public var spotifyID: String? { catalogMetadata?.spotifyID ?? track.spotifyId }
+    public var spotifyURI: String? { catalogMetadata?.spotifyURI ?? track.spotifyURL?.absoluteString }
+    public var artistDisplay: String { catalogMetadata?.artistDisplay ?? track.artist }
+    public var album: String { catalogMetadata?.album ?? track.album }
+    public var duration: TimeInterval { catalogMetadata?.duration ?? track.duration }
+    public var isrc: String? { catalogMetadata?.isrc ?? track.isrc }
 
     public var metadataKey: String {
         TrackIdentity.metadataFingerprint(
@@ -35,13 +102,13 @@ public struct TrackSearchResult: Identifiable, Equatable {
     /// public lyric indexes often publish the same recording under slightly
     /// different release metadata or duration rounding.
     public var searchMergeKey: String {
-        if let spotifyID = track.spotifyId, !spotifyID.isEmpty {
+        if let spotifyID, !spotifyID.isEmpty {
             return "spotify-id:\(spotifyID)"
         }
-        if let uri = track.spotifyURL?.absoluteString, !uri.isEmpty {
+        if let uri = spotifyURI, !uri.isEmpty {
             return "spotify-uri:\(uri)"
         }
-        if let isrc = track.isrc, !isrc.isEmpty {
+        if let isrc, !isrc.isEmpty {
             return "isrc:\(isrc.lowercased())"
         }
         return [
@@ -58,7 +125,8 @@ public struct TrackSearchResult: Identifiable, Equatable {
             track: track,
             confidence: confidence,
             lyrics: lyrics,
-            artworkURL: artworkURL
+            artworkURL: artworkURL,
+            catalogMetadata: catalogMetadata
         )
     }
 }

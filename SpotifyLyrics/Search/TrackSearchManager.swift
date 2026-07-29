@@ -19,7 +19,10 @@ public final class TrackSearchManager: ObservableObject {
     }
 
     @discardableResult
-    public func search(query: TrackSearchQuery) -> Task<Void, Never>? {
+    public func search(
+        query: TrackSearchQuery,
+        debounceNanoseconds: UInt64 = 0
+    ) -> Task<Void, Never>? {
         generation &+= 1
         let requestGeneration = generation
         requestTask?.cancel()
@@ -33,6 +36,13 @@ public final class TrackSearchManager: ObservableObject {
         state = .searching(query)
         let providers = self.providers
         requestTask = Task { [weak self] in
+            if debounceNanoseconds > 0 {
+                do {
+                    try await Task.sleep(nanoseconds: debounceNanoseconds)
+                } catch {
+                    return
+                }
+            }
             var results: [TrackSearchResult] = []
             var errors: [String] = []
 

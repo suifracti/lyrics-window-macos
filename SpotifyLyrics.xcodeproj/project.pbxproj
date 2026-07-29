@@ -80,6 +80,12 @@
 		110000542D83400100000001 /* LyricsRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000542D83400100000000 /* LyricsRepository.swift */; };
 		110000552D83400100000001 /* LyricsPersistenceMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000552D83400100000000 /* LyricsPersistenceMapper.swift */; };
 		110000562D83400100000001 /* SQLiteLyricsRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000562D83400100000000 /* SQLiteLyricsRepository.swift */; };
+		110000572D83400100000001 /* SpotifyAPIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000572D83400100000000 /* SpotifyAPIModels.swift */; };
+		110000582D83400100000001 /* SpotifyTokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000582D83400100000000 /* SpotifyTokenStore.swift */; };
+		110000592D83400100000001 /* SpotifyCatalogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000592D83400100000000 /* SpotifyCatalogService.swift */; };
+		1100005A2D83400100000001 /* SpotifyAuthorizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100005A2D83400100000000 /* SpotifyAuthorizationManager.swift */; };
+		1100005B2D83400100000001 /* SpotifyTrackMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100005B2D83400100000000 /* SpotifyTrackMapper.swift */; };
+		1100005C2D83400100000001 /* SpotifySearchProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100005C2D83400100000000 /* SpotifySearchProvider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -158,6 +164,12 @@
 		110000542D83400100000000 /* LyricsRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsRepository.swift; sourceTree = "<group>"; };
 		110000552D83400100000000 /* LyricsPersistenceMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsPersistenceMapper.swift; sourceTree = "<group>"; };
 		110000562D83400100000000 /* SQLiteLyricsRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteLyricsRepository.swift; sourceTree = "<group>"; };
+		110000572D83400100000000 /* SpotifyAPIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyAPIModels.swift; sourceTree = "<group>"; };
+		110000582D83400100000000 /* SpotifyTokenStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyTokenStore.swift; sourceTree = "<group>"; };
+		110000592D83400100000000 /* SpotifyCatalogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyCatalogService.swift; sourceTree = "<group>"; };
+		1100005A2D83400100000000 /* SpotifyAuthorizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyAuthorizationManager.swift; sourceTree = "<group>"; };
+		1100005B2D83400100000000 /* SpotifyTrackMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyTrackMapper.swift; sourceTree = "<group>"; };
+		1100005C2D83400100000000 /* SpotifySearchProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifySearchProvider.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -187,6 +199,7 @@
 				110000002D83400000000020 /* Views */,
 				110000002D83400000000023 /* Design */,
 				110000002D83400000000027 /* Persistence */,
+				110000002D83400000000028 /* Spotify */,
 			);
 			path = SpotifyLyrics;
 			sourceTree = "<group>";
@@ -298,6 +311,8 @@
 				110000262D83400100000000 /* SpotifyCurrentTrackProvider.swift */,
 				110000272D83400100000000 /* LRCLIBProvider.swift */,
 				110000282D83400100000000 /* SongSearchManager.swift */,
+				1100005B2D83400100000000 /* SpotifyTrackMapper.swift */,
+				1100005C2D83400100000000 /* SpotifySearchProvider.swift */,
 			);
 			path = Search;
 			sourceTree = "<group>";
@@ -312,6 +327,17 @@
 				110000562D83400100000000 /* SQLiteLyricsRepository.swift */,
 			);
 			path = Persistence;
+			sourceTree = "<group>";
+		};
+		110000002D83400000000028 /* Spotify */ = {
+			isa = PBXGroup;
+			children = (
+				110000572D83400100000000 /* SpotifyAPIModels.swift */,
+				110000582D83400100000000 /* SpotifyTokenStore.swift */,
+				110000592D83400100000000 /* SpotifyCatalogService.swift */,
+				1100005A2D83400100000000 /* SpotifyAuthorizationManager.swift */,
+			);
+			path = Spotify;
 			sourceTree = "<group>";
 		};
 		110000002D83400000000003 /* Products */ = {
@@ -458,6 +484,12 @@
 				110000542D83400100000001 /* LyricsRepository.swift in Sources */,
 				110000552D83400100000001 /* LyricsPersistenceMapper.swift in Sources */,
 				110000562D83400100000001 /* SQLiteLyricsRepository.swift in Sources */,
+				110000572D83400100000001 /* SpotifyAPIModels.swift in Sources */,
+				110000582D83400100000001 /* SpotifyTokenStore.swift in Sources */,
+				110000592D83400100000001 /* SpotifyCatalogService.swift in Sources */,
+				1100005A2D83400100000001 /* SpotifyAuthorizationManager.swift in Sources */,
+				1100005B2D83400100000001 /* SpotifyTrackMapper.swift in Sources */,
+				1100005C2D83400100000001 /* SpotifySearchProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

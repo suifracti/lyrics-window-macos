@@ -91,6 +91,23 @@ public actor SQLiteLyricsRepository: LyricsRepository {
         )
     }
 
+    public func saveTrackMetadata(_ metadata: TrackMetadata) throws {
+        try ensurePrepared()
+        let now = Date()
+        let trackRecord = LyricsPersistenceMapper.trackRecord(
+            track: metadata.track,
+            identity: metadata.identity,
+            now: now
+        )
+        let aliases = LyricsPersistenceMapper.aliasRecords(metadata: metadata, now: now)
+        try withTransaction {
+            try upsertTrack(trackRecord)
+            for alias in aliases {
+                try insertAlias(alias)
+            }
+        }
+    }
+
     public func save(
         track: Track,
         identity: TrackIdentity,

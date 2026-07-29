@@ -25,7 +25,10 @@ public final class SongSearchManager: ObservableObject {
     }
 
     @discardableResult
-    public func search(query: SongSearchQuery) -> Task<Void, Never>? {
+    public func search(
+        query: SongSearchQuery,
+        debounceNanoseconds: UInt64 = 0
+    ) -> Task<Void, Never>? {
         generation &+= 1
         let requestGeneration = generation
         requestTask?.cancel()
@@ -33,12 +36,12 @@ public final class SongSearchManager: ObservableObject {
         guard !query.isEmpty else {
             state = .idle
             requestTask = nil
-            _ = trackSearchManager.search(query: query)
+            _ = trackSearchManager.search(query: query, debounceNanoseconds: debounceNanoseconds)
             return nil
         }
 
         state = .searching(query)
-        let trackTask = trackSearchManager.search(query: query)
+        let trackTask = trackSearchManager.search(query: query, debounceNanoseconds: debounceNanoseconds)
         requestTask = Task { [weak self] in
             await trackTask?.value
             guard let self, self.generation == requestGeneration else { return }
@@ -70,7 +73,8 @@ private struct SongSearchProviderBridge: TrackSearchProvider {
                 source: result.source,
                 track: result.track,
                 confidence: result.confidence,
-                artworkURL: result.artworkURL
+                artworkURL: result.artworkURL,
+                catalogMetadata: result.catalogMetadata
             )
         }
     }

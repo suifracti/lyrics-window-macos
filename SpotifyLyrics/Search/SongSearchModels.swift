@@ -45,6 +45,55 @@ public struct SongSearchQuery: Equatable, Hashable {
         }
     }
 
+    /// Resolve a direct Spotify track URL, URI, or bare track id before doing
+    /// a free-text catalog request.
+    public var spotifyTrackID: String? {
+        Self.spotifyTrackID(from: text)
+    }
+
+    public var spotifyQueryText: String {
+        if let title, !title.isEmpty, let artist, !artist.isEmpty {
+            return "track:\"\(title)\" artist:\"\(artist)\""
+        }
+        if let title, !title.isEmpty {
+            return "track:\"\(title)\""
+        }
+        return text
+    }
+
+    public static func spotifyTrackID(from value: String) -> String? {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        if trimmed.lowercased().hasPrefix("spotify:track:") {
+            let id = String(trimmed.dropFirst("spotify:track:".count))
+                .split(separator: "?").first.map(String.init)
+            return isLikelySpotifyID(id)
+        }
+
+        if let url = URL(string: trimmed),
+           let host = url.host?.lowercased(),
+           host == "open.spotify.com" || host == "play.spotify.com" {
+            let components = url.pathComponents
+            if let trackIndex = components.firstIndex(of: "track"),
+               components.indices.contains(trackIndex + 1) {
+                return isLikelySpotifyID(components[trackIndex + 1])
+            }
+        }
+
+        return isLikelySpotifyID(trimmed) != nil ? trimmed : nil
+    }
+
+    private static func isLikelySpotifyID(_ value: String?) -> String? {
+        guard let value, value.count == 22,
+              value.unicodeScalars.allSatisfy({
+                  (48...57).contains($0.value) ||
+                  (65...90).contains($0.value) ||
+                  (97...122).contains($0.value)
+              }) else { return nil }
+        return value
+    }
+
     public static func normalizeSearchText(_ value: String) -> String {
         value
             .precomposedStringWithCompatibilityMapping
@@ -58,6 +107,7 @@ public struct SongSearchQuery: Equatable, Hashable {
 public enum SongSearchSource: String, CaseIterable, Identifiable {
     case local
     case spotifyCurrentTrack
+    case spotifyCatalog
     case lrclib
 
     public var id: String { rawValue }
@@ -66,6 +116,7 @@ public enum SongSearchSource: String, CaseIterable, Identifiable {
         switch self {
         case .local: return "本地歌词"
         case .spotifyCurrentTrack: return "Spotify 当前歌曲"
+        case .spotifyCatalog: return "Spotify 在线曲库"
         case .lrclib: return "LRCLIB"
         }
     }
@@ -80,6 +131,7 @@ public struct SongSearchResult: Identifiable, Equatable {
     public let confidence: Double
     public let lyrics: LyricsDocument?
     public let artworkURL: URL?
+    public let catalogMetadata: TrackSearchMetadata?
 
     public init(
         id: String,
@@ -87,7 +139,8 @@ public struct SongSearchResult: Identifiable, Equatable {
         track: Track,
         confidence: Double,
         lyrics: LyricsDocument? = nil,
-        artworkURL: URL? = nil
+        artworkURL: URL? = nil,
+        catalogMetadata: TrackSearchMetadata? = nil
     ) {
         self.id = id
         self.source = source
@@ -95,6 +148,7 @@ public struct SongSearchResult: Identifiable, Equatable {
         self.confidence = max(0, min(confidence, 1))
         self.lyrics = lyrics
         self.artworkURL = artworkURL
+        self.catalogMetadata = catalogMetadata
     }
 
     public var searchMergeKey: String {
@@ -107,7 +161,8 @@ public struct SongSearchResult: Identifiable, Equatable {
             source: source,
             track: track,
             confidence: confidence,
-            artworkURL: artworkURL
+            artworkURL: artworkURL,
+            catalogMetadata: catalogMetadata
         )
     }
 }
@@ -129,6 +184,11 @@ public enum SongSearchState: Equatable {
 }
 
 public enum SongSearchError: LocalizedError, Equatable {
+    case notConfigured
+    case unauthorized
+    case forbidden
+    case badRequest
+    case notFound
     case networkUnavailable
     case timedOut
     case rateLimited(TimeInterval?)
@@ -139,6 +199,11 @@ public enum SongSearchError: LocalizedError, Equatable {
 
     public var errorDescription: String? {
         switch self {
+        case .notConfigured: return "尚未配置 Spotify Client ID"
+        case .unauthorized: return "尚未授权 Spotify 在线曲库"
+        case .forbidden: return "Spotify 拒绝了目录请求"
+        case .badRequest: return "Spotify 搜索请求无效"
+        case .notFound: return "Spotify 曲目不存在"
         case .networkUnavailable: return "网络不可用"
         case .timedOut: return "搜索请求超时"
         case .rateLimited: return "搜索服务限流"
