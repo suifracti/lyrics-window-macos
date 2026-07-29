@@ -67,7 +67,10 @@ public final class AppSettingsStore: ObservableObject {
         mainWindowLayoutStyleRawValue = layout
         connectSpotifyOnLaunch = defaults.object(forKey: Key.connectSpotifyOnLaunch) as? Bool ?? true
         autoSearchLyricsOnTrackChange = defaults.object(forKey: Key.autoSearchLyricsOnTrackChange) as? Bool ?? true
-        let keepOnTop = defaults.object(forKey: Key.keepMainWindowOnTop) as? Bool ?? true
+        // Keep the normal window behavior by default. Users can opt into
+        // always-on-top explicitly in Settings; existing saved choices are
+        // preserved because the fallback is only used when the key is absent.
+        let keepOnTop = defaults.object(forKey: Key.keepMainWindowOnTop) as? Bool ?? false
         keepMainWindowOnTop = keepOnTop
         restoreWindowState = defaults.object(forKey: Key.restoreWindowState) as? Bool ?? true
         displayPreferences = Self.loadDisplayPreferences(defaults: defaults, keepOnTop: keepOnTop)
