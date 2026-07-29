@@ -4,11 +4,32 @@ import Foundation
 /// Applies SafeMatcher and does not auto-adopt conflicting versions.
 public final class LyricsSearchManager: @unchecked Sendable {
     public let name: String
-    private let providers: [LyricsProvider]
+    private let providersLock = NSLock()
+    private var providers: [LyricsProvider]
 
     public init(providers: [LyricsProvider], name: String = "Lyrics Search") {
         self.providers = providers
         self.name = name
+    }
+
+    /// Replaces the runtime provider order without exposing provider objects
+    /// to SwiftUI. The active session cancels its in-flight request before
+    /// calling this method, so a disabled provider cannot receive a new probe.
+    public func updateProviders(_ providers: [LyricsProvider]) {
+        providersLock.lock()
+        self.providers = providers
+        providersLock.unlock()
+        LyricsE2ELog.log("MANAGER providers updated=" + providers.map { $0.name }.joined(separator: ","))
+    }
+
+    public func providerNames() -> [String] {
+        providerSnapshot().map(\.name)
+    }
+
+    private func providerSnapshot() -> [LyricsProvider] {
+        providersLock.lock()
+        defer { providersLock.unlock() }
+        return providers
     }
 
     public func lookup(track: Track, identity: TrackIdentity) async -> LyricsLookupResult {
@@ -30,7 +51,8 @@ public final class LyricsSearchManager: @unchecked Sendable {
             versionTags: metadata.versionTags
         )
         let variants = LyricsQueryPlanner.plan(for: meta)
-        LyricsE2ELog.log("MANAGER start title=\(track.title) artist=\(track.artist) variants=\(variants.count) providers=\(providers.map { $0.name })")
+        let configuredProviders = providerSnapshot()
+        LyricsE2ELog.log("MANAGER start title=\(track.title) artist=\(track.artist) variants=\(variants.count) providers=\(configuredProviders.map { $0.name })")
         var diagnostics: [LyricsProviderDiagnostic] = []
         var acceptedCandidates: [LyricsCandidate] = []
         var sawNoLyrics = false
@@ -60,7 +82,7 @@ public final class LyricsSearchManager: @unchecked Sendable {
                 spotifyURL: track.spotifyURL
             )
 
-            for provider in providers {
+            for provider in configuredProviders {
                 if Task.isCancelled {
                     return SearchOutcome(result: .failed(.cancelled), diagnostics: diagnostics)
                 }

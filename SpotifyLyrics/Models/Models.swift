@@ -204,6 +204,9 @@ public struct DisplayPreferences: Equatable {
     public var fontSize: CGFloat = 18
     public var opacity: Double = 0.85
     public var alwaysOnTop: Bool = true
+    public var assistantFontSize: CGFloat = 14
+    public var rubyFontSize: CGFloat = 10
+    public var hideDistantAuxiliary: Bool = true
 
     public var kanaDisplayMode: KanaDisplayMode {
         get { storedKanaDisplayMode }
@@ -241,7 +244,10 @@ public struct DisplayPreferences: Equatable {
         kanaDisplayMode: KanaDisplayMode? = nil,
         fontSize: CGFloat = 18,
         opacity: Double = 0.85,
-        alwaysOnTop: Bool = true
+        alwaysOnTop: Bool = true,
+        assistantFontSize: CGFloat = 14,
+        rubyFontSize: CGFloat = 10,
+        hideDistantAuxiliary: Bool = true
     ) {
         self.showOriginal = showOriginal
         self.showTranslation = showTranslation
@@ -254,5 +260,8 @@ public struct DisplayPreferences: Equatable {
         self.fontSize = fontSize
         self.opacity = opacity
         self.alwaysOnTop = alwaysOnTop
+        self.assistantFontSize = assistantFontSize
+        self.rubyFontSize = rubyFontSize
+        self.hideDistantAuxiliary = hideDistantAuxiliary
     }
 }

@@ -82,6 +82,13 @@ public final class LocalLyricsIndex: @unchecked Sendable {
         return didScan
     }
 
+    /// Rebuilds the in-memory index only. It never writes, renames, or
+    /// deletes any user lyric file.
+    @discardableResult
+    public func rebuild() -> Int {
+        entries(forceRescan: true).count
+    }
+
     public func entry(id: String) -> Entry? {
         entries().first { $0.resultID == id }
     }

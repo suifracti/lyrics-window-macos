@@ -51,7 +51,9 @@ grep -q 'font(.system(size: 20, weight: .semibold))' "$window_file"
 grep -q 'frame(width: 40, height: 40)' "$window_file"
 grep -q 'let verticalPadding = synchronized' "$window_file"
 grep -q ': 28.0' "$window_file"
-grep -q 'min(14, baseSize \* 0.34)' "$window_file"
+# Ruby size is scaled by the shared display preference while keeping the
+# same subordinate base ratio.
+grep -q 'baseSize \* 0.34' "$window_file"
 grep -q 'min(compact ? 16 : 18' "$window_file"
 grep -q 'rubyColor: .white.opacity(rubyOpacity)' "$window_file"
 grep -q 'rubySpacing: 1' "$window_file"

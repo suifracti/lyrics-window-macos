@@ -37,6 +37,34 @@ public struct LyricsPersistenceSaveResult: Equatable, Sendable {
     }
 }
 
+public struct LyricsDatabaseStats: Equatable, Sendable {
+    public let databaseURL: URL
+    public let schemaVersion: Int
+    public let trackCount: Int
+    public let lyricsVersionCount: Int
+    public let lyricLineCount: Int
+    public let fileSize: Int64
+    public let lastUpdated: Date?
+
+    public init(
+        databaseURL: URL,
+        schemaVersion: Int,
+        trackCount: Int,
+        lyricsVersionCount: Int,
+        lyricLineCount: Int,
+        fileSize: Int64,
+        lastUpdated: Date?
+    ) {
+        self.databaseURL = databaseURL
+        self.schemaVersion = schemaVersion
+        self.trackCount = trackCount
+        self.lyricsVersionCount = lyricsVersionCount
+        self.lyricLineCount = lyricLineCount
+        self.fileSize = fileSize
+        self.lastUpdated = lastUpdated
+    }
+}
+
 /// Persistence boundary used by the session layer. Implementations must be
 /// Sendable and perform blocking storage work away from MainActor.
 public protocol LyricsRepository: Sendable {
@@ -52,10 +80,25 @@ public protocol LyricsRepository: Sendable {
         document: LyricsDocument
     ) async throws -> LyricsPersistenceSaveResult
     func markLocked(versionID: UUID, locked: Bool) async throws
+    func statistics() async throws -> LyricsDatabaseStats
+    func createBackup() async throws -> URL
+    func clearLyricsCache() async throws
 }
 
 public extension LyricsRepository {
     func saveTrackMetadata(_ metadata: TrackMetadata) async throws {
         _ = metadata
+    }
+
+    func statistics() async throws -> LyricsDatabaseStats {
+        throw LyricsRepositoryError.unavailable("当前歌词仓库不支持统计")
+    }
+
+    func createBackup() async throws -> URL {
+        throw LyricsRepositoryError.unavailable("当前歌词仓库不支持备份")
+    }
+
+    func clearLyricsCache() async throws {
+        throw LyricsRepositoryError.unavailable("当前歌词仓库不支持清理")
     }
 }

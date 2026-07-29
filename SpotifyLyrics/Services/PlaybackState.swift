@@ -32,13 +32,17 @@ public final class PlaybackState: ObservableObject {
     private let lyricsSession: LyricsSessionController
     private let searchPreviewSession: LyricsSessionController
     private let lyricsRepository: (any LyricsRepository)
+    private let settingsStore: AppSettingsStore
+    private let usesConfiguredLyricsProviders: Bool
     public let songSearchManager: SongSearchManager
     public let spotifyAuthorizationManager: SpotifyAuthorizationManager
     private var lyricsSessionCancellable: AnyCancellable?
     private var searchPreviewSessionCancellable: AnyCancellable?
     private var spotifyAuthorizationCancellable: AnyCancellable?
+    private var settingsCancellables: Set<AnyCancellable> = []
     private var timer: Timer?
     private var isProviderStarted = false
+    private var automaticSpotifyConnectionEnabled = true
     private var isRefreshingProvider = false
     private var providerRefreshGeneration: UInt64 = 0
     private var refreshRequestedWhileBusy = false
@@ -57,8 +61,12 @@ public final class PlaybackState: ObservableObject {
     public init(
         provider: PlaybackProvider? = nil,
         lyricsProvider: LyricsProvider? = nil,
-        lyricsRepository: (any LyricsRepository)? = nil
+        lyricsRepository: (any LyricsRepository)? = nil,
+        settings: AppSettingsStore? = nil
     ) {
+        let resolvedSettings = settings ?? AppSettingsStore()
+        self.settingsStore = resolvedSettings
+        self.preferences = resolvedSettings.displayPreferences
         let resolvedProvider = provider ?? SpotifyDesktopProvider()
         self.provider = resolvedProvider
         let sharedIndex = LocalLyricsIndex.shared
@@ -68,8 +76,12 @@ public final class PlaybackState: ObservableObject {
         if let lyricsProvider {
             lyricsProviders = [lyricsProvider]
         } else {
-            lyricsProviders = Self.makeDefaultLyricsProviders(index: sharedIndex)
+            lyricsProviders = Self.makeDefaultLyricsProviders(
+                index: sharedIndex,
+                configuration: resolvedSettings.lyricsProviderConfiguration
+            )
         }
+        self.usesConfiguredLyricsProviders = lyricsProvider == nil
         let resolvedRepository: any LyricsRepository = lyricsRepository ?? SQLiteLyricsRepository()
         LyricsE2ELog.reset()
         LyricsE2ELog.log("PlaybackState init providers=" + lyricsProviders.map { $0.name }.joined(separator: ","))
@@ -118,26 +130,76 @@ public final class PlaybackState: ObservableObject {
         self.spotifyAuthorizationCancellable = authorizationManager.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
         }
+
+        resolvedSettings.$displayPreferences
+            .sink { [weak self] preferences in
+                guard let self, self.preferences != preferences else { return }
+                self.preferences = preferences
+            }
+            .store(in: &self.settingsCancellables)
+        // AppSettingsStore is the single user-facing source of truth. The
+        // legacy LyricsPreferencesPopover remains source-compatible, but is
+        // no longer a live entry point; keeping a second reverse publisher
+        // here creates a synchronous Published feedback loop when a Picker or
+        // Toggle mutates a value-type DisplayPreferences.
+        resolvedSettings.$keepMainWindowOnTop
+            .sink { [weak self] keepOnTop in
+                guard let self, self.preferences.alwaysOnTop != keepOnTop else { return }
+                self.preferences.alwaysOnTop = keepOnTop
+            }
+            .store(in: &self.settingsCancellables)
+        resolvedSettings.$lyricsProviderConfiguration
+            .dropFirst()
+            .sink { [weak self] configuration in
+                guard let self, self.usesConfiguredLyricsProviders else { return }
+                self.applyLyricsProviderConfiguration(configuration)
+            }
+            .store(in: &self.settingsCancellables)
+        resolvedSettings.$connectSpotifyOnLaunch
+            .dropFirst()
+            .sink { [weak self] shouldConnect in
+                guard let self, shouldConnect else { return }
+                self.reconnectSpotify()
+            }
+            .store(in: &self.settingsCancellables)
     }
 
 
-    private static func makeDefaultLyricsProviders(index: LocalLyricsIndex) -> [LyricsProvider] {
-        var providers: [LyricsProvider] = [LocalLyricsProvider(index: index)]
-        // Test-only offline acceptance switch. It leaves the normal provider
-        // order unchanged while allowing a restart to prove SQLite recovery
-        // without making a network request to LRCLIB.
-        if ProcessInfo.processInfo.environment["SPOTIFYLYRICS_DISABLE_LRCLIB"] != "1" {
-            providers.append(LRCLIBLyricsProvider())
-        } else {
-            LyricsE2ELog.log("Lyrics provider disabled by environment: LRCLIB")
+    private static func makeDefaultLyricsProviders(
+        index: LocalLyricsIndex,
+        configuration: LyricsProviderConfiguration
+    ) -> [LyricsProvider] {
+        var providers: [LyricsProvider] = []
+        for id in configuration.orderedEnabledIDs {
+            switch id {
+            case .localFiles:
+                providers.append(LocalLyricsProvider(index: index))
+            case .sqliteDatabase:
+                // SQLite is consulted by LyricsSessionController before this
+                // manager; it is kept in the order model for clear UI state.
+                continue
+            case .lrclib:
+                guard ProcessInfo.processInfo.environment["SPOTIFYLYRICS_DISABLE_LRCLIB"] != "1" else {
+                    LyricsE2ELog.log("Lyrics provider disabled by environment: LRCLIB")
+                    continue
+                }
+                providers.append(LRCLIBLyricsProvider())
+            case .netEaseExperimental:
+                guard ProcessInfo.processInfo.environment["SPOTIFYLYRICS_DISABLE_NETEASE"] != "1" else {
+                    continue
+                }
+                providers.append(NetEaseExperimentalLyricsProvider())
+            case .qqExperimental:
+                guard ProcessInfo.processInfo.environment["SPOTIFYLYRICS_DISABLE_QQ"] != "1" else {
+                    continue
+                }
+                providers.append(QQExperimentalLyricsProvider())
+            }
         }
-        // Experimental NetEase: catalog≠body (あやふや / 水曜日の約束 Kawasaki.Rio empty lrc).
-        if ProcessInfo.processInfo.environment["SPOTIFYLYRICS_DISABLE_NETEASE"] != "1" {
-            providers.append(NetEaseExperimentalLyricsProvider())
-        }
-        // Experimental QQ: single-track audit proved body for 水曜日の約束/Kawasaki.Rio.
-        if ProcessInfo.processInfo.environment["SPOTIFYLYRICS_DISABLE_QQ"] != "1" {
-            providers.append(QQExperimentalLyricsProvider())
+        // A corrupted/legacy preference must not remove the read-only local
+        // source from the runtime chain.
+        if !providers.contains(where: { $0 is LocalLyricsProvider }) {
+            providers.insert(LocalLyricsProvider(index: index), at: 0)
         }
         return providers
     }
@@ -206,8 +268,13 @@ public final class PlaybackState: ObservableObject {
     }
 
     public func startProvider() {
+        startProvider(connectSpotify: true)
+    }
+
+    public func startProvider(connectSpotify: Bool) {
         guard !isProviderStarted else { return }
         isProviderStarted = true
+        automaticSpotifyConnectionEnabled = connectSpotify
         startTimer()
         startNetworkRecoveryMonitor()
         persistencePreparationTask = Task { [weak self, lyricsRepository] in
@@ -221,13 +288,28 @@ public final class PlaybackState: ObservableObject {
                 }
             }
         }
-        providerRefreshTask = Task { @MainActor [weak self] in
-            await self?.refreshProvider()
+        if connectSpotify {
+            providerRefreshTask = Task { @MainActor [weak self] in
+                await self?.refreshProvider()
+            }
+        } else {
+            providerStatus = .unavailable("已在设置中关闭启动连接")
         }
+    }
+
+    private func applyLyricsProviderConfiguration(_ configuration: LyricsProviderConfiguration) {
+        let providers = Self.makeDefaultLyricsProviders(
+            index: LocalLyricsIndex.shared,
+            configuration: configuration
+        )
+        lyricsSession.updateProviders(providers)
+        searchPreviewSession.updateProviders(providers)
+        objectWillChange.send()
     }
 
     public func reconnectSpotify() {
         guard !isMockPreviewMode else { return }
+        automaticSpotifyConnectionEnabled = true
         providerRefreshGeneration &+= 1
         refreshRequestedWhileBusy = true
         providerStatus = .connecting
@@ -702,7 +784,11 @@ public final class PlaybackState: ObservableObject {
             currentTrack = nextTrack
             songSearchSelectionMessage = ""
             LyricsE2ELog.log("Playback trackChange identity=\(nextIdentity.stableKey) title=\(nextTrack.title) artist=\(nextTrack.artist) duration=\(nextTrack.duration)")
-            lyricsSession.begin(track: nextTrack, identity: nextIdentity)
+            lyricsSession.begin(
+                track: nextTrack,
+                identity: nextIdentity,
+                automaticallySearch: settingsStore.autoSearchLyricsOnTrackChange
+            )
         } else if currentTrack != nextTrack {
             // Metadata/artwork may change without a lyric identity change. The
             // background view receives the new artwork URL and rekeys itself.

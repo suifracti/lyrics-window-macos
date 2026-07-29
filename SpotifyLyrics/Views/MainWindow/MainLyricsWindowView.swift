@@ -2,12 +2,18 @@ import SwiftUI
 
 struct MainLyricsWindowView: View {
     @EnvironmentObject private var state: PlaybackState
-    @AppStorage("mainWindowLayoutStyle") private var layoutStyleRawValue = MainWindowLayoutStyle.immersiveSplit.rawValue
-    @State private var isPreferencesPresented = false
+    @EnvironmentObject private var settings: AppSettingsStore
     @State private var isSearchPresented = false
 
     private var layoutStyle: MainWindowLayoutStyle {
-        MainWindowLayoutStyle(rawValue: layoutStyleRawValue) ?? .immersiveSplit
+        settings.mainWindowLayoutStyle
+    }
+
+    private var layoutStyleBinding: Binding<String> {
+        Binding(
+            get: { settings.mainWindowLayoutStyleRawValue },
+            set: { settings.mainWindowLayoutStyleRawValue = $0 }
+        )
     }
 
     var body: some View {
@@ -15,7 +21,7 @@ struct MainLyricsWindowView: View {
             if layoutStyle == .appleMusicImmersiveV3 {
                 AppleMusicImmersiveV3WindowView(
                     state: state,
-                    layoutStyleRawValue: $layoutStyleRawValue
+                    layoutStyleRawValue: layoutStyleBinding
                 )
             } else {
                 legacyWindowBody
@@ -27,8 +33,9 @@ struct MainLyricsWindowView: View {
         )
         .preferredColorScheme(.dark)
         .background(Color.clear)
+        .background(WindowStateAccessor(settings: settings))
         .task {
-            state.startProvider()
+            state.startProvider(connectSpotify: settings.connectSpotifyOnLaunch)
         }
     }
 
@@ -133,28 +140,16 @@ struct MainLyricsWindowView: View {
     }
 
     private var preferencesButton: some View {
-        Button {
-            isPreferencesPresented.toggle()
-        } label: {
+        SettingsLink {
             Label("显示设置", systemImage: "slider.horizontal.3")
                 .labelStyle(.iconOnly)
                 .font(.system(size: 16, weight: .medium))
                 .foregroundStyle(LyricsDesignTokens.secondaryText)
                 .frame(width: 36, height: 36)
-                .background(
-                    Circle()
-                        .fill(isPreferencesPresented ? LyricsDesignTokens.controlBackground.opacity(1.5) : .clear)
-                )
         }
         .buttonStyle(.plain)
-        .popover(isPresented: $isPreferencesPresented, arrowEdge: .top) {
-            LyricsPreferencesPopover(
-                preferences: $state.preferences,
-                playbackState: state
-            )
-        }
-        .help("歌词与显示窗口设置")
-        .accessibilityLabel("显示设置")
+        .help("打开设置")
+        .accessibilityLabel("打开设置")
     }
 
     private var searchButton: some View {
@@ -188,7 +183,7 @@ struct MainLyricsWindowView: View {
                 ForEach(MainWindowLayoutStyle.allCases) { style in
                     Button {
                         withAnimation(.easeInOut(duration: 0.22)) {
-                            layoutStyleRawValue = style.rawValue
+                            settings.mainWindowLayoutStyleRawValue = style.rawValue
                         }
                     } label: {
                         Label(style.title, systemImage: style.systemImage)

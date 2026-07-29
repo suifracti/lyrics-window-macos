@@ -43,7 +43,18 @@ public final class LyricsSessionController: ObservableObject {
         begin(track: track, identity: identity)
     }
 
-    public func begin(track: Track, identity: TrackIdentity) {
+    public func updateProviders(_ providers: [LyricsProvider]) {
+        searchManager.updateProviders(providers)
+        requestTask?.cancel()
+        requestTask = nil
+        revision &+= 1
+    }
+
+    public func begin(
+        track: Track,
+        identity: TrackIdentity,
+        automaticallySearch: Bool = true
+    ) {
         cancelCurrentRequest()
         revision &+= 1
         let requestRevision = revision
@@ -60,6 +71,12 @@ public final class LyricsSessionController: ObservableObject {
         LyricsE2ELog.log(
             "SESSION begin rev=\(requestRevision) identity=\(identity.stableKey) title=\(track.title) artist=\(track.artist) duration=\(track.duration) spotifyId=\(track.spotifyId ?? "")"
         )
+
+        guard automaticallySearch else {
+            state = .idle
+            LyricsE2ELog.log("SESSION automatic search disabled identity=\(identity.stableKey)")
+            return
+        }
 
         requestTask = Task { [weak self, searchManager, repository] in
             var outcome: SearchOutcome?

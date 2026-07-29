@@ -86,6 +86,11 @@
 		1100005A2D83400100000001 /* SpotifyAuthorizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100005A2D83400100000000 /* SpotifyAuthorizationManager.swift */; };
 		1100005B2D83400100000001 /* SpotifyTrackMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100005B2D83400100000000 /* SpotifyTrackMapper.swift */; };
 		1100005C2D83400100000001 /* SpotifySearchProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100005C2D83400100000000 /* SpotifySearchProvider.swift */; };
+		1100005D2D83400100000001 /* AppSettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100005D2D83400100000000 /* AppSettingsStore.swift */; };
+		1100005E2D83400100000001 /* LyricsProviderConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100005E2D83400100000000 /* LyricsProviderConfiguration.swift */; };
+		1100005F2D83400100000001 /* WindowStatePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100005F2D83400100000000 /* WindowStatePersistence.swift */; };
+		110000602D83400100000001 /* SettingsDataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000602D83400100000000 /* SettingsDataController.swift */; };
+		110000612D83400100000001 /* SettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000612D83400100000000 /* SettingsRootView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -170,6 +175,11 @@
 		1100005A2D83400100000000 /* SpotifyAuthorizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyAuthorizationManager.swift; sourceTree = "<group>"; };
 		1100005B2D83400100000000 /* SpotifyTrackMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyTrackMapper.swift; sourceTree = "<group>"; };
 		1100005C2D83400100000000 /* SpotifySearchProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifySearchProvider.swift; sourceTree = "<group>"; };
+		1100005D2D83400100000000 /* AppSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettingsStore.swift; sourceTree = "<group>"; };
+		1100005E2D83400100000000 /* LyricsProviderConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsProviderConfiguration.swift; sourceTree = "<group>"; };
+		1100005F2D83400100000000 /* WindowStatePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowStatePersistence.swift; sourceTree = "<group>"; };
+		110000602D83400100000000 /* SettingsDataController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsDataController.swift; sourceTree = "<group>"; };
+		110000612D83400100000000 /* SettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRootView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -200,6 +210,7 @@
 				110000002D83400000000023 /* Design */,
 				110000002D83400000000027 /* Persistence */,
 				110000002D83400000000028 /* Spotify */,
+				110000002D83400000000029 /* Settings */,
 			);
 			path = SpotifyLyrics;
 			sourceTree = "<group>";
@@ -209,8 +220,17 @@
 			children = (
 				110000002D83400000000021 /* MainWindow */,
 				110000002D83400000000022 /* Components */,
+				110000002D8340000000002A /* Settings */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		110000002D8340000000002A /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				110000612D83400100000000 /* SettingsRootView.swift */,
+			);
+			path = Settings;
 			sourceTree = "<group>";
 		};
 		110000002D83400000000021 /* MainWindow */ = {
@@ -338,6 +358,17 @@
 				1100005A2D83400100000000 /* SpotifyAuthorizationManager.swift */,
 			);
 			path = Spotify;
+			sourceTree = "<group>";
+		};
+		110000002D83400000000029 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				1100005D2D83400100000000 /* AppSettingsStore.swift */,
+				1100005E2D83400100000000 /* LyricsProviderConfiguration.swift */,
+				1100005F2D83400100000000 /* WindowStatePersistence.swift */,
+				110000602D83400100000000 /* SettingsDataController.swift */,
+			);
+			path = Settings;
 			sourceTree = "<group>";
 		};
 		110000002D83400000000003 /* Products */ = {
@@ -490,6 +521,11 @@
 				1100005A2D83400100000001 /* SpotifyAuthorizationManager.swift in Sources */,
 				1100005B2D83400100000001 /* SpotifyTrackMapper.swift in Sources */,
 				1100005C2D83400100000001 /* SpotifySearchProvider.swift in Sources */,
+				1100005D2D83400100000001 /* AppSettingsStore.swift in Sources */,
+				1100005E2D83400100000001 /* LyricsProviderConfiguration.swift in Sources */,
+				1100005F2D83400100000001 /* WindowStatePersistence.swift in Sources */,
+				110000602D83400100000001 /* SettingsDataController.swift in Sources */,
+				110000612D83400100000001 /* SettingsRootView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

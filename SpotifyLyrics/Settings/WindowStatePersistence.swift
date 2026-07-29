@@ -1,0 +1,98 @@
+import AppKit
+import Combine
+import Foundation
+import SwiftUI
+
+/// Keeps window frame and level persistence outside the SwiftUI view tree.
+/// Notification observers are attached once per NSWindow and do not replace
+/// SwiftUI's own window delegate.
+public final class WindowStatePersistence {
+    public static let shared = WindowStatePersistence()
+
+    private let lock = NSLock()
+    private var observedWindows = Set<ObjectIdentifier>()
+    private var observations: [ObjectIdentifier: [NSObjectProtocol]] = [:]
+    private var settingsCancellables: [ObjectIdentifier: AnyCancellable] = [:]
+    private weak var mainWindow: NSWindow?
+    private var mainSettings: AppSettingsStore?
+
+    private init() {}
+
+    public func attach(window: NSWindow, settings: AppSettingsStore) {
+        let identifier = ObjectIdentifier(window)
+        lock.lock()
+        let alreadyAttached = observedWindows.contains(identifier)
+        if !alreadyAttached {
+            observedWindows.insert(identifier)
+        }
+        lock.unlock()
+
+        mainWindow = window
+        mainSettings = settings
+        if !alreadyAttached {
+            restoreFrameIfNeeded(window: window, settings: settings)
+            applyWindowLevel(window: window, keepOnTop: settings.keepMainWindowOnTop)
+            let center = NotificationCenter.default
+            let moved = center.addObserver(forName: NSWindow.didMoveNotification, object: window, queue: .main) { [weak self, weak window] _ in
+                guard let self, let window else { return }
+                self.saveFrame(window: window, settings: settings)
+            }
+            let resized = center.addObserver(forName: NSWindow.didResizeNotification, object: window, queue: .main) { [weak self, weak window] _ in
+                guard let self, let window else { return }
+                self.saveFrame(window: window, settings: settings)
+            }
+            let closed = center.addObserver(forName: NSWindow.willCloseNotification, object: window, queue: .main) { [weak self, weak window] _ in
+                guard let self, let window else { return }
+                self.saveFrame(window: window, settings: settings)
+            }
+            lock.lock()
+            observations[identifier] = [moved, resized, closed]
+            lock.unlock()
+
+            let cancellable = settings.$keepMainWindowOnTop.sink { [weak self, weak window] value in
+                guard let self, let window else { return }
+                self.applyWindowLevel(window: window, keepOnTop: value)
+            }
+            lock.lock()
+            settingsCancellables[identifier] = cancellable
+            lock.unlock()
+        }
+    }
+
+    public func resetWindowFrame() {
+        guard let window = mainWindow else { return }
+        window.center()
+    }
+
+    private func restoreFrameIfNeeded(window: NSWindow, settings: AppSettingsStore) {
+        guard settings.restoreWindowState,
+              let value = settings.savedWindowFrame else { return }
+        let frame = NSRectFromString(value)
+        guard frame.width >= 400, frame.height >= 300 else { return }
+        window.setFrame(frame, display: false)
+    }
+
+    private func saveFrame(window: NSWindow, settings: AppSettingsStore) {
+        guard settings.restoreWindowState else { return }
+        UserDefaults.standard.set(NSStringFromRect(window.frame), forKey: AppSettingsStore.Key.mainWindowFrame)
+    }
+
+    private func applyWindowLevel(window: NSWindow, keepOnTop: Bool) {
+        window.level = keepOnTop ? .floating : .normal
+    }
+}
+
+struct WindowStateAccessor: NSViewRepresentable {
+    let settings: AppSettingsStore
+
+    func makeNSView(context: Context) -> NSView {
+        NSView(frame: .zero)
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        DispatchQueue.main.async {
+            guard let window = nsView.window else { return }
+            WindowStatePersistence.shared.attach(window: window, settings: settings)
+        }
+    }
+}

@@ -5,8 +5,6 @@ struct SongSearchPopover: View {
     @ObservedObject var manager: SongSearchManager
     @ObservedObject var playbackState: PlaybackState
     @State private var query = ""
-    @State private var clientIDDraft = ""
-    @State private var isAuthorizationGuidePresented = false
     @FocusState private var isSearchFieldFocused: Bool
 
     var body: some View {
@@ -50,7 +48,6 @@ struct SongSearchPopover: View {
             if let existing = manager.state.query?.text, !existing.isEmpty {
                 query = existing
             }
-            clientIDDraft = playbackState.spotifyAuthorizationManager.clientID ?? ""
             isSearchFieldFocused = true
         }
         .onChange(of: query) { _, value in
@@ -60,56 +57,19 @@ struct SongSearchPopover: View {
     }
 
     private var spotifyAuthorizationSection: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            HStack(spacing: 7) {
+        HStack(spacing: 7) {
                 Image(systemName: playbackState.spotifyAuthorizationManager.state.isAuthorized ? "checkmark.seal.fill" : "globe")
                     .foregroundStyle(playbackState.spotifyAuthorizationManager.state.isAuthorized ? LyricsDesignTokens.accent : LyricsDesignTokens.mutedText)
                 Text(playbackState.spotifyAuthorizationManager.state.userFacingMessage)
                     .font(.system(size: 11, weight: .medium, design: .rounded))
                     .foregroundStyle(LyricsDesignTokens.mutedText)
                 Spacer(minLength: 6)
-
-                if playbackState.spotifyAuthorizationManager.state.isAuthorized {
-                    Button("断开") {
-                        playbackState.spotifyAuthorizationManager.disconnect()
-                    }
-                    .buttonStyle(.borderless)
-                    .foregroundStyle(LyricsDesignTokens.mutedText)
-                } else {
-                    Button("授权 Spotify") {
-                        if playbackState.spotifyAuthorizationManager.clientID == nil {
-                            playbackState.spotifyAuthorizationManager.updateClientID(clientIDDraft)
-                        }
-                        playbackState.spotifyAuthorizationManager.authorize()
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    .tint(LyricsDesignTokens.accent)
+                SettingsLink {
+                    Label("设置", systemImage: "gearshape")
+                        .font(.system(size: 11, weight: .medium, design: .rounded))
                 }
-            }
-
-            if !playbackState.spotifyAuthorizationManager.isConfigured {
-                TextField("Spotify Client ID（不需要 Client Secret）", text: $clientIDDraft)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 11, design: .rounded))
-
-                HStack(spacing: 10) {
-                    Button("查看填写教程") {
-                        isAuthorizationGuidePresented = true
-                    }
-                    .buttonStyle(.link)
-                    .font(.system(size: 11, design: .rounded))
-                    .popover(isPresented: $isAuthorizationGuidePresented, arrowEdge: .leading) {
-                        SpotifyAuthorizationGuideView()
-                    }
-
-                    Text("回调地址：\(SpotifyOAuthConfiguration.redirectURI)")
-                        .font(.system(size: 9, design: .monospaced))
-                        .foregroundStyle(LyricsDesignTokens.mutedText)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                }
-            }
+                .buttonStyle(.borderless)
+                .foregroundStyle(LyricsDesignTokens.accent)
         }
         .padding(9)
         .background(
@@ -255,78 +215,5 @@ struct SongSearchPopover: View {
     private func formatDuration(_ seconds: TimeInterval) -> String {
         guard seconds.isFinite, seconds >= 0 else { return "时长未知" }
         return String(format: "%d:%02d", Int(seconds) / 60, Int(seconds) % 60)
-    }
-}
-
-private struct SpotifyAuthorizationGuideView: View {
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 13) {
-                Label("Spotify 在线曲库配置", systemImage: "person.badge.key")
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundStyle(LyricsDesignTokens.primaryText)
-
-                Text("第一次使用需要在 Spotify Developer Dashboard 创建一个公开客户端。此 App 使用 PKCE，不需要 Client Secret。")
-                    .font(.system(size: 11, design: .rounded))
-                    .foregroundStyle(LyricsDesignTokens.mutedText)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                guideStep("1", "打开 Spotify Developer Dashboard，点击 Create app。")
-                guideValue("App name", "Lyrics Companion（不要以 Spot 开头）")
-                guideValue("App description", "A native macOS app for searching music tracks and displaying lyrics.")
-                guideValue("Website", "留空")
-                guideValue("Redirect URI", SpotifyOAuthConfiguration.redirectURI)
-
-                Text("在 Redirect URI 输入框右侧点击 Add，确认地址出现在列表后，再点击 Save。")
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .foregroundStyle(LyricsDesignTokens.accent)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                guideStep("2", "Which API/SDK 只勾选 Web API；勾选 Developer Terms 后保存。")
-                guideStep("3", "进入新建 App 的 Settings，复制 Client ID。不要复制 Client Secret。")
-                guideStep("4", "回到这里，把 Client ID 粘贴到输入框，点击授权 Spotify。")
-
-                Link("打开 Spotify Developer Dashboard", destination: URL(string: "https://developer.spotify.com/dashboard")!)
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .foregroundStyle(LyricsDesignTokens.accent)
-            }
-            .padding(18)
-        }
-        .frame(width: 430, height: 520)
-        .preferredColorScheme(.dark)
-    }
-
-    private func guideStep(_ number: String, _ text: String) -> some View {
-        HStack(alignment: .top, spacing: 8) {
-            Text(number)
-                .font(.system(size: 11, weight: .bold, design: .rounded))
-                .foregroundStyle(LyricsDesignTokens.accent)
-                .frame(width: 18, height: 18)
-                .background(Circle().fill(LyricsDesignTokens.controlBackground))
-            Text(text)
-                .font(.system(size: 11, design: .rounded))
-                .foregroundStyle(LyricsDesignTokens.primaryText)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
-    private func guideValue(_ label: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label)
-                .font(.system(size: 10, weight: .semibold, design: .rounded))
-                .foregroundStyle(LyricsDesignTokens.mutedText)
-            Text(value)
-                .font(.system(size: 11, design: label == "Redirect URI" ? .monospaced : .rounded))
-                .foregroundStyle(LyricsDesignTokens.primaryText)
-                .textSelection(.enabled)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 6)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(LyricsDesignTokens.controlBackground)
-                )
-        }
     }
 }

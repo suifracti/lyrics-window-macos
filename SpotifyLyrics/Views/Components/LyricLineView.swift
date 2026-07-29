@@ -46,14 +46,31 @@ struct LyricLineView: View {
     private var rubyFontSize: CGFloat {
         // Ruby stays at 50–60% of the base size, but follows the responsive
         // base size instead of being a fixed 16/18pt value.
-        max(11, emphasis.primaryFontSize * 0.55)
+        max(11, emphasis.primaryFontSize * 0.55 * preferences.rubyFontSize / 10)
+    }
+
+    private var primaryFontSize: CGFloat {
+        emphasis.primaryFontSize * max(0.7, preferences.fontSize / 18)
+    }
+
+    private var secondaryFontSize: CGFloat {
+        emphasis.secondaryFontSize * max(0.7, preferences.assistantFontSize / 14)
+    }
+
+    private var effectiveOpacity: Double {
+        guard !isActive else { return emphasis.opacity }
+        return min(1, emphasis.opacity * max(0.15, preferences.opacity / 0.85))
     }
 
     private var rubyOpacity: Double {
-        min(0.85, emphasis.opacity * 0.82)
+        min(0.85, effectiveOpacity * 0.82)
     }
 
     private var auxiliaryTopSpacing: CGFloat { 7 }
+
+    private var shouldShowAuxiliary: Bool {
+        !isSynchronized || !preferences.hideDistantAuxiliary || distance <= 1
+    }
 
     private var displayKanaText: String? {
         line.kanaText.map(JapaneseRomanizer.displayKana)
@@ -100,9 +117,11 @@ struct LyricLineView: View {
                         originalText: line.originalText,
                         kanaText: kana,
                         tokens: line.rubyTokens,
-                        showsOriginalAnnotation: preferences.showOriginal && !line.originalText.isEmpty,
+                        showsOriginalAnnotation: preferences.showOriginal
+                            && !line.originalText.isEmpty
+                            && shouldShowAuxiliary,
                         baseFont: .system(
-                            size: emphasis.primaryFontSize,
+                            size: primaryFontSize,
                             weight: fontWeight,
                             design: .rounded
                         ),
@@ -111,24 +130,25 @@ struct LyricLineView: View {
                             weight: fontWeight,
                             design: .rounded
                         ),
-                        baseColor: LyricsDesignTokens.primaryText.opacity(emphasis.opacity),
+                        baseColor: LyricsDesignTokens.primaryText.opacity(effectiveOpacity),
                         annotationColor: LyricsDesignTokens.secondaryText.opacity(rubyOpacity)
                     )
                 } else if preferences.showOriginal, !line.originalText.isEmpty {
                     if preferences.kanaDisplayMode == .independentLine {
                         Text(line.originalText)
-                            .font(.system(size: emphasis.primaryFontSize, weight: fontWeight, design: .rounded))
-                            .foregroundStyle(LyricsDesignTokens.primaryText.opacity(emphasis.opacity))
+                            .font(.system(size: primaryFontSize, weight: fontWeight, design: .rounded))
+                            .foregroundStyle(LyricsDesignTokens.primaryText.opacity(effectiveOpacity))
                             .lineSpacing(isActive ? 3 : 2)
 
-                        if let kana = displayKanaText, !kana.isEmpty {
+                        if shouldShowAuxiliary, let kana = displayKanaText, !kana.isEmpty {
                             Text(kana)
-                                .font(.system(size: emphasis.secondaryFontSize, weight: fontWeight, design: .rounded))
+                                .font(.system(size: secondaryFontSize, weight: fontWeight, design: .rounded))
                                 .foregroundStyle(LyricsDesignTokens.secondaryText.opacity(rubyOpacity))
                                 .lineSpacing(2)
                                 .padding(.top, 2)
                         }
                     } else if preferences.kanaDisplayMode == .inlineRuby,
+                              shouldShowAuxiliary,
                               let kana = displayKanaText,
                               !kana.isEmpty {
                         RubyLineView(
@@ -136,7 +156,7 @@ struct LyricLineView: View {
                             kanaText: kana,
                             tokens: line.rubyTokens,
                             baseFont: .system(
-                                size: emphasis.primaryFontSize,
+                                size: primaryFontSize,
                                 weight: fontWeight,
                                 design: .rounded
                             ),
@@ -145,13 +165,13 @@ struct LyricLineView: View {
                                 weight: fontWeight,
                                 design: .rounded
                             ),
-                            baseColor: LyricsDesignTokens.primaryText.opacity(emphasis.opacity),
+                            baseColor: LyricsDesignTokens.primaryText.opacity(effectiveOpacity),
                             rubyColor: LyricsDesignTokens.secondaryText.opacity(rubyOpacity)
                         )
                     } else {
                         Text(line.originalText)
-                            .font(.system(size: emphasis.primaryFontSize, weight: fontWeight, design: .rounded))
-                            .foregroundStyle(LyricsDesignTokens.primaryText.opacity(emphasis.opacity))
+                                .font(.system(size: primaryFontSize, weight: fontWeight, design: .rounded))
+                            .foregroundStyle(LyricsDesignTokens.primaryText.opacity(effectiveOpacity))
                             .lineSpacing(isActive ? 3 : 2)
                     }
                 } else if preferences.kanaDisplayMode != .hidden,
@@ -161,23 +181,23 @@ struct LyricLineView: View {
                     // useful as ordinary text rather than rendering detached
                     // ruby with no base to annotate.
                     Text(kana)
-                        .font(.system(size: emphasis.secondaryFontSize, weight: fontWeight, design: .rounded))
+                        .font(.system(size: secondaryFontSize, weight: fontWeight, design: .rounded))
                         .foregroundStyle(LyricsDesignTokens.secondaryText.opacity(rubyOpacity))
                         .lineSpacing(2)
                 }
 
                 if let romaji = distinctRomaji {
                     Text(romaji)
-                        .font(.system(size: emphasis.secondaryFontSize, weight: .regular, design: .rounded))
-                        .foregroundStyle(LyricsDesignTokens.mutedText.opacity(emphasis.opacity * 0.64))
+                        .font(.system(size: secondaryFontSize, weight: .regular, design: .rounded))
+                        .foregroundStyle(LyricsDesignTokens.mutedText.opacity(effectiveOpacity * 0.64))
                         .lineSpacing(2)
                         .padding(.top, auxiliaryTopSpacing)
                 }
 
                 if preferences.showTranslation, let translation = line.translationText, !translation.isEmpty {
                     Text(translation)
-                        .font(.system(size: emphasis.secondaryFontSize, weight: .regular, design: .rounded))
-                        .foregroundStyle(LyricsDesignTokens.mutedText.opacity(emphasis.opacity * 0.72))
+                        .font(.system(size: secondaryFontSize, weight: .regular, design: .rounded))
+                        .foregroundStyle(LyricsDesignTokens.mutedText.opacity(effectiveOpacity * 0.72))
                         .lineSpacing(2)
                         .padding(.top, hasVisibleRomaji ? 3 : auxiliaryTopSpacing)
                 }

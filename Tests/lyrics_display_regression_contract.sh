@@ -55,9 +55,10 @@ require "$V3" 'kanaReplacement' 'V3 kana replacement mode'
 require "$V3" 'inlineRubyTokens' 'V3 inline Ruby fallback preserves kana without tokens'
 require "$V3" 'shouldRenderInlineRuby' 'V3 only uses inline Ruby for readable Japanese surfaces'
 
-# A single AppStorage binding owns layout selection so switching into/out of V3
+# The shared settings store owns layout selection so switching into/out of V3
 # cannot be reset by a second view-local default value.
-require "$MAIN" 'layoutStyleRawValue: \$layoutStyleRawValue' 'V3 receives the shared layout binding'
+require "$MAIN" 'layoutStyleRawValue: layoutStyleBinding' 'V3 receives the shared settings binding'
+require "$MAIN" 'settings\.mainWindowLayoutStyleRawValue' 'layout selection is persisted centrally'
 ! grep -q '@AppStorage("mainWindowLayoutStyle")' "$V3"
 
 # Legacy/focus scrolling derives the active line from the published playback

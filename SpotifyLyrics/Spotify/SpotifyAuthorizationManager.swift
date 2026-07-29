@@ -219,6 +219,29 @@ public final class SpotifyAuthorizationManager: ObservableObject {
         }
     }
 
+    /// Re-reads the existing Keychain record on explicit user request. This
+    /// is intentionally not called by every search, because Keychain access
+    /// may present a system prompt for an ad-hoc build.
+    public func refreshAuthorizationState() {
+        guard clientID != nil else {
+            state = .notConfigured
+            return
+        }
+        hasLoadedToken = false
+        cachedToken = nil
+        cachedTokenLoadError = nil
+        do {
+            let token = try tokenStore.load()
+            hasLoadedToken = true
+            cachedToken = token
+            state = token.map { .authorized($0.expiresAt) } ?? .signedOut
+        } catch {
+            hasLoadedToken = true
+            cachedTokenLoadError = .tokenStore("无法读取 Spotify 授权凭据")
+            state = .failed(cachedTokenLoadError?.localizedDescription ?? "Spotify 授权失败")
+        }
+    }
+
     /// Returns a valid access token, refreshing when it is within one minute of
     /// expiry. Callers must not persist or log the returned value.
     public func accessToken() async throws -> String {

@@ -31,7 +31,10 @@ if grep -q 'NavigationSplitView' "$ROOT_DIR/SpotifyLyrics/Views/MainWindow/MainL
 fi
 
 grep -q 'LyricsDesignTokens' "$ROOT_DIR/SpotifyLyrics/Views/Components/LyricLineView.swift"
-grep -q 'LyricsPreferencesPopover' "$ROOT_DIR/SpotifyLyrics/Views/MainWindow/MainLyricsWindowView.swift"
+# User-facing preferences now live in the native Settings scene; the old
+# popover remains source-compatible but is no longer the primary entry point.
+grep -q 'SettingsLink' "$ROOT_DIR/SpotifyLyrics/Views/MainWindow/MainLyricsWindowView.swift"
+grep -q 'SettingsRootView' "$ROOT_DIR/SpotifyLyrics/Main.swift"
 
 # Main-window refinement contract: keep these visual affordances explicit in source
 # so a later regression cannot silently fall back to the original test-panel shell.

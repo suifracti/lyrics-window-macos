@@ -6,7 +6,6 @@ struct AppleMusicImmersiveV3WindowView: View {
     @ObservedObject var state: PlaybackState
     @Binding var layoutStyleRawValue: String
 
-    @State private var isPreferencesPresented = false
     @State private var isSearchPresented = false
     // The canvas starts clean. Controls reveal only when the pointer reaches
     // the top edge, so playback remains content-first without sacrificing
@@ -332,17 +331,8 @@ struct AppleMusicImmersiveV3WindowView: View {
     }
 
     private var preferencesButton: some View {
-        Button {
-            isPreferencesPresented.toggle()
-        } label: {
+        SettingsLink {
             iconLabel("slider.horizontal.3", description: "显示设置")
-        }
-        .buttonStyle(.plain)
-        .popover(isPresented: $isPreferencesPresented, arrowEdge: .top) {
-            LyricsPreferencesPopover(
-                preferences: $state.preferences,
-                playbackState: state
-            )
         }
         .accessibilityLabel("显示设置")
     }
@@ -565,10 +555,7 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
             isSynchronized: synchronized,
             availableWidth: availableWidth,
             compact: compact,
-            showOriginal: state.preferences.showOriginal,
-            kanaDisplayMode: state.preferences.kanaDisplayMode,
-            showRomaji: state.preferences.showRomaji,
-            showTranslation: state.preferences.showTranslation
+            preferences: state.preferences
         )
         if let timestamp = LyricsTimeline.validSeekTimestamp(
             for: line,
@@ -613,17 +600,15 @@ private struct AppleMusicImmersiveV3LyricRow: View {
     let isSynchronized: Bool
     let availableWidth: CGFloat
     let compact: Bool
-    let showOriginal: Bool
-    let kanaDisplayMode: KanaDisplayMode
-    let showRomaji: Bool
-    let showTranslation: Bool
+    let preferences: DisplayPreferences
 
     private var layerCount: Int {
-        1 + (showRomaji ? 1 : 0) + (showTranslation && line.translationText != nil ? 1 : 0)
+        1 + (preferences.showRomaji ? 1 : 0) + (preferences.showTranslation && line.translationText != nil ? 1 : 0)
     }
 
     private var activeBaseSize: CGFloat {
-        let upperBound = compact ? 34 : 42
+        let sizeScale = max(0.7, preferences.fontSize / 18)
+        let upperBound = (compact ? 34 : 42) * sizeScale
         let lowerBound: CGFloat = compact ? 22 : 28
         let characterCount = max(1, line.originalText.count)
         let fitWidth = max(220, availableWidth - 24)
@@ -642,17 +627,21 @@ private struct AppleMusicImmersiveV3LyricRow: View {
         return isActive ? activeBaseSize : max(compact ? 20 : 24, activeBaseSize * (distance == 1 ? 0.93 : 0.88))
     }
 
-    private var rubySize: CGFloat { max(compact ? 10 : 12, min(14, baseSize * 0.34)) }
-    private var auxiliarySize: CGFloat { min(compact ? 16 : 18, max(14, baseSize * 0.44)) }
+    private var rubySize: CGFloat {
+        max(compact ? 10 : 12, min(18, baseSize * 0.34 * preferences.rubyFontSize / 10))
+    }
+    private var auxiliarySize: CGFloat {
+        min(compact ? 16 : 18, max(12, baseSize * 0.44 * preferences.assistantFontSize / 14))
+    }
 
     private var shouldShowRuby: Bool {
-        guard kanaDisplayMode == .inlineRuby else { return false }
+        guard preferences.kanaDisplayMode == .inlineRuby else { return false }
         guard isSynchronized else { return true }
-        return distance <= 1
+        return !preferences.hideDistantAuxiliary || distance <= 1
     }
 
     private var shouldShowKana: Bool {
-        guard kanaDisplayMode != .hidden,
+        guard preferences.kanaDisplayMode != .hidden,
               line.kanaText?.isEmpty == false else { return false }
         guard isSynchronized else { return true }
         return distance <= 1
@@ -674,7 +663,7 @@ private struct AppleMusicImmersiveV3LyricRow: View {
     }
 
     private var shouldRenderInlineRuby: Bool {
-        guard showOriginal,
+        guard preferences.showOriginal,
               shouldShowRuby,
               let kana = displayKanaText,
               !kana.isEmpty else {
@@ -692,7 +681,7 @@ private struct AppleMusicImmersiveV3LyricRow: View {
     }
 
     private var distinctRomaji: String? {
-        guard showRomaji,
+        guard preferences.showRomaji,
               let romaji = line.romajiText?.trimmingCharacters(in: .whitespacesAndNewlines),
               !romaji.isEmpty else { return nil }
         // A malformed provider payload sometimes repeats the kana layer in
@@ -712,29 +701,32 @@ private struct AppleMusicImmersiveV3LyricRow: View {
     }
 
     private var shouldShowRomaji: Bool {
-        guard showRomaji else { return false }
+        guard preferences.showRomaji else { return false }
         guard isSynchronized else { return true }
-        return distance <= 1
+        return !preferences.hideDistantAuxiliary || distance <= 1
     }
 
     private var rubyOpacity: Double {
-        guard isSynchronized, distance == 1 else { return 0.62 }
-        return 0.46
+        let factor = max(0.15, min(1, preferences.opacity / 0.85))
+        guard isSynchronized, distance == 1 else { return 0.62 * factor }
+        return 0.46 * factor
     }
 
     private var romajiOpacity: Double {
-        guard isSynchronized, distance == 1 else { return 0.65 }
-        return 0.48
+        let factor = max(0.15, min(1, preferences.opacity / 0.85))
+        guard isSynchronized, distance == 1 else { return 0.65 * factor }
+        return 0.48 * factor
     }
 
     private var rowOpacity: Double {
         guard isSynchronized else { return 1 }
+        let factor = max(0.15, min(1, preferences.opacity / 0.85))
         if isActive { return 1 }
         if distance <= 0 { return 0.58 }
         switch distance {
-        case 1: return 0.44
-        case 2: return 0.24
-        default: return max(0.14, 0.22 - Double(distance - 3) * 0.025)
+        case 1: return 0.44 * factor
+        case 2: return 0.24 * factor
+        default: return max(0.14, (0.22 - Double(distance - 3) * 0.025) * factor)
         }
     }
 
@@ -768,7 +760,7 @@ private struct AppleMusicImmersiveV3LyricRow: View {
                     rubySpacing: 1,
                     tokenVerticalSpacing: 3
                 )
-            } else if showOriginal, kanaDisplayMode == .kanaReplacement, shouldShowKana,
+            } else if preferences.showOriginal, preferences.kanaDisplayMode == .kanaReplacement, shouldShowKana,
                       let kana = displayKanaText {
                 KanaReplacementLineView(
                     originalText: line.originalText,
@@ -780,12 +772,12 @@ private struct AppleMusicImmersiveV3LyricRow: View {
                     baseColor: .white,
                     annotationColor: .white.opacity(rubyOpacity)
                 )
-            } else if showOriginal {
+            } else if preferences.showOriginal {
                 Text(line.originalText)
                     .font(.system(size: baseSize, weight: rowWeight, design: .rounded))
                     .foregroundStyle(.white)
                     .fixedSize(horizontal: false, vertical: true)
-                if kanaDisplayMode == .independentLine, shouldShowKana,
+                if preferences.kanaDisplayMode == .independentLine, shouldShowKana,
                    let kana = displayKanaText {
                     Text(kana)
                         .font(.system(size: auxiliarySize, weight: .medium, design: .rounded))
@@ -808,7 +800,7 @@ private struct AppleMusicImmersiveV3LyricRow: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            if showTranslation, let translation = line.translationText, !translation.isEmpty {
+            if preferences.showTranslation, let translation = line.translationText, !translation.isEmpty {
                 Text(translation)
                     .font(.system(size: max(12, auxiliarySize * 0.82), weight: .regular, design: .rounded))
                     .foregroundStyle(.white.opacity(0.58))

@@ -25,8 +25,10 @@ for file in "$MAIN" "$SPLIT" "$CANVAS" "$LINE" "$BACKDROP" "$PALETTE" "$TOKENS" 
   test -f "$file" || { echo "FAIL: missing $file" >&2; exit 1; }
 done
 
-# Immersive V2 is the default, while the focus layout remains selectable.
-require "$MAIN" 'mainWindowLayoutStyle.*immersiveSplit' 'immersive split default'
+# V3 is the recommended default; the legacy immersive split remains selectable
+# as a deprecated candidate.
+require "$MAIN" 'settings\.mainWindowLayoutStyle' 'shared layout setting'
+require "$ROOT/SpotifyLyrics/Settings/AppSettingsStore.swift" 'appleMusicImmersiveV3' 'V3 default'
 require "$MAIN" 'case \.lyricsFocus' 'focus layout remains switchable'
 require "$MAIN" 'ImmersiveSplitWindowView' 'immersive split is in the main path'
 

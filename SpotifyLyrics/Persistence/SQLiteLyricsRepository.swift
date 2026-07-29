@@ -212,6 +212,63 @@ public actor SQLiteLyricsRepository: LyricsRepository {
         return Int(sqlite3_column_int(statement, 0))
     }
 
+    public func statistics() throws -> LyricsDatabaseStats {
+        try prepare()
+        let trackCount = try scalarInt("SELECT COUNT(*) FROM tracks;")
+        let lyricsVersionCount = try scalarInt("SELECT COUNT(*) FROM lyrics_versions;")
+        let lyricLineCount = try scalarInt("SELECT COUNT(*) FROM lyric_lines;")
+        let lastUpdatedSeconds = try scalarOptionalDouble("""
+            SELECT MAX(updated_at) FROM (
+                SELECT updated_at FROM tracks
+                UNION ALL
+                SELECT updated_at FROM lyrics_versions
+            );
+            """)
+        let attributes = try? FileManager.default.attributesOfItem(atPath: databaseURL.path)
+        let fileSize = (attributes?[.size] as? NSNumber)?.int64Value ?? 0
+        return LyricsDatabaseStats(
+            databaseURL: databaseURL,
+            schemaVersion: try schemaVersion(),
+            trackCount: trackCount,
+            lyricsVersionCount: lyricsVersionCount,
+            lyricLineCount: lyricLineCount,
+            fileSize: fileSize,
+            lastUpdated: lastUpdatedSeconds.map(Date.init(timeIntervalSince1970:))
+        )
+    }
+
+    public func createBackup() throws -> URL {
+        try prepare()
+        // Checkpoint before copying so a usable backup does not depend on a
+        // separate -wal sidecar file.
+        try execute("PRAGMA wal_checkpoint(FULL);")
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyyMMdd-HHmmss"
+        let baseName = databaseURL.deletingPathExtension().lastPathComponent
+        var backupURL = databaseURL.deletingLastPathComponent()
+            .appendingPathComponent("\(baseName).backup-\(formatter.string(from: Date())).sqlite3")
+        if FileManager.default.fileExists(atPath: backupURL.path) {
+            backupURL.deleteLastPathComponent()
+            backupURL = databaseURL.deletingLastPathComponent()
+                .appendingPathComponent("\(baseName).backup-\(formatter.string(from: Date()))-\(UUID().uuidString.prefix(8)).sqlite3")
+        }
+        do {
+            try FileManager.default.copyItem(at: databaseURL, to: backupURL)
+        } catch {
+            throw LyricsRepositoryError.unavailable("数据库备份失败：\(error.localizedDescription)")
+        }
+        return backupURL
+    }
+
+    public func clearLyricsCache() throws {
+        try prepare()
+        try withTransaction {
+            try execute("DELETE FROM lyric_lines;")
+            try execute("DELETE FROM lyrics_versions;")
+        }
+    }
+
     private func ensurePrepared() throws {
         guard prepared, database != nil else {
             throw LyricsRepositoryError.unavailable("数据库尚未准备")
@@ -478,6 +535,13 @@ public actor SQLiteLyricsRepository: LyricsRepository {
         defer { sqlite3_finalize(statement) }
         guard sqlite3_step(statement) == SQLITE_ROW else { throw lastError() }
         return Int(sqlite3_column_int(statement, 0))
+    }
+
+    private func scalarOptionalDouble(_ sql: String) throws -> Double? {
+        let statement = try prepare(sql)
+        defer { sqlite3_finalize(statement) }
+        guard sqlite3_step(statement) == SQLITE_ROW else { throw lastError() }
+        return columnDouble(statement, index: 0)
     }
 
     private func prepare(_ sql: String) throws -> OpaquePointer {
