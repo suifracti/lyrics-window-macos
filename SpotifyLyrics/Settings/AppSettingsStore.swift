@@ -26,6 +26,14 @@ public final class AppSettingsStore: ObservableObject {
         public static let hideDistantAuxiliary = "display.hideDistantAuxiliary"
         public static let providerEnabled = "lyrics.providers.enabled"
         public static let providerOrder = "lyrics.providers.order"
+        public static let aiBaseURL = "ai.baseURL"
+        public static let aiModel = "ai.model"
+        public static let aiTargetLanguage = "ai.targetLanguage"
+        public static let aiStyle = "ai.style"
+        public static let aiCustomSystemPrompt = "ai.customSystemPrompt"
+        public static let aiTemperature = "ai.temperature"
+        public static let aiTimeout = "ai.timeout"
+        public static let aiAutoTranslateNewLyrics = "ai.autoTranslateNewLyrics"
     }
 
     public static let currentSettingsVersion = 1
@@ -60,6 +68,10 @@ public final class AppSettingsStore: ObservableObject {
         didSet { persistProviderConfiguration(lyricsProviderConfiguration) }
     }
 
+    @Published public var aiTranslationConfiguration: AITranslationConfiguration {
+        didSet { persistAITranslationConfiguration(aiTranslationConfiguration) }
+    }
+
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         let layout = defaults.string(forKey: Key.mainWindowLayoutStyle)
@@ -75,6 +87,7 @@ public final class AppSettingsStore: ObservableObject {
         restoreWindowState = defaults.object(forKey: Key.restoreWindowState) as? Bool ?? true
         displayPreferences = Self.loadDisplayPreferences(defaults: defaults, keepOnTop: keepOnTop)
         lyricsProviderConfiguration = Self.loadProviderConfiguration(defaults: defaults)
+        aiTranslationConfiguration = Self.loadAITranslationConfiguration(defaults: defaults)
 
         if defaults.object(forKey: Key.settingsVersion) == nil {
             defaults.set(Self.currentSettingsVersion, forKey: Key.settingsVersion)
@@ -167,5 +180,29 @@ public final class AppSettingsStore: ObservableObject {
     private func persistProviderConfiguration(_ configuration: LyricsProviderConfiguration) {
         defaults.set(configuration.order.map(\.rawValue), forKey: Key.providerOrder)
         defaults.set(configuration.enabled.map(\.rawValue).sorted(), forKey: Key.providerEnabled)
+    }
+
+    private static func loadAITranslationConfiguration(defaults: UserDefaults) -> AITranslationConfiguration {
+        AITranslationConfiguration(
+            baseURL: defaults.string(forKey: Key.aiBaseURL) ?? "",
+            model: defaults.string(forKey: Key.aiModel) ?? "",
+            targetLanguage: defaults.string(forKey: Key.aiTargetLanguage) ?? "zh-Hans",
+            style: defaults.string(forKey: Key.aiStyle) ?? "natural_song",
+            customSystemPrompt: defaults.string(forKey: Key.aiCustomSystemPrompt) ?? "",
+            temperature: defaults.object(forKey: Key.aiTemperature) as? Double ?? 0.2,
+            timeout: defaults.object(forKey: Key.aiTimeout) as? Double ?? 60,
+            autoTranslateNewLyrics: defaults.object(forKey: Key.aiAutoTranslateNewLyrics) as? Bool ?? false
+        )
+    }
+
+    private func persistAITranslationConfiguration(_ configuration: AITranslationConfiguration) {
+        defaults.set(configuration.baseURL, forKey: Key.aiBaseURL)
+        defaults.set(configuration.model, forKey: Key.aiModel)
+        defaults.set(configuration.targetLanguage, forKey: Key.aiTargetLanguage)
+        defaults.set(configuration.style, forKey: Key.aiStyle)
+        defaults.set(configuration.customSystemPrompt, forKey: Key.aiCustomSystemPrompt)
+        defaults.set(configuration.temperature, forKey: Key.aiTemperature)
+        defaults.set(configuration.timeout, forKey: Key.aiTimeout)
+        defaults.set(configuration.autoTranslateNewLyrics, forKey: Key.aiAutoTranslateNewLyrics)
     }
 }

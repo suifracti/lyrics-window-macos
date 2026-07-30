@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 
 /// Storage-shaped records. These types intentionally do not leak SQLite
 /// handles or SQL details into the playback and provider layers.
@@ -153,5 +154,111 @@ public struct DatabaseLyricLineRecord: Equatable, Sendable {
         self.kanaText = kanaText
         self.romajiText = romajiText
         self.translationText = translationText
+    }
+}
+
+/// Fingerprint of the exact lyric source that a translation belongs to. The
+/// translation text itself is deliberately excluded so translating the same
+/// source again produces a new version without invalidating source matching.
+public enum LyricsSourceContentHasher {
+    private struct LinePayload: Encodable {
+        let index: Int
+        let startTime: TimeInterval?
+        let endTime: TimeInterval?
+        let originalText: String
+        let kanaText: String?
+        let romajiText: String?
+    }
+
+    private struct Payload: Encodable {
+        let isSynchronized: Bool
+        let lines: [LinePayload]
+    }
+
+    public static func hash(
+        isSynchronized: Bool,
+        lines: [DatabaseLyricLineRecord]
+    ) -> String {
+        let payload = Payload(
+            isSynchronized: isSynchronized,
+            lines: lines.sorted { $0.lineIndex < $1.lineIndex }.map { line in
+                LinePayload(
+                    index: line.lineIndex,
+                    startTime: isSynchronized ? line.startTime : nil,
+                    endTime: isSynchronized ? line.endTime : nil,
+                    originalText: line.originalText,
+                    kanaText: line.kanaText,
+                    romajiText: line.romajiText
+                )
+            }
+        )
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let data = (try? encoder.encode(payload)) ?? Data()
+        return SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+    }
+}
+
+public struct DatabaseTranslationVersionRecord: Equatable, Sendable {
+    public let id: UUID
+    public let lyricsVersionID: UUID
+    public let sourceKind: AITranslationSourceKind
+    public let targetLanguage: String
+    public let model: String
+    public let baseURLHost: String
+    public let promptHash: String
+    public let sourceContentHash: String
+    public let createdAt: Date
+    public let updatedAt: Date
+    public let isMachineGenerated: Bool
+    public let isManuallyEdited: Bool
+    public let isLocked: Bool
+    public let status: AITranslationVersionStatus
+    public let confidence: Double
+
+    public init(
+        id: UUID,
+        lyricsVersionID: UUID,
+        sourceKind: AITranslationSourceKind,
+        targetLanguage: String,
+        model: String,
+        baseURLHost: String,
+        promptHash: String,
+        sourceContentHash: String,
+        createdAt: Date,
+        updatedAt: Date,
+        isMachineGenerated: Bool,
+        isManuallyEdited: Bool,
+        isLocked: Bool,
+        status: AITranslationVersionStatus,
+        confidence: Double
+    ) {
+        self.id = id
+        self.lyricsVersionID = lyricsVersionID
+        self.sourceKind = sourceKind
+        self.targetLanguage = targetLanguage
+        self.model = model
+        self.baseURLHost = baseURLHost
+        self.promptHash = promptHash
+        self.sourceContentHash = sourceContentHash
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.isMachineGenerated = isMachineGenerated
+        self.isManuallyEdited = isManuallyEdited
+        self.isLocked = isLocked
+        self.status = status
+        self.confidence = confidence
+    }
+}
+
+public struct DatabaseTranslationLineRecord: Equatable, Sendable {
+    public let translationVersionID: UUID
+    public let lineIndex: Int
+    public let translatedText: String
+
+    public init(translationVersionID: UUID, lineIndex: Int, translatedText: String) {
+        self.translationVersionID = translationVersionID
+        self.lineIndex = lineIndex
+        self.translatedText = translatedText
     }
 }

@@ -7,6 +7,7 @@ private enum SettingsCategory: String, CaseIterable, Identifiable {
     case spotify = "Spotify"
     case lyricsSources = "歌词来源"
     case data = "数据与存储"
+    case ai = "AI"
     case advanced = "高级"
 
     var id: String { rawValue }
@@ -18,6 +19,7 @@ private enum SettingsCategory: String, CaseIterable, Identifiable {
         case .spotify: return "waveform.circle"
         case .lyricsSources: return "books.vertical"
         case .data: return "externaldrive"
+        case .ai: return "sparkles"
         case .advanced: return "wrench.and.screwdriver"
         }
     }
@@ -57,6 +59,7 @@ private struct SettingsDetailView: View {
             case .spotify: SpotifySettingsView()
             case .lyricsSources: LyricsSourcesSettingsView()
             case .data: DataSettingsView()
+            case .ai: AISettingsView()
             case .advanced: AdvancedSettingsView()
             }
         }
@@ -360,6 +363,142 @@ private struct DataSettingsView: View {
         } message: {
             Text("这会删除 SQLite 中的 LyricsVersion 和 LyricLine，不会修改本地 LRC 文件。")
         }
+    }
+}
+
+private struct AISettingsView: View {
+    @EnvironmentObject private var settings: AppSettingsStore
+    @State private var apiKeyDraft = ""
+    @State private var hasStoredKey = false
+    @State private var statusMessage = ""
+
+    private var keyStore: KeychainAITranslationAPIKeyStore { KeychainAITranslationAPIKeyStore() }
+
+    var body: some View {
+        Form {
+            SettingsPageHeader(
+                title: "AI",
+                detail: "对当前已加载的整首歌词做上下文翻译。原文、假名、罗马音和时间轴不会被 AI 修改。"
+            )
+
+            Section("服务") {
+                TextField("Base URL", text: configurationBinding(\.baseURL))
+                    .textFieldStyle(.roundedBorder)
+                TextField("Model", text: configurationBinding(\.model))
+                    .textFieldStyle(.roundedBorder)
+                SecureField("API Key（只保存到 Keychain）", text: $apiKeyDraft)
+                    .textFieldStyle(.roundedBorder)
+                HStack {
+                    Button("保存 API Key") {
+                        let value = apiKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !value.isEmpty else { return }
+                        do {
+                            try keyStore.save(value)
+                            apiKeyDraft = ""
+                            hasStoredKey = true
+                            statusMessage = "API Key 已保存到 Keychain（不会显示或写入日志）。"
+                        } catch {
+                            statusMessage = "保存失败：\(error.localizedDescription)"
+                        }
+                    }
+                    Button("清除 API Key", role: .destructive) {
+                        do {
+                            try keyStore.delete()
+                            hasStoredKey = false
+                            apiKeyDraft = ""
+                            statusMessage = "API Key 已清除。"
+                        } catch {
+                            statusMessage = "清除失败：\(error.localizedDescription)"
+                        }
+                    }
+                    Text(hasStoredKey ? "Keychain 中已有 Key" : "未配置 Key")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Text("Base URL 支持已包含 /v1、完整 /v1/chat/completions 和自定义反代路径；应用不会重复拼接 /v1。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("翻译") {
+                TextField("目标语言", text: configurationBinding(\.targetLanguage))
+                    .textFieldStyle(.roundedBorder)
+                TextField("风格", text: configurationBinding(\.style))
+                    .textFieldStyle(.roundedBorder)
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("自定义系统提示词（可选）")
+                    TextEditor(text: configurationBinding(\.customSystemPrompt))
+                        .frame(minHeight: 70)
+                        .font(.system(size: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
+                }
+                HStack {
+                    Text("Temperature")
+                    Slider(value: configurationDoubleBinding(\.temperature), in: 0...2, step: 0.1)
+                    Text(String(format: "%.1f", settings.aiTranslationConfiguration.temperature))
+                        .monospacedDigit()
+                        .frame(width: 40, alignment: .trailing)
+                }
+                HStack {
+                    Text("请求超时")
+                    Slider(value: configurationDoubleBinding(\.timeout), in: 5...600, step: 5)
+                    Text("\(Int(settings.aiTranslationConfiguration.timeout)) 秒")
+                        .monospacedDigit()
+                        .frame(width: 70, alignment: .trailing)
+                }
+                Toggle("自动翻译新歌词", isOn: configurationBinding(\.autoTranslateNewLyrics))
+                Text("默认关闭。失败不会循环重试，也不会创建半成品数据库版本。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("诊断") {
+                Button("测试连接") {
+                    statusMessage = "正在发送最小测试请求…"
+                    let configuration = settings.aiTranslationConfiguration
+                    Task {
+                        do {
+                            try await OpenAICompatibleTranslationService().testConnection(configuration: configuration)
+                            await MainActor.run { statusMessage = "连接成功。测试请求未使用当前歌词。" }
+                        } catch {
+                            await MainActor.run { statusMessage = error.localizedDescription }
+                        }
+                    }
+                }
+                if !statusMessage.isEmpty {
+                    Text(statusMessage)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                }
+            }
+        }
+        .formStyle(.grouped)
+        .onAppear {
+            hasStoredKey = keyStore.read()?.isEmpty == false
+        }
+    }
+
+    private func configurationBinding<Value>(_ keyPath: WritableKeyPath<AITranslationConfiguration, Value>) -> Binding<Value> {
+        Binding(
+            get: { settings.aiTranslationConfiguration[keyPath: keyPath] },
+            set: { value in
+                var next = settings.aiTranslationConfiguration
+                next[keyPath: keyPath] = value
+                settings.aiTranslationConfiguration = next
+            }
+        )
+    }
+
+    private func configurationDoubleBinding(_ keyPath: WritableKeyPath<AITranslationConfiguration, TimeInterval>) -> Binding<Double> {
+        Binding(
+            get: { settings.aiTranslationConfiguration[keyPath: keyPath] },
+            set: { value in
+                var next = settings.aiTranslationConfiguration
+                next[keyPath: keyPath] = value
+                settings.aiTranslationConfiguration = next
+            }
+        )
     }
 }
 

@@ -110,9 +110,11 @@ struct LyricsCanvasView: View {
     }
 
     private var lyricsScroll: some View {
-        GeometryReader { geometry in
-            ScrollViewReader { proxy in
-                ScrollView(.vertical) {
+        VStack(alignment: .leading, spacing: 6) {
+            translationControls
+            GeometryReader { geometry in
+                ScrollViewReader { proxy in
+                    ScrollView(.vertical) {
                     HStack(spacing: 0) {
                         Spacer(minLength: 0)
 
@@ -171,38 +173,78 @@ struct LyricsCanvasView: View {
                     )
                     .padding(.horizontal, LyricsDesignTokens.canvasHorizontalPadding)
                     .padding(.vertical, LyricsDesignTokens.canvasVerticalPadding)
-                }
-                .scrollIndicators(.hidden)
-                .mask(
-                    LinearGradient(
-                        stops: [
-                            .init(color: .clear, location: 0),
-                            .init(color: .black, location: 0.13),
-                            .init(color: .black, location: 0.87),
-                            .init(color: .clear, location: 1)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
+                    }
+                    .scrollIndicators(.hidden)
+                    .mask(
+                        LinearGradient(
+                            stops: [
+                                .init(color: .clear, location: 0),
+                                .init(color: .black, location: 0.13),
+                                .init(color: .black, location: 0.87),
+                                .init(color: .clear, location: 1)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
                     )
-                )
-                .accessibilityElement(children: .contain)
-                .onAppear {
-                    lastScrolledLineIndex = nil
-                    scrollToCurrentLine(using: proxy, animated: false)
-                }
-                // Observe the published playback clock and derive the active
-                // row inside the callback. `currentLineIndex` is computed from
-                // several published values, and observing that computed value
-                // directly can stop refreshing after a layout/mode rebuild.
-                .onChange(of: state.currentTime) { _, _ in
-                    scrollToCurrentLine(using: proxy, animated: true)
-                }
-                .onChange(of: state.lyricsSessionRevision) { _, _ in
-                    lastScrolledLineIndex = nil
-                    scrollToCurrentLine(using: proxy, animated: false)
+                    .accessibilityElement(children: .contain)
+                    .onAppear {
+                        lastScrolledLineIndex = nil
+                        scrollToCurrentLine(using: proxy, animated: false)
+                    }
+                    .onChange(of: state.currentTime) { _, _ in
+                        scrollToCurrentLine(using: proxy, animated: true)
+                    }
+                    .onChange(of: state.lyricsSessionRevision) { _, _ in
+                        lastScrolledLineIndex = nil
+                        scrollToCurrentLine(using: proxy, animated: false)
+                    }
                 }
             }
         }
+    }
+
+    private var translationControls: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "character.bubble")
+                .foregroundStyle(LyricsDesignTokens.mutedText)
+            if state.translationState == .loading {
+                ProgressView().controlSize(.small)
+                Text("正在翻译整首歌词…")
+            } else if !state.translationState.userFacingMessage.isEmpty {
+                Text(state.translationState.userFacingMessage)
+            } else if state.selectedTranslation != nil {
+                Text("已加载翻译")
+            } else {
+                Text("暂无翻译")
+            }
+            Spacer()
+            if state.selectedTranslation == nil {
+                Button("翻译") { state.translateCurrentLyrics() }
+                    .buttonStyle(.bordered)
+            } else {
+                Button("重新翻译") { state.retranslateCurrentLyrics() }
+                    .buttonStyle(.bordered)
+                Menu("版本") {
+                    ForEach(state.translationVersions, id: \.record.id) { version in
+                        Button {
+                            state.selectTranslation(versionID: version.record.id)
+                        } label: {
+                            Text("\(version.record.model.isEmpty ? version.record.sourceKind.rawValue : version.record.model) · \(version.record.createdAt.formatted(date: .abbreviated, time: .shortened))")
+                        }
+                    }
+                    if state.selectedTranslation?.record.isLocked == false {
+                        Button("锁定当前版本") { state.lockSelectedTranslation() }
+                        Button("删除当前版本", role: .destructive) { state.deleteSelectedTranslation() }
+                    }
+                }
+                .menuStyle(.borderlessButton)
+            }
+        }
+        .font(.system(size: 11, design: .rounded))
+        .foregroundStyle(LyricsDesignTokens.mutedText)
+        .padding(.horizontal, LyricsDesignTokens.canvasHorizontalPadding)
+        .padding(.top, 8)
     }
 
     private func statusView<Accessory: View>(

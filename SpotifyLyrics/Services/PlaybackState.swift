@@ -31,6 +31,7 @@ public final class PlaybackState: ObservableObject {
     private let provider: PlaybackProvider
     private let lyricsSession: LyricsSessionController
     private let searchPreviewSession: LyricsSessionController
+    private let translationSession: TranslationSessionController
     private let lyricsRepository: (any LyricsRepository)
     private let settingsStore: AppSettingsStore
     private let usesConfiguredLyricsProviders: Bool
@@ -38,6 +39,7 @@ public final class PlaybackState: ObservableObject {
     public let spotifyAuthorizationManager: SpotifyAuthorizationManager
     private var lyricsSessionCancellable: AnyCancellable?
     private var searchPreviewSessionCancellable: AnyCancellable?
+    private var translationSessionCancellable: AnyCancellable?
     private var spotifyAuthorizationCancellable: AnyCancellable?
     private var settingsCancellables: Set<AnyCancellable> = []
     private var timer: Timer?
@@ -94,8 +96,14 @@ public final class PlaybackState: ObservableObject {
             providers: lyricsProviders,
             repository: resolvedRepository
         )
+        let translationRepository = (resolvedRepository as? any TranslationRepository)
+            ?? UnavailableTranslationRepository()
+        let translation = TranslationSessionController(
+            repository: translationRepository
+        )
         self.lyricsSession = session
         self.searchPreviewSession = previewSession
+        self.translationSession = translation
         // Track search is metadata-only: local index + current Spotify track.
         // LRCLIB stays isolated inside the lyrics session path.
         self.songSearchManager = SongSearchManager(providers: [
@@ -105,6 +113,7 @@ public final class PlaybackState: ObservableObject {
         ] as [TrackSearchProvider])
         self.lyricsSessionCancellable = nil
         self.searchPreviewSessionCancellable = nil
+        self.translationSessionCancellable = nil
         self.spotifyAuthorizationCancellable = nil
         self.lyricsSessionCancellable = session.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
@@ -116,12 +125,17 @@ public final class PlaybackState: ObservableObject {
                 guard let self else { return }
                 self.objectWillChange.send()
                 self.tryAutoAlignIfRequested()
+                self.syncTranslationSession()
             }
         }
         self.searchPreviewSessionCancellable = previewSession.objectWillChange.sink { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.objectWillChange.send()
+                self?.syncTranslationSession()
             }
+        }
+        self.translationSessionCancellable = translation.objectWillChange.sink { [weak self] _ in
+            self?.objectWillChange.send()
         }
         // The search popover observes PlaybackState. Forward the nested
         // authorization manager's state changes so Client ID, authorizing,
@@ -153,6 +167,13 @@ public final class PlaybackState: ObservableObject {
             .sink { [weak self] configuration in
                 guard let self, self.usesConfiguredLyricsProviders else { return }
                 self.applyLyricsProviderConfiguration(configuration)
+            }
+            .store(in: &self.settingsCancellables)
+        resolvedSettings.$aiTranslationConfiguration
+            .dropFirst()
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.syncTranslationSession()
             }
             .store(in: &self.settingsCancellables)
         resolvedSettings.$connectSpotifyOnLaunch
@@ -211,6 +232,7 @@ public final class PlaybackState: ObservableObject {
         networkRecoveryMonitor?.cancel()
         lyricsSessionCancellable?.cancel()
         searchPreviewSessionCancellable?.cancel()
+        translationSessionCancellable?.cancel()
         spotifyAuthorizationCancellable?.cancel()
         searchPreviewTask?.cancel()
     }
@@ -221,7 +243,8 @@ public final class PlaybackState: ObservableObject {
     public var isShowingSearchPreview: Bool { searchPreviewTrack != nil }
     public var displayedTrack: Track { searchPreviewTrack ?? currentTrack }
     public var lyrics: [LyricLine] {
-        isShowingSearchPreview ? searchPreviewSession.lyrics : lyricsSession.lyrics
+        let base = isShowingSearchPreview ? searchPreviewSession.lyrics : lyricsSession.lyrics
+        return translationSession.project(onto: base)
     }
     public var lyricsState: LyricsLoadState {
         isShowingSearchPreview ? searchPreviewSession.state : lyricsSession.state
@@ -235,6 +258,26 @@ public final class PlaybackState: ObservableObject {
     public var currentTrackIdentity: TrackIdentity? {
         guard hasLiveTrack, !isMockPreviewMode else { return nil }
         return lyricsSession.activeIdentity
+    }
+
+    public var translationState: TranslationSessionState { translationSession.state }
+    public var translationVersions: [StoredTranslationVersion] { translationSession.availableVersions }
+    public var selectedTranslation: StoredTranslationVersion? { translationSession.selectedVersion }
+
+    public func translateCurrentLyrics() { translationSession.translateCurrentLyrics() }
+    public func retranslateCurrentLyrics() { translationSession.retranslateCurrentLyrics() }
+    public func selectTranslation(versionID: UUID) { translationSession.select(versionID: versionID) }
+    public func lockSelectedTranslation() { translationSession.lockSelected() }
+    public func deleteSelectedTranslation() { translationSession.deleteSelected() }
+
+    private func syncTranslationSession() {
+        let session = isShowingSearchPreview ? searchPreviewSession : lyricsSession
+        translationSession.synchronize(
+            document: session.activeDocument,
+            lyricsVersionID: session.activeLyricsVersionID,
+            sourceContentHash: session.activeSourceContentHash,
+            configuration: settingsStore.aiTranslationConfiguration
+        )
     }
 
     public var canControlSpotify: Bool {

@@ -249,6 +249,7 @@ struct AppleMusicImmersiveV3WindowView: View {
     private var providerStatusMenu: some View {
         Menu {
             Text(state.providerStatusMessage)
+            translationMenuContent
             alignmentMenuContent
 
             if state.isUsingMockPreview {
@@ -269,6 +270,42 @@ struct AppleMusicImmersiveV3WindowView: View {
         .buttonStyle(.plain)
         .help("播放来源与歌词工具")
         .accessibilityLabel("播放来源：\(state.providerStatusMessage)")
+    }
+
+    @ViewBuilder
+    private var translationMenuContent: some View {
+        if !state.lyrics.isEmpty {
+            Divider()
+            switch state.translationState {
+            case .loading:
+                Text("翻译：正在翻译整首歌词…")
+            case .unavailable:
+                Text("翻译：未配置 AI 翻译")
+                Button("翻译") { state.translateCurrentLyrics() }
+            case .failed:
+                Text("翻译：上次请求失败")
+                Button("重试翻译") { state.translateCurrentLyrics() }
+            case .idle:
+                Text("翻译：暂无版本")
+                Button("翻译") { state.translateCurrentLyrics() }
+            case .loaded:
+                Text("翻译：已加载")
+                Button("重新翻译") { state.retranslateCurrentLyrics() }
+                Menu("翻译版本") {
+                    ForEach(state.translationVersions, id: \.record.id) { version in
+                        Button {
+                            state.selectTranslation(versionID: version.record.id)
+                        } label: {
+                            Text("\(version.record.model.isEmpty ? version.record.sourceKind.rawValue : version.record.model) · \(version.record.createdAt.formatted(date: .abbreviated, time: .shortened))")
+                        }
+                    }
+                    if state.selectedTranslation?.record.isLocked == false {
+                        Button("锁定当前版本") { state.lockSelectedTranslation() }
+                        Button("删除当前版本", role: .destructive) { state.deleteSelectedTranslation() }
+                    }
+                }
+            }
+        }
     }
 
     @ViewBuilder

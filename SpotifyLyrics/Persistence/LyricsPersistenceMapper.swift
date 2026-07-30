@@ -179,6 +179,14 @@ public enum LyricsPersistenceMapper {
         }
     }
 
+    public static func sourceContentHash(document: LyricsDocument) -> String {
+        let records = lineRecords(document: document, versionID: UUID())
+        return LyricsSourceContentHasher.hash(
+            isSynchronized: document.isSynchronized,
+            lines: records
+        )
+    }
+
     public static func document(
         identity: TrackIdentity,
         track: DatabaseTrackRecord,

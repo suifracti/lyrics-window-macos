@@ -30,10 +30,28 @@ public enum LyricsPersistenceSaveDisposition: Equatable, Sendable {
 public struct LyricsPersistenceSaveResult: Equatable, Sendable {
     public let versionID: UUID?
     public let disposition: LyricsPersistenceSaveDisposition
+    public let sourceContentHash: String?
 
-    public init(versionID: UUID?, disposition: LyricsPersistenceSaveDisposition) {
+    public init(
+        versionID: UUID?,
+        disposition: LyricsPersistenceSaveDisposition,
+        sourceContentHash: String? = nil
+    ) {
         self.versionID = versionID
         self.disposition = disposition
+        self.sourceContentHash = sourceContentHash
+    }
+}
+
+public struct StoredLyricsDocument: Equatable, Sendable {
+    public let document: LyricsDocument
+    public let versionID: UUID?
+    public let sourceContentHash: String?
+
+    public init(document: LyricsDocument, versionID: UUID?, sourceContentHash: String?) {
+        self.document = document
+        self.versionID = versionID
+        self.sourceContentHash = sourceContentHash
     }
 }
 
@@ -74,6 +92,7 @@ public protocol LyricsRepository: Sendable {
     /// repositories that do not persist track metadata yet.
     func saveTrackMetadata(_ metadata: TrackMetadata) async throws
     func loadBest(track: Track, identity: TrackIdentity) async throws -> LyricsDocument?
+    func loadBestStored(track: Track, identity: TrackIdentity) async throws -> StoredLyricsDocument?
     func save(
         track: Track,
         identity: TrackIdentity,
@@ -86,6 +105,15 @@ public protocol LyricsRepository: Sendable {
 }
 
 public extension LyricsRepository {
+    func loadBestStored(track: Track, identity: TrackIdentity) async throws -> StoredLyricsDocument? {
+        guard let document = try await loadBest(track: track, identity: identity) else { return nil }
+        return StoredLyricsDocument(
+            document: document,
+            versionID: nil,
+            sourceContentHash: LyricsPersistenceMapper.sourceContentHash(document: document)
+        )
+    }
+
     func saveTrackMetadata(_ metadata: TrackMetadata) async throws {
         _ = metadata
     }

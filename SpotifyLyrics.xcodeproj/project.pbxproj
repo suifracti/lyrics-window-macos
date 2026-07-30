@@ -91,6 +91,15 @@
 		1100005F2D83400100000001 /* WindowStatePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100005F2D83400100000000 /* WindowStatePersistence.swift */; };
 		110000602D83400100000001 /* SettingsDataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000602D83400100000000 /* SettingsDataController.swift */; };
 		110000612D83400100000001 /* SettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000612D83400100000000 /* SettingsRootView.swift */; };
+		110000622D83400100000001 /* AITranslationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000622D83400100000000 /* AITranslationModels.swift */; };
+		110000632D83400100000001 /* AITranslationConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000632D83400100000000 /* AITranslationConfiguration.swift */; };
+		110000642D83400100000001 /* AITranslationKeychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000642D83400100000000 /* AITranslationKeychain.swift */; };
+		110000652D83400100000001 /* AITranslationPromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000652D83400100000000 /* AITranslationPromptBuilder.swift */; };
+		110000662D83400100000001 /* AITranslationResponseParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000662D83400100000000 /* AITranslationResponseParser.swift */; };
+		110000672D83400100000001 /* OpenAICompatibleClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000672D83400100000000 /* OpenAICompatibleClient.swift */; };
+		110000682D83400100000001 /* AITranslationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000682D83400100000000 /* AITranslationService.swift */; };
+		110000692D83400100000001 /* TranslationRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000692D83400100000000 /* TranslationRepository.swift */; };
+		1100006A2D83400100000001 /* TranslationSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100006A2D83400100000000 /* TranslationSessionController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -180,6 +189,15 @@
 		1100005F2D83400100000000 /* WindowStatePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowStatePersistence.swift; sourceTree = "<group>"; };
 		110000602D83400100000000 /* SettingsDataController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsDataController.swift; sourceTree = "<group>"; };
 		110000612D83400100000000 /* SettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRootView.swift; sourceTree = "<group>"; };
+		110000622D83400100000000 /* AITranslationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AITranslationModels.swift; sourceTree = "<group>"; };
+		110000632D83400100000000 /* AITranslationConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AITranslationConfiguration.swift; sourceTree = "<group>"; };
+		110000642D83400100000000 /* AITranslationKeychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AITranslationKeychain.swift; sourceTree = "<group>"; };
+		110000652D83400100000000 /* AITranslationPromptBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AITranslationPromptBuilder.swift; sourceTree = "<group>"; };
+		110000662D83400100000000 /* AITranslationResponseParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AITranslationResponseParser.swift; sourceTree = "<group>"; };
+		110000672D83400100000000 /* OpenAICompatibleClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAICompatibleClient.swift; sourceTree = "<group>"; };
+		110000682D83400100000000 /* AITranslationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AITranslationService.swift; sourceTree = "<group>"; };
+		110000692D83400100000000 /* TranslationRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationRepository.swift; sourceTree = "<group>"; };
+		1100006A2D83400100000000 /* TranslationSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/TranslationSessionController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -200,6 +218,8 @@
 				110000032D83400100000000 /* MockData.swift */,
 				110000042D83400100000000 /* PlaybackState.swift */,
 				110000192D83400100000000 /* LyricsSessionController.swift */,
+				1100006A2D83400100000000 /* TranslationSessionController.swift */,
+				110000002D8340000000002B /* AI */,
 				110000052D83400100000000 /* WindowManager.swift */,
 				110000062D83400100000000 /* LyricsViews.swift */,
 				110000002D83400000000024 /* Providers */,
@@ -345,6 +365,7 @@
 				110000542D83400100000000 /* LyricsRepository.swift */,
 				110000552D83400100000000 /* LyricsPersistenceMapper.swift */,
 				110000562D83400100000000 /* SQLiteLyricsRepository.swift */,
+				110000692D83400100000000 /* TranslationRepository.swift */,
 			);
 			path = Persistence;
 			sourceTree = "<group>";
@@ -369,6 +390,20 @@
 				110000602D83400100000000 /* SettingsDataController.swift */,
 			);
 			path = Settings;
+			sourceTree = "<group>";
+		};
+		110000002D8340000000002B /* AI */ = {
+			isa = PBXGroup;
+			children = (
+				110000622D83400100000000 /* AITranslationModels.swift */,
+				110000632D83400100000000 /* AITranslationConfiguration.swift */,
+				110000642D83400100000000 /* AITranslationKeychain.swift */,
+				110000652D83400100000000 /* AITranslationPromptBuilder.swift */,
+				110000662D83400100000000 /* AITranslationResponseParser.swift */,
+				110000672D83400100000000 /* OpenAICompatibleClient.swift */,
+				110000682D83400100000000 /* AITranslationService.swift */,
+			);
+			path = AI;
 			sourceTree = "<group>";
 		};
 		110000002D83400000000003 /* Products */ = {
@@ -526,6 +561,15 @@
 				1100005F2D83400100000001 /* WindowStatePersistence.swift in Sources */,
 				110000602D83400100000001 /* SettingsDataController.swift in Sources */,
 				110000612D83400100000001 /* SettingsRootView.swift in Sources */,
+				110000622D83400100000001 /* AITranslationModels.swift in Sources */,
+				110000632D83400100000001 /* AITranslationConfiguration.swift in Sources */,
+				110000642D83400100000001 /* AITranslationKeychain.swift in Sources */,
+				110000652D83400100000001 /* AITranslationPromptBuilder.swift in Sources */,
+				110000662D83400100000001 /* AITranslationResponseParser.swift in Sources */,
+				110000672D83400100000001 /* OpenAICompatibleClient.swift in Sources */,
+				110000682D83400100000001 /* AITranslationService.swift in Sources */,
+				110000692D83400100000001 /* TranslationRepository.swift in Sources */,
+				1100006A2D83400100000001 /* TranslationSessionController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

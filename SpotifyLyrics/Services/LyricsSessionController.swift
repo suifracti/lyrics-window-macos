@@ -7,6 +7,8 @@ public final class LyricsSessionController: ObservableObject {
     @Published public private(set) var lyrics: [LyricLine] = []
     @Published public private(set) var isSynchronized = true
     @Published public private(set) var activeIdentity: TrackIdentity?
+    @Published public private(set) var activeLyricsVersionID: UUID?
+    @Published public private(set) var activeSourceContentHash: String?
     @Published public private(set) var revision: UInt64 = 0
     @Published public private(set) var persistenceStatusMessage: String?
 
@@ -39,6 +41,10 @@ public final class LyricsSessionController: ObservableObject {
         requestTask?.cancel()
     }
 
+    public var activeDocument: LyricsDocument? {
+        state.document
+    }
+
     public func autoComplete(track: Track, identity: TrackIdentity) {
         begin(track: track, identity: identity)
     }
@@ -63,6 +69,8 @@ public final class LyricsSessionController: ObservableObject {
         }
         activeIdentity = identity
         activeTrack = track
+        activeLyricsVersionID = nil
+        activeSourceContentHash = nil
         persistenceStatusMessage = nil
         lyrics = []
         isSynchronized = true
@@ -80,6 +88,7 @@ public final class LyricsSessionController: ObservableObject {
 
         requestTask = Task { [weak self, searchManager, repository] in
             var outcome: SearchOutcome?
+            var cachedReference: StoredLyricsDocument?
             var persistenceError: String?
             var repositoryReady = false
 
@@ -87,11 +96,12 @@ public final class LyricsSessionController: ObservableObject {
                 do {
                     try await repository.prepare()
                     repositoryReady = true
-                    if let cached = try await repository.loadBest(track: track, identity: identity) {
+                    if let cached = try await repository.loadBestStored(track: track, identity: identity) {
+                        cachedReference = cached
                         LyricsE2ELog.log(
-                            "SESSION persistence hit rev=\(requestRevision) source=\(cached.source) provider=\(cached.providerSourceID ?? "") lines=\(cached.lines.count) sync=\(cached.isSynchronized)"
+                            "SESSION persistence hit rev=\(requestRevision) source=\(cached.document.source) provider=\(cached.document.providerSourceID ?? "") lines=\(cached.document.lines.count) sync=\(cached.document.isSynchronized)"
                         )
-                        outcome = SearchOutcome(result: .match(cached), diagnostics: [])
+                        outcome = SearchOutcome(result: .match(cached.document), diagnostics: [])
                     } else {
                         LyricsE2ELog.log("SESSION persistence miss rev=\(requestRevision) identity=\(identity.stableKey)")
                     }
@@ -125,6 +135,10 @@ public final class LyricsSessionController: ObservableObject {
                 }
                 self.persistenceStatusMessage = persistenceError
                 self.apply(outcome.result, identity: identity, requestRevision: requestRevision)
+                if let cachedReference {
+                    self.activeLyricsVersionID = cachedReference.versionID
+                    self.activeSourceContentHash = cachedReference.sourceContentHash
+                }
                 return true
             }
 
@@ -147,6 +161,13 @@ public final class LyricsSessionController: ObservableObject {
                     LyricsE2ELog.log(
                         "SESSION persistence save rev=\(requestRevision) disposition=\(String(describing: saved?.disposition)) lines=\(document.lines.count)"
                     )
+                    if let saved, saved.versionID != nil {
+                        await MainActor.run { [weak self] in
+                            guard let self, self.activeIdentity == identity else { return }
+                            self.activeLyricsVersionID = saved.versionID
+                            self.activeSourceContentHash = saved.sourceContentHash
+                        }
+                    }
                 } catch {
                     let message = error.localizedDescription
                     LyricsE2ELog.log("PERSISTENCE save failed rev=\(requestRevision) error=\(message)")
@@ -163,6 +184,8 @@ public final class LyricsSessionController: ObservableObject {
         cancelCurrentRequest()
         revision &+= 1
         activeIdentity = identity
+        activeLyricsVersionID = nil
+        activeSourceContentHash = nil
         lyrics = []
         isSynchronized = true
         state = .loading(identity)
@@ -200,6 +223,8 @@ public final class LyricsSessionController: ObservableObject {
         cancelCurrentRequest()
         revision &+= 1
         activeIdentity = nil
+        activeLyricsVersionID = nil
+        activeSourceContentHash = nil
         activeTrack = nil
         automaticRecoveryRetryIdentity = nil
         lyrics = []
@@ -212,6 +237,8 @@ public final class LyricsSessionController: ObservableObject {
         cancelCurrentRequest()
         revision &+= 1
         activeIdentity = nil
+        activeLyricsVersionID = nil
+        activeSourceContentHash = nil
         activeTrack = nil
         automaticRecoveryRetryIdentity = nil
         lyrics = lines
@@ -348,6 +375,7 @@ public final class LyricsSessionController: ObservableObject {
         )
         lyrics = enriched.lines
         isSynchronized = enriched.isSynchronized
+        activeSourceContentHash = LyricsPersistenceMapper.sourceContentHash(document: enriched)
         if enriched.lines.isEmpty {
             state = .noLyrics(identity)
             LyricsE2ELog.log("SESSION apply empty -> noLyrics source=\(enriched.source)")
@@ -423,6 +451,13 @@ public final class LyricsSessionController: ObservableObject {
                 LyricsE2ELog.log(
                     "SESSION adopted persistence disposition=\(String(describing: result.disposition)) source=\(document.source) lines=\(document.lines.count)"
                 )
+                if let versionID = result.versionID {
+                    await MainActor.run { [weak self] in
+                        guard let self, self.activeIdentity == identity else { return }
+                        self.activeLyricsVersionID = versionID
+                        self.activeSourceContentHash = result.sourceContentHash
+                    }
+                }
             } catch {
                 LyricsE2ELog.log("PERSISTENCE adopted save failed error=\(error.localizedDescription)")
                 await MainActor.run {
