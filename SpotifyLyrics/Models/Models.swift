@@ -129,6 +129,7 @@ public struct LyricRubyToken: Identifiable, Equatable, Hashable, Codable, Sendab
 public struct LyricLine: Identifiable, Equatable, Hashable, Sendable {
     public let id: UUID
     public var timestamp: TimeInterval
+    public var endTime: TimeInterval?
     public var originalText: String
     public var translationText: String?
     public var romajiText: String?
@@ -139,6 +140,7 @@ public struct LyricLine: Identifiable, Equatable, Hashable, Sendable {
         id: UUID = UUID(),
         timestamp: TimeInterval,
         originalText: String,
+        endTime: TimeInterval? = nil,
         translationText: String? = nil,
         romajiText: String? = nil,
         kanaText: String? = nil,
@@ -146,6 +148,7 @@ public struct LyricLine: Identifiable, Equatable, Hashable, Sendable {
     ) {
         self.id = id
         self.timestamp = timestamp
+        self.endTime = endTime
         self.originalText = originalText
         self.translationText = translationText
         self.romajiText = romajiText

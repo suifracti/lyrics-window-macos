@@ -69,7 +69,7 @@ struct TranslationPersistenceContract {
         let repository = SQLiteLyricsRepository(databaseURL: url)
         try await repository.prepare()
         let schemaVersion = try await repository.schemaVersion()
-        precondition(schemaVersion == 2)
+        precondition(schemaVersion == DatabaseMigrator.currentVersion)
         let hasUniqueIndex = try await repository.hasUniqueTranslationVersionIndex()
         precondition(hasUniqueIndex == false)
 
@@ -169,7 +169,7 @@ struct TranslationPersistenceContract {
         let legacyRepository = SQLiteLyricsRepository(databaseURL: legacyURL)
         try await legacyRepository.prepare()
         let legacySchemaVersion = try await legacyRepository.schemaVersion()
-        precondition(legacySchemaVersion == 2)
+        precondition(legacySchemaVersion == DatabaseMigrator.currentVersion)
         let legacySource = try await legacyRepository.loadBestStored(track: legacyTrack, identity: legacyIdentity)
         guard let legacySource, let legacyID = legacySource.versionID, let legacyHash = legacySource.sourceContentHash else {
             fatalError("legacy lyrics missing")
@@ -183,7 +183,7 @@ struct TranslationPersistenceContract {
         precondition(legacyTranslations[0].record.sourceKind == .legacyImported)
         precondition(legacyTranslations[0].lines[0].translatedText == "译文")
         let backupCount = try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)
-            .filter { $0.lastPathComponent.contains("pre-v2") }.count
+            .filter { $0.lastPathComponent.contains("pre-v3") }.count
         precondition(backupCount == 1, "v2 migration must make a backup")
 
         let reopened = SQLiteLyricsRepository(databaseURL: legacyURL)

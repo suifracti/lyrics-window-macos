@@ -284,6 +284,27 @@ public final class LyricsSessionController: ObservableObject {
         persistAdoptedDocument(document)
     }
 
+    /// Applies a version that has already been committed by the editing
+    /// repository. Unlike `adopt(document:)`, this does not write the same
+    /// document back again; it only refreshes the live session's identity,
+    /// version id and source fingerprint.
+    public func adoptPersisted(
+        document: LyricsDocument,
+        versionID: UUID,
+        sourceContentHash: String
+    ) {
+        guard activeIdentity == document.identity else {
+            LyricsE2ELog.log("SESSION adopt persisted REJECT identity mismatch")
+            return
+        }
+        cancelCurrentRequest()
+        revision &+= 1
+        activeLyricsVersionID = versionID
+        applyLoadedDocument(document, identity: document.identity)
+        activeSourceContentHash = sourceContentHash
+        LyricsE2ELog.log("SESSION adopt persisted version=\(versionID.uuidString) source=\(document.source)")
+    }
+
 
     /// Keep plain lyrics visible while alignment runs.
     public func beginAlignment(identity: TrackIdentity, plain: LyricsDocument) {

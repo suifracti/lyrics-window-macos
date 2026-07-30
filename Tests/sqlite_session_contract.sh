@@ -31,12 +31,15 @@ swiftc -parse-as-library \
   SpotifyLyrics/Search/TrackSearchModels.swift \
   SpotifyLyrics/Search/LocalLyricsIndex.swift \
   SpotifyLyrics/Services/LyricsSessionController.swift \
+  SpotifyLyrics/Editor/LyricsEditorModels.swift \
+  SpotifyLyrics/Editor/LyricsTimelineValidator.swift \
   SpotifyLyrics/AI/AITranslationModels.swift \
   SpotifyLyrics/Persistence/DatabaseModels.swift \
   SpotifyLyrics/Persistence/DatabaseMigrator.swift \
   SpotifyLyrics/Persistence/LyricsRepository.swift \
   SpotifyLyrics/Persistence/LyricsPersistenceMapper.swift \
   SpotifyLyrics/Persistence/TranslationRepository.swift \
+  SpotifyLyrics/Persistence/LyricsEditingRepository.swift \
   SpotifyLyrics/Persistence/SQLiteLyricsRepository.swift \
   "$TMP_DIR/main.swift" \
   -o "$TMP_DIR/sqlite-session-contract"

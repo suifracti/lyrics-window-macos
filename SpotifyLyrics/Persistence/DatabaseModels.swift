@@ -80,6 +80,7 @@ public struct DatabaseTrackAliasRecord: Equatable, Sendable {
 public struct DatabaseLyricsVersionRecord: Equatable, Sendable {
     public let id: UUID
     public let trackStableKey: String
+    public let parentVersionID: UUID?
     public let source: String
     public let providerSourceID: String
     public let language: String
@@ -96,6 +97,7 @@ public struct DatabaseLyricsVersionRecord: Equatable, Sendable {
     public init(
         id: UUID,
         trackStableKey: String,
+        parentVersionID: UUID? = nil,
         source: String,
         providerSourceID: String,
         language: String,
@@ -111,6 +113,7 @@ public struct DatabaseLyricsVersionRecord: Equatable, Sendable {
     ) {
         self.id = id
         self.trackStableKey = trackStableKey
+        self.parentVersionID = parentVersionID
         self.source = source
         self.providerSourceID = providerSourceID
         self.language = language
@@ -202,6 +205,7 @@ public enum LyricsSourceContentHasher {
 public struct DatabaseTranslationVersionRecord: Equatable, Sendable {
     public let id: UUID
     public let lyricsVersionID: UUID
+    public let parentVersionID: UUID?
     public let sourceKind: AITranslationSourceKind
     public let targetLanguage: String
     public let model: String
@@ -219,6 +223,7 @@ public struct DatabaseTranslationVersionRecord: Equatable, Sendable {
     public init(
         id: UUID,
         lyricsVersionID: UUID,
+        parentVersionID: UUID? = nil,
         sourceKind: AITranslationSourceKind,
         targetLanguage: String,
         model: String,
@@ -235,6 +240,7 @@ public struct DatabaseTranslationVersionRecord: Equatable, Sendable {
     ) {
         self.id = id
         self.lyricsVersionID = lyricsVersionID
+        self.parentVersionID = parentVersionID
         self.sourceKind = sourceKind
         self.targetLanguage = targetLanguage
         self.model = model
@@ -260,5 +266,36 @@ public struct DatabaseTranslationLineRecord: Equatable, Sendable {
         self.translationVersionID = translationVersionID
         self.lineIndex = lineIndex
         self.translatedText = translatedText
+    }
+}
+
+public struct DatabaseReadingLayerRecord: Equatable, Sendable {
+    public let lyricsVersionID: UUID
+    public let lineIndex: Int
+    public let kanaText: String?
+    public let romajiText: String?
+    public let source: String
+    public let isLocked: Bool
+    public let createdAt: Date
+    public let updatedAt: Date
+
+    public init(
+        lyricsVersionID: UUID,
+        lineIndex: Int,
+        kanaText: String?,
+        romajiText: String?,
+        source: String,
+        isLocked: Bool,
+        createdAt: Date,
+        updatedAt: Date
+    ) {
+        self.lyricsVersionID = lyricsVersionID
+        self.lineIndex = lineIndex
+        self.kanaText = kanaText
+        self.romajiText = romajiText
+        self.source = source
+        self.isLocked = isLocked
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
     }
 }

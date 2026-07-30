@@ -16,6 +16,8 @@ swiftc -parse-as-library \
   "$ROOT/SpotifyLyrics/Lyrics/JapaneseReadingPipeline.swift" \
   "$ROOT/SpotifyLyrics/Lyrics/JapaneseKanaGenerator.swift" \
   "$ROOT/SpotifyLyrics/Lyrics/LyricsMatcher.swift" \
+  "$ROOT/SpotifyLyrics/Editor/LyricsEditorModels.swift" \
+  "$ROOT/SpotifyLyrics/Editor/LyricsTimelineValidator.swift" \
   "$ROOT/SpotifyLyrics/AI/AITranslationModels.swift" \
   "$ROOT/SpotifyLyrics/AI/AITranslationConfiguration.swift" \
   "$ROOT/SpotifyLyrics/Persistence/DatabaseModels.swift" \
@@ -23,6 +25,7 @@ swiftc -parse-as-library \
   "$ROOT/SpotifyLyrics/Persistence/LyricsRepository.swift" \
   "$ROOT/SpotifyLyrics/Persistence/LyricsPersistenceMapper.swift" \
   "$ROOT/SpotifyLyrics/Persistence/TranslationRepository.swift" \
+  "$ROOT/SpotifyLyrics/Persistence/LyricsEditingRepository.swift" \
   "$ROOT/SpotifyLyrics/Persistence/SQLiteLyricsRepository.swift" \
   "$ROOT/Tests/translation_persistence_contract.swift" \
   -o "$BUILD/translation_persistence_contract"

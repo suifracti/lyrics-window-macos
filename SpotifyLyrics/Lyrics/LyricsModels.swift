@@ -7,6 +7,8 @@ public enum LyricsSource: String, CaseIterable, Codable, Sendable {
     case qqExperimental
     case asrMachineGenerated
     case automaticAlignment
+    case manualImport
+    case manualEdit
     case mock
 
     public var displayName: String {
@@ -17,6 +19,8 @@ public enum LyricsSource: String, CaseIterable, Codable, Sendable {
         case .qqExperimental: return "QQ音乐（实验）"
         case .asrMachineGenerated: return "ASR 草稿（待校正）"
         case .automaticAlignment: return "自动排轴"
+        case .manualImport: return "手动导入"
+        case .manualEdit: return "人工编辑"
         case .mock: return "Mock Preview"
         }
     }

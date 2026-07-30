@@ -5,6 +5,7 @@ import SwiftUI
 struct AppleMusicImmersiveV3WindowView: View {
     @ObservedObject var state: PlaybackState
     @Binding var layoutStyleRawValue: String
+    @Environment(\.openWindow) private var openWindow
 
     @State private var isSearchPresented = false
     // The canvas starts clean. Controls reveal only when the pointer reaches
@@ -249,6 +250,12 @@ struct AppleMusicImmersiveV3WindowView: View {
     private var providerStatusMenu: some View {
         Menu {
             Text(state.providerStatusMessage)
+            if state.canOpenLyricsEditor {
+                Button("编辑当前歌词", systemImage: "pencil.and.list.clipboard") {
+                    state.prepareLyricsEditor()
+                    openWindow(id: "lyrics-editor")
+                }
+            }
             translationMenuContent
             alignmentMenuContent
 

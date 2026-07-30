@@ -32,6 +32,7 @@ public final class PlaybackState: ObservableObject {
     private let lyricsSession: LyricsSessionController
     private let searchPreviewSession: LyricsSessionController
     private let translationSession: TranslationSessionController
+    public let lyricsEditorSession: LyricsEditorSessionController
     private let lyricsRepository: (any LyricsRepository)
     private let settingsStore: AppSettingsStore
     private let usesConfiguredLyricsProviders: Bool
@@ -40,6 +41,7 @@ public final class PlaybackState: ObservableObject {
     private var lyricsSessionCancellable: AnyCancellable?
     private var searchPreviewSessionCancellable: AnyCancellable?
     private var translationSessionCancellable: AnyCancellable?
+    private var lyricsEditorSessionCancellable: AnyCancellable?
     private var spotifyAuthorizationCancellable: AnyCancellable?
     private var settingsCancellables: Set<AnyCancellable> = []
     private var timer: Timer?
@@ -101,9 +103,13 @@ public final class PlaybackState: ObservableObject {
         let translation = TranslationSessionController(
             repository: translationRepository
         )
+        let editor = LyricsEditorSessionController(
+            repository: resolvedRepository as? any LyricsEditingRepository
+        )
         self.lyricsSession = session
         self.searchPreviewSession = previewSession
         self.translationSession = translation
+        self.lyricsEditorSession = editor
         // Track search is metadata-only: local index + current Spotify track.
         // LRCLIB stays isolated inside the lyrics session path.
         self.songSearchManager = SongSearchManager(providers: [
@@ -114,6 +120,7 @@ public final class PlaybackState: ObservableObject {
         self.lyricsSessionCancellable = nil
         self.searchPreviewSessionCancellable = nil
         self.translationSessionCancellable = nil
+        self.lyricsEditorSessionCancellable = nil
         self.spotifyAuthorizationCancellable = nil
         self.lyricsSessionCancellable = session.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
@@ -136,6 +143,19 @@ public final class PlaybackState: ObservableObject {
         }
         self.translationSessionCancellable = translation.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
+        }
+        self.lyricsEditorSessionCancellable = editor.objectWillChange.sink { [weak self] _ in
+            self?.objectWillChange.send()
+        }
+        editor.onSaved = { [weak self] result, identity in
+            self?.applyLyricsEditorResult(result, identity: identity)
+        }
+        editor.isStillCurrent = { [weak self, weak editor] in
+            guard let self, let editor else { return false }
+            return self.hasLiveTrack
+                && !self.isMockPreviewMode
+                && self.currentTrackIdentity == editor.currentIdentity
+                && self.lyricsSession.revision == editor.currentSourceRevision
         }
         // The search popover observes PlaybackState. Forward the nested
         // authorization manager's state changes so Client ID, authorizing,
@@ -233,6 +253,7 @@ public final class PlaybackState: ObservableObject {
         lyricsSessionCancellable?.cancel()
         searchPreviewSessionCancellable?.cancel()
         translationSessionCancellable?.cancel()
+        lyricsEditorSessionCancellable?.cancel()
         spotifyAuthorizationCancellable?.cancel()
         searchPreviewTask?.cancel()
     }
@@ -263,6 +284,53 @@ public final class PlaybackState: ObservableObject {
     public var translationState: TranslationSessionState { translationSession.state }
     public var translationVersions: [StoredTranslationVersion] { translationSession.availableVersions }
     public var selectedTranslation: StoredTranslationVersion? { translationSession.selectedVersion }
+
+    public var canOpenLyricsEditor: Bool {
+        hasLiveTrack && !isMockPreviewMode && lyricsSession.activeIdentity != nil &&
+            lyricsSession.activeDocument != nil && lyricsSession.activeLyricsVersionID != nil &&
+            lyricsSession.activeSourceContentHash != nil
+    }
+
+    public var lyricsEditor: LyricsEditorSessionController { lyricsEditorSession }
+
+    public func prepareLyricsEditor() {
+        guard canOpenLyricsEditor,
+              let identity = lyricsSession.activeIdentity,
+              let document = lyricsSession.activeDocument,
+              let versionID = lyricsSession.activeLyricsVersionID,
+              let sourceHash = lyricsSession.activeSourceContentHash else {
+            songSearchSelectionMessage = "当前歌词版本还未完成保存，稍后再打开编辑器"
+            return
+        }
+        lyricsEditorSession.begin(
+            track: currentTrack,
+            identity: identity,
+            document: document,
+            lyricsVersionID: versionID,
+            sourceContentHash: sourceHash,
+            revision: lyricsSession.revision,
+            translations: translationSession.availableVersions,
+            selectedTranslation: translationSession.selectedVersion,
+            configuration: settingsStore.aiTranslationConfiguration
+        )
+    }
+
+    private func applyLyricsEditorResult(_ result: LyricsEditSaveResult, identity: TrackIdentity) {
+        guard hasLiveTrack, currentTrackIdentity == identity else {
+            lyricsEditorSession.markStale()
+            return
+        }
+        if let stored = result.lyricsVersion {
+            lyricsSession.adoptPersisted(
+                document: stored.document,
+                versionID: stored.record.id,
+                sourceContentHash: stored.record.contentHash
+            )
+        }
+        translationSession.reloadCurrentContext()
+        lyricsEditorSession.updateSourceRevision(lyricsSession.revision)
+        objectWillChange.send()
+    }
 
     public func translateCurrentLyrics() { translationSession.translateCurrentLyrics() }
     public func retranslateCurrentLyrics() { translationSession.retranslateCurrentLyrics() }
@@ -832,6 +900,7 @@ public final class PlaybackState: ObservableObject {
                 identity: nextIdentity,
                 automaticallySearch: settingsStore.autoSearchLyricsOnTrackChange
             )
+            lyricsEditorSession.observePlayback(identity: nextIdentity, revision: lyricsSession.revision)
         } else if currentTrack != nextTrack {
             // Metadata/artwork may change without a lyric identity change. The
             // background view receives the new artwork URL and rekeys itself.
@@ -848,6 +917,7 @@ public final class PlaybackState: ObservableObject {
         didAutoAlignForIdentity = nil
         clearSearchPreview()
         let hadLiveState = hasLiveTrack || lyricsSession.activeIdentity != nil || !lyrics.isEmpty
+        lyricsEditorSession.markStale()
         hasLiveTrack = false
         if hadLiveState {
             currentTrack = .emptyPlaybackPlaceholder

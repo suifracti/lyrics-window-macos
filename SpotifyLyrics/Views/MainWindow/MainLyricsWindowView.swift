@@ -3,6 +3,7 @@ import SwiftUI
 struct MainLyricsWindowView: View {
     @EnvironmentObject private var state: PlaybackState
     @EnvironmentObject private var settings: AppSettingsStore
+    @Environment(\.openWindow) private var openWindow
     @State private var isSearchPresented = false
 
     private var layoutStyle: MainWindowLayoutStyle {
@@ -212,6 +213,12 @@ struct MainLyricsWindowView: View {
                     state.exitMockPreview()
                 }
             } else if state.canControlSpotify {
+                if state.canOpenLyricsEditor {
+                    Button("编辑当前歌词", systemImage: "pencil.and.list.clipboard") {
+                        state.prepareLyricsEditor()
+                        openWindow(id: "lyrics-editor")
+                    }
+                }
                 let showAutoComplete: Bool = {
                     switch state.lyricsState {
                     case .failed, .noMatch, .noLyrics, .alignmentQueued, .alignmentRunning, .alignmentPreview, .candidates, .loading:

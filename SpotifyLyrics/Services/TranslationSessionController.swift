@@ -119,6 +119,13 @@ public final class TranslationSessionController: ObservableObject {
         state = .idle
     }
 
+    /// Re-reads the selected/source-matched versions after another session
+    /// (for example the lyrics editor) has committed a new version.
+    public func reloadCurrentContext() {
+        guard let context else { return }
+        loadExistingOrAutoTranslate(context)
+    }
+
     public func resetForMissingLyrics() {
         requestTask?.cancel()
         requestTask = nil

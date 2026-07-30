@@ -193,6 +193,7 @@ public enum LyricsLayerEnricher {
                 id: line.id,
                 timestamp: line.timestamp,
                 originalText: layers.originalText,
+                endTime: line.endTime,
                 translationText: layers.translationText,
                 romajiText: layers.romajiText,
                 kanaText: layers.kanaText,

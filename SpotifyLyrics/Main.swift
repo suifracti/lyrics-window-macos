@@ -17,6 +17,13 @@ struct SpotifyLyricsApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(.unified)
 
+        Window("歌词编辑", id: "lyrics-editor") {
+            LyricsEditorWindowView()
+                .environmentObject(playbackState)
+                .environmentObject(appSettings)
+        }
+        .defaultSize(width: 1100, height: 720)
+
         Settings {
             SettingsRootView()
                 .environmentObject(appSettings)

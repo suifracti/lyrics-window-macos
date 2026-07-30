@@ -4,7 +4,7 @@ import SQLite3
 /// Forward-only SQLite schema migrations. The repository calls this from its
 /// actor, so no migration work runs on MainActor.
 public enum DatabaseMigrator {
-    public static let currentVersion = 2
+    public static let currentVersion = 3
 
     public static func migrate(_ database: OpaquePointer) throws {
         do {
@@ -27,6 +27,10 @@ public enum DatabaseMigrator {
             if version < 2 {
                 try migrateV2(database)
                 version = 2
+            }
+            if version < 3 {
+                try migrateV3(database)
+                version = 3
             }
         } catch let error as LyricsRepositoryError {
             // A corrupt/partially readable SQLite file must be reported as a
@@ -207,6 +211,44 @@ public enum DatabaseMigrator {
 
             try execute(database, sql: "INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (2, strftime('%s','now'));")
             try execute(database, sql: "PRAGMA user_version = 2;")
+            try execute(database, sql: "COMMIT;")
+        } catch {
+            _ = try? execute(database, sql: "ROLLBACK;")
+            throw error
+        }
+    }
+
+    private static func migrateV3(_ database: OpaquePointer) throws {
+        try execute(database, sql: "BEGIN IMMEDIATE TRANSACTION;")
+        do {
+            // These ALTERs run only while user_version is 2. If any statement
+            // fails, the transaction rolls back and the next launch retries
+            // the complete migration rather than leaving a half-versioned DB.
+            try execute(database, sql: "ALTER TABLE lyrics_versions ADD COLUMN parent_version_id TEXT;")
+            try execute(database, sql: "ALTER TABLE translation_versions ADD COLUMN parent_version_id TEXT;")
+            try execute(database, sql: """
+                CREATE TABLE IF NOT EXISTS lyric_reading_layers (
+                    lyrics_version_id TEXT NOT NULL,
+                    line_index INTEGER NOT NULL,
+                    kana_text TEXT,
+                    romaji_text TEXT,
+                    source TEXT NOT NULL,
+                    is_locked INTEGER NOT NULL DEFAULT 0,
+                    created_at REAL NOT NULL,
+                    updated_at REAL NOT NULL,
+                    PRIMARY KEY (lyrics_version_id, line_index),
+                    FOREIGN KEY (lyrics_version_id) REFERENCES lyrics_versions(id) ON DELETE CASCADE
+                );
+
+                CREATE INDEX IF NOT EXISTS lyrics_versions_parent_lookup
+                    ON lyrics_versions(parent_version_id, updated_at);
+                CREATE INDEX IF NOT EXISTS translation_versions_parent_lookup
+                    ON translation_versions(parent_version_id, updated_at);
+                CREATE INDEX IF NOT EXISTS lyric_reading_layers_version_order
+                    ON lyric_reading_layers(lyrics_version_id, line_index);
+                """)
+            try execute(database, sql: "INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (3, strftime('%s','now'));")
+            try execute(database, sql: "PRAGMA user_version = 3;")
             try execute(database, sql: "COMMIT;")
         } catch {
             _ = try? execute(database, sql: "ROLLBACK;")

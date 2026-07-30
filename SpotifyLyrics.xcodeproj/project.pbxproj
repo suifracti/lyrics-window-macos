@@ -100,6 +100,12 @@
 		110000682D83400100000001 /* AITranslationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000682D83400100000000 /* AITranslationService.swift */; };
 		110000692D83400100000001 /* TranslationRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000692D83400100000000 /* TranslationRepository.swift */; };
 		1100006A2D83400100000001 /* TranslationSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100006A2D83400100000000 /* TranslationSessionController.swift */; };
+		1100006B2D83400100000001 /* LyricsEditingRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100006B2D83400100000000 /* LyricsEditingRepository.swift */; };
+		1100006C2D83400100000001 /* LyricsEditorSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100006C2D83400100000000 /* LyricsEditorSessionController.swift */; };
+		1100006D2D83400100000001 /* LyricsEditorWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100006D2D83400100000000 /* LyricsEditorWindowView.swift */; };
+		1100006E2D83400100000001 /* LyricsEditorModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100006E2D83400100000000 /* LyricsEditorModels.swift */; };
+		1100006F2D83400100000001 /* LyricsTimelineValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100006F2D83400100000000 /* LyricsTimelineValidator.swift */; };
+		110000702D83400100000001 /* LRCImportExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000702D83400100000000 /* LRCImportExport.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -198,6 +204,12 @@
 		110000682D83400100000000 /* AITranslationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AITranslationService.swift; sourceTree = "<group>"; };
 		110000692D83400100000000 /* TranslationRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationRepository.swift; sourceTree = "<group>"; };
 		1100006A2D83400100000000 /* TranslationSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/TranslationSessionController.swift; sourceTree = "<group>"; };
+		1100006B2D83400100000000 /* LyricsEditingRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsEditingRepository.swift; sourceTree = "<group>"; };
+		1100006C2D83400100000000 /* LyricsEditorSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LyricsEditorSessionController.swift; sourceTree = "<group>"; };
+		1100006D2D83400100000000 /* LyricsEditorWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsEditorWindowView.swift; sourceTree = "<group>"; };
+		1100006E2D83400100000000 /* LyricsEditorModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsEditorModels.swift; sourceTree = "<group>"; };
+		1100006F2D83400100000000 /* LyricsTimelineValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsTimelineValidator.swift; sourceTree = "<group>"; };
+		110000702D83400100000000 /* LRCImportExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LRCImportExport.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -219,7 +231,9 @@
 				110000042D83400100000000 /* PlaybackState.swift */,
 				110000192D83400100000000 /* LyricsSessionController.swift */,
 				1100006A2D83400100000000 /* TranslationSessionController.swift */,
+				1100006C2D83400100000000 /* LyricsEditorSessionController.swift */,
 				110000002D8340000000002B /* AI */,
+				110000002D8340000000002D /* Editor */,
 				110000052D83400100000000 /* WindowManager.swift */,
 				110000062D83400100000000 /* LyricsViews.swift */,
 				110000002D83400000000024 /* Providers */,
@@ -235,14 +249,33 @@
 			path = SpotifyLyrics;
 			sourceTree = "<group>";
 		};
+		110000002D8340000000002D /* Editor */ = {
+			isa = PBXGroup;
+			children = (
+				1100006E2D83400100000000 /* LyricsEditorModels.swift */,
+				1100006F2D83400100000000 /* LyricsTimelineValidator.swift */,
+				110000702D83400100000000 /* LRCImportExport.swift */,
+			);
+			path = Editor;
+			sourceTree = "<group>";
+		};
 		110000002D83400000000020 /* Views */ = {
 			isa = PBXGroup;
 			children = (
 				110000002D83400000000021 /* MainWindow */,
 				110000002D83400000000022 /* Components */,
 				110000002D8340000000002A /* Settings */,
+				110000002D8340000000002C /* Editor */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		110000002D8340000000002C /* Editor */ = {
+			isa = PBXGroup;
+			children = (
+				1100006D2D83400100000000 /* LyricsEditorWindowView.swift */,
+			);
+			path = Editor;
 			sourceTree = "<group>";
 		};
 		110000002D8340000000002A /* Settings */ = {
@@ -365,6 +398,7 @@
 				110000542D83400100000000 /* LyricsRepository.swift */,
 				110000552D83400100000000 /* LyricsPersistenceMapper.swift */,
 				110000562D83400100000000 /* SQLiteLyricsRepository.swift */,
+				1100006B2D83400100000000 /* LyricsEditingRepository.swift */,
 				110000692D83400100000000 /* TranslationRepository.swift */,
 			);
 			path = Persistence;
@@ -570,6 +604,12 @@
 				110000682D83400100000001 /* AITranslationService.swift in Sources */,
 				110000692D83400100000001 /* TranslationRepository.swift in Sources */,
 				1100006A2D83400100000001 /* TranslationSessionController.swift in Sources */,
+				1100006B2D83400100000001 /* LyricsEditingRepository.swift in Sources */,
+				1100006C2D83400100000001 /* LyricsEditorSessionController.swift in Sources */,
+				1100006D2D83400100000001 /* LyricsEditorWindowView.swift in Sources */,
+				1100006E2D83400100000001 /* LyricsEditorModels.swift in Sources */,
+				1100006F2D83400100000001 /* LyricsTimelineValidator.swift in Sources */,
+				110000702D83400100000001 /* LRCImportExport.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

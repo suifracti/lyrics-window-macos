@@ -74,16 +74,37 @@ public final class KeychainSpotifyTokenStore: SpotifyTokenStore, @unchecked Send
         var query = baseQuery()
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
+        // A Keychain ACL created by an older ad-hoc build may otherwise put
+        // the SwiftUI app's MainActor into a system password prompt during
+        // launch. Startup must never block Spotify Desktop or the editor on
+        // interactive Keychain UI; an unavailable item is reported as a
+        // normal authorization failure instead.
+        query[kSecUseAuthenticationUI as String] = kSecUseAuthenticationUIFail
 
         var result: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
-        if status == errSecItemNotFound || status == errSecMissingEntitlement {
+        // Do not probe the legacy login-keychain item during startup. Some
+        // older ad-hoc builds created an ACL that ignores the non-interactive
+        // hint and blocks here for a password dialog. The v3 data-protection
+        // namespace is the only automatic read path; users can authorize
+        // again if an old token is not available.
+        if service == Self.service && account == Self.account &&
+            (status == errSecItemNotFound || status == errSecMissingEntitlement || status == errSecInteractionNotAllowed) {
+            return nil
+        }
+        if status == errSecItemNotFound || status == errSecMissingEntitlement || status == errSecInteractionNotAllowed {
+            // Contract fixtures and explicitly injected stores may use a
+            // private service namespace. Keep their legacy compatibility
+            // path, while the production v3 namespace never probes the old
+            // ACL-bound item during application launch.
             var legacyQuery = legacyBaseQuery(interactionNotAllowed: true)
             legacyQuery[kSecReturnData as String] = true
             legacyQuery[kSecMatchLimit as String] = kSecMatchLimitOne
             result = nil
             let legacyStatus = SecItemCopyMatching(legacyQuery as CFDictionary, &result)
-            if legacyStatus == errSecItemNotFound { return nil }
+            if legacyStatus == errSecItemNotFound || legacyStatus == errSecInteractionNotAllowed {
+                return nil
+            }
             guard legacyStatus == errSecSuccess else {
                 throw SpotifyTokenStoreError.keychain(legacyStatus)
             }

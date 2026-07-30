@@ -10,6 +10,8 @@ public enum DatabaseSourceIdentifier {
         case .qqExperimental: return "qqExperimental"
         case .asrMachineGenerated: return "asrMachineGenerated"
         case .automaticAlignment: return "automaticAlignment"
+        case .manualImport: return "manualImport"
+        case .manualEdit: return "manualEdit"
         case .mock: return "mock"
         }
     }
@@ -22,6 +24,8 @@ public enum DatabaseSourceIdentifier {
         case "qqExperimental": return .qqExperimental
         case "asrMachineGenerated": return .asrMachineGenerated
         case "automaticAlignment": return .automaticAlignment
+        case "manualImport": return .manualImport
+        case "manualEdit": return .manualEdit
         default: return .local
         }
     }
@@ -138,6 +142,7 @@ public enum LyricsPersistenceMapper {
         return DatabaseLyricsVersionRecord(
             id: versionID,
             trackStableKey: identity.stableKey,
+            parentVersionID: nil,
             source: source,
             providerSourceID: providerSourceID,
             language: language(for: document),
@@ -160,7 +165,9 @@ public enum LyricsPersistenceMapper {
         document.lines.enumerated().map { index, line in
             let start: TimeInterval? = document.isSynchronized ? line.timestamp : nil
             let end: TimeInterval?
-            if document.isSynchronized, index + 1 < document.lines.count {
+            if document.isSynchronized, let explicitEnd = line.endTime {
+                end = explicitEnd
+            } else if document.isSynchronized, index + 1 < document.lines.count {
                 let next = document.lines[index + 1].timestamp
                 end = next > line.timestamp ? next : nil
             } else {
@@ -197,6 +204,7 @@ public enum LyricsPersistenceMapper {
             LyricLine(
                 timestamp: line.startTime ?? 0,
                 originalText: line.originalText,
+                endTime: line.endTime,
                 translationText: line.translationText,
                 romajiText: line.romajiText,
                 kanaText: line.kanaText
@@ -224,6 +232,7 @@ public enum LyricsPersistenceMapper {
     private struct HashLine: Encodable {
         let index: Int
         let start: TimeInterval?
+        let end: TimeInterval?
         let original: String
         let kana: String?
         let romaji: String?
@@ -250,6 +259,7 @@ public enum LyricsPersistenceMapper {
                 HashLine(
                     index: index,
                     start: document.isSynchronized ? line.timestamp : nil,
+                    end: document.isSynchronized ? line.endTime : nil,
                     original: line.originalText,
                     kana: line.kanaText,
                     romaji: line.romajiText,
