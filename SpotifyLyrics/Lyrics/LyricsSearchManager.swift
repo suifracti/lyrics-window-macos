@@ -104,8 +104,11 @@ public final class LyricsSearchManager: @unchecked Sendable {
                         continue
                     }
 
+                    let candidateID = document.providerSourceID.map {
+                        "\(provider.name):document:\($0)"
+                    } ?? "\(provider.name):document:\(document.title ?? probeTrack.title)"
                     let candidate = LyricsCandidate(
-                        id: "\(provider.name):\(variant.id):match:\(document.title ?? probeTrack.title)",
+                        id: candidateID,
                         identity: identity,
                         title: document.title ?? probeTrack.title,
                         artist: document.artist ?? probeTrack.artist,
@@ -115,24 +118,28 @@ public final class LyricsSearchManager: @unchecked Sendable {
                         isSynchronized: document.isSynchronized,
                         source: document.source,
                         confidence: document.confidence,
-                        providerSourceID: document.providerSourceID
+                        providerSourceID: document.providerSourceID,
+                        spotifyTrackID: document.spotifyTrackID,
+                        isrc: document.isrc
                     )
                     let decision = LyricsSafeMatcher.decide(
                         candidate: candidate,
                         metadata: meta,
-                        aliasUsed: alias(for: variant)
+                        aliasUsed: alias(for: variant),
+                        queryVariant: variant
                     )
                     diagnostics.append(
                         LyricsProviderDiagnostic(
                             provider: "\(provider.name)@\(variant.strategy.rawValue)",
                             outcome: .match,
-                            duration: elapsed
+                            duration: elapsed,
+                            matchDecisions: [decision]
                         )
                     )
 
                     if decision.tier == .autoHigh || decision.tier == .autoMedium {
                         let enriched = Self.finalizeDocument(document, identity: identity)
-                        LyricsE2ELog.log("MANAGER AUTO_ADOPT provider=\(provider.name) strategy=\(variant.strategy.rawValue) tier=\(decision.tier) score=\(decision.score) lines=\(enriched.lines.count) sync=\(enriched.isSynchronized) first=\(enriched.lines.first?.originalText ?? "")")
+                        LyricsE2ELog.log("MANAGER AUTO_ADOPT provider=\(provider.name) strategy=\(variant.strategy.rawValue) kind=\(variant.queryKind.rawValue) tier=\(decision.tier) score=\(decision.score) evidence=\(decision.explanation.joined(separator: ";")) lines=\(enriched.lines.count) sync=\(enriched.isSynchronized)")
                         return SearchOutcome(result: .match(enriched), diagnostics: diagnostics)
                     }
                     if decision.tier == .candidates {
@@ -141,39 +148,50 @@ public final class LyricsSearchManager: @unchecked Sendable {
                     // reject → ignore
 
                 case .candidates(let list):
-                    diagnostics.append(
-                        LyricsProviderDiagnostic(
-                            provider: "\(provider.name)@\(variant.strategy.rawValue)",
-                            outcome: .candidates(list.count),
-                            duration: elapsed
-                        )
-                    )
+                    var candidateDecisions: [LyricsMatchDecision] = []
+                    var autoAdoption: (LyricsCandidate, LyricsMatchDecision)?
                     for item in list where item.identity == identity {
                         let decision = LyricsSafeMatcher.decide(
                             candidate: item,
                             metadata: meta,
-                            aliasUsed: alias(for: variant)
+                            aliasUsed: alias(for: variant),
+                            queryVariant: variant
                         )
+                        candidateDecisions.append(decision)
                         if decision.tier == .autoHigh || decision.tier == .autoMedium {
-                            let document = LyricsDocument(
-                                identity: identity,
-                                title: item.title,
-                                artist: item.artist,
-                                album: item.album,
-                                duration: item.duration,
-                                lines: item.lines,
-                                isSynchronized: item.isSynchronized,
-                                source: item.source,
-                                confidence: item.confidence,
-                                providerSourceID: item.providerSourceID
-                            )
-                            let enriched = Self.finalizeDocument(document, identity: identity)
-                            LyricsE2ELog.log("MANAGER AUTO_ADOPT from-candidates provider=\(provider.name) strategy=\(variant.strategy.rawValue) tier=\(decision.tier) lines=\(enriched.lines.count) first=\(enriched.lines.first?.originalText ?? "")")
-                            return SearchOutcome(result: .match(enriched), diagnostics: diagnostics)
+                            autoAdoption = (item, decision)
+                            break
                         }
                         if decision.tier == .candidates {
                             acceptedCandidates.append(item)
                         }
+                    }
+                    diagnostics.append(
+                        LyricsProviderDiagnostic(
+                            provider: "\(provider.name)@\(variant.strategy.rawValue)",
+                            outcome: .candidates(list.count),
+                            duration: elapsed,
+                            matchDecisions: candidateDecisions
+                        )
+                    )
+                    if let (item, decision) = autoAdoption {
+                        let document = LyricsDocument(
+                            identity: identity,
+                            title: item.title,
+                            artist: item.artist,
+                            album: item.album,
+                            duration: item.duration,
+                            lines: item.lines,
+                            isSynchronized: item.isSynchronized,
+                            source: item.source,
+                            confidence: item.confidence,
+                            providerSourceID: item.providerSourceID,
+                            spotifyTrackID: item.spotifyTrackID,
+                            isrc: item.isrc
+                        )
+                        let enriched = Self.finalizeDocument(document, identity: identity)
+                        LyricsE2ELog.log("MANAGER AUTO_ADOPT from-candidates provider=\(provider.name) strategy=\(variant.strategy.rawValue) kind=\(variant.queryKind.rawValue) tier=\(decision.tier) score=\(decision.score) evidence=\(decision.explanation.joined(separator: ";")) lines=\(enriched.lines.count)")
+                        return SearchOutcome(result: .match(enriched), diagnostics: diagnostics)
                     }
 
                 case .noLyrics:
@@ -249,7 +267,9 @@ public final class LyricsSearchManager: @unchecked Sendable {
             isSynchronized: document.isSynchronized,
             source: document.source,
             confidence: document.confidence,
-            providerSourceID: document.providerSourceID
+            providerSourceID: document.providerSourceID,
+            spotifyTrackID: document.spotifyTrackID,
+            isrc: document.isrc
         )
     }
 
@@ -265,7 +285,9 @@ public final class LyricsSearchManager: @unchecked Sendable {
             isSynchronized: candidate.isSynchronized,
             source: candidate.source,
             confidence: candidate.confidence,
-            providerSourceID: candidate.providerSourceID
+            providerSourceID: candidate.providerSourceID,
+            spotifyTrackID: candidate.spotifyTrackID,
+            isrc: candidate.isrc
         )
     }
 }
@@ -292,10 +314,17 @@ public struct LyricsProviderDiagnostic: Equatable {
     public let provider: String
     public let outcome: Outcome
     public let duration: TimeInterval
+    public let matchDecisions: [LyricsMatchDecision]
 
-    public init(provider: String, outcome: Outcome, duration: TimeInterval) {
+    public init(
+        provider: String,
+        outcome: Outcome,
+        duration: TimeInterval,
+        matchDecisions: [LyricsMatchDecision] = []
+    ) {
         self.provider = provider
         self.outcome = outcome
         self.duration = duration
+        self.matchDecisions = matchDecisions
     }
 }

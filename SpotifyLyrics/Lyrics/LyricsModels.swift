@@ -39,6 +39,10 @@ public struct LyricsDocument: Equatable, Sendable {
     /// Provider record identifier used for persistence de-duplication. It is
     /// optional to keep existing Provider/fixture initializers source-compatible.
     public let providerSourceID: String?
+    /// Independent provider evidence. This is nil unless a Provider actually
+    /// verified the identifier; the request TrackIdentity is not evidence.
+    public let spotifyTrackID: String?
+    public let isrc: String?
 
     public init(
         identity: TrackIdentity,
@@ -50,7 +54,9 @@ public struct LyricsDocument: Equatable, Sendable {
         isSynchronized: Bool = true,
         source: LyricsSource,
         confidence: Double = 1,
-        providerSourceID: String? = nil
+        providerSourceID: String? = nil,
+        spotifyTrackID: String? = nil,
+        isrc: String? = nil
     ) {
         self.identity = identity
         self.title = title
@@ -62,6 +68,8 @@ public struct LyricsDocument: Equatable, Sendable {
         self.source = source
         self.confidence = confidence
         self.providerSourceID = providerSourceID
+        self.spotifyTrackID = spotifyTrackID
+        self.isrc = isrc
     }
 }
 
@@ -77,6 +85,11 @@ public struct LyricsCandidate: Identifiable, Equatable, Sendable {
     public let source: LyricsSource
     public let confidence: Double
     public let providerSourceID: String?
+    /// These are optional independent identity claims from a Provider. They
+    /// must never be populated from the caller's identity just to increase a
+    /// match score.
+    public let spotifyTrackID: String?
+    public let isrc: String?
 
     public init(
         id: String,
@@ -89,7 +102,9 @@ public struct LyricsCandidate: Identifiable, Equatable, Sendable {
         isSynchronized: Bool = true,
         source: LyricsSource,
         confidence: Double,
-        providerSourceID: String? = nil
+        providerSourceID: String? = nil,
+        spotifyTrackID: String? = nil,
+        isrc: String? = nil
     ) {
         self.id = id
         self.identity = identity
@@ -102,6 +117,8 @@ public struct LyricsCandidate: Identifiable, Equatable, Sendable {
         self.source = source
         self.confidence = confidence
         self.providerSourceID = providerSourceID
+        self.spotifyTrackID = spotifyTrackID
+        self.isrc = isrc
     }
 }
 

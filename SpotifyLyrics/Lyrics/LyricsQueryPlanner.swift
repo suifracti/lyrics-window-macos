@@ -1,8 +1,13 @@
 import Foundation
 
+/// Compatibility strategy names kept for diagnostics and older callers.
+/// `queryKind` is the authoritative evidence-strength label used by
+/// LyricsSafeMatcher.
 public enum LyricsQueryStrategy: String, Codable, Sendable, CaseIterable {
     case primaryOriginal
+    case primaryArtist
     case normalizedPrimary
+    case normalizedArtist
     case kanaTitleArtist
     case romajiTitleArtist
     case officialEnglish
@@ -10,14 +15,45 @@ public enum LyricsQueryStrategy: String, Codable, Sendable, CaseIterable {
     case titleOnlyLoose
 }
 
+/// Query material is deliberately tagged. A result found through a loose
+/// title-only query must not receive the same confidence as an exact query.
+public enum LyricsQueryKind: String, Codable, Sendable, CaseIterable {
+    case exactTitleFullArtist
+    case exactTitlePrimaryArtist
+    case normalizedTitleFullArtist
+    case normalizedTitlePrimaryArtist
+    case kanaAlias
+    case romajiAlias
+    case officialEnglishAlias
+    case confirmedAlias
+    case titleOnlyLoose
+
+    public var isLoose: Bool {
+        self == .titleOnlyLoose
+    }
+
+    public var isAlias: Bool {
+        switch self {
+        case .kanaAlias, .romajiAlias, .officialEnglishAlias, .confirmedAlias:
+            return true
+        case .exactTitleFullArtist, .exactTitlePrimaryArtist,
+             .normalizedTitleFullArtist, .normalizedTitlePrimaryArtist,
+             .titleOnlyLoose:
+            return false
+        }
+    }
+}
+
 public struct LyricsQueryVariant: Equatable, Identifiable, Sendable {
-    public var id: String { "\(rank)-\(strategy.rawValue)" }
+    public var id: String { "\(rank)-\(queryKind.rawValue)-\(strategy.rawValue)" }
     public let rank: Int
     public let strategy: LyricsQueryStrategy
+    public let queryKind: LyricsQueryKind
     public let titleQuery: String
     public let artistQuery: String?
     public let aliasIDs: [String]
 
+    /// Source-compatible initializer used by older contracts.
     public init(
         rank: Int,
         strategy: LyricsQueryStrategy,
@@ -25,122 +61,204 @@ public struct LyricsQueryVariant: Equatable, Identifiable, Sendable {
         artistQuery: String?,
         aliasIDs: [String] = []
     ) {
+        self.init(
+            rank: rank,
+            strategy: strategy,
+            queryKind: Self.defaultKind(for: strategy),
+            titleQuery: titleQuery,
+            artistQuery: artistQuery,
+            aliasIDs: aliasIDs
+        )
+    }
+
+    public init(
+        rank: Int,
+        strategy: LyricsQueryStrategy,
+        queryKind: LyricsQueryKind,
+        titleQuery: String,
+        artistQuery: String?,
+        aliasIDs: [String] = []
+    ) {
         self.rank = rank
         self.strategy = strategy
+        self.queryKind = queryKind
         self.titleQuery = titleQuery
         self.artistQuery = artistQuery
         self.aliasIDs = aliasIDs
+    }
+
+    private static func defaultKind(for strategy: LyricsQueryStrategy) -> LyricsQueryKind {
+        switch strategy {
+        case .primaryOriginal: return .exactTitleFullArtist
+        case .primaryArtist: return .exactTitlePrimaryArtist
+        case .normalizedPrimary: return .normalizedTitleFullArtist
+        case .normalizedArtist: return .normalizedTitlePrimaryArtist
+        case .kanaTitleArtist: return .kanaAlias
+        case .romajiTitleArtist: return .romajiAlias
+        case .officialEnglish: return .officialEnglishAlias
+        case .knownAliases: return .confirmedAlias
+        case .titleOnlyLoose: return .titleOnlyLoose
+        }
     }
 }
 
 public enum LyricsQueryPlanner {
     public static func plan(for metadata: TrackMetadata) -> [LyricsQueryVariant] {
         var built: [LyricsQueryVariant] = []
-        var seen = Set<String>()
+        var seenMaterial = Set<String>()
 
-        func add(_ strategy: LyricsQueryStrategy, title: String, artist: String?, aliasIDs: [String] = []) {
-            let t = title.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !t.isEmpty else { return }
-            let a = artist?.trimmingCharacters(in: .whitespacesAndNewlines)
-            let key = TrackTextNormalizer.normalize(t) + "|" + TrackTextNormalizer.normalize(a ?? "")
-            guard !key.isEmpty, !seen.contains(key) else { return }
-            seen.insert(key)
+        func add(
+            _ strategy: LyricsQueryStrategy,
+            kind: LyricsQueryKind,
+            title: String,
+            artist: String?,
+            aliasIDs: [String] = []
+        ) {
+            let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmedTitle.isEmpty else { return }
+            let trimmedArtist = artist?.trimmingCharacters(in: .whitespacesAndNewlines)
+            // Keep raw query material in the de-duplication key. A case,
+            // width, or punctuation-folded variant is intentionally retained
+            // as a separate query kind so the matcher can see how it was
+            // obtained and apply the appropriate evidence penalty.
+            let materialKey = trimmedTitle.precomposedStringWithCanonicalMapping
+                + "|"
+                + (trimmedArtist ?? "").precomposedStringWithCanonicalMapping
+            guard !materialKey.isEmpty, seenMaterial.insert(materialKey).inserted else { return }
+
             built.append(
                 LyricsQueryVariant(
                     rank: built.count + 1,
                     strategy: strategy,
-                    titleQuery: t,
-                    artistQuery: (a?.isEmpty == false) ? a : nil,
+                    queryKind: kind,
+                    titleQuery: trimmedTitle,
+                    artistQuery: (trimmedArtist?.isEmpty == false) ? trimmedArtist : nil,
                     aliasIDs: aliasIDs
                 )
             )
         }
 
-        let title = metadata.track.title
-        let artist = TrackTextNormalizer.splitFeaturedArtists(metadata.track.artist).primary
-        let normTitle = TrackTextNormalizer.stripVersionMarkers(fromTitle: title)
-        let normArtist = artist
+        let originalTitle = metadata.track.title
+        let fullArtist = metadata.track.artist
+        let primaryArtist = TrackTextNormalizer.artistTokens(fullArtist).primary
+        let normalizedTitle = TrackTextNormalizer.normalize(originalTitle)
+        let normalizedFullArtist = TrackTextNormalizer.normalize(fullArtist)
+        let normalizedPrimaryArtist = TrackTextNormalizer.normalize(primaryArtist)
 
-        // 1 original
-        add(.primaryOriginal, title: title, artist: artist)
-
-        // 2 normalized (distinct query material only — Q2 de-dupes equal normalize keys)
-        if title != normTitle || artist != normArtist {
-            add(.normalizedPrimary, title: normTitle.isEmpty ? title : normTitle, artist: normArtist.isEmpty ? artist : normArtist)
-        } else {
-            // Emit halfwidth/compatibility folded display when it yields a different raw string
-            let foldedTitle = title.applyingTransform(.fullwidthToHalfwidth, reverse: false) ?? title
-            let foldedArtist = artist.applyingTransform(.fullwidthToHalfwidth, reverse: false) ?? artist
-            if foldedTitle != title || foldedArtist != artist {
-                add(.normalizedPrimary, title: foldedTitle, artist: foldedArtist)
-            } else {
-                // Pure JP titles often equal after normalize; keep strategy slot via stripped punctuation form
-                let looseTitle = TrackTextNormalizer.stripVersionMarkers(fromTitle: title)
-                    .replacingOccurrences(of: "  ", with: " ")
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                // Force a dedicated normalized entry by using canonical NFC string value
-                let nfcTitle = (looseTitle as NSString).precomposedStringWithCanonicalMapping
-                let nfcArtist = (artist as NSString).precomposedStringWithCanonicalMapping
-                // If still identical key, planner cannot legally emit duplicate pair; contract allows romaji path.
-                if TrackTextNormalizer.normalize(nfcTitle) + "|" + TrackTextNormalizer.normalize(nfcArtist)
-                    != TrackTextNormalizer.normalize(title) + "|" + TrackTextNormalizer.normalize(artist) {
-                    add(.normalizedPrimary, title: nfcTitle, artist: nfcArtist)
-                } else {
-                    // Synthetic normalized query uses lowercase latin digits only changes; for kana-only
-                    // titles add explicit normalized using the same strings under strategy by
-                    // slightly preferring strip of decorative spaces around middle dots already normalized.
-                    // Last resort: skip — tests accept romaji presence without normalized when keys collide.
-                }
-            }
+        func differsBeyondCaseAndWidth(_ original: String, _ normalized: String) -> Bool {
+            let options: String.CompareOptions = [.caseInsensitive, .diacriticInsensitive, .widthInsensitive]
+            let foldedOriginal = original.folding(options: options, locale: Locale(identifier: "en_US_POSIX"))
+            let foldedNormalized = normalized.folding(options: options, locale: Locale(identifier: "en_US_POSIX"))
+            return foldedOriginal != foldedNormalized
         }
 
-        // 3 kana aliases
+        // 1–4: strict identity evidence, from exact to normalized material.
+        add(
+            .primaryOriginal,
+            kind: .exactTitleFullArtist,
+            title: originalTitle,
+            artist: fullArtist
+        )
+        add(
+            .primaryArtist,
+            kind: .exactTitlePrimaryArtist,
+            title: originalTitle,
+            artist: primaryArtist
+        )
+        if differsBeyondCaseAndWidth(originalTitle, normalizedTitle)
+            || differsBeyondCaseAndWidth(fullArtist, normalizedFullArtist) {
+            add(
+                .normalizedPrimary,
+                kind: .normalizedTitleFullArtist,
+                title: normalizedTitle,
+                artist: normalizedFullArtist
+            )
+        }
+        if differsBeyondCaseAndWidth(originalTitle, normalizedTitle)
+            || differsBeyondCaseAndWidth(primaryArtist, normalizedPrimaryArtist) {
+            add(
+                .normalizedArtist,
+                kind: .normalizedTitlePrimaryArtist,
+                title: normalizedTitle,
+                artist: normalizedPrimaryArtist
+            )
+        }
+
+        // 5: provider/user/official aliases. Alias source and confidence are
+        // retained in aliasIDs; SafeMatcher applies their evidence ceiling.
         let kanaTitles = metadata.aliases(for: .title, kind: .kana)
         let kanaArtists = metadata.aliases(for: .artist, kind: .kana)
-        for kt in kanaTitles {
-            let ka = kanaArtists.first?.value ?? artist
-            add(.kanaTitleArtist, title: kt.value, artist: ka, aliasIDs: [kt.id])
+        for titleAlias in kanaTitles {
+            let artist = kanaArtists.first?.value ?? primaryArtist
+            let ids = [titleAlias.id] + (kanaArtists.first.map { [$0.id] } ?? [])
+            add(.kanaTitleArtist, kind: .kanaAlias, title: titleAlias.value, artist: artist, aliasIDs: ids)
         }
 
-        // 4 romaji
         let romajiTitles = metadata.aliases(for: .title, kind: .romaji)
         let romajiArtists = metadata.aliases(for: .artist, kind: .romaji)
-        if romajiTitles.isEmpty, let gen = JapaneseRomanizer.romanizeIfMostlyKana(title) {
-            add(.romajiTitleArtist, title: gen, artist: romajiArtists.first?.value ?? JapaneseRomanizer.romanizeIfMostlyKana(artist) ?? artist)
+        if romajiTitles.isEmpty,
+           let generatedTitle = JapaneseRomanizer.romanizeIfMostlyKana(originalTitle) {
+            let generatedArtist = romajiArtists.first?.value
+                ?? JapaneseRomanizer.romanizeIfMostlyKana(primaryArtist)
+                ?? primaryArtist
+            add(.romajiTitleArtist, kind: .romajiAlias, title: generatedTitle, artist: generatedArtist)
         } else {
-            for rt in romajiTitles {
-                let ra = romajiArtists.first?.value ?? JapaneseRomanizer.romanizeIfMostlyKana(artist) ?? artist
-                add(.romajiTitleArtist, title: rt.value, artist: ra, aliasIDs: [rt.id] + (romajiArtists.first.map { [$0.id] } ?? []))
+            for titleAlias in romajiTitles {
+                let artist = romajiArtists.first?.value
+                    ?? JapaneseRomanizer.romanizeIfMostlyKana(primaryArtist)
+                    ?? primaryArtist
+                let ids = [titleAlias.id] + (romajiArtists.first.map { [$0.id] } ?? [])
+                add(.romajiTitleArtist, kind: .romajiAlias, title: titleAlias.value, artist: artist, aliasIDs: ids)
             }
         }
 
-        // 5 official English
-        for en in metadata.aliases(for: .title, kind: .officialEnglish) where en.isOfficial || en.source == .spotifyMetadata {
-            add(.officialEnglish, title: en.value, artist: artist, aliasIDs: [en.id])
+        let officialEnglishTitles = metadata.aliases(for: .title, kind: .officialEnglish)
+            .filter { $0.isOfficial || $0.source == .spotifyMetadata }
+        for titleAlias in officialEnglishTitles {
+            add(
+                .officialEnglish,
+                kind: .officialEnglishAlias,
+                title: titleAlias.value,
+                artist: fullArtist,
+                aliasIDs: [titleAlias.id]
+            )
         }
 
-        // 6 other known aliases
         let knownKinds: [TrackAliasKind] = [.alternativeTitle, .localizedTitle, .providerAlias, .userAlias]
-        for alias in metadata.aliases where alias.field == .title && knownKinds.contains(alias.kind) {
-            add(.knownAliases, title: alias.value, artist: artist, aliasIDs: [alias.id])
+        for titleAlias in metadata.aliases
+            where titleAlias.field == .title && knownKinds.contains(titleAlias.kind) {
+            add(
+                .knownAliases,
+                kind: .confirmedAlias,
+                title: titleAlias.value,
+                artist: fullArtist,
+                aliasIDs: [titleAlias.id]
+            )
         }
 
-        // 7 title only loose
-        add(.titleOnlyLoose, title: title, artist: nil)
-        if let rt = romajiTitles.first {
-            add(.titleOnlyLoose, title: rt.value, artist: nil, aliasIDs: [rt.id])
-        } else if let gen = JapaneseRomanizer.romanizeIfMostlyKana(title) {
-            add(.titleOnlyLoose, title: gen, artist: nil)
+        // 6: only at the end may a version-stripped title be searched without
+        // an artist. This is deliberately marked loose so it cannot auto
+        // adopt a same-title Live/remix/cover result.
+        add(.titleOnlyLoose, kind: .titleOnlyLoose, title: originalTitle, artist: nil)
+        let baseTitle = TrackTextNormalizer.stripVersionMarkers(fromTitle: originalTitle)
+        add(.titleOnlyLoose, kind: .titleOnlyLoose, title: baseTitle, artist: nil)
+        if differsBeyondCaseAndWidth(originalTitle, normalizedTitle) {
+            add(.titleOnlyLoose, kind: .titleOnlyLoose, title: normalizedTitle, artist: nil)
+        }
+        if let firstRomaji = romajiTitles.first {
+            add(.titleOnlyLoose, kind: .titleOnlyLoose, title: firstRomaji.value, artist: nil, aliasIDs: [firstRomaji.id])
+        } else if let generated = JapaneseRomanizer.romanizeIfMostlyKana(originalTitle) {
+            add(.titleOnlyLoose, kind: .titleOnlyLoose, title: generated, artist: nil)
         }
 
-        // Ensure ranks unique increasing (already sequential)
-        return built.enumerated().map { idx, v in
+        return built.enumerated().map { index, variant in
             LyricsQueryVariant(
-                rank: idx + 1,
-                strategy: v.strategy,
-                titleQuery: v.titleQuery,
-                artistQuery: v.artistQuery,
-                aliasIDs: v.aliasIDs
+                rank: index + 1,
+                strategy: variant.strategy,
+                queryKind: variant.queryKind,
+                titleQuery: variant.titleQuery,
+                artistQuery: variant.artistQuery,
+                aliasIDs: variant.aliasIDs
             )
         }
     }

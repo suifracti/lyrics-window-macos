@@ -98,5 +98,10 @@ public enum VersionTag: String, Codable, Sendable, CaseIterable, Hashable {
     case demo
     case cover
     case reRecord
+    case remaster
+    case firstTake
+    case movieVersion
+    case animeVersion
+    case shortVersion
     case other
 }
