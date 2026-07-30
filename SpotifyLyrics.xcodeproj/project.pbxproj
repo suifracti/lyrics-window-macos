@@ -71,6 +71,8 @@
 		110000492D83400100000001 /* AudioPCMConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000492D83400100000000 /* AudioPCMConverter.swift */; };
 		1100004A2D83400100000001 /* LineForcedAligner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004A2D83400100000000 /* LineForcedAligner.swift */; };
 		1100004B2D83400100000001 /* SpeechForcedAlignmentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004B2D83400100000000 /* SpeechForcedAlignmentService.swift */; };
+		110000E02D83400100000001 /* TimedTranscript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000E02D83400100000000 /* TimedTranscript.swift */; };
+		110000E12D83400100000001 /* AudioInputMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000E12D83400100000000 /* AudioInputMetadata.swift */; };
 		1100004C2D83400100000001 /* LocalAlignedLyricsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */; };
 		1100004D2D83400100000001 /* JapaneseReadingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */; };
 		110000502D83400100000001 /* AppleMusicImmersiveV3WindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000502D83400100000000 /* AppleMusicImmersiveV3WindowView.swift */; };
@@ -108,6 +110,9 @@
 		110000702D83400100000001 /* LRCImportExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000702D83400100000000 /* LRCImportExport.swift */; };
 		110000712D83400100000001 /* TextLyricsImport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000712D83400100000000 /* TextLyricsImport.swift */; };
 		110000722D83400100000001 /* ManualLyricsActionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000722D83400100000000 /* ManualLyricsActionsView.swift */; };
+		110000E22D83400100000001 /* AlignmentProvenanceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000E22D83400100000000 /* AlignmentProvenanceStore.swift */; };
+		110000E32D83400100000001 /* AlignmentSessionGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000E32D83400100000000 /* AlignmentSessionGuard.swift */; };
+		110000E42D83400100000001 /* AlignmentPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000E42D83400100000000 /* AlignmentPreviewView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -177,6 +182,8 @@
 		110000492D83400100000000 /* AudioPCMConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPCMConverter.swift; sourceTree = "<group>"; };
 		1100004A2D83400100000000 /* LineForcedAligner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineForcedAligner.swift; sourceTree = "<group>"; };
 		1100004B2D83400100000000 /* SpeechForcedAlignmentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechForcedAlignmentService.swift; sourceTree = "<group>"; };
+		110000E02D83400100000000 /* TimedTranscript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimedTranscript.swift; sourceTree = "<group>"; };
+		110000E12D83400100000000 /* AudioInputMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioInputMetadata.swift; sourceTree = "<group>"; };
 		1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAlignedLyricsStore.swift; sourceTree = "<group>"; };
 		1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JapaneseReadingPipeline.swift; sourceTree = "<group>"; };
 		110000502D83400100000000 /* AppleMusicImmersiveV3WindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicImmersiveV3WindowView.swift; sourceTree = "<group>"; };
@@ -214,6 +221,9 @@
 		110000702D83400100000000 /* LRCImportExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LRCImportExport.swift; sourceTree = "<group>"; };
 		110000712D83400100000000 /* TextLyricsImport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextLyricsImport.swift; sourceTree = "<group>"; };
 		110000722D83400100000000 /* ManualLyricsActionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualLyricsActionsView.swift; sourceTree = "<group>"; };
+		110000E22D83400100000000 /* AlignmentProvenanceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlignmentProvenanceStore.swift; sourceTree = "<group>"; };
+		110000E32D83400100000000 /* AlignmentSessionGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlignmentSessionGuard.swift; sourceTree = "<group>"; };
+		110000E42D83400100000000 /* AlignmentPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlignmentPreviewView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -304,6 +314,7 @@
 		110000002D83400000000022 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				110000E42D83400100000000 /* AlignmentPreviewView.swift */,
 				110000082D83400100000000 /* LyricsCanvasView.swift */,
 				110000092D83400100000000 /* LyricLineView.swift */,
 				1100000A2D83400100000000 /* TrackHeaderView.swift */,
@@ -359,6 +370,9 @@
 				1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */,
 				1100004B2D83400100000000 /* SpeechForcedAlignmentService.swift */,
 				1100004A2D83400100000000 /* LineForcedAligner.swift */,
+				110000E02D83400100000000 /* TimedTranscript.swift */,
+				110000E12D83400100000000 /* AudioInputMetadata.swift */,
+				110000E32D83400100000000 /* AlignmentSessionGuard.swift */,
 				110000492D83400100000000 /* AudioPCMConverter.swift */,
 				110000482D83400100000000 /* AlignmentService.swift */,
 				110000472D83400100000000 /* AlignmentModels.swift */,
@@ -399,6 +413,7 @@
 		110000002D83400000000027 /* Persistence */ = {
 			isa = PBXGroup;
 			children = (
+				110000E22D83400100000000 /* AlignmentProvenanceStore.swift */,
 				110000522D83400100000000 /* DatabaseModels.swift */,
 				110000532D83400100000000 /* DatabaseMigrator.swift */,
 				110000542D83400100000000 /* LyricsRepository.swift */,
@@ -568,6 +583,8 @@
 				1100004C2D83400100000001 /* LocalAlignedLyricsStore.swift in Sources */,
 				1100004B2D83400100000001 /* SpeechForcedAlignmentService.swift in Sources */,
 				1100004A2D83400100000001 /* LineForcedAligner.swift in Sources */,
+				110000E02D83400100000001 /* TimedTranscript.swift in Sources */,
+				110000E12D83400100000001 /* AudioInputMetadata.swift in Sources */,
 				110000492D83400100000001 /* AudioPCMConverter.swift in Sources */,
 				110000482D83400100000001 /* AlignmentService.swift in Sources */,
 				110000472D83400100000001 /* AlignmentModels.swift in Sources */,
@@ -618,6 +635,9 @@
 				110000702D83400100000001 /* LRCImportExport.swift in Sources */,
 				110000712D83400100000001 /* TextLyricsImport.swift in Sources */,
 				110000722D83400100000001 /* ManualLyricsActionsView.swift in Sources */,
+				110000E22D83400100000001 /* AlignmentProvenanceStore.swift in Sources */,
+				110000E32D83400100000001 /* AlignmentSessionGuard.swift in Sources */,
+				110000E42D83400100000001 /* AlignmentPreviewView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

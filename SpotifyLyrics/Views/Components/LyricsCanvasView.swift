@@ -3,6 +3,7 @@ import SwiftUI
 struct LyricsCanvasView: View {
     @ObservedObject var state: PlaybackState
     @State private var lastScrolledLineIndex: Int?
+    @State private var isAlignmentDetailsPresented = false
 
     var body: some View {
         Group {
@@ -55,6 +56,8 @@ struct LyricsCanvasView: View {
                             Button("确认并保存") { state.confirmAlignmentPreview(saveLocal: true) }
                                 .buttonStyle(.borderedProminent)
                                 .tint(LyricsDesignTokens.accent)
+                            Button("逐行证据") { isAlignmentDetailsPresented = true }
+                                .buttonStyle(.bordered)
                             Button("放弃") { state.cancelAlignmentPreview() }
                                 .buttonStyle(.bordered)
                         }
@@ -104,6 +107,11 @@ struct LyricsCanvasView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .id(state.lyricsSessionRevision)
+        .sheet(isPresented: $isAlignmentDetailsPresented) {
+            if let report = state.lyricsState.alignmentReport {
+                AlignmentPreviewView(report: report)
+            }
+        }
     }
 
     private var retryButton: some View {

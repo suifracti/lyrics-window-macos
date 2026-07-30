@@ -1,5 +1,10 @@
 import Foundation
 
+public enum AlignmentProvenanceAvailability: String, Codable, Sendable, Equatable {
+    case available
+    case unavailable
+}
+
 public enum LyricsRepositoryError: Error, Equatable, Sendable, LocalizedError {
     case databaseOpenFailed(String)
     case migrationFailed(Int, String)
@@ -47,11 +52,49 @@ public struct StoredLyricsDocument: Equatable, Sendable {
     public let document: LyricsDocument
     public let versionID: UUID?
     public let sourceContentHash: String?
+    public let alignmentProvenanceAvailability: AlignmentProvenanceAvailability
 
-    public init(document: LyricsDocument, versionID: UUID?, sourceContentHash: String?) {
+    public init(
+        document: LyricsDocument,
+        versionID: UUID?,
+        sourceContentHash: String?,
+        alignmentProvenanceAvailability: AlignmentProvenanceAvailability = .unavailable
+    ) {
         self.document = document
         self.versionID = versionID
         self.sourceContentHash = sourceContentHash
+        self.alignmentProvenanceAvailability = alignmentProvenanceAvailability
+    }
+}
+
+/// A confirmed line-level alignment is a child of an existing plain-text
+/// LyricsVersion. The DTO keeps SQL and provenance details out of PlaybackState
+/// and SwiftUI.
+public struct AlignmentPersistenceRequest: Sendable {
+    public let track: Track
+    public let identity: TrackIdentity
+    public let parentVersionID: UUID
+    public let parentSourceContentHash: String
+    public let document: LyricsDocument
+    public let report: AlignmentReport
+    public let lockResult: Bool
+
+    public init(
+        track: Track,
+        identity: TrackIdentity,
+        parentVersionID: UUID,
+        parentSourceContentHash: String,
+        document: LyricsDocument,
+        report: AlignmentReport,
+        lockResult: Bool = false
+    ) {
+        self.track = track
+        self.identity = identity
+        self.parentVersionID = parentVersionID
+        self.parentSourceContentHash = parentSourceContentHash
+        self.document = document
+        self.report = report
+        self.lockResult = lockResult
     }
 }
 
@@ -93,11 +136,14 @@ public protocol LyricsRepository: Sendable {
     func saveTrackMetadata(_ metadata: TrackMetadata) async throws
     func loadBest(track: Track, identity: TrackIdentity) async throws -> LyricsDocument?
     func loadBestStored(track: Track, identity: TrackIdentity) async throws -> StoredLyricsDocument?
+    func alignmentProvenanceAvailability(versionID: UUID) async -> AlignmentProvenanceAvailability
     func save(
         track: Track,
         identity: TrackIdentity,
         document: LyricsDocument
     ) async throws -> LyricsPersistenceSaveResult
+    func saveAlignedVersion(_ request: AlignmentPersistenceRequest) async throws -> LyricsPersistenceSaveResult
+    func deleteLyricsVersion(versionID: UUID) async throws
     func markLocked(versionID: UUID, locked: Bool) async throws
     func statistics() async throws -> LyricsDatabaseStats
     func createBackup() async throws -> URL
@@ -105,12 +151,28 @@ public protocol LyricsRepository: Sendable {
 }
 
 public extension LyricsRepository {
+    func saveAlignedVersion(_ request: AlignmentPersistenceRequest) async throws -> LyricsPersistenceSaveResult {
+        _ = request
+        throw LyricsRepositoryError.unavailable("当前歌词仓库不支持自动排轴版本")
+    }
+
+    func alignmentProvenanceAvailability(versionID: UUID) async -> AlignmentProvenanceAvailability {
+        _ = versionID
+        return .unavailable
+    }
+
+    func deleteLyricsVersion(versionID: UUID) async throws {
+        _ = versionID
+        throw LyricsRepositoryError.unavailable("当前歌词仓库不支持删除歌词版本")
+    }
+
     func loadBestStored(track: Track, identity: TrackIdentity) async throws -> StoredLyricsDocument? {
         guard let document = try await loadBest(track: track, identity: identity) else { return nil }
         return StoredLyricsDocument(
             document: document,
             versionID: nil,
-            sourceContentHash: LyricsPersistenceMapper.sourceContentHash(document: document)
+            sourceContentHash: LyricsPersistenceMapper.sourceContentHash(document: document),
+            alignmentProvenanceAvailability: .unavailable
         )
     }
 

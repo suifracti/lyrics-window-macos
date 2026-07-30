@@ -13,6 +13,7 @@ struct AppleMusicImmersiveV3WindowView: View {
     // access to search, layout, and settings.
     @State private var toolsVisible = false
     @State private var interactionToken = 0
+    @State private var isAlignmentDetailsPresented = false
 
     private let wideBreakpoint: CGFloat = 1_080
     private let minimumWidth: CGFloat = 800
@@ -55,6 +56,11 @@ struct AppleMusicImmersiveV3WindowView: View {
         }
         .frame(minWidth: minimumWidth, minHeight: minimumHeight)
         .preferredColorScheme(.dark)
+        .sheet(isPresented: $isAlignmentDetailsPresented) {
+            if let report = state.lyricsState.alignmentReport {
+                AlignmentPreviewView(report: report)
+            }
+        }
     }
 
     @ViewBuilder
@@ -329,6 +335,7 @@ struct AppleMusicImmersiveV3WindowView: View {
         case .alignmentPreview:
             Divider()
             Text("歌词：排轴预览")
+            Button("查看逐行证据") { isAlignmentDetailsPresented = true }
             Button("确认并保存") { state.confirmAlignmentPreview(saveLocal: true) }
             Button("放弃排轴") { state.cancelAlignmentPreview() }
         case .loaded, .mockPreview:

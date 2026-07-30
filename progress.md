@@ -525,3 +525,18 @@
 - `SpeechForcedAlignmentService` 现在在语音识别前执行 `AlignmentDurationValidator`；失败时保留纯文本、回到 `alignmentQueued`，不保存或覆盖同步歌词。UI 会显示具体时长错误。
 - 用全新正常签名 DerivedData App 真实运行验证：QQ 仍返回 32 行，日志记录 `UI align failed ... 79.8 秒与 ... 171.2 秒不匹配`；`~/Music/SpotifyLyrics/Lyrics/Kawasaki.Rio - 水曜日の約束.aligned.lrc` 不存在；播放位置未被排轴改变。
 - 本阶段状态改为**部分完成/待真实音频**：没有对应完整本地音频，不再声称该曲已成功生成有效时间轴。
+
+## 2026-07-30 — Real Audio Line Alignment V1 planning
+- **Status:** plan ready; implementation paused for user confirmation
+- Audited current alignment target membership and runtime boundaries.
+- Identified unsafe average-timing fallback and historical TTS mismatch as blockers to real acceptance.
+- Wrote plan: `docs/superpowers/plans/2026-07-30-real-audio-line-alignment-v1.md`.
+- No SpotifyLyrics business source, Xcode project, database, or user audio was modified in this planning pass.
+
+## 2026-07-30 — Real Audio Line Alignment V1 implementation complete
+- **Status:** code/contracts/build acceptance passed; commercial real-song acceptance remains `UNVERIFIED` until a matching complete local vocal file is selected in the App.
+- Removed unsafe average timing and the automatic environment trigger. Boundary/unmatched rows fail closed; only bounded interpolation between real anchors is allowed.
+- Added timed transcript/Speech boundary, deterministic DP line alignment, audio metadata/hash/temporary PCM handling, cancellation, identity/revision/source-hash guards, SQLite v3 alignment children and atomic provenance sidecars.
+- Reused the existing editor and added restrained per-line evidence preview; low-confidence alignment cannot be locked automatically.
+- All 35 contract scripts passed; normal signed Debug build and codesign passed; exact process was launched from `/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app`.
+- No TTS, synthetic audio or commercial audio was used as real-song evidence. See `docs/superpowers/specs/acceptance-2026-07-30-real-audio-line-alignment-v1/README.md`.

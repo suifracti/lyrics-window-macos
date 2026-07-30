@@ -466,3 +466,21 @@ Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 ### Phase 38 Scope
 - 只做无歌词时的空白/纯文本创建、TXT/剪贴板导入和现有编辑器接线。
 - 不新增网络 Provider，不修改 SafeMatcher、AI HTTP 客户端、自动排轴、TTML、逐字歌词或主窗口视觉。
+
+## Phase 39: Real Audio Line Alignment V1 — complete (commercial-song acceptance pending)
+- [x] 创建实施检查点；确认本阶段不做 migration v4、不接入下载、不使用 TTS/平均铺轴作为成功回退
+- [x] 为边界未识别行加入红色安全合同，旧 spread/interpolation 实现按预期失败
+- [x] 删除 spreadLowConfidence 与首尾/全局平均铺轴，建立不完整报告失败边界
+- [x] 接入 TimedTranscriptProvider 与 Speech adapter
+- [x] 实现 DP 逐行对齐、evidence 与置信度
+- [x] 完成音频预检、hash、临时 PCM 生命周期和取消
+- [x] 完成 identity/revision/source hash/切歌保护
+- [x] 完成 SQLite v3 子版本和 AlignmentProvenance sidecar
+- [x] 复用编辑器完成预览、人工修正与低置信锁定限制
+- [x] 完成合同、回归、签名构建、codesign 与进程来源验证
+
+### Phase 39 Scope
+- 只实现已知歌词 + 用户选择本地完整音频的逐行自动排轴 V1。
+- 真实商业歌曲音频不是代码提交前置条件；没有匹配音频时最终验收状态为 `UNVERIFIED`。
+- 不实现逐字/音节时间轴、下载、Spotify 音频提取、新 Provider、QueryPlanner/SafeMatcher、AI、编辑器重构或 migration v4。
+- 代码、合同测试、构建和签名验收已通过；真实商业歌曲逐行排轴仍为 `UNVERIFIED`，等待用户在 App 中选择匹配的完整人声音频。

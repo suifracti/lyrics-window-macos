@@ -37,6 +37,7 @@ swiftc -parse-as-library \
   SpotifyLyrics/Persistence/DatabaseModels.swift \
   SpotifyLyrics/Persistence/DatabaseMigrator.swift \
   SpotifyLyrics/Persistence/LyricsRepository.swift \
+  SpotifyLyrics/Persistence/AlignmentProvenanceStore.swift \
   SpotifyLyrics/Persistence/LyricsPersistenceMapper.swift \
   SpotifyLyrics/Persistence/TranslationRepository.swift \
   SpotifyLyrics/Persistence/LyricsEditingRepository.swift \

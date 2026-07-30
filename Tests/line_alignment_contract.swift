@@ -34,8 +34,9 @@ struct LineAlignmentContract {
         precondition(aligned[0].originalText == lines[0].originalText)
         precondition(aligned.allSatisfy { $0.confidence > 0 })
 
-        // Unrecognized tail lines must receive distinct monotonic preview
-        // positions; collapsing them to one timestamp breaks line following.
+        // Unrecognized boundary lines must not receive fabricated positions.
+        // This intentionally fails against the legacy spread/interpolation
+        // implementation and is the red contract for the safety freeze.
         let tailLines = [
             LyricLine(timestamp: 0, originalText: "先頭", kanaText: "せんとう"),
             LyricLine(timestamp: 0, originalText: "途中", kanaText: "とちゅう"),
@@ -47,9 +48,10 @@ struct LineAlignmentContract {
             .init(surface: "とちゅう", norm: "とちゅう", start: 3, end: 4),
         ]
         let tailAligned = LineForcedAligner.align(lines: tailLines, tokens: tailTokens, audioDuration: 12)
-        precondition(tailAligned[2].startTime > tailAligned[1].startTime)
-        precondition(tailAligned[3].startTime > tailAligned[2].startTime)
-        precondition(tailAligned[3].startTime <= 12)
+        precondition(
+            tailAligned.contains { $0.startTime < 0 || $0.status == .unmatched },
+            "boundary-unmatched lines must remain unresolved; no average timing"
+        )
 
         // A leading unmatched run must never be scheduled before the first
         // timed recognition anchor. Doing so makes lyrics move before the
@@ -67,7 +69,10 @@ struct LineAlignmentContract {
             tokens: leadingTokens,
             audioDuration: 12
         )
-        precondition(leadingAligned[0].startTime >= 4)
+        precondition(
+            leadingAligned[0].startTime < 0 || leadingAligned[0].status == .unmatched,
+            "leading-unmatched lines must not be scheduled at the first anchor"
+        )
 
         // A short fixture must be rejected for a much longer live track;
         // otherwise its timestamps can appear before the real vocal onset

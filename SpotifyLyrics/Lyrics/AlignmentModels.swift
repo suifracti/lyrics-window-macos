@@ -7,6 +7,65 @@ public enum AlignmentLineStatus: String, Codable, Sendable, Equatable {
     case interpolated
 }
 
+public struct AlignmentParameters: Codable, Equatable, Sendable {
+    public let algorithmVersion: String
+    public let recognizerID: String
+    public let localeIdentifier: String
+    public let sampleRate: Int
+    public let channels: Int
+    public let maxWindowSegments: Int
+    public let minimumDirectScore: Double
+
+    public init(
+        algorithmVersion: String = "line-dp-v1",
+        recognizerID: String = "unknown",
+        localeIdentifier: String = "ja-JP",
+        sampleRate: Int = 16_000,
+        channels: Int = 1,
+        maxWindowSegments: Int = 8,
+        minimumDirectScore: Double = 0.42
+    ) {
+        self.algorithmVersion = algorithmVersion
+        self.recognizerID = recognizerID
+        self.localeIdentifier = localeIdentifier
+        self.sampleRate = sampleRate
+        self.channels = channels
+        self.maxWindowSegments = max(1, maxWindowSegments)
+        self.minimumDirectScore = min(1, max(0, minimumDirectScore))
+    }
+}
+
+public struct AlignmentLineEvidence: Codable, Equatable, Sendable {
+    public enum Kind: String, Codable, Sendable {
+        case directSpeech
+        case boundedInterpolation
+        case noEvidence
+    }
+
+    public let kind: Kind
+    public let segmentStartIndex: Int?
+    public let segmentEndIndex: Int?
+    public let transcriptConfidence: Double?
+    public let matchScore: Double
+    public let note: String
+
+    public init(
+        kind: Kind,
+        segmentStartIndex: Int? = nil,
+        segmentEndIndex: Int? = nil,
+        transcriptConfidence: Double? = nil,
+        matchScore: Double = 0,
+        note: String = ""
+    ) {
+        self.kind = kind
+        self.segmentStartIndex = segmentStartIndex
+        self.segmentEndIndex = segmentEndIndex
+        self.transcriptConfidence = transcriptConfidence
+        self.matchScore = matchScore
+        self.note = note
+    }
+}
+
 public struct AlignedLyricLine: Identifiable, Equatable, Sendable {
     public let id: UUID
     public let originalText: String
@@ -18,6 +77,7 @@ public struct AlignedLyricLine: Identifiable, Equatable, Sendable {
     public var endTime: TimeInterval?
     public var confidence: Double
     public var status: AlignmentLineStatus
+    public var evidence: AlignmentLineEvidence
 
     public init(
         id: UUID = UUID(),
@@ -29,7 +89,8 @@ public struct AlignedLyricLine: Identifiable, Equatable, Sendable {
         startTime: TimeInterval,
         endTime: TimeInterval? = nil,
         confidence: Double,
-        status: AlignmentLineStatus
+        status: AlignmentLineStatus,
+        evidence: AlignmentLineEvidence = AlignmentLineEvidence(kind: .noEvidence)
     ) {
         self.id = id
         self.originalText = originalText
@@ -41,6 +102,7 @@ public struct AlignedLyricLine: Identifiable, Equatable, Sendable {
         self.endTime = endTime
         self.confidence = confidence
         self.status = status
+        self.evidence = evidence
     }
 
     public func asLyricLine() -> LyricLine {
@@ -56,25 +118,58 @@ public struct AlignedLyricLine: Identifiable, Equatable, Sendable {
     }
 }
 
+public struct LineAlignmentResult: Equatable, Sendable {
+    public let lines: [AlignedLyricLine]
+    public let skippedTranscriptSegmentIndices: [Int]
+    public let unresolvedLineIndices: [Int]
+
+    public init(
+        lines: [AlignedLyricLine],
+        skippedTranscriptSegmentIndices: [Int] = [],
+        unresolvedLineIndices: [Int] = []
+    ) {
+        self.lines = lines
+        self.skippedTranscriptSegmentIndices = skippedTranscriptSegmentIndices
+        self.unresolvedLineIndices = unresolvedLineIndices
+    }
+
+    public var isComplete: Bool { unresolvedLineIndices.isEmpty }
+}
+
 public struct AlignmentRequest: Equatable, Sendable {
     public let identity: TrackIdentity
     public let track: Track
     public let plainLines: [LyricLine]
     public let audioURL: URL
     public let durationHint: TimeInterval?
+    public let sourceVersionID: UUID?
+    public let sourceContentHash: String?
+    public let sourceIsSynchronized: Bool
+    /// Files without embedded title/artist tags require an explicit user
+    /// continuation in the App's preflight sheet.  Direct service callers
+    /// default to fail-closed and must opt in deliberately.
+    public let allowMissingEmbeddedMetadata: Bool
 
     public init(
         identity: TrackIdentity,
         track: Track,
         plainLines: [LyricLine],
         audioURL: URL,
-        durationHint: TimeInterval? = nil
+        durationHint: TimeInterval? = nil,
+        sourceVersionID: UUID? = nil,
+        sourceContentHash: String? = nil,
+        sourceIsSynchronized: Bool = false,
+        allowMissingEmbeddedMetadata: Bool = false
     ) {
         self.identity = identity
         self.track = track
         self.plainLines = plainLines
         self.audioURL = audioURL
         self.durationHint = durationHint
+        self.sourceVersionID = sourceVersionID
+        self.sourceContentHash = sourceContentHash
+        self.sourceIsSynchronized = sourceIsSynchronized
+        self.allowMissingEmbeddedMetadata = allowMissingEmbeddedMetadata
     }
 }
 
@@ -116,6 +211,12 @@ public struct AlignmentReport: Equatable, Sendable {
     public let usedVocalsStem: Bool
     public let overallConfidence: Double
     public let createdAt: Date
+    public let sourceVersionID: UUID?
+    public let sourceContentHash: String?
+    public let parameters: AlignmentParameters
+    public let sampleRate: Int
+    public let channels: Int
+    public let reportEvidence: [AlignmentLineEvidence]
 
     public init(
         identity: TrackIdentity,
@@ -125,7 +226,13 @@ public struct AlignmentReport: Equatable, Sendable {
         modelID: String,
         usedVocalsStem: Bool,
         overallConfidence: Double,
-        createdAt: Date = Date()
+        createdAt: Date = Date(),
+        sourceVersionID: UUID? = nil,
+        sourceContentHash: String? = nil,
+        parameters: AlignmentParameters = AlignmentParameters(),
+        sampleRate: Int = 16_000,
+        channels: Int = 1,
+        reportEvidence: [AlignmentLineEvidence] = []
     ) {
         self.identity = identity
         self.lines = lines
@@ -135,6 +242,12 @@ public struct AlignmentReport: Equatable, Sendable {
         self.usedVocalsStem = usedVocalsStem
         self.overallConfidence = overallConfidence
         self.createdAt = createdAt
+        self.sourceVersionID = sourceVersionID
+        self.sourceContentHash = sourceContentHash
+        self.parameters = parameters
+        self.sampleRate = sampleRate
+        self.channels = channels
+        self.reportEvidence = reportEvidence
     }
 
     public var lowConfidenceCount: Int {
@@ -179,6 +292,7 @@ public enum AlignmentError: Error, Equatable, Sendable {
     case lockedResult
     case cancelled
     case failed(String)
+    case insufficientEvidence([Int])
 }
 
 extension AlignmentError: LocalizedError {
@@ -199,6 +313,8 @@ extension AlignmentError: LocalizedError {
         case .lockedResult: return "本地歌词已锁定，未覆盖现有结果"
         case .cancelled: return "自动排轴已取消"
         case .failed(let message): return message
+        case .insufficientEvidence(let indices):
+            return "识别证据不足，无法安全排轴（未解析行：\(indices.map(String.init).joined(separator: ", "))）"
         }
     }
 }

@@ -384,3 +384,21 @@
 - `AlignmentDurationValidator` allows only small edit/intro/outro differences; the leading unmatched interpolation rule also forbids scheduling a row before the first timed recognition anchor.
 - The duration-mismatch log and screenshot are in `docs/superpowers/specs/acceptance-2026-07-27-alignment-v1/`. A valid full-song alignment remains unverified until a matching 171-second local audio file is supplied.
 - Standalone contracts emit only Swift 6 Sendable warnings for existing test doubles and AVFoundation's non-Sendable buffer API; Xcode normal signed Debug build succeeded and `codesign --verify --deep --strict` passed with `Sign to Run Locally` / ad hoc signature.
+
+## 2026-07-30 — Real audio line alignment V1 plan audit
+
+- 基线为 `f5c0c9ba8ee26d1e5d9c6cc97aba711711652bd8`；当前工作区无业务源码未提交改动，已有参考目录/旧审计文档仍为未跟踪文件。
+- 现有 `AlignmentService`、`AudioPCMConverter`、`SpeechForcedAlignmentService`、`LineForcedAligner`、`LyricsSessionController`、`LocalAlignedLyricsStore` 已进入 App target 并接入主路径。
+- 现有 `LineForcedAligner.spreadLowConfidence` 会在无识别证据时平均铺开时间，和新阶段安全边界冲突；历史 `kawasaki_tts.wav` 时长不匹配，不能作为真实验收证据。
+- 当前 SQLite v3 已有 `parent_version_id`，但没有 alignment provenance 列；计划不执行 migration v4，改用独立 provenance sidecar，并在实现前向用户明确这个边界。
+- 真实商业歌曲逐行排轴仍未验收，必须等待用户提供与当前 TrackIdentity 对应的完整本地人声音频。
+
+## 2026-07-30 — Real Audio Line Alignment V1 implementation gate
+
+- 已实现并接入 `TimedTranscriptProvider`、Speech adapter、全局单调 DP 逐行对齐、逐行 evidence/confidence、音频 hash/预检/临时 PCM 生命周期和取消保护。
+- 已移除 `spreadLowConfidence`、自动环境触发和所有全局/首尾平均铺轴；无边界证据的行保持 unresolved，不写入时间轴。
+- 已使用 `AlignmentSessionGuard` 绑定 TrackIdentity、父版本、源内容 hash 和 revision；切歌、取消、迟到进度/结果不会写入新歌曲，也不改变播放位置。
+- SQLite 继续使用 v3；确认排轴建立 `automaticAlignment` 子版本，provenance 写入 `~/Library/Application Support/SpotifyLyrics/AlignmentProvenance/<lyricsVersionID>.json`，缺失 sidecar 显示 unavailable。
+- 所有 35 个合同脚本在正确解释器下通过；新增音频/DP/会话/持久化合同使用 TEST fixture，不代表商业歌曲验收。
+- 正常签名 Debug 构建、codesign 和绝对路径进程来源验证通过。详细记录见 `docs/superpowers/specs/acceptance-2026-07-30-real-audio-line-alignment-v1/README.md`。
+- **Code/contracts/build acceptance：PASS；real commercial-song acceptance：UNVERIFIED。**

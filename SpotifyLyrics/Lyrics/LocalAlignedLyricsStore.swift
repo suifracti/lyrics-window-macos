@@ -27,6 +27,7 @@ public enum LocalAlignedLyricsStore {
         report: AlignmentReport,
         manuallyCorrected: Bool = false,
         locked: Bool = false,
+        versionID: UUID? = nil,
         directory: URL? = nil
     ) throws -> URL {
         let dir = directory ?? defaultSaveDirectory()
@@ -36,7 +37,13 @@ public enum LocalAlignedLyricsStore {
         let artist = document.artist ?? "unknown"
         let safeTitle = sanitize(title)
         let safeArtist = sanitize(artist)
-        let fileURL = dir.appendingPathComponent("\(safeArtist) - \(safeTitle).aligned.lrc")
+        let suffix: String
+        if let versionID {
+            suffix = ".\(report.audioSHA256.prefix(12)).\(versionID.uuidString.prefix(8))"
+        } else {
+            suffix = ".aligned"
+        }
+        let fileURL = dir.appendingPathComponent("\(safeArtist) - \(safeTitle)\(suffix).lrc")
 
         guard !isLocked(fileURL: fileURL) else {
             throw LocalAlignedLyricsStoreError.locked(fileURL)
@@ -91,6 +98,12 @@ public extension LRCParser {
                 "# source=automaticAlignment",
                 "# model=\(report.modelID)",
                 "# audioSha256=\(report.audioSHA256)",
+                "# sourceVersionID=\(report.sourceVersionID?.uuidString ?? "")",
+                "# sourceContentHash=\(report.sourceContentHash ?? "")",
+                "# algorithmVersion=\(report.parameters.algorithmVersion)",
+                "# recognizerID=\(report.parameters.recognizerID)",
+                "# sampleRate=\(report.sampleRate)",
+                "# channels=\(report.channels)",
                 "# overallConfidence=\(String(format: "%.4f", report.overallConfidence))",
                 "# usedVocalsStem=\(report.usedVocalsStem)",
                 "# createdAt=\(ISO8601DateFormatter().string(from: report.createdAt))",
@@ -99,7 +112,7 @@ public extension LRCParser {
             ])
             for (idx, line) in report.lines.enumerated() {
                 lines.append(
-                    "# line\(idx)=status:\(line.status.rawValue);conf:\(String(format: "%.3f", line.confidence));end:\(line.endTime.map { String(format: "%.3f", $0) } ?? "-")"
+                    "# line\(idx)=status:\(line.status.rawValue);conf:\(String(format: "%.3f", line.confidence));evidence:\(line.evidence.kind.rawValue);segments:\(line.evidence.segmentStartIndex.map(String.init) ?? "-")-\(line.evidence.segmentEndIndex.map(String.init) ?? "-");end:\(line.endTime.map { String(format: "%.3f", $0) } ?? "-")"
                 )
             }
         } else {

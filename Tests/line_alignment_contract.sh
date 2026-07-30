@@ -13,6 +13,7 @@ swiftc -parse-as-library \
   SpotifyLyrics/Lyrics/JapaneseRomanizer.swift \
   SpotifyLyrics/Lyrics/JapaneseReadingPipeline.swift \
   SpotifyLyrics/Lyrics/JapaneseKanaGenerator.swift \
+  SpotifyLyrics/Lyrics/TimedTranscript.swift \
   SpotifyLyrics/Lyrics/LineForcedAligner.swift \
   "$TMP/main.swift" -o "$TMP/align"
 export SPOTIFYLYRICS_KANA_DICT="$ROOT_DIR/SpotifyLyrics/Resources/japanese_kanji_readings.json"

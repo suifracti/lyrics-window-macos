@@ -9,6 +9,7 @@ public final class LyricsSessionController: ObservableObject {
     @Published public private(set) var activeIdentity: TrackIdentity?
     @Published public private(set) var activeLyricsVersionID: UUID?
     @Published public private(set) var activeSourceContentHash: String?
+    @Published public private(set) var alignmentProvenanceAvailability: AlignmentProvenanceAvailability = .unavailable
     @Published public private(set) var revision: UInt64 = 0
     @Published public private(set) var persistenceStatusMessage: String?
 
@@ -71,6 +72,7 @@ public final class LyricsSessionController: ObservableObject {
         activeTrack = track
         activeLyricsVersionID = nil
         activeSourceContentHash = nil
+        alignmentProvenanceAvailability = .unavailable
         persistenceStatusMessage = nil
         lyrics = []
         isSynchronized = true
@@ -138,6 +140,7 @@ public final class LyricsSessionController: ObservableObject {
                 if let cachedReference {
                     self.activeLyricsVersionID = cachedReference.versionID
                     self.activeSourceContentHash = cachedReference.sourceContentHash
+                    self.alignmentProvenanceAvailability = cachedReference.alignmentProvenanceAvailability
                 }
                 return true
             }
@@ -186,6 +189,7 @@ public final class LyricsSessionController: ObservableObject {
         activeIdentity = identity
         activeLyricsVersionID = nil
         activeSourceContentHash = nil
+        alignmentProvenanceAvailability = .unavailable
         lyrics = []
         isSynchronized = true
         state = .loading(identity)
@@ -225,6 +229,7 @@ public final class LyricsSessionController: ObservableObject {
         activeIdentity = nil
         activeLyricsVersionID = nil
         activeSourceContentHash = nil
+        alignmentProvenanceAvailability = .unavailable
         activeTrack = nil
         automaticRecoveryRetryIdentity = nil
         lyrics = []
@@ -239,6 +244,7 @@ public final class LyricsSessionController: ObservableObject {
         activeIdentity = nil
         activeLyricsVersionID = nil
         activeSourceContentHash = nil
+        alignmentProvenanceAvailability = .unavailable
         activeTrack = nil
         automaticRecoveryRetryIdentity = nil
         lyrics = lines
@@ -302,6 +308,7 @@ public final class LyricsSessionController: ObservableObject {
         activeLyricsVersionID = versionID
         applyLoadedDocument(document, identity: document.identity)
         activeSourceContentHash = sourceContentHash
+        alignmentProvenanceAvailability = document.source == .automaticAlignment ? .available : .unavailable
         LyricsE2ELog.log("SESSION adopt persisted version=\(versionID.uuidString) source=\(document.source)")
     }
 
@@ -353,13 +360,11 @@ public final class LyricsSessionController: ObservableObject {
         timed: LyricsDocument,
         report: AlignmentReport,
         saveLocal: Bool
-    ) throws -> URL? {
-        guard activeIdentity == identity else { return nil }
+    ) async throws -> URL? {
+        guard activeIdentity == identity else { throw AlignmentError.identityMismatch }
+        guard case .alignmentPreview = state else { throw AlignmentError.failed("排轴预览已经失效") }
         cancelCurrentRequest()
-        revision &+= 1
-        var confirmed = timed
-        // Confirm as synchronized automatic alignment result.
-        confirmed = LyricsDocument(
+        let confirmed = LyricsDocument(
             identity: timed.identity,
             title: timed.title,
             artist: timed.artist,
@@ -371,13 +376,59 @@ public final class LyricsSessionController: ObservableObject {
             confidence: report.overallConfidence,
             providerSourceID: timed.providerSourceID
         )
+
+        guard let repository else {
+            throw LyricsRepositoryError.unavailable("排轴确认需要可用的 SQLite 歌词仓库")
+        }
+        guard let activeTrack else {
+            throw AlignmentError.identityMismatch
+        }
+        guard let parentVersionID = report.sourceVersionID ?? activeLyricsVersionID,
+              let parentSourceHash = report.sourceContentHash ?? activeSourceContentHash,
+              !parentSourceHash.isEmpty else {
+            throw LyricsRepositoryError.invalidData("排轴缺少父歌词版本或源内容指纹")
+        }
+
+        let saved = try await repository.saveAlignedVersion(
+            AlignmentPersistenceRequest(
+                track: activeTrack,
+                identity: identity,
+                parentVersionID: parentVersionID,
+                parentSourceContentHash: parentSourceHash,
+                document: confirmed,
+                report: report,
+                lockResult: false
+            )
+        )
+        guard let versionID = saved.versionID else {
+            throw LyricsRepositoryError.invalidData("排轴版本未写入：\(saved.disposition)")
+        }
+        switch saved.disposition {
+        case .inserted, .duplicate:
+            break
+        default:
+            throw LyricsRepositoryError.invalidData("排轴版本未写入：\(saved.disposition)")
+        }
+        let savedVersionID = versionID
+        let savedSourceHash = saved.sourceContentHash ?? LyricsPersistenceMapper.sourceContentHash(document: confirmed)
+        let savedProvenanceAvailability = await repository.alignmentProvenanceAvailability(versionID: savedVersionID)
+
+        guard activeIdentity == identity else { throw AlignmentError.identityMismatch }
+        revision &+= 1
+        activeLyricsVersionID = savedVersionID
+        activeSourceContentHash = savedSourceHash
+        alignmentProvenanceAvailability = savedProvenanceAvailability
         lyrics = confirmed.lines
         isSynchronized = true
         state = .loaded(confirmed)
-        LyricsE2ELog.log("SESSION alignment confirmed lines=\(confirmed.lines.count)")
-        persistAdoptedDocument(confirmed)
+        LyricsE2ELog.log("SESSION alignment confirmed lines=\(confirmed.lines.count) version=\(savedVersionID.uuidString)")
         guard saveLocal else { return nil }
-        return try LocalAlignedLyricsStore.save(document: confirmed, report: report, manuallyCorrected: false)
+        return try LocalAlignedLyricsStore.save(
+            document: confirmed,
+            report: report,
+            manuallyCorrected: false,
+            versionID: savedVersionID
+        )
     }
 
     private func applyLoadedDocument(_ document: LyricsDocument, identity: TrackIdentity) {

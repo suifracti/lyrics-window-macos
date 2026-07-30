@@ -9,6 +9,7 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
 
     private var database: OpaquePointer?
     private var prepared = false
+    private let alignmentProvenanceStore: AlignmentProvenanceStore
 
     private static let transientDestructor = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
@@ -25,8 +26,12 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
             .appendingPathComponent("Library/Application Support/SpotifyLyrics/SpotifyLyrics.sqlite3")
     }
 
-    public init(databaseURL: URL = SQLiteLyricsRepository.defaultDatabaseURL) {
+    public init(
+        databaseURL: URL = SQLiteLyricsRepository.defaultDatabaseURL,
+        alignmentProvenanceDirectory: URL = AlignmentProvenanceStore.defaultDirectory
+    ) {
         self.databaseURL = databaseURL
+        self.alignmentProvenanceStore = AlignmentProvenanceStore(directory: alignmentProvenanceDirectory)
     }
 
     deinit {
@@ -121,8 +126,15 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
             sourceContentHash: LyricsSourceContentHasher.hash(
                 isSynchronized: version.isSynced,
                 lines: lines
-            )
+            ),
+            alignmentProvenanceAvailability: version.source == DatabaseSourceIdentifier.identifier(for: .automaticAlignment)
+                ? alignmentProvenanceStore.availability(for: version.id)
+                : .unavailable
         )
+    }
+
+    public func alignmentProvenanceAvailability(versionID: UUID) async -> AlignmentProvenanceAvailability {
+        alignmentProvenanceStore.availability(for: versionID)
     }
 
     public func saveTrackMetadata(_ metadata: TrackMetadata) throws {
@@ -227,8 +239,155 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
         }
     }
 
+    public func saveAlignedVersion(_ request: AlignmentPersistenceRequest) async throws -> LyricsPersistenceSaveResult {
+        try ensurePrepared()
+        guard request.document.identity == request.identity,
+              request.report.identity == request.identity,
+              TrackIdentity(track: request.track) == request.identity else {
+            return LyricsPersistenceSaveResult(
+                versionID: nil,
+                disposition: .rejected("排轴身份与当前歌曲不一致")
+            )
+        }
+        guard request.document.isSynchronized else {
+            return LyricsPersistenceSaveResult(versionID: nil, disposition: .rejected("排轴结果必须包含有效时间轴"))
+        }
+        guard request.report.sourceVersionID == request.parentVersionID,
+              request.report.sourceContentHash == request.parentSourceContentHash,
+              !request.parentSourceContentHash.isEmpty else {
+            return LyricsPersistenceSaveResult(versionID: nil, disposition: .rejected("排轴来源版本指纹不一致"))
+        }
+        let hasUnresolvedReportLine = request.report.lines.contains {
+            $0.startTime < 0 || $0.evidence.kind == .noEvidence
+        }
+        guard request.report.lines.count == request.document.lines.count,
+              request.report.lines.count > 0,
+              !hasUnresolvedReportLine else {
+            return LyricsPersistenceSaveResult(versionID: nil, disposition: .rejected("排轴结果不完整，未写入"))
+        }
+        if request.lockResult, request.report.lowConfidenceCount > 0 {
+            return LyricsPersistenceSaveResult(versionID: nil, disposition: .rejected("低置信度排轴必须先人工修正，不能直接锁定"))
+        }
+
+        guard let parent = try fetchLyricsVersion(versionID: request.parentVersionID),
+              parent.trackStableKey == request.identity.stableKey,
+              !parent.isSynced else {
+            return LyricsPersistenceSaveResult(versionID: nil, disposition: .rejected("排轴父版本不存在或已经有时间轴"))
+        }
+        let parentLines = try fetchLines(versionID: request.parentVersionID)
+        guard !parentLines.isEmpty,
+              parentLines.count == request.document.lines.count else {
+            return LyricsPersistenceSaveResult(versionID: nil, disposition: .rejected("排轴父版本行集合不一致"))
+        }
+        let parentHash = LyricsSourceContentHasher.hash(isSynchronized: false, lines: parentLines)
+        guard parentHash == request.parentSourceContentHash else {
+            return LyricsPersistenceSaveResult(versionID: nil, disposition: .rejected("排轴父歌词内容已经变化"))
+        }
+
+        for index in request.document.lines.indices {
+            let source = parentLines[index]
+            let aligned = request.document.lines[index]
+            guard source.lineIndex == index,
+                  source.originalText == aligned.originalText,
+                  source.kanaText == aligned.kanaText,
+                  source.romajiText == aligned.romajiText,
+                  aligned.timestamp.isFinite,
+                  aligned.timestamp >= 0,
+                  aligned.timestamp <= request.report.audioDuration,
+                  aligned.endTime.map({ $0.isFinite && $0 >= aligned.timestamp && $0 <= request.report.audioDuration }) ?? true else {
+                return LyricsPersistenceSaveResult(versionID: nil, disposition: .rejected("排轴行内容或时间无效"))
+            }
+            if index > 0, aligned.timestamp < request.document.lines[index - 1].timestamp {
+                return LyricsPersistenceSaveResult(versionID: nil, disposition: .rejected("排轴时间必须单调不减"))
+            }
+        }
+
+        let now = Date()
+        let versionID = UUID()
+        let lines = LyricsPersistenceMapper.lineRecords(document: request.document, versionID: versionID)
+        let sourceContentHash = LyricsSourceContentHasher.hash(isSynchronized: true, lines: lines)
+        let providerSourceID = [
+            "alignment", request.report.modelID, request.report.parameters.algorithmVersion,
+            request.report.audioSHA256, request.parentSourceContentHash
+        ].joined(separator: ":")
+        let versionRecord = DatabaseLyricsVersionRecord(
+            id: versionID,
+            trackStableKey: request.identity.stableKey,
+            parentVersionID: request.parentVersionID,
+            source: DatabaseSourceIdentifier.identifier(for: .automaticAlignment),
+            providerSourceID: providerSourceID,
+            language: "und",
+            isSynced: true,
+            rawText: request.document.lines.map(\.originalText).joined(separator: "\n"),
+            contentHash: sourceContentHash,
+            createdAt: now,
+            updatedAt: now,
+            isMachineGenerated: true,
+            isManuallyEdited: true,
+            isLocked: request.lockResult,
+            confidence: request.report.overallConfidence
+        )
+        let trackRecord = LyricsPersistenceMapper.trackRecord(track: request.track, identity: request.identity, now: now)
+        let aliases = LyricsPersistenceMapper.aliasRecords(
+            track: request.track,
+            identity: request.identity,
+            document: request.document,
+            now: now
+        )
+
+        let disposition = try withTransaction {
+            try upsertTrack(trackRecord)
+            for alias in aliases { try insertAlias(alias) }
+            if let duplicate = try findVersionID(
+                stableKey: request.identity.stableKey,
+                source: versionRecord.source,
+                providerSourceID: versionRecord.providerSourceID,
+                contentHash: versionRecord.contentHash
+            ) {
+                return LyricsPersistenceSaveResult(
+                    versionID: duplicate,
+                    disposition: .duplicate,
+                    sourceContentHash: sourceContentHash
+                )
+            }
+            try insertVersion(versionRecord)
+            for line in lines { try insertLine(line) }
+            return LyricsPersistenceSaveResult(
+                versionID: versionID,
+                disposition: .inserted,
+                sourceContentHash: sourceContentHash
+            )
+        }
+
+        guard disposition.disposition == .inserted else { return disposition }
+        do {
+            _ = try alignmentProvenanceStore.write(
+                versionID: versionID,
+                parentVersionID: request.parentVersionID,
+                report: request.report
+            )
+        } catch {
+            try? deleteVersionRows(versionID: versionID)
+            try? alignmentProvenanceStore.remove(versionID: versionID)
+            throw LyricsRepositoryError.unavailable("排轴 provenance 保存失败：\(error.localizedDescription)")
+        }
+        return disposition
+    }
+
+    public func deleteLyricsVersion(versionID: UUID) async throws {
+        try ensurePrepared()
+        try withTransaction { try deleteVersionRows(versionID: versionID) }
+        try alignmentProvenanceStore.remove(versionID: versionID)
+    }
+
     public func markLocked(versionID: UUID, locked: Bool) throws {
         try ensurePrepared()
+        if locked,
+           let record = try fetchLyricsVersion(versionID: versionID),
+           record.source == DatabaseSourceIdentifier.identifier(for: .automaticAlignment),
+           !alignmentProvenanceStore.isLockable(versionID: versionID) {
+            throw LyricsRepositoryError.invalidData("排轴 provenance 不可用或存在低置信行，不能锁定")
+        }
         let statement = try prepare("UPDATE lyrics_versions SET is_locked = ?, updated_at = ? WHERE id = ?;")
         defer { sqlite3_finalize(statement) }
         try bindInt(locked ? 1 : 0, at: 1, to: statement)
@@ -327,9 +486,13 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
 
     public func clearLyricsCache() throws {
         try prepare()
+        let versionIDs = try fetchAllVersionIDs()
         try withTransaction {
             try execute("DELETE FROM lyric_lines;")
             try execute("DELETE FROM lyrics_versions;")
+        }
+        for versionID in versionIDs {
+            try? alignmentProvenanceStore.remove(versionID: versionID)
         }
     }
 
@@ -1191,6 +1354,30 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
         try stepDone(statement)
     }
 
+    private func deleteVersionRows(versionID: UUID) throws {
+        let statement = try prepare("DELETE FROM lyrics_versions WHERE id = ?;")
+        defer { sqlite3_finalize(statement) }
+        try bindText(versionID.uuidString, at: 1, to: statement)
+        try stepDone(statement)
+        guard sqlite3_changes(database) > 0 else {
+            throw LyricsRepositoryError.invalidData("找不到歌词版本 \(versionID.uuidString)")
+        }
+    }
+
+    private func fetchAllVersionIDs() throws -> [UUID] {
+        let statement = try prepare("SELECT id FROM lyrics_versions;")
+        defer { sqlite3_finalize(statement) }
+        var result: [UUID] = []
+        while sqlite3_step(statement) == SQLITE_ROW {
+            guard let text = columnText(statement, index: 0),
+                  let id = UUID(uuidString: text) else {
+                throw LyricsRepositoryError.invalidData("歌词版本 UUID 无效")
+            }
+            result.append(id)
+        }
+        return result
+    }
+
     private func findVersionID(
         stableKey: String,
         source: String,
@@ -1259,7 +1446,13 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
                    is_machine_generated, is_manually_edited, is_locked, confidence
             FROM lyrics_versions
             WHERE track_stable_key = ? AND (is_locked = 1 OR confidence >= ?)
-            ORDER BY is_locked DESC, confidence DESC, updated_at DESC
+            -- A confirmed alignment is a user-selected child version. Keep it
+            -- ahead of its plain-text parent after the lock decision, while
+            -- preserving the existing confidence filter for untrusted rows.
+            ORDER BY is_locked DESC,
+                     CASE WHEN source = 'automaticAlignment' THEN 1 ELSE 0 END DESC,
+                     updated_at DESC,
+                     confidence DESC
             LIMIT 1;
             """)
         defer { sqlite3_finalize(statement) }
