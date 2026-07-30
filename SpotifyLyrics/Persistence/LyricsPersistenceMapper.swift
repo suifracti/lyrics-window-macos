@@ -11,6 +11,7 @@ public enum DatabaseSourceIdentifier {
         case .asrMachineGenerated: return "asrMachineGenerated"
         case .automaticAlignment: return "automaticAlignment"
         case .manualImport: return "manualImport"
+        case .manualCreate: return "manualCreate"
         case .manualEdit: return "manualEdit"
         case .mock: return "mock"
         }
@@ -25,6 +26,7 @@ public enum DatabaseSourceIdentifier {
         case "asrMachineGenerated": return .asrMachineGenerated
         case "automaticAlignment": return .automaticAlignment
         case "manualImport": return .manualImport
+        case "manualCreate": return .manualCreate
         case "manualEdit": return .manualEdit
         default: return .local
         }

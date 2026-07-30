@@ -13,7 +13,15 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
     private static let transientDestructor = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
     public static var defaultDatabaseURL: URL {
-        FileManager.default.homeDirectoryForCurrentUser
+#if DEBUG
+        // Test-only isolation for signed Debug acceptance runs. Release builds
+        // always use the user Application Support database below.
+        if let override = ProcessInfo.processInfo.environment["SPOTIFYLYRICS_DATABASE_PATH"],
+           !override.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return URL(fileURLWithPath: override)
+        }
+#endif
+        return FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Library/Application Support/SpotifyLyrics/SpotifyLyrics.sqlite3")
     }
 
@@ -147,7 +155,10 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
                 disposition: .rejected("歌词身份与当前 TrackIdentity 不一致")
             )
         }
-        guard !document.lines.isEmpty else {
+        guard !document.lines.isEmpty,
+              document.lines.contains(where: {
+                  !$0.originalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+              }) else {
             return LyricsPersistenceSaveResult(versionID: nil, disposition: .rejected("空歌词不写入"))
         }
         guard document.source != .mock else {
@@ -497,17 +508,38 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
         guard request.document.identity == request.identity else {
             throw LyricsEditingRepositoryError.identityMismatch
         }
-        guard !request.document.lines.isEmpty else {
+        guard TrackIdentity(track: request.track) == request.identity else {
+            // The editor session normally catches a track change on the
+            // MainActor. Keep the repository boundary defensive as well so a
+            // stale request cannot attach A's text to B's metadata.
+            throw LyricsEditingRepositoryError.identityMismatch
+        }
+        guard !request.document.lines.isEmpty,
+              request.document.lines.contains(where: {
+                  !$0.originalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+              }) else {
             throw LyricsEditingRepositoryError.invalidDocument("不能保存空歌词")
         }
-        guard let sourceRecord = try fetchLyricsVersion(versionID: request.sourceVersionID),
-              sourceRecord.trackStableKey == request.identity.stableKey else {
-            throw LyricsEditingRepositoryError.sourceNotFound
+        guard !request.isNewSource || request.createLyricsVersion else {
+            throw LyricsEditingRepositoryError.invalidDocument("新的人工歌词必须创建独立版本")
         }
-        let sourceLines = try fetchLines(versionID: request.sourceVersionID)
-        let sourceHash = LyricsSourceContentHasher.hash(isSynchronized: sourceRecord.isSynced, lines: sourceLines)
-        guard sourceHash == request.sourceContentHash else {
-            throw LyricsEditingRepositoryError.sourceContentMismatch
+
+        let sourceLines: [DatabaseLyricLineRecord]
+        if request.isNewSource {
+            sourceLines = []
+        } else {
+            guard let existing = try fetchLyricsVersion(versionID: request.sourceVersionID),
+                  existing.trackStableKey == request.identity.stableKey else {
+                throw LyricsEditingRepositoryError.sourceNotFound
+            }
+            sourceLines = try fetchLines(versionID: request.sourceVersionID)
+            let sourceHash = LyricsSourceContentHasher.hash(
+                isSynchronized: existing.isSynced,
+                lines: sourceLines
+            )
+            guard sourceHash == request.sourceContentHash else {
+                throw LyricsEditingRepositoryError.sourceContentMismatch
+            }
         }
 
         let draftLines = request.document.lines.map {
@@ -550,15 +582,29 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
             LyricsPersistenceMapper.lineRecords(document: storageDocument, versionID: $0)
         } ?? sourceLines
         let targetHash = LyricsSourceContentHasher.hash(isSynchronized: timeline.isSynchronized, lines: targetRecords)
+        let trackRecord = LyricsPersistenceMapper.trackRecord(
+            track: request.track,
+            identity: request.identity,
+            now: now
+        )
+        let aliases = LyricsPersistenceMapper.aliasRecords(
+            track: request.track,
+            identity: request.identity,
+            document: request.document,
+            now: now
+        )
+        let parentVersionID = request.isNewSource ? nil : request.sourceVersionID
 
         guard let translation = request.translation else {
             try withTransaction {
+                try upsertTrack(trackRecord)
+                for alias in aliases { try insertAlias(alias) }
                 if let newLyricsID {
                     let record = try manualLyricsVersionRecord(
                         document: storageDocument,
                         identity: request.identity,
                         versionID: newLyricsID,
-                        parentVersionID: request.sourceVersionID,
+                        parentVersionID: parentVersionID,
                         source: request.targetSource,
                         now: now,
                         isLocked: request.lockLyricsVersion
@@ -611,12 +657,14 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
         )
 
         try withTransaction {
+            try upsertTrack(trackRecord)
+            for alias in aliases { try insertAlias(alias) }
             if let newLyricsID {
                 let record = try manualLyricsVersionRecord(
                     document: storageDocument,
                     identity: request.identity,
                     versionID: newLyricsID,
-                    parentVersionID: request.sourceVersionID,
+                    parentVersionID: parentVersionID,
                     source: request.targetSource,
                     now: now,
                     isLocked: request.lockLyricsVersion
@@ -655,7 +703,7 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
         document: LyricsDocument,
         identity: TrackIdentity,
         versionID: UUID,
-        parentVersionID: UUID,
+        parentVersionID: UUID?,
         source: LyricsSource,
         now: Date,
         isLocked: Bool
@@ -682,7 +730,7 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
             createdAt: now,
             updatedAt: now,
             isMachineGenerated: false,
-            isManuallyEdited: source == .manualEdit,
+            isManuallyEdited: source == .manualEdit || source == .manualImport || source == .manualCreate,
             isLocked: isLocked,
             confidence: 1
         )

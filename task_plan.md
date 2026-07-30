@@ -451,3 +451,18 @@ Phase 20 — Reference Audit and Switchable Main Layouts (in progress)
 ### Phase 37 Scope
 - 只修复日语显示模式、读音显示规范和旧主窗口歌词刷新；不新增 Provider、搜索、排轴或音频能力。
 - 沉浸分栏不作为本轮验收目标，保留现有实现，不继续做截图校准。
+
+## Phase 38: Blank Lyrics Creation and TXT Import V1 — completed (synthetic acceptance)
+- [x] 先写并观察 TXT 编码/换行/清理、空文件拒绝、无来源版本创建和切歌保护合同
+- [x] 实现 UTF-8/BOM/UTF-16、CRLF/LF/CR、纯文本粘贴和确定性提示清理
+- [x] 扩展现有 LyricsEditorSessionController 支持 manualCreate/manualImport 新版本草稿，不创建第二套编辑器
+- [x] 让 SQLite 在事务中创建 TrackRecord、人工 LyricsVersion、读音层和独立 TranslationVersion；空歌词不落库
+- [x] 将入口接入 noLyrics/noMatch/failed/candidates，保留 LRC 导入和现有 AI/编辑/锁定路径
+- [x] 以 TEST synthetic fixtures 完成 Forever / あやふや 的 App 导入、读音、锁定、重启恢复和切歌防串歌验收；未验证真实歌曲歌词正确性
+- [x] 正常签名 Debug 构建、codesign、合同测试和独立 commit
+
+> 验收说明：本阶段使用用户提供的 synthetic test lyrics A/B，不把它们描述为 Forever 或「あやふや」的真实歌词。真实歌词仍由用户未来自行导入。
+
+### Phase 38 Scope
+- 只做无歌词时的空白/纯文本创建、TXT/剪贴板导入和现有编辑器接线。
+- 不新增网络 Provider，不修改 SafeMatcher、AI HTTP 客户端、自动排轴、TTML、逐字歌词或主窗口视觉。

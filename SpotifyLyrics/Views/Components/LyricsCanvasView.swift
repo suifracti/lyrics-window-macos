@@ -71,6 +71,7 @@ struct LyricsCanvasView: View {
                             state.importLocalAudioForASR()
                         }
                         .buttonStyle(.bordered)
+                        ManualLyricsActionsView(state: state)
                     }
                 }
             case .noMatch:
@@ -85,11 +86,15 @@ struct LyricsCanvasView: View {
                             state.importLocalAudioForASR()
                         }
                         .buttonStyle(.bordered)
+                        ManualLyricsActionsView(state: state)
                     }
                 }
             case .failed(_, let failure):
                 statusView(icon: "exclamationmark.triangle", message: "自动补全失败", detail: failure.userFacingMessage) {
-                    retryButton
+                    VStack(spacing: 8) {
+                        retryButton
+                        ManualLyricsActionsView(state: state)
+                    }
                 }
             case .candidates(_, let candidates):
                 candidateList(candidates)
@@ -310,6 +315,8 @@ struct LyricsCanvasView: View {
                     }
                     .buttonStyle(.plain)
                 }
+                ManualLyricsActionsView(state: state)
+                    .frame(maxWidth: .infinity, alignment: .center)
             }
             .padding(.horizontal, LyricsDesignTokens.canvasHorizontalPadding)
             .padding(.vertical, LyricsDesignTokens.canvasVerticalPadding)

@@ -8,6 +8,7 @@ public enum LyricsSource: String, CaseIterable, Codable, Sendable {
     case asrMachineGenerated
     case automaticAlignment
     case manualImport
+    case manualCreate
     case manualEdit
     case mock
 
@@ -20,6 +21,7 @@ public enum LyricsSource: String, CaseIterable, Codable, Sendable {
         case .asrMachineGenerated: return "ASR 草稿（待校正）"
         case .automaticAlignment: return "自动排轴"
         case .manualImport: return "手动导入"
+        case .manualCreate: return "创建歌词"
         case .manualEdit: return "人工编辑"
         case .mock: return "Mock Preview"
         }

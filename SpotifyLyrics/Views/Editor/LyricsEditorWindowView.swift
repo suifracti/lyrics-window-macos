@@ -13,7 +13,9 @@ struct LyricsEditorWindowView: View {
         VStack(spacing: 0) {
             header
             Divider()
-            if let preview = editor.pendingImport {
+            if let preview = editor.pendingTextImport {
+                textImportPreview(preview)
+            } else if let preview = editor.pendingImport {
                 importPreview(preview)
             } else if let draft = editor.draft {
                 editorBody(draft)
@@ -42,6 +44,8 @@ struct LyricsEditorWindowView: View {
             Spacer()
             versionPicker
             translationPicker
+            Button("粘贴歌词", systemImage: "doc.on.clipboard") { pasteText() }
+            Button("导入 TXT", systemImage: "doc.text") { importTXT() }
             Button("导入 LRC", systemImage: "square.and.arrow.down") { importLRC() }
             Button("导出原文", systemImage: "square.and.arrow.up") { exportOriginal() }
             Button("导出翻译", systemImage: "text.badge.plus") { exportTranslation() }
@@ -324,6 +328,63 @@ struct LyricsEditorWindowView: View {
         }
         .padding(28)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    private func textImportPreview(_ preview: TextLyricsImportResult) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("纯文本歌词导入预览").font(.title2.weight(.semibold))
+            Text("行数：\(preview.lines.count) · 编码：\(preview.encoding.rawValue)")
+                .foregroundStyle(.secondary)
+            if preview.warnings.isEmpty {
+                Label("未发现需要特别确认的行。原始 TXT/剪贴板内容不会被修改。", systemImage: "checkmark.circle")
+                    .foregroundStyle(.green)
+            } else {
+                Label("发现 \(preview.warnings.count) 个提示；默认保留这些行，不会静默删除。", systemImage: "exclamationmark.triangle")
+                    .foregroundStyle(.orange)
+                Text(preview.warnings.prefix(8).map { "第 \($0.lineIndex + 1) 行：\($0.kind.rawValue)" }.joined(separator: "；"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            ScrollView {
+                Text(preview.lines.enumerated().map { "\($0.offset + 1). \($0.element)" }.joined(separator: "\n"))
+                    .font(.system(.body, design: .monospaced))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+                    .background(.quaternary.opacity(0.32))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+            HStack {
+                Button("取消") { editor.cancelImportPreview() }
+                Spacer()
+                Button("确认并载入编辑器") { editor.confirmTextImport() }
+                    .buttonStyle(.borderedProminent)
+            }
+        }
+        .padding(28)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    private func pasteText() {
+        guard let text = NSPasteboard.general.string(forType: .string) else {
+            editor.reportExportResult("剪贴板中没有文本")
+            return
+        }
+        editor.prepareTextImport(text, source: .manualCreate)
+    }
+
+    private func importTXT() {
+        let panel = NSOpenPanel()
+        panel.title = "导入纯文本歌词"
+        panel.message = "选择 TXT 文件；原文件不会被修改"
+        panel.allowedContentTypes = [UTType.plainText, UTType.text]
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            editor.prepareTextImport(data: try Data(contentsOf: url), source: .manualImport)
+        } catch {
+            editor.reportExportResult("TXT 读取失败：\(error.localizedDescription)")
+        }
     }
 
     private func importLRC() {

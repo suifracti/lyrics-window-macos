@@ -291,6 +291,19 @@ public final class PlaybackState: ObservableObject {
             lyricsSession.activeSourceContentHash != nil
     }
 
+    /// A no-body/no-match session still has a stable current TrackIdentity,
+    /// so the user can create a local source without pretending that a
+    /// Provider found lyrics.
+    public var canCreateManualLyrics: Bool {
+        guard hasLiveTrack, !isMockPreviewMode, lyricsSession.activeIdentity != nil else { return false }
+        switch lyricsSession.state {
+        case .noLyrics, .noMatch, .failed, .candidates:
+            return true
+        default:
+            return false
+        }
+    }
+
     public var lyricsEditor: LyricsEditorSessionController { lyricsEditorSession }
 
     public func prepareLyricsEditor() {
@@ -313,6 +326,107 @@ public final class PlaybackState: ObservableObject {
             selectedTranslation: translationSession.selectedVersion,
             configuration: settingsStore.aiTranslationConfiguration
         )
+    }
+
+    @discardableResult
+    public func prepareBlankLyricsEditor() -> Bool {
+        guard canCreateManualLyrics,
+              let identity = lyricsSession.activeIdentity else {
+            songSearchSelectionMessage = "当前歌曲仍有可用歌词版本，或尚未确认当前歌曲"
+            return false
+        }
+        let document = LyricsDocument(
+            identity: identity,
+            title: currentTrack.title,
+            artist: currentTrack.artist,
+            album: currentTrack.album,
+            duration: currentTrack.duration,
+            lines: [LyricLine(timestamp: 0, originalText: "")],
+            isSynchronized: false,
+            source: .manualCreate,
+            confidence: 1,
+            spotifyTrackID: identity.spotifyTrackID,
+            isrc: identity.isrc
+        )
+        lyricsEditorSession.beginNew(
+            track: currentTrack,
+            identity: identity,
+            document: document,
+            source: .manualCreate,
+            revision: lyricsSession.revision,
+            configuration: settingsStore.aiTranslationConfiguration
+        )
+        return true
+    }
+
+    @discardableResult
+    public func prepareManualLyricsFromClipboard() -> Bool {
+        guard let text = NSPasteboard.general.string(forType: .string),
+              !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              prepareBlankLyricsEditor() else {
+            songSearchSelectionMessage = "剪贴板中没有可导入的歌词文本"
+            return false
+        }
+        lyricsEditorSession.prepareTextImport(text, source: .manualCreate)
+        return lyricsEditorSession.pendingTextImport != nil
+    }
+
+    @discardableResult
+    public func prepareManualLyricsFromTXT() -> Bool {
+        guard canCreateManualLyrics else {
+            songSearchSelectionMessage = "当前歌曲还没有进入无歌词恢复状态"
+            return false
+        }
+        let panel = NSOpenPanel()
+        panel.title = "导入纯文本歌词"
+        panel.message = "选择 TXT 文件；原文件不会被修改"
+        panel.allowedContentTypes = [UTType.plainText, UTType.text]
+        panel.allowsMultipleSelection = false
+        guard panel.runModal() == .OK, let url = panel.url else { return false }
+        do {
+            let data = try Data(contentsOf: url)
+            guard prepareBlankLyricsEditor() else { return false }
+            lyricsEditorSession.prepareTextImport(data: data, source: .manualImport)
+            return lyricsEditorSession.pendingTextImport != nil
+        } catch {
+            songSearchSelectionMessage = "TXT 读取失败：\(error.localizedDescription)"
+            return false
+        }
+    }
+
+    /// Opens the existing LRC parser from the same no-source recovery entry
+    /// point.  The file is read into the editor preview only; the original
+    /// file is never copied, renamed, or modified here.
+    @discardableResult
+    public func prepareManualLyricsFromLRC() -> Bool {
+        guard canCreateManualLyrics else {
+            songSearchSelectionMessage = "当前歌曲还没有进入无歌词恢复状态"
+            return false
+        }
+        let panel = NSOpenPanel()
+        panel.title = "导入同步歌词"
+        panel.message = "选择 LRC 文件；原文件不会被修改"
+        panel.allowedContentTypes = [UTType(filenameExtension: "lrc") ?? .plainText]
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        guard panel.runModal() == .OK, let url = panel.url else { return false }
+        do {
+            let data = try Data(contentsOf: url)
+            let content = try Self.decodeTextFile(data)
+            guard prepareBlankLyricsEditor() else { return false }
+            lyricsEditorSession.prepareImport(content)
+            return lyricsEditorSession.pendingImport != nil
+        } catch {
+            songSearchSelectionMessage = "LRC 读取失败：\(error.localizedDescription)"
+            return false
+        }
+    }
+
+    private static func decodeTextFile(_ data: Data) throws -> String {
+        if let result = try? TextLyricsImportParser.parse(data) {
+            return result.normalizedText
+        }
+        throw TextLyricsImportError.unsupportedEncoding
     }
 
     private func applyLyricsEditorResult(_ result: LyricsEditSaveResult, identity: TrackIdentity) {

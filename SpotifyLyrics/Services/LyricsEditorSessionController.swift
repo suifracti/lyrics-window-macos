@@ -54,6 +54,7 @@ public final class LyricsEditorSessionController: ObservableObject {
     @Published public private(set) var selectedTranslation: StoredTranslationVersion?
     @Published public private(set) var validation = LyricsTimelineValidationResult(issues: [], isSynchronized: false)
     @Published public private(set) var pendingImport: LyricsEditorImportPreview?
+    @Published public private(set) var pendingTextImport: TextLyricsImportResult?
     @Published public private(set) var message: String?
     @Published public private(set) var isStale = false
 
@@ -68,6 +69,9 @@ public final class LyricsEditorSessionController: ObservableObject {
     private var identity: TrackIdentity?
     private var sourceVersionID: UUID?
     private var sourceContentHash: String?
+    private var isNewSourceSession = false
+    private var newSourceKind: LyricsSource = .manualCreate
+    private var pendingTextImportSource: LyricsSource = .manualCreate
     private var sourceRevision: UInt64 = 0
     private var translationConfiguration = AITranslationConfiguration()
     private var baseLyricsLines: [LyricsEditorLineDraft] = []
@@ -89,7 +93,7 @@ public final class LyricsEditorSessionController: ObservableObject {
     }
 
     public var hasUnsavedChanges: Bool {
-        draft?.isDirty == true || pendingImport != nil
+        draft?.isDirty == true || pendingImport != nil || pendingTextImport != nil
     }
 
     public var currentIdentity: TrackIdentity? { identity }
@@ -135,6 +139,10 @@ public final class LyricsEditorSessionController: ObservableObject {
         self.availableTranslations = translations
         self.selectedTranslation = selectedTranslation
         self.pendingImport = nil
+        self.pendingTextImport = nil
+        self.isNewSourceSession = false
+        self.newSourceKind = .manualCreate
+        self.pendingTextImportSource = .manualCreate
         self.message = nil
         self.isStale = false
 
@@ -189,11 +197,73 @@ public final class LyricsEditorSessionController: ObservableObject {
         }
     }
 
+    /// Starts a fresh manual/import session without inventing a provider
+    /// parent. The editor still uses the same draft, validation, save and
+    /// lock path as edits to an existing Provider version.
+    public func beginNew(
+        track: Track,
+        identity: TrackIdentity,
+        document: LyricsDocument,
+        source: LyricsSource,
+        revision: UInt64,
+        configuration: AITranslationConfiguration
+    ) {
+        generation &+= 1
+        loadTask?.cancel()
+        saveTask?.cancel()
+        self.track = track
+        self.identity = identity
+        let newSourceVersionID = UUID()
+        self.sourceVersionID = newSourceVersionID
+        self.sourceContentHash = LyricsPersistenceMapper.sourceContentHash(document: document)
+        self.sourceRevision = revision
+        self.translationConfiguration = configuration
+        self.availableVersions = []
+        self.availableTranslations = []
+        self.selectedTranslation = nil
+        self.pendingImport = nil
+        self.pendingTextImport = nil
+        self.message = nil
+        self.isStale = false
+        self.isNewSourceSession = true
+        self.newSourceKind = source
+        self.pendingTextImportSource = source
+
+        let enriched = LyricsDocument(
+            identity: document.identity,
+            title: document.title,
+            artist: document.artist,
+            album: document.album,
+            duration: document.duration,
+            lines: LyricsLayerEnricher.enrich(lines: document.lines),
+            isSynchronized: false,
+            source: source,
+            confidence: document.confidence,
+            providerSourceID: nil,
+            spotifyTrackID: identity.spotifyTrackID,
+            isrc: identity.isrc
+        )
+        let newDraft = LyricsEditorDraft(
+            document: enriched,
+            sourceVersionID: newSourceVersionID,
+            sourceContentHash: LyricsPersistenceMapper.sourceContentHash(document: enriched)
+        )
+        self.sourceContentHash = LyricsPersistenceMapper.sourceContentHash(document: enriched)
+        self.draft = newDraft
+        self.baseLyricsLines = newDraft.lines.map(Self.lyricsProjection)
+        self.baseTranslationLines = newDraft.lines.map(Self.translationText)
+        self.lockedReadingIDs = []
+        self.baseLockedReadingIDs = []
+        self.validation = LyricsTimelineValidator.validate(lines: newDraft.lines, duration: newDraft.duration)
+        self.state = .editing
+    }
+
     public func close() {
         generation &+= 1
         loadTask?.cancel()
         saveTask?.cancel()
         pendingImport = nil
+        pendingTextImport = nil
         draft = nil
         availableVersions = []
         availableTranslations = []
@@ -202,6 +272,9 @@ public final class LyricsEditorSessionController: ObservableObject {
         track = nil
         sourceVersionID = nil
         sourceContentHash = nil
+        isNewSourceSession = false
+        newSourceKind = .manualCreate
+        pendingTextImportSource = .manualCreate
         lockedReadingIDs = []
         baseLockedReadingIDs = []
         state = .idle
@@ -383,16 +456,20 @@ public final class LyricsEditorSessionController: ObservableObject {
     }
 
     public func prepareImport(_ content: String) {
-        guard let track, let identity, let sourceVersionID, let sourceContentHash else { return }
+        guard !isStale, isStillCurrent?() ?? true,
+              let track, let identity else {
+            message = "当前 Spotify 已切歌，请重新打开对应歌曲的编辑器"
+            state = .stale
+            return
+        }
         do {
             let result = try LRCImportParser.parse(content)
             let imported = result.document(identity: identity, track: track)
             let match = LRCImportMatcher.compare(metadata: result.metadata, track: track)
             pendingImport = LyricsEditorImportPreview(result: result, document: imported, match: match)
+            pendingTextImport = nil
             state = .importPreview
             message = match.isMismatchWarning ? "LRC 元数据与当前歌曲存在差异，请确认后再导入" : "LRC 与当前歌曲匹配"
-            _ = sourceVersionID
-            _ = sourceContentHash
         } catch {
             message = error.localizedDescription
             state = .failed(error.localizedDescription)
@@ -401,28 +478,92 @@ public final class LyricsEditorSessionController: ObservableObject {
 
     public func cancelImportPreview() {
         pendingImport = nil
+        pendingTextImport = nil
         state = isStale ? .stale : .editing
+    }
+
+    public func prepareTextImport(_ content: String, source: LyricsSource = .manualCreate) {
+        guard !isStale, isStillCurrent?() ?? true else {
+            message = "当前 Spotify 已切歌，请重新打开对应歌曲的编辑器"
+            state = .stale
+            return
+        }
+        do {
+            pendingTextImport = try TextLyricsImportParser.parse(content)
+            pendingTextImportSource = source
+            pendingImport = nil
+            state = .importPreview
+            let warningCount = pendingTextImport?.warnings.count ?? 0
+            message = warningCount == 0
+                ? "纯文本已标准化，请确认后创建人工歌词版本"
+                : "检测到 \(warningCount) 个需要确认的提示；文本不会被自动删除"
+        } catch {
+            message = error.localizedDescription
+            state = .failed(error.localizedDescription)
+        }
+    }
+
+    public func prepareTextImport(data: Data, source: LyricsSource = .manualImport) {
+        guard !isStale, isStillCurrent?() ?? true else {
+            message = "当前 Spotify 已切歌，请重新打开对应歌曲的编辑器"
+            state = .stale
+            return
+        }
+        do {
+            pendingTextImport = try TextLyricsImportParser.parse(data)
+            pendingTextImportSource = source
+            pendingImport = nil
+            state = .importPreview
+            let warningCount = pendingTextImport?.warnings.count ?? 0
+            message = warningCount == 0
+                ? "TXT 已标准化，请确认后创建人工歌词版本"
+                : "检测到 \(warningCount) 个需要确认的提示；文本不会被自动删除"
+        } catch {
+            message = error.localizedDescription
+            state = .failed(error.localizedDescription)
+        }
+    }
+
+    public func confirmTextImport() {
+        guard !isStale, isStillCurrent?() ?? true,
+              let result = pendingTextImport,
+              let track,
+              let identity else { return }
+        let document = result.document(identity: identity, track: track, source: pendingTextImportSource)
+        beginNew(
+            track: track,
+            identity: identity,
+            document: document,
+            source: pendingTextImportSource,
+            revision: sourceRevision,
+            configuration: translationConfiguration
+        )
+        message = "已载入 TXT 预览；保存后才会写入 SQLite"
     }
 
     public func confirmImport(lock: Bool = false) {
         guard let preview = pendingImport, let track, let identity,
-              let sourceVersionID, let sourceContentHash, let repository,
+              let repository,
               !isStale else { return }
         pendingImport = nil
         state = .saving
         let saveGeneration = generation
+        let requestSourceVersionID = sourceVersionID ?? UUID()
+        let requestSourceHash = sourceContentHash ?? ""
+        let requestIsNewSource = isNewSourceSession
         saveTask?.cancel()
         saveTask = Task { [weak self, repository] in
             do {
                 let request = LyricsEditSaveRequest(
                     track: track,
                     identity: identity,
-                    sourceVersionID: sourceVersionID,
-                    sourceContentHash: sourceContentHash,
+                    sourceVersionID: requestSourceVersionID,
+                    sourceContentHash: requestSourceHash,
                     document: preview.document,
                     createLyricsVersion: true,
                     lockLyricsVersion: lock,
-                    targetSource: .manualImport
+                    targetSource: .manualImport,
+                    isNewSource: requestIsNewSource
                 )
                 let result = try await repository.saveManualEdit(request)
                 guard !Task.isCancelled else { return }
@@ -442,7 +583,7 @@ public final class LyricsEditorSessionController: ObservableObject {
 
     public func save(lockLyrics: Bool = false, lockTranslation: Bool = false, forceCopy: Bool = false) {
         guard let draft, let track, let identity,
-              let sourceVersionID, let sourceContentHash, let repository else { return }
+              let repository else { return }
         guard !isStale, isStillCurrent?() ?? true else {
             isStale = true
             state = .stale
@@ -451,7 +592,7 @@ public final class LyricsEditorSessionController: ObservableObject {
         let currentLyrics = draft.lines.map(Self.lyricsProjection)
         let currentTranslations = draft.lines.map(Self.translationText)
         let readingsChanged = lockedReadingIDs != baseLockedReadingIDs
-        let lyricsChanged = forceCopy || currentLyrics != baseLyricsLines || readingsChanged
+        let lyricsChanged = isNewSourceSession || forceCopy || currentLyrics != baseLyricsLines || readingsChanged
         let translationsChanged = currentTranslations != baseTranslationLines
         let hasTranslationLayer = currentTranslations.contains { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
             || baseTranslationLines.contains { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
@@ -466,7 +607,10 @@ public final class LyricsEditorSessionController: ObservableObject {
         }
         guard validation.isSaveAllowed else { return }
 
-        let document = draft.document(source: .manualEdit, isSynchronized: validation.isSynchronized)
+        let document = draft.document(
+            source: isNewSourceSession ? newSourceKind : .manualEdit,
+            isSynchronized: validation.isSynchronized
+        )
         let translation = shouldSaveTranslation ? ManualTranslationEdit(
             targetLanguage: selectedTranslation?.record.targetLanguage ?? translationConfiguration.targetLanguage,
             model: selectedTranslation?.record.model ?? "",
@@ -490,17 +634,23 @@ public final class LyricsEditorSessionController: ObservableObject {
         state = .saving
         message = nil
         let saveGeneration = generation
+        let requestSourceVersionID = sourceVersionID ?? UUID()
+        let requestSourceHash = sourceContentHash ?? ""
+        let requestIsNewSource = isNewSourceSession
+        let requestTargetSource = isNewSourceSession ? newSourceKind : .manualEdit
         saveTask?.cancel()
         saveTask = Task { [weak self, repository] in
             do {
                 let request = LyricsEditSaveRequest(
                     track: track,
                     identity: identity,
-                    sourceVersionID: sourceVersionID,
-                    sourceContentHash: sourceContentHash,
+                    sourceVersionID: requestSourceVersionID,
+                    sourceContentHash: requestSourceHash,
                     document: document,
                     createLyricsVersion: lyricsChanged,
                     lockLyricsVersion: lockLyrics,
+                    targetSource: requestTargetSource,
+                    isNewSource: requestIsNewSource,
                     translation: translation,
                     readingLayers: readingLayers
                 )
@@ -526,6 +676,8 @@ public final class LyricsEditorSessionController: ObservableObject {
 
     private func applySaved(_ result: LyricsEditSaveResult, identity: TrackIdentity) {
         if let stored = result.lyricsVersion {
+            isNewSourceSession = false
+            newSourceKind = .manualEdit
             sourceVersionID = stored.record.id
             sourceContentHash = stored.record.contentHash
             // SQLite stores rows by lineIndex, not the editor-only UUID used by

@@ -72,6 +72,10 @@ public struct LyricsEditSaveRequest: Equatable, Sendable {
     public let createLyricsVersion: Bool
     public let lockLyricsVersion: Bool
     public let targetSource: LyricsSource
+    /// A fresh manual/import source has no provider version to compare against.
+    /// Existing editor saves keep this false and remain compare-and-save
+    /// operations against `sourceVersionID`.
+    public let isNewSource: Bool
     public let translation: ManualTranslationEdit?
     public let readingLayers: [LyricsReadingLayerDraft]
 
@@ -84,6 +88,7 @@ public struct LyricsEditSaveRequest: Equatable, Sendable {
         createLyricsVersion: Bool,
         lockLyricsVersion: Bool = false,
         targetSource: LyricsSource = .manualEdit,
+        isNewSource: Bool = false,
         translation: ManualTranslationEdit? = nil,
         readingLayers: [LyricsReadingLayerDraft] = []
     ) {
@@ -95,6 +100,7 @@ public struct LyricsEditSaveRequest: Equatable, Sendable {
         self.createLyricsVersion = createLyricsVersion
         self.lockLyricsVersion = lockLyricsVersion
         self.targetSource = targetSource
+        self.isNewSource = isNewSource
         self.translation = translation
         self.readingLayers = readingLayers
     }

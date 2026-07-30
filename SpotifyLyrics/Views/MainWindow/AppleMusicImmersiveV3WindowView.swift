@@ -496,6 +496,10 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
             Text(emptyDetail)
                 .font(.system(size: compact ? 13 : 15, design: .rounded))
                 .foregroundStyle(.white.opacity(0.58))
+            if state.canCreateManualLyrics {
+                ManualLyricsActionsView(state: state)
+                    .padding(.top, 8)
+            }
             Spacer()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
