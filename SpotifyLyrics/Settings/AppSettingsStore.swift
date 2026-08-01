@@ -36,6 +36,7 @@ public final class AppSettingsStore: ObservableObject {
     public enum Key {
         public static let settingsVersion = "settings.version"
         public static let mainWindowLayoutStyle = "mainWindowLayoutStyle"
+        public static let automaticCompactLyricsFocus = "general.automaticCompactLyricsFocus"
         public static let connectSpotifyOnLaunch = "general.connectSpotifyOnLaunch"
         public static let autoSearchLyricsOnTrackChange = "general.autoSearchLyricsOnTrackChange"
         public static let keepMainWindowOnTop = "general.keepMainWindowOnTop"
@@ -79,6 +80,10 @@ public final class AppSettingsStore: ObservableObject {
 
     @Published public var mainWindowLayoutStyleRawValue: String {
         didSet { defaults.set(mainWindowLayoutStyleRawValue, forKey: Key.mainWindowLayoutStyle) }
+    }
+
+    @Published public var automaticCompactLyricsFocus: Bool {
+        didSet { defaults.set(automaticCompactLyricsFocus, forKey: Key.automaticCompactLyricsFocus) }
     }
 
     @Published public var connectSpotifyOnLaunch: Bool {
@@ -159,6 +164,7 @@ public final class AppSettingsStore: ObservableObject {
         let layout = defaults.string(forKey: Key.mainWindowLayoutStyle)
             ?? MainWindowLayoutStyle.appleMusicImmersiveV3.rawValue
         mainWindowLayoutStyleRawValue = layout
+        automaticCompactLyricsFocus = defaults.object(forKey: Key.automaticCompactLyricsFocus) as? Bool ?? false
         connectSpotifyOnLaunch = defaults.object(forKey: Key.connectSpotifyOnLaunch) as? Bool ?? true
         autoSearchLyricsOnTrackChange = defaults.object(forKey: Key.autoSearchLyricsOnTrackChange) as? Bool ?? true
         // Keep the normal window behavior by default. Users can opt into

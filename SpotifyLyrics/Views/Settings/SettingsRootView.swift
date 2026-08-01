@@ -102,6 +102,10 @@ private struct GeneralSettingsView: View {
                 Text("沉浸分栏仅保留兼容入口，不作为推荐默认布局。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                Toggle("小窗口自动进入歌词专注", isOn: $settings.automaticCompactLyricsFocus)
+                Text("仅在 V3 主窗口达到保守的小窗口阈值时临时隐藏封面与次要信息；恢复窗口尺寸后自动返回原布局。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 Toggle("启动时恢复上次窗口状态", isOn: $settings.restoreWindowState)
                 Toggle("主窗口保持置顶", isOn: $settings.keepMainWindowOnTop)
             }

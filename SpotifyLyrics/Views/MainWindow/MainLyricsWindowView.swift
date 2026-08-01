@@ -29,8 +29,12 @@ struct MainLyricsWindowView: View {
             }
         }
         .frame(
-            minWidth: layoutStyle == .appleMusicImmersiveV3 ? 800 : LyricsDesignTokens.minimumMainWindowSize.width,
-            minHeight: layoutStyle == .appleMusicImmersiveV3 ? 600 : LyricsDesignTokens.minimumMainWindowSize.height
+            minWidth: layoutStyle == .appleMusicImmersiveV3
+                ? MainWindowResponsiveThresholds.minimumWidth
+                : LyricsDesignTokens.minimumMainWindowSize.width,
+            minHeight: layoutStyle == .appleMusicImmersiveV3
+                ? MainWindowResponsiveThresholds.minimumHeight
+                : LyricsDesignTokens.minimumMainWindowSize.height
         )
         .preferredColorScheme(.dark)
         .background(Color.clear)

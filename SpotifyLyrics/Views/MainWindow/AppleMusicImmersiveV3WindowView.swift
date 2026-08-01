@@ -1,11 +1,21 @@
 import SwiftUI
 
+enum MainWindowResponsiveThresholds {
+    static let minimumWidth: CGFloat = 800
+    static let minimumHeight: CGFloat = 600
+    static let wideBreakpoint: CGFloat = 1_080
+    static let compactLyricsFocusWidth: CGFloat = 900
+    static let compactLyricsFocusHeight: CGFloat = 640
+    static let toolbarRevealHeight: CGFloat = 96
+}
+
 /// Independent Apple Music-inspired main canvas. V2 and Lyrics Focus remain
 /// separate layouts; this view owns only the V3 canvas and its transient tools.
 struct AppleMusicImmersiveV3WindowView: View {
     @ObservedObject var state: PlaybackState
     @Binding var layoutStyleRawValue: String
     @Environment(\.openWindow) private var openWindow
+    @EnvironmentObject private var settings: AppSettingsStore
 
     @State private var isSearchPresented = false
     // The canvas starts clean. Controls reveal only when the pointer reaches
@@ -14,10 +24,6 @@ struct AppleMusicImmersiveV3WindowView: View {
     @State private var toolsVisible = false
     @State private var interactionToken = 0
     @State private var isAlignmentDetailsPresented = false
-
-    private let wideBreakpoint: CGFloat = 1_080
-    private let minimumWidth: CGFloat = 800
-    private let minimumHeight: CGFloat = 600
 
     var body: some View {
         GeometryReader { geometry in
@@ -39,7 +45,7 @@ struct AppleMusicImmersiveV3WindowView: View {
             .contentShape(Rectangle())
             .onContinuousHover(coordinateSpace: .local) { phase in
                 switch phase {
-                case .active(let location) where location.y <= 96:
+                case .active(let location) where location.y <= MainWindowResponsiveThresholds.toolbarRevealHeight:
                     revealTools()
                 case .active(_), .ended:
                     break
@@ -54,7 +60,10 @@ struct AppleMusicImmersiveV3WindowView: View {
                 }
             }
         }
-        .frame(minWidth: minimumWidth, minHeight: minimumHeight)
+        .frame(
+            minWidth: MainWindowResponsiveThresholds.minimumWidth,
+            minHeight: MainWindowResponsiveThresholds.minimumHeight
+        )
         .preferredColorScheme(.dark)
         .sheet(isPresented: $isAlignmentDetailsPresented) {
             if let report = state.liveLyricsState.alignmentReport {
@@ -65,12 +74,63 @@ struct AppleMusicImmersiveV3WindowView: View {
 
     @ViewBuilder
     private func layout(for geometry: GeometryProxy) -> some View {
-        if geometry.size.width >= wideBreakpoint {
+        if compactLyricsFocus(in: geometry) {
+            compactLyricsFocusLayout(in: geometry)
+        } else if geometry.size.width >= MainWindowResponsiveThresholds.wideBreakpoint {
             wideLayout(in: geometry)
-        } else if geometry.size.width >= minimumWidth {
+        } else if geometry.size.width >= MainWindowResponsiveThresholds.minimumWidth {
             compactSplitLayout(in: geometry)
         } else {
             stackedLayout(in: geometry)
+        }
+    }
+
+    private func isAutomaticCompactLyricsFocus(in geometry: GeometryProxy) -> Bool {
+        guard settings.automaticCompactLyricsFocus else { return false }
+        return geometry.size.width <= MainWindowResponsiveThresholds.compactLyricsFocusWidth
+            || geometry.size.height <= MainWindowResponsiveThresholds.compactLyricsFocusHeight
+    }
+
+    private func compactLyricsFocus(in geometry: GeometryProxy) -> Bool {
+        isAutomaticCompactLyricsFocus(in: geometry)
+    }
+
+    private func compactLyricsFocusLayout(in geometry: GeometryProxy) -> some View {
+        ZStack(alignment: .top) {
+            lyricsColumn(
+                width: max(1, geometry.size.width - 48),
+                compact: true
+            )
+            .padding(.horizontal, 24)
+            .padding(.vertical, 28)
+
+            VStack(spacing: 0) {
+                HStack(spacing: 8) {
+                    providerStatusMenu
+                    Spacer(minLength: 12)
+                    searchButton
+                    preferencesButton
+                }
+                .padding(.top, 18)
+                .padding(.horizontal, 24)
+
+                Spacer()
+
+                AppleMusicImmersiveV3TransportControls(
+                    state: state,
+                    alignment: .center
+                )
+                .padding(.horizontal, 24)
+                .padding(.bottom, 24)
+                .background {
+                    LinearGradient(
+                        colors: [Color.clear, Color.black.opacity(0.58)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .allowsHitTesting(false)
+                }
+            }
         }
     }
 
