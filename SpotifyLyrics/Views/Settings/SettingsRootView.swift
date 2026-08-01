@@ -107,6 +107,16 @@ private struct GeneralSettingsView: View {
             }
 
             Section("悬浮歌词") {
+                Picker("默认呈现", selection: $settings.floatingLyricsPresentationRawValue) {
+                    ForEach(FloatingLyricsPresentationVersion.allCases, id: \.rawValue) { version in
+                        Text(version.title).tag(version.rawValue)
+                    }
+                }
+                Picker("透明样式", selection: $settings.floatingLyricsSurfaceStyleRawValue) {
+                    ForEach(FloatingLyricsSurfaceStyle.allCases, id: \.rawValue) { style in
+                        Text(style.title).tag(style.rawValue)
+                    }
+                }
                 Toggle("悬浮歌词保持置顶", isOn: $settings.floatingWindowAlwaysOnTop)
                 Picker("默认交互状态", selection: floatingModeBinding) {
                     ForEach(FloatingLyricsInteractionMode.allCases, id: \.self) { mode in

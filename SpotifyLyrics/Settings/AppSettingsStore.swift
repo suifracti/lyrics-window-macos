@@ -47,6 +47,8 @@ public final class AppSettingsStore: ObservableObject {
         public static let floatingWindowInteractionMode = "general.floatingWindowInteractionMode"
         public static let floatingWindowWasVisible = "general.floatingWindowWasVisible"
         public static let floatingWindowOpacity = "general.floatingWindowOpacity"
+        public static let floatingLyricsPresentation = "general.floatingLyricsPresentation"
+        public static let floatingLyricsSurfaceStyle = "general.floatingLyricsSurfaceStyle"
         public static let capsuleWindowHorizontalOffset = "general.capsuleWindowHorizontalOffset"
         public static let capsuleWindowScreenID = "general.capsuleWindowScreenID"
         public static let capsuleWindowWasVisible = "general.capsuleWindowWasVisible"
@@ -111,6 +113,14 @@ public final class AppSettingsStore: ObservableObject {
         didSet { defaults.set(floatingWindowOpacity, forKey: Key.floatingWindowOpacity) }
     }
 
+    @Published public var floatingLyricsPresentationRawValue: String {
+        didSet { defaults.set(floatingLyricsPresentationRawValue, forKey: Key.floatingLyricsPresentation) }
+    }
+
+    @Published public var floatingLyricsSurfaceStyleRawValue: String {
+        didSet { defaults.set(floatingLyricsSurfaceStyleRawValue, forKey: Key.floatingLyricsSurfaceStyle) }
+    }
+
     /// Top-capsule state is intentionally internal persistence rather than a
     /// second user-facing settings store.  Only the horizontal offset and
     /// target display are restored; hover/expanded are transient.
@@ -162,6 +172,10 @@ public final class AppSettingsStore: ObservableObject {
             ?? "interactive"
         floatingWindowWasVisible = defaults.object(forKey: Key.floatingWindowWasVisible) as? Bool ?? false
         floatingWindowOpacity = defaults.object(forKey: Key.floatingWindowOpacity) as? Double ?? 0.96
+        floatingLyricsPresentationRawValue = defaults.string(forKey: Key.floatingLyricsPresentation)
+            ?? FloatingLyricsPresentationVersion.current.rawValue
+        floatingLyricsSurfaceStyleRawValue = defaults.string(forKey: Key.floatingLyricsSurfaceStyle)
+            ?? FloatingLyricsSurfaceStyle.ultraTransparent.rawValue
         capsuleWindowHorizontalOffset = defaults.object(forKey: Key.capsuleWindowHorizontalOffset) as? Double ?? 0
         capsuleWindowScreenID = defaults.string(forKey: Key.capsuleWindowScreenID)
         capsuleWindowWasVisible = defaults.object(forKey: Key.capsuleWindowWasVisible) as? Bool ?? false
@@ -181,6 +195,22 @@ public final class AppSettingsStore: ObservableObject {
     public var floatingWindowInteractionMode: FloatingLyricsInteractionMode {
         get { FloatingLyricsInteractionMode(rawValue: floatingWindowInteractionModeRawValue) ?? .interactive }
         set { floatingWindowInteractionModeRawValue = newValue.rawValue }
+    }
+
+    public var floatingLyricsPresentation: FloatingLyricsPresentationVersion {
+        get {
+            FloatingLyricsPresentationVersion(rawValue: floatingLyricsPresentationRawValue)
+                ?? .current
+        }
+        set { floatingLyricsPresentationRawValue = newValue.rawValue }
+    }
+
+    public var floatingLyricsSurfaceStyle: FloatingLyricsSurfaceStyle {
+        get {
+            FloatingLyricsSurfaceStyle(rawValue: floatingLyricsSurfaceStyleRawValue)
+                ?? .ultraTransparent
+        }
+        set { floatingLyricsSurfaceStyleRawValue = newValue.rawValue }
     }
 
     public var savedFloatingWindowFrame: String? {

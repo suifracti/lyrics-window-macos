@@ -130,6 +130,14 @@ final class FloatingLyricsWindowController: NSObject, ObservableObject, NSWindow
                 .receive(on: RunLoop.main)
                 .sink { [weak self] _ in self?.applyOpacity() }
                 .store(in: &settingsCancellables)
+            settings.$floatingLyricsPresentationRawValue
+                .receive(on: RunLoop.main)
+                .sink { [weak self] _ in self?.applyPresentation() }
+                .store(in: &settingsCancellables)
+            settings.$floatingLyricsSurfaceStyleRawValue
+                .receive(on: RunLoop.main)
+                .sink { [weak self] _ in self?.applyPresentation() }
+                .store(in: &settingsCancellables)
         }
     }
 
@@ -154,6 +162,7 @@ final class FloatingLyricsWindowController: NSObject, ObservableObject, NSWindow
         panel.maxSize = persistence.maximumSize
         panel.contentView = NSHostingView(
             rootView: FloatingLyricsView(state: state, windowController: self)
+                .environmentObject(settings)
         )
         applyWindowLevel(to: panel, settings: settings)
         panel.alphaValue = CGFloat(min(1, max(0.45, settings.floatingWindowOpacity)))
@@ -212,6 +221,14 @@ final class FloatingLyricsWindowController: NSObject, ObservableObject, NSWindow
     private func applyOpacity() {
         guard let panel, let settings else { return }
         panel.alphaValue = CGFloat(min(1, max(0.45, settings.floatingWindowOpacity)))
+    }
+
+    private func applyPresentation() {
+        // FloatingLyricsView observes the same settings object. The controller
+        // observes these values too so an existing panel invalidates its
+        // content immediately without changing any window state.
+        panel?.contentView?.needsLayout = true
+        panel?.contentView?.needsDisplay = true
     }
 
     private func saveFrame(_ panel: NSWindow) {

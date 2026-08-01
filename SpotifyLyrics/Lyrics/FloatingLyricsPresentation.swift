@@ -1,5 +1,38 @@
 import Foundation
 
+/// Stable identifiers for the two renderers that can be selected for the
+/// single retained floating lyrics panel.
+public enum FloatingLyricsPresentationVersion: String, CaseIterable, Codable, Sendable {
+    case legacyPanel = "floatingLyrics.legacyPanel.v1"
+    case transparentV2 = "floatingLyrics.transparent.v2"
+
+    public static let current: Self = .transparentV2
+    public static let archived: [Self] = [.legacyPanel]
+
+    public var id: String { rawValue }
+
+    public var title: String {
+        switch self {
+        case .legacyPanel: return "旧版卡片"
+        case .transparentV2: return "透明桌面歌词"
+        }
+    }
+}
+
+public enum FloatingLyricsSurfaceStyle: String, CaseIterable, Codable, Sendable {
+    case ultraTransparent
+    case lightMaterial
+
+    public var id: String { rawValue }
+
+    public var title: String {
+        switch self {
+        case .ultraTransparent: return "超透明"
+        case .lightMaterial: return "浅色材质"
+        }
+    }
+}
+
 /// Pure presentation helpers shared by the floating view and its contract
 /// tests. This layer contains no playback clock and never mutates lyrics.
 public struct FloatingLyricsSelection: Equatable, Sendable {

@@ -6,16 +6,20 @@ import SwiftUI
 struct FloatingLyricsView: View {
     @ObservedObject var state: PlaybackState
     @ObservedObject var windowController: FloatingLyricsWindowController
+    @EnvironmentObject private var settings: AppSettingsStore
+
+    private var presentationVersion: FloatingLyricsPresentationVersion {
+        settings.floatingLyricsPresentation
+    }
+
+    private var presentationStyle: FloatingLyricsSurfaceStyle {
+        settings.floatingLyricsSurfaceStyle
+    }
 
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .topTrailing) {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(.ultraThinMaterial)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(Color.white.opacity(0.14), lineWidth: 1)
-                    }
+                surfaceBackground
 
                 content(in: geometry)
 
@@ -24,6 +28,28 @@ struct FloatingLyricsView: View {
                         Text("悬浮歌词")
                             .font(.system(size: 10, weight: .medium, design: .rounded))
                             .foregroundStyle(.secondary)
+                        Button {
+                            windowController.setInteractionMode(.locked)
+                        } label: {
+                            Image(systemName: "lock")
+                                .font(.system(size: 10, weight: .semibold))
+                                .frame(width: 22, height: 22)
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.secondary)
+                        .help("锁定悬浮歌词")
+                        .accessibilityLabel("锁定悬浮歌词")
+                        Button {
+                            windowController.setInteractionMode(.passThrough)
+                        } label: {
+                            Image(systemName: "cursorarrow.slash")
+                                .font(.system(size: 10, weight: .semibold))
+                                .frame(width: 22, height: 22)
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.secondary)
+                        .help("启用鼠标穿透")
+                        .accessibilityLabel("启用鼠标穿透")
                         Button {
                             windowController.close()
                         } label: {
@@ -45,6 +71,36 @@ struct FloatingLyricsView: View {
         .preferredColorScheme(.dark)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("悬浮歌词")
+    }
+
+    @ViewBuilder
+    private var surfaceBackground: some View {
+        switch presentationVersion {
+        case .legacyPanel:
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(Color.white.opacity(0.14), lineWidth: 1)
+                }
+        case .transparentV2:
+            switch presentationStyle {
+            case .ultraTransparent:
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.clear)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                    }
+            case .lightMaterial:
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(.regularMaterial.opacity(0.66))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                    }
+            }
+        }
     }
 
     @ViewBuilder
