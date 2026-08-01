@@ -7,6 +7,7 @@ struct FloatingLyricsView: View {
     @ObservedObject var state: PlaybackState
     @ObservedObject var windowController: FloatingLyricsWindowController
     @EnvironmentObject private var settings: AppSettingsStore
+    @State private var isHovering = false
 
     private var presentationVersion: FloatingLyricsPresentationVersion {
         settings.floatingLyricsPresentation
@@ -23,7 +24,7 @@ struct FloatingLyricsView: View {
 
                 content(in: geometry)
 
-                if windowController.interactionMode == .interactive {
+                if windowController.interactionMode == .interactive, isHovering {
                     HStack(spacing: 5) {
                         Text("悬浮歌词")
                             .font(.system(size: 10, weight: .medium, design: .rounded))
@@ -67,6 +68,11 @@ struct FloatingLyricsView: View {
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        }
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.15)) {
+                isHovering = hovering
+            }
         }
         .preferredColorScheme(.dark)
         .accessibilityElement(children: .contain)
