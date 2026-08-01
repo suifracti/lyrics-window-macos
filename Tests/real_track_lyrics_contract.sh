@@ -252,6 +252,7 @@ PLAYBACK_SOURCES=(
   "$ROOT_DIR/SpotifyLyrics/Persistence/SQLiteLyricsRepository.swift"
   "$ROOT_DIR/SpotifyLyrics/Settings/LyricsProviderConfiguration.swift"
   "$ROOT_DIR/SpotifyLyrics/Settings/AppSettingsStore.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/FloatingLyricsPresentation.swift"
   "$ROOT_DIR/SpotifyLyrics/Settings/WindowStatePersistence.swift"
   "$ROOT_DIR/SpotifyLyrics/Design/MainWindowLayoutStyle.swift"
   "$ROOT_DIR/SpotifyLyrics/Providers/PlaybackProvider.swift"

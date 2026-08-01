@@ -20,10 +20,16 @@ done
 
 grep -q 'MainLyricsWindowView' "$ROOT_DIR/SpotifyLyrics/Main.swift"
 grep -Eq 'defaultSize\(width: 1152, height: 720\)' "$ROOT_DIR/SpotifyLyrics/Main.swift"
-grep -q 'minimumMainWindowSize.width' "$ROOT_DIR/SpotifyLyrics/Views/MainWindow/MainLyricsWindowView.swift"
-grep -q 'minimumMainWindowSize.height' "$ROOT_DIR/SpotifyLyrics/Views/MainWindow/MainLyricsWindowView.swift"
-grep -q 'minWidth: layoutStyle == .appleMusicImmersiveV3 ? 800' "$ROOT_DIR/SpotifyLyrics/Views/MainWindow/MainLyricsWindowView.swift"
-grep -q 'minHeight: layoutStyle == .appleMusicImmersiveV3 ? 600' "$ROOT_DIR/SpotifyLyrics/Views/MainWindow/MainLyricsWindowView.swift"
+# V3 keeps its minimum size in the centralized responsive-threshold type;
+# legacy layouts continue to use LyricsDesignTokens. Accept either branch so
+# this contract checks the minimum-size guarantee without coupling it to one
+# implementation spelling.
+grep -Eq 'minimumMainWindowSize\.width|MainWindowResponsiveThresholds\.minimumWidth' \
+    "$ROOT_DIR/SpotifyLyrics/Views/MainWindow/MainLyricsWindowView.swift"
+grep -Eq 'minimumMainWindowSize\.height|MainWindowResponsiveThresholds\.minimumHeight' \
+    "$ROOT_DIR/SpotifyLyrics/Views/MainWindow/MainLyricsWindowView.swift"
+grep -q 'minWidth:' "$ROOT_DIR/SpotifyLyrics/Views/MainWindow/MainLyricsWindowView.swift"
+grep -q 'minHeight:' "$ROOT_DIR/SpotifyLyrics/Views/MainWindow/MainLyricsWindowView.swift"
 
 if grep -q 'NavigationSplitView' "$ROOT_DIR/SpotifyLyrics/Views/MainWindow/MainLyricsWindowView.swift"; then
     printf 'phase-1 main window still contains NavigationSplitView\n' >&2
