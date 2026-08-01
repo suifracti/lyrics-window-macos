@@ -1,12 +1,14 @@
 import AppKit
 
-/// Internal-only comparison anchors for design-review builds. Release
-/// positioning is resolved to `.topCenter` and no user preference is added.
+#if DEBUG
+/// Internal-only comparison anchors for design-review builds. This type and
+/// its non-center cases are not compiled into Release.
 enum CapsuleDebugAnchor: String, CaseIterable {
     case topLeft
     case topCenter
     case topRight
 }
+#endif
 
 /// Top-safe-area positioning for the capsule.  Unlike the floating lyrics
 /// window this stores no arbitrary frame: the three presentation sizes are
@@ -51,16 +53,35 @@ final class CapsuleLyricsWindowPersistence {
     func frame(
         for state: CapsulePresentationState,
         screen: NSScreen,
-        horizontalOffset: CGFloat,
-        debugAnchor: CapsuleDebugAnchor = .topCenter
+        horizontalOffset: CGFloat
     ) -> NSRect {
         let visible = screen.visibleFrame
         let requested = size(for: state)
         let width = min(requested.width, max(1, visible.width))
         let height = min(requested.height, max(1, visible.height))
-        let resolvedAnchor = resolvedAnchor(debugAnchor)
+        let x = visible.midX - width / 2 + horizontalOffset
+        return makeTopFrame(
+            x: x,
+            height: height,
+            width: width,
+            visible: visible,
+            topSafeInset: topSafeInset(for: screen)
+        )
+    }
+
+#if DEBUG
+    func frame(
+        for state: CapsulePresentationState,
+        screen: NSScreen,
+        horizontalOffset: CGFloat,
+        debugAnchor: CapsuleDebugAnchor
+    ) -> NSRect {
+        let visible = screen.visibleFrame
+        let requested = size(for: state)
+        let width = min(requested.width, max(1, visible.width))
+        let height = min(requested.height, max(1, visible.height))
         let x: CGFloat
-        switch resolvedAnchor {
+        switch debugAnchor {
         case .topLeft:
             x = visible.minX + horizontalOffset
         case .topCenter:
@@ -68,15 +89,20 @@ final class CapsuleLyricsWindowPersistence {
         case .topRight:
             x = visible.maxX - width - horizontalOffset
         }
-        let y = visible.maxY - height - topInset
-        return clampTopFrame(NSRect(x: x, y: y, width: width, height: height), to: visible)
+        return makeTopFrame(
+            x: x,
+            height: height,
+            width: width,
+            visible: visible,
+            topSafeInset: topSafeInset(for: screen)
+        )
     }
+#endif
 
     func restoreFrame(
         for state: CapsulePresentationState,
         settings: AppSettingsStore,
-        mainWindow: NSWindow?,
-        debugAnchor: CapsuleDebugAnchor = .topCenter
+        mainWindow: NSWindow?
     ) -> NSRect {
         // A live main-window screen always wins.  The saved screen ID is used
         // only while the SwiftUI main window has not attached yet, followed by
@@ -91,17 +117,50 @@ final class CapsuleLyricsWindowPersistence {
         return frame(
             for: state,
             screen: screen,
+            horizontalOffset: CGFloat(settings.capsuleWindowHorizontalOffset)
+        )
+    }
+
+#if DEBUG
+    func restoreFrame(
+        for state: CapsulePresentationState,
+        settings: AppSettingsStore,
+        mainWindow: NSWindow?,
+        debugAnchor: CapsuleDebugAnchor
+    ) -> NSRect {
+        let screen = mainWindow?.screen
+            ?? screen(for: settings.capsuleWindowScreenID)
+            ?? NSScreen.main
+            ?? NSScreen.screens.first
+        guard let screen else {
+            return NSRect(origin: .zero, size: size(for: state))
+        }
+        return frame(
+            for: state,
+            screen: screen,
             horizontalOffset: CGFloat(settings.capsuleWindowHorizontalOffset),
             debugAnchor: debugAnchor
         )
     }
-
-    private func resolvedAnchor(_ requestedAnchor: CapsuleDebugAnchor) -> CapsuleDebugAnchor {
-#if DEBUG
-        return requestedAnchor
-#else
-        return .topCenter
 #endif
+
+    private func topSafeInset(for screen: NSScreen) -> CGFloat {
+        max(topInset, screen.safeAreaInsets.top)
+    }
+
+    private func makeTopFrame(
+        x: CGFloat,
+        height: CGFloat,
+        width: CGFloat,
+        visible: NSRect,
+        topSafeInset: CGFloat
+    ) -> NSRect {
+        let y = visible.maxY - height - topSafeInset
+        return clampTopFrame(
+            NSRect(x: x, y: y, width: width, height: height),
+            to: visible,
+            topInset: topSafeInset
+        )
     }
 
     func horizontalOffset(for frame: NSRect, screen: NSScreen) -> CGFloat {
@@ -109,6 +168,18 @@ final class CapsuleLyricsWindowPersistence {
     }
 
     func clampTopFrame(_ frame: NSRect, to visible: NSRect) -> NSRect {
+        clampTopFrame(frame, to: visible, topInset: topInset)
+    }
+
+    func clampTopFrame(_ frame: NSRect, screen: NSScreen) -> NSRect {
+        clampTopFrame(
+            frame,
+            to: screen.visibleFrame,
+            topInset: topSafeInset(for: screen)
+        )
+    }
+
+    private func clampTopFrame(_ frame: NSRect, to visible: NSRect, topInset: CGFloat) -> NSRect {
         guard visible.width > 0, visible.height > 0 else { return frame }
         let width = min(max(1, frame.width), visible.width)
         let height = min(max(1, frame.height), visible.height)

@@ -27,8 +27,6 @@ final class CapsuleLyricsWindowController: NSObject, ObservableObject, NSWindowD
     private var isApplyingFrame = false
 #if DEBUG
     private var debugAnchor: CapsuleDebugAnchor = .topCenter
-#else
-    private let debugAnchor: CapsuleDebugAnchor = .topCenter
 #endif
 
     override init() {
@@ -169,11 +167,9 @@ final class CapsuleLyricsWindowController: NSObject, ObservableObject, NSWindowD
     }
 
     private func makePanel(state: PlaybackState) -> CapsuleLyricsPanel {
-        let frame = persistence.restoreFrame(
+        let frame = restoredFrame(
             for: .collapsed,
-            settings: settings ?? AppSettingsStore.shared,
-            mainWindow: WindowStatePersistence.shared.attachedMainWindow,
-            debugAnchor: debugAnchor
+            settings: settings ?? AppSettingsStore.shared
         )
         let panel = CapsuleLyricsPanel(
             contentRect: frame,
@@ -227,15 +223,30 @@ final class CapsuleLyricsWindowController: NSObject, ObservableObject, NSWindowD
 
     private func applyFrame(for state: CapsulePresentationState, settings: AppSettingsStore) {
         guard let panel else { return }
-        let frame = persistence.restoreFrame(
+        let frame = restoredFrame(for: state, settings: settings)
+        isApplyingFrame = true
+        panel.setFrame(frame, display: true, animate: isVisible)
+        isApplyingFrame = false
+    }
+
+    private func restoredFrame(
+        for state: CapsulePresentationState,
+        settings: AppSettingsStore
+    ) -> NSRect {
+#if DEBUG
+        return persistence.restoreFrame(
             for: state,
             settings: settings,
             mainWindow: WindowStatePersistence.shared.attachedMainWindow,
             debugAnchor: debugAnchor
         )
-        isApplyingFrame = true
-        panel.setFrame(frame, display: true, animate: isVisible)
-        isApplyingFrame = false
+#else
+        return persistence.restoreFrame(
+            for: state,
+            settings: settings,
+            mainWindow: WindowStatePersistence.shared.attachedMainWindow
+        )
+#endif
     }
 
     private func savePosition() {
@@ -248,7 +259,7 @@ final class CapsuleLyricsWindowController: NSObject, ObservableObject, NSWindowD
         let screen = panel.screen
             ?? persistence.targetScreen(mainWindow: WindowStatePersistence.shared.attachedMainWindow)
         guard let screen else { return }
-        let safe = persistence.clampTopFrame(panel.frame, to: screen.visibleFrame)
+        let safe = persistence.clampTopFrame(panel.frame, screen: screen)
         if safe != panel.frame {
             isApplyingFrame = true
             panel.setFrame(safe, display: false)
