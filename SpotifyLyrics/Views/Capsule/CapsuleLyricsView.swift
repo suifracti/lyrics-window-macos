@@ -32,6 +32,10 @@ struct CapsuleLyricsView: View {
         max(1, state.currentTrack.duration.isFinite ? state.currentTrack.duration : 1)
     }
 
+    private var activePresentation: CapsuleLyricsPresentationVersion {
+        CapsuleLyricsPresentationVersion.current
+    }
+
     private var progressBinding: Binding<Double> {
         Binding(
             get: { draftPosition ?? min(max(0, state.currentTime), duration) },
@@ -68,6 +72,16 @@ struct CapsuleLyricsView: View {
 
     @ViewBuilder
     private var content: some View {
+        switch activePresentation {
+        case .legacyV1:
+            legacyContent
+        case .controlFocusedV2:
+            controlFocusedContent
+        }
+    }
+
+    @ViewBuilder
+    private var controlFocusedContent: some View {
         switch windowController.presentationState {
         case .collapsed:
             collapsedContent
@@ -75,6 +89,18 @@ struct CapsuleLyricsView: View {
             hoverContent
         case .expanded:
             expandedContent
+        }
+    }
+
+    @ViewBuilder
+    private var legacyContent: some View {
+        switch windowController.presentationState {
+        case .collapsed:
+            collapsedContent
+        case .hover:
+            hoverContent
+        case .expanded:
+            legacyExpandedContent
         }
     }
 
@@ -189,6 +215,117 @@ struct CapsuleLyricsView: View {
                     language: state.liveLyricsLanguage
                 )
                 .frame(maxWidth: .infinity, alignment: .leading)
+                // The capsule owns this constraint, not LyricLineView. The
+                // stored lyric and the shared preference/language gates stay
+                // unchanged while a long current row truncates safely.
+                .lineLimit(1)
+                .truncationMode(.tail)
+            } else if let status = selection.status {
+                CapsuleLyricsStatusView(status: status, compact: false)
+            }
+
+            HStack(spacing: 8) {
+                Slider(value: progressBinding, in: 0...duration, onEditingChanged: { editing in
+                    if !editing, let draftPosition {
+                        state.seek(to: draftPosition, source: "capsule-slider")
+                        self.draftPosition = nil
+                    }
+                })
+                .controlSize(.small)
+
+                Text("\(formatTime(draftPosition ?? state.currentTime)) / \(formatTime(duration))")
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+            }
+
+            HStack(spacing: 8) {
+                Button {
+                    NSApp.activate(ignoringOtherApps: true)
+                } label: {
+                    Label("主窗口", systemImage: "macwindow")
+                }
+                Button {
+                    WindowManager.shared.toggleFloatingLyrics(state: state)
+                } label: {
+                    Label("悬浮歌词", systemImage: "text.bubble")
+                }
+                if state.canOpenLyricsEditor {
+                    Button {
+                        state.prepareLyricsEditor()
+                        openWindow(id: "lyrics-editor")
+                    } label: {
+                        Label("编辑歌词", systemImage: "square.and.pencil")
+                    }
+                }
+                Spacer()
+                Button {
+                    windowController.collapse()
+                } label: {
+                    Image(systemName: "chevron.up")
+                }
+                .buttonStyle(.plain)
+                .help("收起顶部胶囊")
+            }
+            .font(.system(size: 10, weight: .medium, design: .rounded))
+            .buttonStyle(.borderless)
+        }
+    }
+
+    private func transportButton(
+        _ systemName: String,
+        help: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 13, weight: .semibold))
+                .frame(width: 22, height: 22)
+        }
+        .buttonStyle(.plain)
+        .disabled(!state.canInteractWithPlayback)
+        .help(help)
+    }
+
+    /// Archived V1 renderer kept intact for an internal presentation
+    /// rollback. It is not selected by `CapsuleLyricsPresentationVersion.current`.
+    private var legacyExpandedContent: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                ArtworkView(track: state.currentTrack, size: 46, showsAlbumLabel: false, cornerRadiusRatio: 0.1)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(state.currentTrack.title)
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .lineLimit(1)
+                    Text(state.currentTrack.artist)
+                        .font(.system(size: 11, design: .rounded))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                    Text(state.currentTrack.album)
+                        .font(.system(size: 10, design: .rounded))
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                }
+                Spacer()
+                transportButton("backward.end.fill", help: "上一首") { state.previousTrack() }
+                transportButton(state.isPlaying ? "pause.fill" : "play.fill", help: "播放/暂停") {
+                    state.togglePlayPause()
+                }
+                transportButton("forward.end.fill", help: "下一首") { state.nextTrack() }
+            }
+
+            if let current = selection.current {
+                LyricLineView(
+                    line: current,
+                    isActive: true,
+                    distance: 0,
+                    isSynchronized: true,
+                    preferences: state.preferences,
+                    availableWidth: 580,
+                    visibleLayerCount: visibleLayerCount,
+                    language: state.liveLyricsLanguage
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
 
                 if let following = selection.following {
                     LyricLineView(
@@ -243,21 +380,6 @@ struct CapsuleLyricsView: View {
             .font(.system(size: 10, weight: .medium, design: .rounded))
             .buttonStyle(.borderless)
         }
-    }
-
-    private func transportButton(
-        _ systemName: String,
-        help: String,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            Image(systemName: systemName)
-                .font(.system(size: 13, weight: .semibold))
-                .frame(width: 22, height: 22)
-        }
-        .buttonStyle(.plain)
-        .disabled(!state.canInteractWithPlayback)
-        .help(help)
     }
 
     private func formatTime(_ seconds: Double) -> String {

@@ -1,14 +1,28 @@
 import Foundation
 
+/// Stable identifiers for the capsule's independently switchable presentation
+/// paths. The legacy path remains available as an internal rollback target;
+/// only the current value is used by the active capsule view.
+public enum CapsuleLyricsPresentationVersion: String, CaseIterable, Sendable {
+    case legacyV1 = "capsule.legacy.v1"
+    case controlFocusedV2 = "capsule.controlFocused.v2"
+
+    public static let current: Self = .controlFocusedV2
+    public static let archived: [Self] = [.legacyV1]
+
+    public var id: String { rawValue }
+}
+
 public enum CapsulePresentationState: Equatable, Sendable {
     case collapsed
     case hover
     case expanded
 }
 
-/// The deliberately small projection consumed by the top capsule.  Playback
-/// and lyric sessions remain the owners of the clock and current-line lookup;
-/// this type only chooses the two rows the capsule is allowed to render.
+/// The deliberately small projection consumed by the top capsule. Playback
+/// and lyric sessions remain the owners of the clock and current-line lookup.
+/// The following row is retained for the archived/hover presentation; the
+/// active control-focused presentation renders only `current` when expanded.
 public struct CapsuleLyricsSelection: Equatable, Sendable {
     public let current: LyricLine?
     public let following: LyricLine?
