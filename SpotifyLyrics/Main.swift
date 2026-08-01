@@ -48,6 +48,18 @@ struct SpotifyLyricsApp: App {
                 }
                 .keyboardShortcut("f", modifiers: [.command, .option])
 
+                Button("显示/隐藏顶部胶囊") {
+                    WindowManager.shared.toggleCapsulePlayer(state: playbackState)
+                }
+                .keyboardShortcut("c", modifiers: [.command, .option])
+
+                Button("收起顶部胶囊") {
+                    WindowManager.shared.collapseCapsulePlayer()
+                }
+                Button("展开顶部胶囊") {
+                    WindowManager.shared.expandCapsulePlayer()
+                }
+
                 Button("解除悬浮歌词鼠标穿透") {
                     WindowManager.shared.restoreFloatingInteractiveMode(state: playbackState)
                 }

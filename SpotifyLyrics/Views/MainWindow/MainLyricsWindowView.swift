@@ -38,6 +38,10 @@ struct MainLyricsWindowView: View {
         .task {
             state.startProvider(connectSpotify: settings.connectSpotifyOnLaunch)
             WindowManager.shared.restoreFloatingWindowIfConfigured(state: state)
+            // Let WindowStateAccessor attach the real SwiftUI main window so
+            // the capsule follows its screen rather than only NSScreen.main.
+            await Task.yield()
+            WindowManager.shared.restoreCapsuleWindowIfConfigured(state: state)
         }
     }
 

@@ -8,7 +8,7 @@ public final class WindowManager: ObservableObject {
     public static let shared = WindowManager()
 
     private var floatingController: FloatingLyricsWindowController?
-    private var capsuleWindow: NSWindow?
+    private var capsuleController: CapsuleLyricsWindowController?
     private var fullScreenWindow: NSWindow?
 
     public func toggleFloatingWindow(state: PlaybackState) {
@@ -48,36 +48,29 @@ public final class WindowManager: ObservableObject {
     }
 
     public func toggleCapsulePlayer(state: PlaybackState) {
-        if let window = capsuleWindow, window.isVisible {
-            window.orderOut(nil)
-            state.showCapsulePlayer = false
-        } else {
-            if capsuleWindow == nil {
-                guard let mainScreen = NSScreen.main else { return }
-                let screenFrame = mainScreen.visibleFrame
-                let width: CGFloat = 380
-                let height: CGFloat = 46
-                let x = screenFrame.midX - (width / 2)
-                let y = screenFrame.maxY - height - 10
-                
-                let window = NSWindow(
-                    contentRect: NSRect(x: x, y: y, width: width, height: height),
-                    styleMask: [.borderless],
-                    backing: .buffered,
-                    defer: false
-                )
-                window.isOpaque = false
-                window.backgroundColor = .clear
-                window.level = .statusBar
-                window.isMovableByWindowBackground = true
-                window.hasShadow = true
-                window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-                window.contentView = NSHostingView(rootView: CapsulePlayerView().environmentObject(state))
-                capsuleWindow = window
-            }
-            capsuleWindow?.makeKeyAndOrderFront(nil)
-            state.showCapsulePlayer = true
+        if capsuleController == nil {
+            capsuleController = CapsuleLyricsWindowController()
         }
+        capsuleController?.toggle(state: state, settings: AppSettingsStore.shared)
+    }
+
+    public func restoreCapsuleWindowIfConfigured(state: PlaybackState) {
+        if capsuleController == nil {
+            capsuleController = CapsuleLyricsWindowController()
+        }
+        capsuleController?.restoreIfConfigured(state: state, settings: AppSettingsStore.shared)
+    }
+
+    public func collapseCapsulePlayer() {
+        capsuleController?.collapse()
+    }
+
+    public func expandCapsulePlayer() {
+        capsuleController?.expand()
+    }
+
+    public var capsuleWindowIsVisible: Bool {
+        capsuleController?.isVisible == true
     }
 
     public func toggleFullScreen(state: PlaybackState) {

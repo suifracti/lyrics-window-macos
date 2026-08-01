@@ -16,6 +16,11 @@ public final class WindowStatePersistence {
     private weak var mainWindow: NSWindow?
     private var mainSettings: AppSettingsStore?
 
+    /// The main window is the anchor used by auxiliary windows that follow
+    /// the user's current display.  It remains weak and is populated only
+    /// after the real SwiftUI window has been attached.
+    public var attachedMainWindow: NSWindow? { mainWindow }
+
     private init() {}
 
     public func attach(window: NSWindow, settings: AppSettingsStore) {

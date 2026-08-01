@@ -47,6 +47,9 @@ public final class AppSettingsStore: ObservableObject {
         public static let floatingWindowInteractionMode = "general.floatingWindowInteractionMode"
         public static let floatingWindowWasVisible = "general.floatingWindowWasVisible"
         public static let floatingWindowOpacity = "general.floatingWindowOpacity"
+        public static let capsuleWindowHorizontalOffset = "general.capsuleWindowHorizontalOffset"
+        public static let capsuleWindowScreenID = "general.capsuleWindowScreenID"
+        public static let capsuleWindowWasVisible = "general.capsuleWindowWasVisible"
         public static let showOriginal = "display.showOriginal"
         public static let showTranslation = "display.showTranslation"
         public static let showRomaji = "display.showRomaji"
@@ -108,6 +111,27 @@ public final class AppSettingsStore: ObservableObject {
         didSet { defaults.set(floatingWindowOpacity, forKey: Key.floatingWindowOpacity) }
     }
 
+    /// Top-capsule state is intentionally internal persistence rather than a
+    /// second user-facing settings store.  Only the horizontal offset and
+    /// target display are restored; hover/expanded are transient.
+    @Published public var capsuleWindowHorizontalOffset: Double {
+        didSet { defaults.set(capsuleWindowHorizontalOffset, forKey: Key.capsuleWindowHorizontalOffset) }
+    }
+
+    @Published public var capsuleWindowScreenID: String? {
+        didSet {
+            if let capsuleWindowScreenID, !capsuleWindowScreenID.isEmpty {
+                defaults.set(capsuleWindowScreenID, forKey: Key.capsuleWindowScreenID)
+            } else {
+                defaults.removeObject(forKey: Key.capsuleWindowScreenID)
+            }
+        }
+    }
+
+    @Published public var capsuleWindowWasVisible: Bool {
+        didSet { defaults.set(capsuleWindowWasVisible, forKey: Key.capsuleWindowWasVisible) }
+    }
+
     @Published public var displayPreferences: DisplayPreferences {
         didSet { persistDisplayPreferences(displayPreferences) }
     }
@@ -138,6 +162,9 @@ public final class AppSettingsStore: ObservableObject {
             ?? "interactive"
         floatingWindowWasVisible = defaults.object(forKey: Key.floatingWindowWasVisible) as? Bool ?? false
         floatingWindowOpacity = defaults.object(forKey: Key.floatingWindowOpacity) as? Double ?? 0.96
+        capsuleWindowHorizontalOffset = defaults.object(forKey: Key.capsuleWindowHorizontalOffset) as? Double ?? 0
+        capsuleWindowScreenID = defaults.string(forKey: Key.capsuleWindowScreenID)
+        capsuleWindowWasVisible = defaults.object(forKey: Key.capsuleWindowWasVisible) as? Bool ?? false
         displayPreferences = Self.loadDisplayPreferences(defaults: defaults, keepOnTop: keepOnTop)
         lyricsProviderConfiguration = Self.loadProviderConfiguration(defaults: defaults)
         aiTranslationConfiguration = Self.loadAITranslationConfiguration(defaults: defaults)
@@ -204,7 +231,12 @@ public final class AppSettingsStore: ObservableObject {
         defaults.removeObject(forKey: Key.mainWindowFrame)
         defaults.removeObject(forKey: Key.floatingWindowFrame)
         defaults.removeObject(forKey: Key.floatingWindowScreenID)
+        defaults.removeObject(forKey: Key.capsuleWindowHorizontalOffset)
+        defaults.removeObject(forKey: Key.capsuleWindowScreenID)
         floatingWindowWasVisible = false
+        capsuleWindowHorizontalOffset = 0
+        capsuleWindowScreenID = nil
+        capsuleWindowWasVisible = false
         WindowStatePersistence.shared.resetWindowFrame()
     }
 
