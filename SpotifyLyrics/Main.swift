@@ -42,6 +42,29 @@ struct SpotifyLyricsApp: App {
                 }
                 .keyboardShortcut(",", modifiers: .command)
             }
+            CommandMenu("窗口") {
+                Button("显示/隐藏悬浮歌词") {
+                    WindowManager.shared.toggleFloatingWindow(state: playbackState)
+                }
+                .keyboardShortcut("f", modifiers: [.command, .option])
+
+                Button("解除悬浮歌词鼠标穿透") {
+                    WindowManager.shared.restoreFloatingInteractiveMode(state: playbackState)
+                }
+                .keyboardShortcut("l", modifiers: [.command, .option])
+
+                Divider()
+
+                Button("锁定悬浮歌词") {
+                    WindowManager.shared.setFloatingInteractionMode(.locked, state: playbackState)
+                }
+                Button("启用悬浮歌词鼠标穿透") {
+                    WindowManager.shared.setFloatingInteractionMode(.passThrough, state: playbackState)
+                }
+                Button("恢复悬浮歌词可编辑") {
+                    WindowManager.shared.setFloatingInteractionMode(.interactive, state: playbackState)
+                }
+            }
         }
     }
 }

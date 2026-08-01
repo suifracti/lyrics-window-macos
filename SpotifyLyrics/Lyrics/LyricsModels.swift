@@ -311,8 +311,23 @@ public enum LyricsTimeline {
         time: TimeInterval,
         isSynchronized: Bool
     ) -> Int? {
-        guard isSynchronized, !lines.isEmpty else { return nil }
-        return lines.indices.last { lines[$0].timestamp <= time }
+        guard isSynchronized, !lines.isEmpty, time.isFinite else { return nil }
+
+        // Lyrics are ordered by the persisted line index.  A binary search
+        // keeps the high-frequency playback tick independent of document
+        // length while preserving the existing "last timestamp <= time"
+        // semantics, including repeated timestamps.
+        var lower = 0
+        var upper = lines.count
+        while lower < upper {
+            let middle = lower + (upper - lower) / 2
+            if lines[middle].timestamp <= time {
+                lower = middle + 1
+            } else {
+                upper = middle
+            }
+        }
+        return lower == 0 ? nil : lower - 1
     }
 
     public static func presentationDistance(

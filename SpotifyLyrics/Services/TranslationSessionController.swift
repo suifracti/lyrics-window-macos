@@ -212,6 +212,25 @@ public final class TranslationSessionController: ObservableObject {
         return projected
     }
 
+    /// Projects only when the selected translation belongs to the requested
+    /// live lyric document.  Search previews share this controller, so a
+    /// floating window must not accidentally render a preview translation on
+    /// the currently playing song.
+    public func project(
+        onto lines: [LyricLine],
+        identity: TrackIdentity,
+        lyricsVersionID: UUID?,
+        sourceContentHash: String?
+    ) -> [LyricLine] {
+        guard let context,
+              context.identity == identity,
+              context.lyricsVersionID == lyricsVersionID,
+              context.sourceContentHash == sourceContentHash else {
+            return lines
+        }
+        return project(onto: lines)
+    }
+
     private func loadExistingOrAutoTranslate(_ context: TranslationContext) {
         requestTask?.cancel()
         requestTask = nil

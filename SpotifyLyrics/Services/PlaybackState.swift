@@ -60,6 +60,16 @@ public final class PlaybackState: ObservableObject {
     private var playbackAnchorPosition: TimeInterval = 0
     private var playbackAnchorDate = Date()
     private var lastProviderRefreshDate = Date.distantPast
+    private struct LyricsProjectionCacheKey: Equatable {
+        let identityKey: String?
+        let revision: UInt64
+        let translationVersionID: UUID?
+        let lyricsVersionID: UUID?
+        let sourceContentHash: String?
+        let lineCount: Int
+    }
+    private var liveLyricsProjectionCache: (key: LyricsProjectionCacheKey, lines: [LyricLine])?
+    private var previewLyricsProjectionCache: (key: LyricsProjectionCacheKey, lines: [LyricLine])?
     private let tickInterval: TimeInterval = 0.2
     private let calibrationInterval: TimeInterval = 2.0
 
@@ -266,8 +276,25 @@ public final class PlaybackState: ObservableObject {
     public var isShowingSearchPreview: Bool { searchPreviewTrack != nil }
     public var displayedTrack: Track { searchPreviewTrack ?? currentTrack }
     public var lyrics: [LyricLine] {
-        let base = isShowingSearchPreview ? searchPreviewSession.lyrics : lyricsSession.lyrics
-        return translationSession.project(onto: base)
+        if isShowingSearchPreview {
+            return projectedLyrics(
+                base: searchPreviewSession.lyrics,
+                session: searchPreviewSession,
+                cache: &previewLyricsProjectionCache
+            )
+        }
+        return liveLyrics
+    }
+
+    /// The only lyric projection that a secondary window may consume.  It
+    /// deliberately ignores search-preview state so an unplayed catalog
+    /// result can never appear in the floating window.
+    public var liveLyrics: [LyricLine] {
+        projectedLyrics(
+            base: lyricsSession.lyrics,
+            session: lyricsSession,
+            cache: &liveLyricsProjectionCache
+        )
     }
     public var lyricsState: LyricsLoadState {
         isShowingSearchPreview ? searchPreviewSession.state : lyricsSession.state
@@ -277,6 +304,16 @@ public final class PlaybackState: ObservableObject {
     }
     public var lyricsSessionRevision: UInt64 {
         isShowingSearchPreview ? searchPreviewSession.revision : lyricsSession.revision
+    }
+    public var liveLyricsState: LyricsLoadState { lyricsSession.state }
+    public var liveLyricsAreSynchronized: Bool { lyricsSession.isSynchronized }
+    public var liveLyricsSessionRevision: UInt64 { lyricsSession.revision }
+    public var liveCurrentLineIndex: Int? {
+        LyricsTimeline.activeLineIndex(
+            lines: liveLyrics,
+            time: currentTime,
+            isSynchronized: liveLyricsAreSynchronized
+        )
     }
     public var currentTrackIdentity: TrackIdentity? {
         guard hasLiveTrack, !isMockPreviewMode else { return nil }
@@ -487,16 +524,24 @@ public final class PlaybackState: ObservableObject {
 
     public var lyricsStatusMessage: String {
         let session = isShowingSearchPreview ? searchPreviewSession : lyricsSession
+        return statusMessage(for: session)
+    }
+
+    public var liveLyricsStatusMessage: String {
+        statusMessage(for: lyricsSession)
+    }
+
+    private func statusMessage(for session: LyricsSessionController) -> String {
         if let persistenceStatus = session.persistenceStatusMessage, !persistenceStatus.isEmpty {
-            let stateMessage = lyricsState.userFacingMessage
+            let stateMessage = session.state.userFacingMessage
             return stateMessage.isEmpty ? persistenceStatus : "\(stateMessage) · \(persistenceStatus)"
         }
         if let document = session.activeDocument,
-           document.source == .automaticAlignment,
-           session.alignmentProvenanceAvailability == .unavailable {
-            return "\(lyricsState.userFacingMessage.isEmpty ? "已加载排轴歌词" : lyricsState.userFacingMessage) · provenance unavailable"
+            document.source == .automaticAlignment,
+            session.alignmentProvenanceAvailability == .unavailable {
+            return "\(session.state.userFacingMessage.isEmpty ? "已加载排轴歌词" : session.state.userFacingMessage) · provenance unavailable"
         }
-        return lyricsState.userFacingMessage
+        return session.state.userFacingMessage
     }
 
     public func startProvider() {
@@ -1043,11 +1088,39 @@ public final class PlaybackState: ObservableObject {
 
     public var currentLineIndex: Int? {
         guard !isShowingSearchPreview else { return nil }
-        return LyricsTimeline.activeLineIndex(
-            lines: lyrics,
-            time: currentTime,
-            isSynchronized: lyricsAreSynchronized
+        return liveCurrentLineIndex
+    }
+
+    private func projectedLyrics(
+        base: [LyricLine],
+        session: LyricsSessionController,
+        cache: inout (key: LyricsProjectionCacheKey, lines: [LyricLine])?
+    ) -> [LyricLine] {
+        let key = LyricsProjectionCacheKey(
+            identityKey: session.activeIdentity?.stableKey,
+            revision: session.revision,
+            translationVersionID: translationSession.selectedVersion?.record.id,
+            lyricsVersionID: session.activeLyricsVersionID,
+            sourceContentHash: session.activeSourceContentHash,
+            lineCount: base.count
         )
+        if let cache, cache.key == key {
+            return cache.lines
+        }
+
+        let projected: [LyricLine]
+        if let identity = session.activeIdentity {
+            projected = translationSession.project(
+                onto: base,
+                identity: identity,
+                lyricsVersionID: session.activeLyricsVersionID,
+                sourceContentHash: session.activeSourceContentHash
+            )
+        } else {
+            projected = base
+        }
+        cache = (key: key, lines: projected)
+        return projected
     }
 
     private func refreshProvider() async {

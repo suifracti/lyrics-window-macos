@@ -1,43 +1,52 @@
 import SwiftUI
 import AppKit
 
-// Floating transparent borderless window controller
-public class WindowManager: ObservableObject {
+// Window mode compatibility façade. Floating lyrics owns its lifecycle in a
+// dedicated NSPanel controller; capsule and full-screen remain unchanged.
+@MainActor
+public final class WindowManager: ObservableObject {
     public static let shared = WindowManager()
 
-    private var floatingWindow: NSWindow?
+    private var floatingController: FloatingLyricsWindowController?
     private var capsuleWindow: NSWindow?
     private var fullScreenWindow: NSWindow?
 
-    @MainActor
     public func toggleFloatingWindow(state: PlaybackState) {
-        if let window = floatingWindow, window.isVisible {
-            window.orderOut(nil)
-            state.showFloatingWindow = false
-        } else {
-            if floatingWindow == nil {
-                let window = NSWindow(
-                    contentRect: NSRect(x: 100, y: 100, width: 600, height: 180),
-                    styleMask: [.borderless, .resizable],
-                    backing: .buffered,
-                    defer: false
-                )
-                window.isOpaque = false
-                window.backgroundColor = .clear
-                window.level = .floating
-                window.isMovableByWindowBackground = true
-                window.hasShadow = true
-                // Show on all space desktops (All Spaces & Full Screen Apps overlay)
-                window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-                window.contentView = NSHostingView(rootView: FloatingLyricsView().environmentObject(state))
-                floatingWindow = window
-            }
-            floatingWindow?.makeKeyAndOrderFront(nil)
-            state.showFloatingWindow = true
+        if floatingController == nil {
+            floatingController = FloatingLyricsWindowController()
         }
+        floatingController?.toggle(state: state, settings: AppSettingsStore.shared)
     }
 
-    @MainActor
+    public func restoreFloatingWindowIfConfigured(state: PlaybackState) {
+        if floatingController == nil {
+            floatingController = FloatingLyricsWindowController()
+        }
+        floatingController?.restoreIfConfigured(state: state, settings: AppSettingsStore.shared)
+    }
+
+    public var floatingWindowIsVisible: Bool {
+        floatingController?.isVisible == true
+    }
+
+    public var floatingInteractionMode: FloatingLyricsInteractionMode {
+        floatingController?.interactionMode ?? AppSettingsStore.shared.floatingWindowInteractionMode
+    }
+
+    public func setFloatingInteractionMode(_ mode: FloatingLyricsInteractionMode, state: PlaybackState) {
+        let settings = AppSettingsStore.shared
+        settings.floatingWindowInteractionMode = mode
+        if floatingController == nil {
+            floatingController = FloatingLyricsWindowController()
+        }
+        floatingController?.setInteractionMode(mode)
+        state.showFloatingWindow = floatingController?.isVisible == true
+    }
+
+    public func restoreFloatingInteractiveMode(state: PlaybackState) {
+        setFloatingInteractionMode(.interactive, state: state)
+    }
+
     public func toggleCapsulePlayer(state: PlaybackState) {
         if let window = capsuleWindow, window.isVisible {
             window.orderOut(nil)
@@ -71,7 +80,6 @@ public class WindowManager: ObservableObject {
         }
     }
 
-    @MainActor
     public func toggleFullScreen(state: PlaybackState) {
         if let window = fullScreenWindow, window.isVisible {
             window.orderOut(nil)

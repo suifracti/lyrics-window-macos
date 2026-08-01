@@ -113,6 +113,11 @@
 		110000E22D83400100000001 /* AlignmentProvenanceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000E22D83400100000000 /* AlignmentProvenanceStore.swift */; };
 		110000E32D83400100000001 /* AlignmentSessionGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000E32D83400100000000 /* AlignmentSessionGuard.swift */; };
 		110000E42D83400100000001 /* AlignmentPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000E42D83400100000000 /* AlignmentPreviewView.swift */; };
+		110000732D83400100000001 /* FloatingLyricsPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000732D83400100000000 /* FloatingLyricsPresentation.swift */; };
+		110000742D83400100000001 /* FloatingLyricsStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000742D83400100000000 /* FloatingLyricsStatusView.swift */; };
+		110000752D83400100000001 /* FloatingLyricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000752D83400100000000 /* FloatingLyricsView.swift */; };
+		110000762D83400100000001 /* FloatingLyricsWindowPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000762D83400100000000 /* FloatingLyricsWindowPersistence.swift */; };
+		110000772D83400100000001 /* FloatingLyricsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000772D83400100000000 /* FloatingLyricsWindowController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -224,6 +229,11 @@
 		110000E22D83400100000000 /* AlignmentProvenanceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlignmentProvenanceStore.swift; sourceTree = "<group>"; };
 		110000E32D83400100000000 /* AlignmentSessionGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlignmentSessionGuard.swift; sourceTree = "<group>"; };
 		110000E42D83400100000000 /* AlignmentPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlignmentPreviewView.swift; sourceTree = "<group>"; };
+		110000732D83400100000000 /* FloatingLyricsPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lyrics/FloatingLyricsPresentation.swift; sourceTree = "<group>"; };
+		110000742D83400100000000 /* FloatingLyricsStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Floating/FloatingLyricsStatusView.swift; sourceTree = "<group>"; };
+		110000752D83400100000000 /* FloatingLyricsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Floating/FloatingLyricsView.swift; sourceTree = "<group>"; };
+		110000762D83400100000000 /* FloatingLyricsWindowPersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windows/FloatingLyricsWindowPersistence.swift; sourceTree = "<group>"; };
+		110000772D83400100000000 /* FloatingLyricsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windows/FloatingLyricsWindowController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -250,6 +260,11 @@
 				110000002D8340000000002D /* Editor */,
 				110000052D83400100000000 /* WindowManager.swift */,
 				110000062D83400100000000 /* LyricsViews.swift */,
+				110000732D83400100000000 /* FloatingLyricsPresentation.swift */,
+				110000742D83400100000000 /* FloatingLyricsStatusView.swift */,
+				110000752D83400100000000 /* FloatingLyricsView.swift */,
+				110000762D83400100000000 /* FloatingLyricsWindowPersistence.swift */,
+				110000772D83400100000000 /* FloatingLyricsWindowController.swift */,
 				110000002D83400000000024 /* Providers */,
 				110000002D83400000000025 /* Lyrics */,
 				110000002D83400000000026 /* Search */,
@@ -638,6 +653,11 @@
 				110000E22D83400100000001 /* AlignmentProvenanceStore.swift in Sources */,
 				110000E32D83400100000001 /* AlignmentSessionGuard.swift in Sources */,
 				110000E42D83400100000001 /* AlignmentPreviewView.swift in Sources */,
+				110000732D83400100000001 /* FloatingLyricsPresentation.swift in Sources */,
+				110000742D83400100000001 /* FloatingLyricsStatusView.swift in Sources */,
+				110000752D83400100000001 /* FloatingLyricsView.swift in Sources */,
+				110000762D83400100000001 /* FloatingLyricsWindowPersistence.swift in Sources */,
+				110000772D83400100000001 /* FloatingLyricsWindowController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

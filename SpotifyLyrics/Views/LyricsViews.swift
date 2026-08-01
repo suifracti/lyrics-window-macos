@@ -140,8 +140,10 @@ struct PlainLyricsListView: View {
     }
 }
 
-// Floating Lyrics View
-struct FloatingLyricsView: View {
+// Legacy floating renderer. The production floating window now lives under
+// Views/Floating and consumes the shared live session directly. Keep this
+// source-compatible renderer for the retained compatibility surfaces only.
+struct LegacyFloatingLyricsView: View {
     @EnvironmentObject var state: PlaybackState
 
     var body: some View {

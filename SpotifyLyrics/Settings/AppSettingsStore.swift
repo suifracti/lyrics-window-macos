@@ -1,6 +1,32 @@
 import Combine
 import Foundation
 
+/// Persistent user-facing interaction mode for the shared floating lyrics
+/// panel. It lives beside the settings boundary so lightweight contract
+/// builds that compile AppSettingsStore without AppKit window code keep the
+/// same model dependency as the production target.
+public enum FloatingLyricsInteractionMode: String, CaseIterable, Codable, Sendable {
+    case interactive
+    case locked
+    case passThrough
+
+    public var title: String {
+        switch self {
+        case .interactive: return "可编辑 / 可拖动"
+        case .locked: return "锁定展示"
+        case .passThrough: return "鼠标穿透"
+        }
+    }
+
+    public var detail: String {
+        switch self {
+        case .interactive: return "可以移动、缩放并操作窗口"
+        case .locked: return "保持位置和尺寸，仍可响应窗口事件"
+        case .passThrough: return "不接收普通鼠标事件，可从 App 菜单恢复"
+        }
+    }
+}
+
 /// The single UserDefaults boundary for user-facing configuration. Views bind
 /// to this object; PlaybackState mirrors the display value and turns provider
 /// IDs into the existing provider instances.
@@ -15,6 +41,12 @@ public final class AppSettingsStore: ObservableObject {
         public static let keepMainWindowOnTop = "general.keepMainWindowOnTop"
         public static let restoreWindowState = "general.restoreWindowState"
         public static let mainWindowFrame = "general.mainWindowFrame"
+        public static let floatingWindowFrame = "general.floatingWindowFrame"
+        public static let floatingWindowScreenID = "general.floatingWindowScreenID"
+        public static let floatingWindowAlwaysOnTop = "general.floatingWindowAlwaysOnTop"
+        public static let floatingWindowInteractionMode = "general.floatingWindowInteractionMode"
+        public static let floatingWindowWasVisible = "general.floatingWindowWasVisible"
+        public static let floatingWindowOpacity = "general.floatingWindowOpacity"
         public static let showOriginal = "display.showOriginal"
         public static let showTranslation = "display.showTranslation"
         public static let showRomaji = "display.showRomaji"
@@ -60,6 +92,22 @@ public final class AppSettingsStore: ObservableObject {
         didSet { defaults.set(restoreWindowState, forKey: Key.restoreWindowState) }
     }
 
+    @Published public var floatingWindowAlwaysOnTop: Bool {
+        didSet { defaults.set(floatingWindowAlwaysOnTop, forKey: Key.floatingWindowAlwaysOnTop) }
+    }
+
+    @Published public var floatingWindowInteractionModeRawValue: String {
+        didSet { defaults.set(floatingWindowInteractionModeRawValue, forKey: Key.floatingWindowInteractionMode) }
+    }
+
+    @Published public var floatingWindowWasVisible: Bool {
+        didSet { defaults.set(floatingWindowWasVisible, forKey: Key.floatingWindowWasVisible) }
+    }
+
+    @Published public var floatingWindowOpacity: Double {
+        didSet { defaults.set(floatingWindowOpacity, forKey: Key.floatingWindowOpacity) }
+    }
+
     @Published public var displayPreferences: DisplayPreferences {
         didSet { persistDisplayPreferences(displayPreferences) }
     }
@@ -85,6 +133,11 @@ public final class AppSettingsStore: ObservableObject {
         let keepOnTop = defaults.object(forKey: Key.keepMainWindowOnTop) as? Bool ?? false
         keepMainWindowOnTop = keepOnTop
         restoreWindowState = defaults.object(forKey: Key.restoreWindowState) as? Bool ?? true
+        floatingWindowAlwaysOnTop = defaults.object(forKey: Key.floatingWindowAlwaysOnTop) as? Bool ?? true
+        floatingWindowInteractionModeRawValue = defaults.string(forKey: Key.floatingWindowInteractionMode)
+            ?? "interactive"
+        floatingWindowWasVisible = defaults.object(forKey: Key.floatingWindowWasVisible) as? Bool ?? false
+        floatingWindowOpacity = defaults.object(forKey: Key.floatingWindowOpacity) as? Double ?? 0.96
         displayPreferences = Self.loadDisplayPreferences(defaults: defaults, keepOnTop: keepOnTop)
         lyricsProviderConfiguration = Self.loadProviderConfiguration(defaults: defaults)
         aiTranslationConfiguration = Self.loadAITranslationConfiguration(defaults: defaults)
@@ -96,6 +149,28 @@ public final class AppSettingsStore: ObservableObject {
 
     var mainWindowLayoutStyle: MainWindowLayoutStyle {
         MainWindowLayoutStyle(rawValue: mainWindowLayoutStyleRawValue) ?? .appleMusicImmersiveV3
+    }
+
+    public var floatingWindowInteractionMode: FloatingLyricsInteractionMode {
+        get { FloatingLyricsInteractionMode(rawValue: floatingWindowInteractionModeRawValue) ?? .interactive }
+        set { floatingWindowInteractionModeRawValue = newValue.rawValue }
+    }
+
+    public var savedFloatingWindowFrame: String? {
+        defaults.string(forKey: Key.floatingWindowFrame)
+    }
+
+    public var savedFloatingWindowScreenID: String? {
+        defaults.string(forKey: Key.floatingWindowScreenID)
+    }
+
+    public func saveFloatingWindowFrame(_ frame: String, screenID: String?) {
+        defaults.set(frame, forKey: Key.floatingWindowFrame)
+        if let screenID, !screenID.isEmpty {
+            defaults.set(screenID, forKey: Key.floatingWindowScreenID)
+        } else {
+            defaults.removeObject(forKey: Key.floatingWindowScreenID)
+        }
     }
 
     public var schemaVersion: Int { DatabaseMigrator.currentVersion }
@@ -127,6 +202,9 @@ public final class AppSettingsStore: ObservableObject {
 
     public func resetWindowState() {
         defaults.removeObject(forKey: Key.mainWindowFrame)
+        defaults.removeObject(forKey: Key.floatingWindowFrame)
+        defaults.removeObject(forKey: Key.floatingWindowScreenID)
+        floatingWindowWasVisible = false
         WindowStatePersistence.shared.resetWindowFrame()
     }
 

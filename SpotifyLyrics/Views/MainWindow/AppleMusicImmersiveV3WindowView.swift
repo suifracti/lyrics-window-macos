@@ -239,6 +239,21 @@ struct AppleMusicImmersiveV3WindowView: View {
             Button("悬浮歌词", systemImage: "rectangle.on.rectangle") {
                 WindowManager.shared.toggleFloatingWindow(state: state)
             }
+            Menu("悬浮歌词交互") {
+                Button("可编辑 / 可拖动") {
+                    WindowManager.shared.setFloatingInteractionMode(.interactive, state: state)
+                }
+                Button("锁定展示") {
+                    WindowManager.shared.setFloatingInteractionMode(.locked, state: state)
+                }
+                Button("启用鼠标穿透") {
+                    WindowManager.shared.setFloatingInteractionMode(.passThrough, state: state)
+                }
+                Divider()
+                Button("解除鼠标穿透") {
+                    WindowManager.shared.restoreFloatingInteractiveMode(state: state)
+                }
+            }
             Button("顶部胶囊", systemImage: "capsule") {
                 WindowManager.shared.toggleCapsulePlayer(state: state)
             }

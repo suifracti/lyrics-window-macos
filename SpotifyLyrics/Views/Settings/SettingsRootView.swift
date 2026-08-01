@@ -106,12 +106,39 @@ private struct GeneralSettingsView: View {
                 Toggle("主窗口保持置顶", isOn: $settings.keepMainWindowOnTop)
             }
 
+            Section("悬浮歌词") {
+                Toggle("悬浮歌词保持置顶", isOn: $settings.floatingWindowAlwaysOnTop)
+                Picker("默认交互状态", selection: floatingModeBinding) {
+                    ForEach(FloatingLyricsInteractionMode.allCases, id: \.self) { mode in
+                        Text(mode.title).tag(mode)
+                    }
+                }
+                HStack {
+                    Text("悬浮窗透明度")
+                    Slider(value: $settings.floatingWindowOpacity, in: 0.45...1, step: 0.01)
+                    Text(String(format: "%.0f%%", settings.floatingWindowOpacity * 100))
+                        .font(.system(.caption, design: .monospaced))
+                        .frame(width: 48, alignment: .trailing)
+                }
+                Text("悬浮歌词复用主播放状态和歌词显示设置；关闭后不会退出 App。启用“启动时恢复上次窗口状态”时，会恢复上次可见的悬浮窗位置和尺寸。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
             Section("启动与切歌") {
                 Toggle("启动时自动连接 Spotify Desktop", isOn: $settings.connectSpotifyOnLaunch)
                 Toggle("切歌后自动搜索歌词", isOn: $settings.autoSearchLyricsOnTrackChange)
             }
         }
         .formStyle(.grouped)
+    }
+
+    private var floatingModeBinding: Binding<FloatingLyricsInteractionMode> {
+        Binding(
+            get: { settings.floatingWindowInteractionMode },
+            set: { settings.floatingWindowInteractionMode = $0 }
+        )
     }
 }
 
