@@ -204,22 +204,13 @@ struct CapsuleLyricsView: View {
             }
 
             if let current = selection.current {
-                LyricLineView(
+                CapsuleLyricsRowView(
                     line: current,
-                    isActive: true,
-                    distance: 0,
-                    isSynchronized: true,
                     preferences: state.preferences,
                     availableWidth: 580,
                     visibleLayerCount: visibleLayerCount,
                     language: state.liveLyricsLanguage
                 )
-                .frame(maxWidth: .infinity, alignment: .leading)
-                // The capsule owns this constraint, not LyricLineView. The
-                // stored lyric and the shared preference/language gates stay
-                // unchanged while a long current row truncates safely.
-                .lineLimit(1)
-                .truncationMode(.tail)
             } else if let status = selection.status {
                 CapsuleLyricsStatusView(status: status, compact: false)
             }
@@ -385,5 +376,42 @@ struct CapsuleLyricsView: View {
     private func formatTime(_ seconds: Double) -> String {
         let value = max(0, Int(seconds.rounded(.down)))
         return String(format: "%d:%02d", value / 60, value % 60)
+    }
+}
+
+/// Capsule-only adapter for a single live lyric row. `LyricLineView` keeps
+/// its global multi-layer semantics; this wrapper gives the expanded capsule
+/// a hard vertical budget so ruby flow and auxiliary layers cannot resize the
+/// panel. Text still receives the normal single-line truncation request, and
+/// overflow is clipped inside this one-row viewport without changing the
+/// stored lyric or the shared display/language gates.
+private struct CapsuleLyricsRowView: View {
+    static let rowHeight: CGFloat = 52
+
+    let line: LyricLine
+    let preferences: DisplayPreferences
+    let availableWidth: CGFloat
+    let visibleLayerCount: Int
+    let language: String?
+
+    var body: some View {
+        LyricLineView(
+            line: line,
+            isActive: true,
+            distance: 0,
+            isSynchronized: true,
+            preferences: preferences,
+            availableWidth: availableWidth,
+            visibleLayerCount: visibleLayerCount,
+            language: language
+        )
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .lineLimit(1)
+        .truncationMode(.tail)
+        // RubyTokenFlowLayout and LyricLineView's vertical fixed sizing can
+        // exceed the parent proposal. The fixed frame is the capsule-local
+        // single-row boundary; clipping prevents the panel from growing.
+        .frame(height: Self.rowHeight, alignment: .topLeading)
+        .clipped()
     }
 }
