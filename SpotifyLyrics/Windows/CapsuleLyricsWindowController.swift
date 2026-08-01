@@ -25,6 +25,11 @@ final class CapsuleLyricsWindowController: NSObject, ObservableObject, NSWindowD
     private var hoverCollapseTask: Task<Void, Never>?
     private var didRestore = false
     private var isApplyingFrame = false
+#if DEBUG
+    private var debugAnchor: CapsuleDebugAnchor = .topCenter
+#else
+    private let debugAnchor: CapsuleDebugAnchor = .topCenter
+#endif
 
     override init() {
         super.init()
@@ -127,6 +132,17 @@ final class CapsuleLyricsWindowController: NSObject, ObservableObject, NSWindowD
         presentationState == .expanded ? collapse() : expand()
     }
 
+#if DEBUG
+    /// Moves the existing panel for design comparison only. The transient
+    /// anchor never writes the user's normal saved offset or screen ID.
+    func setDebugAnchor(_ anchor: CapsuleDebugAnchor) {
+        guard debugAnchor != anchor else { return }
+        debugAnchor = anchor
+        guard isVisible, let settings else { return }
+        applyFrame(for: presentationState, settings: settings)
+    }
+#endif
+
     func pointerEntered() {
         cancelHoverCollapse()
         guard isVisible, presentationState != .expanded else { return }
@@ -156,7 +172,8 @@ final class CapsuleLyricsWindowController: NSObject, ObservableObject, NSWindowD
         let frame = persistence.restoreFrame(
             for: .collapsed,
             settings: settings ?? AppSettingsStore.shared,
-            mainWindow: WindowStatePersistence.shared.attachedMainWindow
+            mainWindow: WindowStatePersistence.shared.attachedMainWindow,
+            debugAnchor: debugAnchor
         )
         let panel = CapsuleLyricsPanel(
             contentRect: frame,
@@ -213,7 +230,8 @@ final class CapsuleLyricsWindowController: NSObject, ObservableObject, NSWindowD
         let frame = persistence.restoreFrame(
             for: state,
             settings: settings,
-            mainWindow: WindowStatePersistence.shared.attachedMainWindow
+            mainWindow: WindowStatePersistence.shared.attachedMainWindow,
+            debugAnchor: debugAnchor
         )
         isApplyingFrame = true
         panel.setFrame(frame, display: true, animate: isVisible)
@@ -222,6 +240,11 @@ final class CapsuleLyricsWindowController: NSObject, ObservableObject, NSWindowD
 
     private func savePosition() {
         guard let panel, let settings else { return }
+#if DEBUG
+        // Do not turn a comparison anchor's derived frame into the user's
+        // normal centered horizontal offset.
+        guard debugAnchor == .topCenter else { return }
+#endif
         let screen = panel.screen
             ?? persistence.targetScreen(mainWindow: WindowStatePersistence.shared.attachedMainWindow)
         guard let screen else { return }

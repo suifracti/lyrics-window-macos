@@ -136,6 +136,17 @@ public final class WindowManager: ObservableObject {
         capsuleController?.expand()
     }
 
+#if DEBUG
+    /// Design-review-only anchor comparison. The controller remains the
+    /// single owner of the panel and its normal persisted frame.
+    func setCapsuleDebugAnchor(_ anchor: CapsuleDebugAnchor) {
+        if capsuleController == nil {
+            capsuleController = CapsuleLyricsWindowController()
+        }
+        capsuleController?.setDebugAnchor(anchor)
+    }
+#endif
+
     public var capsuleWindowIsVisible: Bool {
         capsuleController?.isVisible == true
     }

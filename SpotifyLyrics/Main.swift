@@ -81,7 +81,21 @@ struct SpotifyLyricsApp: App {
                 Button("恢复悬浮歌词可编辑") {
                     WindowManager.shared.setFloatingInteractionMode(.interactive, state: playbackState)
                 }
+
             }
+#if DEBUG
+            CommandMenu("胶囊锚点（调试）") {
+                Button("左上") {
+                    WindowManager.shared.setCapsuleDebugAnchor(.topLeft)
+                }
+                Button("顶部居中") {
+                    WindowManager.shared.setCapsuleDebugAnchor(.topCenter)
+                }
+                Button("右上") {
+                    WindowManager.shared.setCapsuleDebugAnchor(.topRight)
+                }
+            }
+#endif
         }
     }
 }

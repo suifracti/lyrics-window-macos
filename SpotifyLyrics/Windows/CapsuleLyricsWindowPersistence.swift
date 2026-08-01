@@ -1,5 +1,13 @@
 import AppKit
 
+/// Internal-only comparison anchors for design-review builds. Release
+/// positioning is resolved to `.topCenter` and no user preference is added.
+enum CapsuleDebugAnchor: String, CaseIterable {
+    case topLeft
+    case topCenter
+    case topRight
+}
+
 /// Top-safe-area positioning for the capsule.  Unlike the floating lyrics
 /// window this stores no arbitrary frame: the three presentation sizes are
 /// fixed and only the horizontal offset from the target display's center is
@@ -43,13 +51,23 @@ final class CapsuleLyricsWindowPersistence {
     func frame(
         for state: CapsulePresentationState,
         screen: NSScreen,
-        horizontalOffset: CGFloat
+        horizontalOffset: CGFloat,
+        debugAnchor: CapsuleDebugAnchor = .topCenter
     ) -> NSRect {
         let visible = screen.visibleFrame
         let requested = size(for: state)
         let width = min(requested.width, max(1, visible.width))
         let height = min(requested.height, max(1, visible.height))
-        let x = visible.midX - width / 2 + horizontalOffset
+        let resolvedAnchor = resolvedAnchor(debugAnchor)
+        let x: CGFloat
+        switch resolvedAnchor {
+        case .topLeft:
+            x = visible.minX + horizontalOffset
+        case .topCenter:
+            x = visible.midX - width / 2 + horizontalOffset
+        case .topRight:
+            x = visible.maxX - width - horizontalOffset
+        }
         let y = visible.maxY - height - topInset
         return clampTopFrame(NSRect(x: x, y: y, width: width, height: height), to: visible)
     }
@@ -57,7 +75,8 @@ final class CapsuleLyricsWindowPersistence {
     func restoreFrame(
         for state: CapsulePresentationState,
         settings: AppSettingsStore,
-        mainWindow: NSWindow?
+        mainWindow: NSWindow?,
+        debugAnchor: CapsuleDebugAnchor = .topCenter
     ) -> NSRect {
         // A live main-window screen always wins.  The saved screen ID is used
         // only while the SwiftUI main window has not attached yet, followed by
@@ -72,8 +91,17 @@ final class CapsuleLyricsWindowPersistence {
         return frame(
             for: state,
             screen: screen,
-            horizontalOffset: CGFloat(settings.capsuleWindowHorizontalOffset)
+            horizontalOffset: CGFloat(settings.capsuleWindowHorizontalOffset),
+            debugAnchor: debugAnchor
         )
+    }
+
+    private func resolvedAnchor(_ requestedAnchor: CapsuleDebugAnchor) -> CapsuleDebugAnchor {
+#if DEBUG
+        return requestedAnchor
+#else
+        return .topCenter
+#endif
     }
 
     func horizontalOffset(for frame: NSRect, screen: NSScreen) -> CGFloat {
