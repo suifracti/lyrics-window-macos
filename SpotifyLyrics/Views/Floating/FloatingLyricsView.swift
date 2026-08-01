@@ -68,7 +68,7 @@ struct FloatingLyricsView: View {
             } else {
                 statusView(documentState)
             }
-        case .mockPreview, .loading, .idle, .noLyrics, .noMatch, .candidates, .failed:
+        case .mockPreview, .loading, .idle, .noLyrics, .noSelection, .noMatch, .candidates, .failed:
             if !rows.isEmpty, documentState.isShowingRows {
                 plainRows(rows, width: width, status: "纯文本")
             } else {
@@ -99,7 +99,8 @@ struct FloatingLyricsView: View {
                             isSynchronized: true,
                             preferences: state.preferences,
                             availableWidth: width,
-                            visibleLayerCount: visibleLayerCount
+                            visibleLayerCount: visibleLayerCount,
+                            language: state.liveLyricsLanguage
                         )
                         .id(rows[index].id)
                     }
@@ -141,7 +142,8 @@ struct FloatingLyricsView: View {
                             isSynchronized: false,
                             preferences: state.preferences,
                             availableWidth: width,
-                            visibleLayerCount: visibleLayerCount
+                            visibleLayerCount: visibleLayerCount,
+                            language: state.liveLyricsLanguage
                         )
                         .id(line.id)
                     }

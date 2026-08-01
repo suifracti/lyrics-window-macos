@@ -21,6 +21,8 @@ public struct TrackSearchMetadata: Equatable, Hashable, Sendable {
     public let artists: [TrackArtistMetadata]
     public let artistDisplay: String
     public let album: String
+    public let albumID: String?
+    public let albumURI: String?
     public let duration: TimeInterval
     public let artworkURL: URL?
     public let isrc: String?
@@ -35,6 +37,8 @@ public struct TrackSearchMetadata: Equatable, Hashable, Sendable {
         artists: [TrackArtistMetadata],
         artistDisplay: String? = nil,
         album: String,
+        albumID: String? = nil,
+        albumURI: String? = nil,
         duration: TimeInterval,
         artworkURL: URL? = nil,
         isrc: String? = nil,
@@ -48,6 +52,8 @@ public struct TrackSearchMetadata: Equatable, Hashable, Sendable {
         self.artists = artists
         self.artistDisplay = artistDisplay ?? artists.map(\.name).joined(separator: ", ")
         self.album = album
+        self.albumID = albumID
+        self.albumURI = albumURI
         self.duration = duration
         self.artworkURL = artworkURL
         self.isrc = isrc

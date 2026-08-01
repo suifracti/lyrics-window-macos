@@ -126,6 +126,7 @@
 		110000852D83400100000001 /* FullScreenLyricsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000852D83400100000000 /* FullScreenLyricsWindowController.swift */; };
 		110000862D83400100000001 /* FullScreenLyricsPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000862D83400100000000 /* FullScreenLyricsPresentation.swift */; };
 		110000872D83400100000001 /* FullScreenLyricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000872D83400100000000 /* FullScreenLyricsView.swift */; };
+		110000882D83400100000001 /* LyricsLanguageGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000882D83400100000000 /* LyricsLanguageGate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -250,6 +251,7 @@
 		110000852D83400100000000 /* FullScreenLyricsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windows/FullScreenLyricsWindowController.swift; sourceTree = "<group>"; };
 		110000862D83400100000000 /* FullScreenLyricsPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullScreenLyricsPresentation.swift; sourceTree = "<group>"; };
 		110000872D83400100000000 /* FullScreenLyricsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullScreenLyricsView.swift; sourceTree = "<group>"; };
+		110000882D83400100000000 /* LyricsLanguageGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsLanguageGate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -433,6 +435,7 @@
 				110000362D83400100000000 /* LyricsSafeMatcher.swift */,
 				110000372D83400100000000 /* LyricsRecoveryModels.swift */,
 				110000452D83400100000000 /* LocalAudioASRService.swift */,
+				110000882D83400100000000 /* LyricsLanguageGate.swift */,
 			);
 			path = Lyrics;
 			sourceTree = "<group>";
@@ -698,6 +701,7 @@
 				110000852D83400100000001 /* FullScreenLyricsWindowController.swift in Sources */,
 				110000862D83400100000001 /* FullScreenLyricsPresentation.swift in Sources */,
 				110000872D83400100000001 /* FullScreenLyricsView.swift in Sources */,
+				110000882D83400100000001 /* LyricsLanguageGate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

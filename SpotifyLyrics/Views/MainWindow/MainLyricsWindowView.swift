@@ -225,7 +225,7 @@ struct MainLyricsWindowView: View {
                     }
                 }
                 let showAutoComplete: Bool = {
-                    switch state.lyricsState {
+                    switch state.liveLyricsState {
                     case .failed, .noMatch, .noLyrics, .alignmentQueued, .alignmentRunning, .alignmentPreview, .candidates, .loading:
                         return true
                     default:

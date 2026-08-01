@@ -8,6 +8,7 @@ struct LyricLineView: View {
     let preferences: DisplayPreferences
     let availableWidth: CGFloat
     let visibleLayerCount: Int
+    let language: String?
 
     init(
         line: LyricLine,
@@ -16,7 +17,8 @@ struct LyricLineView: View {
         isSynchronized: Bool,
         preferences: DisplayPreferences,
         availableWidth: CGFloat = LyricsDesignTokens.defaultMainWindowSize.width,
-        visibleLayerCount: Int = 1
+        visibleLayerCount: Int = 1,
+        language: String? = nil
     ) {
         self.line = line
         self.isActive = isActive
@@ -25,6 +27,7 @@ struct LyricLineView: View {
         self.preferences = preferences
         self.availableWidth = availableWidth
         self.visibleLayerCount = visibleLayerCount
+        self.language = language
     }
 
     private var emphasis: LyricEmphasis {
@@ -73,7 +76,10 @@ struct LyricLineView: View {
     }
 
     private var displayKanaText: String? {
-        line.kanaText.map(JapaneseRomanizer.displayKana)
+        guard LyricsLanguageGate.allowsJapaneseReadings(language: language, text: line.originalText) else {
+            return nil
+        }
+        return line.kanaText.map(JapaneseRomanizer.displayKana)
     }
 
     /// A few older/provider payloads accidentally put the confirmed kana in
@@ -82,6 +88,7 @@ struct LyricLineView: View {
     /// the same after katakana-to-hiragana normalization.
     private var distinctRomaji: String? {
         guard preferences.showRomaji,
+              LyricsLanguageGate.allowsJapaneseReadings(language: language, text: line.originalText),
               let romaji = line.romajiText?.trimmingCharacters(in: .whitespacesAndNewlines),
               !romaji.isEmpty else {
             return nil
@@ -103,7 +110,7 @@ struct LyricLineView: View {
         (preferences.showOriginal && !line.originalText.isEmpty)
             || (preferences.showTranslation && !(line.translationText ?? "").isEmpty)
             || distinctRomaji != nil
-            || (preferences.showKana && !(line.kanaText ?? "").isEmpty)
+            || (preferences.showKana && displayKanaText != nil)
     }
 
     @ViewBuilder
@@ -111,6 +118,7 @@ struct LyricLineView: View {
         if hasVisibleContent {
             VStack(alignment: .leading, spacing: 0) {
                 if preferences.kanaDisplayMode == .kanaReplacement,
+                   LyricsLanguageGate.allowsJapaneseReadings(language: language, text: line.originalText),
                    let kana = displayKanaText,
                    !kana.isEmpty {
                     KanaReplacementLineView(
@@ -148,6 +156,7 @@ struct LyricLineView: View {
                                 .padding(.top, 2)
                         }
                     } else if preferences.kanaDisplayMode == .inlineRuby,
+                              LyricsLanguageGate.allowsJapaneseReadings(language: language, text: line.originalText),
                               shouldShowAuxiliary,
                               let kana = displayKanaText,
                               !kana.isEmpty {
@@ -175,6 +184,7 @@ struct LyricLineView: View {
                             .lineSpacing(isActive ? 3 : 2)
                     }
                 } else if preferences.kanaDisplayMode != .hidden,
+                          LyricsLanguageGate.allowsJapaneseReadings(language: language, text: line.originalText),
                           let kana = displayKanaText,
                           !kana.isEmpty {
                     // If the user hides the base text, keep the kana layer

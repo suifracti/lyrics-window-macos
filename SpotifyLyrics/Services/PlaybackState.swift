@@ -64,6 +64,7 @@ public final class PlaybackState: ObservableObject {
         let identityKey: String?
         let revision: UInt64
         let translationVersionID: UUID?
+        let translationSelectionIsEmpty: Bool
         let lyricsVersionID: UUID?
         let sourceContentHash: String?
         let lineCount: Int
@@ -308,6 +309,8 @@ public final class PlaybackState: ObservableObject {
     public var liveLyricsState: LyricsLoadState { lyricsSession.state }
     public var liveLyricsAreSynchronized: Bool { lyricsSession.isSynchronized }
     public var liveLyricsSessionRevision: UInt64 { lyricsSession.revision }
+    public var liveLyricsLanguage: String? { lyricsSession.activeDocument?.language }
+    public var isLyricsSelectionEmpty: Bool { lyricsSession.isNoSelection }
     public var liveCurrentLineIndex: Int? {
         LyricsTimeline.activeLineIndex(
             lines: liveLyrics,
@@ -323,6 +326,7 @@ public final class PlaybackState: ObservableObject {
     public var translationState: TranslationSessionState { translationSession.state }
     public var translationVersions: [StoredTranslationVersion] { translationSession.availableVersions }
     public var selectedTranslation: StoredTranslationVersion? { translationSession.selectedVersion }
+    public var isTranslationSelectionEmpty: Bool { translationSession.isNoSelection }
 
     public var canOpenLyricsEditor: Bool {
         hasLiveTrack && !isMockPreviewMode && lyricsSession.activeIdentity != nil &&
@@ -336,7 +340,7 @@ public final class PlaybackState: ObservableObject {
     public var canCreateManualLyrics: Bool {
         guard hasLiveTrack, !isMockPreviewMode, lyricsSession.activeIdentity != nil else { return false }
         switch lyricsSession.state {
-        case .noLyrics, .noMatch, .failed, .candidates:
+        case .noLyrics, .noSelection, .noMatch, .failed, .candidates:
             return true
         default:
             return false
@@ -488,15 +492,22 @@ public final class PlaybackState: ObservableObject {
     public func translateCurrentLyrics() { translationSession.translateCurrentLyrics() }
     public func retranslateCurrentLyrics() { translationSession.retranslateCurrentLyrics() }
     public func selectTranslation(versionID: UUID) { translationSession.select(versionID: versionID) }
+    public func selectNoTranslationVersion() { translationSession.selectNone() }
     public func lockSelectedTranslation() { translationSession.lockSelected() }
     public func deleteSelectedTranslation() { translationSession.deleteSelected() }
 
+    /// Explicitly clears the live lyric projection for this session without
+    /// deleting any stored LyricsVersion.
+    public func selectNoLyricsVersion() {
+        guard let identity = currentTrackIdentity else { return }
+        lyricsSession.selectNoVersion(identity: identity)
+    }
+
     private func syncTranslationSession() {
-        let session = isShowingSearchPreview ? searchPreviewSession : lyricsSession
         translationSession.synchronize(
-            document: session.activeDocument,
-            lyricsVersionID: session.activeLyricsVersionID,
-            sourceContentHash: session.activeSourceContentHash,
+            document: lyricsSession.activeDocument,
+            lyricsVersionID: lyricsSession.activeLyricsVersionID,
+            sourceContentHash: lyricsSession.activeSourceContentHash,
             configuration: settingsStore.aiTranslationConfiguration
         )
     }
@@ -1100,6 +1111,7 @@ public final class PlaybackState: ObservableObject {
             identityKey: session.activeIdentity?.stableKey,
             revision: session.revision,
             translationVersionID: translationSession.selectedVersion?.record.id,
+            translationSelectionIsEmpty: translationSession.isNoSelection,
             lyricsVersionID: session.activeLyricsVersionID,
             sourceContentHash: session.activeSourceContentHash,
             lineCount: base.count

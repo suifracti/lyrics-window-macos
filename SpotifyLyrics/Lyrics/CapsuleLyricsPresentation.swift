@@ -43,6 +43,8 @@ public enum CapsuleLyricsPresentation {
             return empty(isSynchronized: false, status: "正在加载歌词…")
         case .noLyrics:
             return empty(isSynchronized: false, status: "暂无歌词")
+        case .noSelection:
+            return empty(isSynchronized: false, status: "未选择歌词")
         case .noMatch:
             return empty(isSynchronized: false, status: "未找到歌词")
         case .candidates:

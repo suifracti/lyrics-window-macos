@@ -64,12 +64,23 @@ struct SongSearchPopover: View {
                     .font(.system(size: 11, weight: .medium, design: .rounded))
                     .foregroundStyle(LyricsDesignTokens.mutedText)
                 Spacer(minLength: 6)
-                SettingsLink {
-                    Label("设置", systemImage: "gearshape")
-                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                if playbackState.spotifyAuthorizationManager.isConfigured,
+                   !playbackState.spotifyAuthorizationManager.state.isAuthorized {
+                    Button("授权") {
+                        playbackState.spotifyAuthorizationManager.authorize()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(LyricsDesignTokens.accent)
+                    .controlSize(.small)
+                    .disabled(isAuthorizing)
+                } else {
+                    SettingsLink {
+                        Label("设置", systemImage: "gearshape")
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                    }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(LyricsDesignTokens.accent)
                 }
-                .buttonStyle(.borderless)
-                .foregroundStyle(LyricsDesignTokens.accent)
         }
         .padding(9)
         .background(
@@ -190,6 +201,13 @@ struct SongSearchPopover: View {
         )
         .accessibilityLabel("歌曲结果：\(result.track.title)，\(result.track.artist)")
         .accessibilityHint(result.lyrics == nil ? "查看这首歌的歌词" : "加载这首歌的歌词")
+    }
+
+    private var isAuthorizing: Bool {
+        if case .authorizing = playbackState.spotifyAuthorizationManager.state {
+            return true
+        }
+        return false
     }
 
     private func emptyState(icon: String, title: String, detail: String) -> some View {

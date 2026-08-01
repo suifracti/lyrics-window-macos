@@ -172,7 +172,8 @@ struct FullScreenLyricsView: View {
                                 isSynchronized: true,
                                 preferences: state.preferences,
                                 availableWidth: width,
-                                visibleLayerCount: visibleLayerCount(for: rows[index])
+                                visibleLayerCount: visibleLayerCount(for: rows[index]),
+                                language: state.liveLyricsLanguage
                             )
                             .id(rows[index].id)
                         }
@@ -225,7 +226,8 @@ struct FullScreenLyricsView: View {
                             isSynchronized: false,
                             preferences: state.preferences,
                             availableWidth: width,
-                            visibleLayerCount: visibleLayerCount(for: rows[index])
+                            visibleLayerCount: visibleLayerCount(for: rows[index]),
+                            language: state.liveLyricsLanguage
                         )
                         .id(rows[index].id)
                     }

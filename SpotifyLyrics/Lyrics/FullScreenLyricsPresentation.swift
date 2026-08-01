@@ -60,6 +60,8 @@ public enum FullScreenLyricsPresentation {
             return .status(title: "正在加载歌词…", detail: "正在等待共享歌词会话")
         case .noLyrics:
             return .status(title: "暂无歌词", detail: "当前来源没有歌词正文")
+        case .noSelection:
+            return .status(title: "未选择歌词", detail: "请在主窗口重新选择歌词版本或搜索")
         case .noMatch:
             return .status(title: "暂无歌词", detail: "自动补全未找到可用歌词")
         case .candidates:

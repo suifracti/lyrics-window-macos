@@ -28,6 +28,9 @@ public final class TranslationSessionController: ObservableObject {
     @Published public private(set) var selectedVersion: StoredTranslationVersion?
     @Published public private(set) var availableVersions: [StoredTranslationVersion] = []
     @Published public private(set) var errorMessage: String?
+    /// Distinguishes an explicit session-level “无翻译版本” choice from a
+    /// hidden translation layer or a context that has not loaded yet.
+    @Published public private(set) var isNoSelection = false
 
     private let repository: any TranslationRepository
     private let service: (any AITranslationService)?
@@ -35,6 +38,8 @@ public final class TranslationSessionController: ObservableObject {
     private var context: TranslationContext?
     private var inFlightKey: String?
     private var manualSelection: [String: UUID] = [:]
+    private var manualNoSelection: Set<String> = []
+    private var requestGeneration: UInt64 = 0
 
     private struct TranslationContext: Equatable, Sendable {
         let identity: TrackIdentity
@@ -104,10 +109,12 @@ public final class TranslationSessionController: ObservableObject {
         requestTask?.cancel()
         requestTask = nil
         inFlightKey = nil
+        requestGeneration &+= 1
         context = next
         selectedVersion = nil
         availableVersions = []
         errorMessage = nil
+        isNoSelection = manualNoSelection.contains(next.key)
         state = .idle
         loadExistingOrAutoTranslate(next)
     }
@@ -116,6 +123,7 @@ public final class TranslationSessionController: ObservableObject {
         requestTask?.cancel()
         requestTask = nil
         inFlightKey = nil
+        requestGeneration &+= 1
         state = .idle
     }
 
@@ -130,10 +138,12 @@ public final class TranslationSessionController: ObservableObject {
         requestTask?.cancel()
         requestTask = nil
         inFlightKey = nil
+        requestGeneration &+= 1
         context = nil
         selectedVersion = nil
         availableVersions = []
         errorMessage = nil
+        isNoSelection = false
         state = .idle
     }
 
@@ -147,13 +157,34 @@ public final class TranslationSessionController: ObservableObject {
         startTranslation(context, forceNewVersion: true)
     }
 
+    /// Explicitly selects no translation for the current lyric context. The
+    /// existing versions remain available and are never deleted or modified.
+    public func selectNone() {
+        guard let context else { return }
+        requestTask?.cancel()
+        requestTask = nil
+        inFlightKey = nil
+        requestGeneration &+= 1
+        manualNoSelection.insert(context.key)
+        selectedVersion = nil
+        isNoSelection = true
+        errorMessage = nil
+        state = .idle
+    }
+
     public func select(versionID: UUID) {
         guard let context,
               let version = availableVersions.first(where: { $0.record.id == versionID }),
               version.record.sourceContentHash == context.sourceContentHash,
               version.record.targetLanguage == context.configuration.targetLanguage,
               version.isComplete else { return }
+        requestTask?.cancel()
+        requestTask = nil
+        inFlightKey = nil
         manualSelection[context.key] = versionID
+        manualNoSelection.remove(context.key)
+        requestGeneration &+= 1
+        isNoSelection = false
         selectedVersion = version
         state = .loaded(version.record.id)
         errorMessage = nil
@@ -199,6 +230,13 @@ public final class TranslationSessionController: ObservableObject {
     /// Projects the selected version onto the existing LyricLine values. All
     /// original/kana/romaji/timeline fields remain untouched.
     public func project(onto lines: [LyricLine]) -> [LyricLine] {
+        if isNoSelection {
+            return lines.map { line in
+                var cleared = line
+                cleared.translationText = nil
+                return cleared
+            }
+        }
         guard let selectedVersion,
               selectedVersion.isComplete,
               selectedVersion.lines.count == lines.count,
@@ -235,6 +273,8 @@ public final class TranslationSessionController: ObservableObject {
         requestTask?.cancel()
         requestTask = nil
         inFlightKey = nil
+        requestGeneration &+= 1
+        let loadGeneration = requestGeneration
         let key = context.key
         requestTask = Task { [weak self, repository] in
             do {
@@ -245,8 +285,18 @@ public final class TranslationSessionController: ObservableObject {
                 )
                 guard !Task.isCancelled else { return }
                 await MainActor.run { [weak self] in
-                    guard let self, self.context?.key == key else { return }
+                    guard let self,
+                          self.context?.key == key,
+                          self.requestGeneration == loadGeneration else { return }
                     self.availableVersions = versions
+                    if self.manualNoSelection.contains(key) {
+                        self.selectedVersion = nil
+                        self.isNoSelection = true
+                        self.state = .idle
+                        self.errorMessage = nil
+                        return
+                    }
+                    self.isNoSelection = false
                     if let selected = self.chooseVersion(versions, context: context) {
                         self.selectedVersion = selected
                         self.state = .loaded(selected.record.id)
@@ -259,7 +309,9 @@ public final class TranslationSessionController: ObservableObject {
                 }
             } catch {
                 await MainActor.run { [weak self] in
-                    guard let self, self.context?.key == key else { return }
+                    guard let self,
+                          self.context?.key == key,
+                          self.requestGeneration == loadGeneration else { return }
                     self.state = .failed(error.localizedDescription)
                     self.errorMessage = error.localizedDescription
                 }
@@ -281,6 +333,7 @@ public final class TranslationSessionController: ObservableObject {
             $0.record.targetLanguage == context.configuration.targetLanguage &&
             $0.record.sourceContentHash == context.sourceContentHash
         }
+        guard !manualNoSelection.contains(context.key) else { return nil }
         if let locked = eligible.first(where: { $0.record.isLocked }) { return locked }
         if let manualID = manualSelection[context.key],
            let manual = eligible.first(where: { $0.record.id == manualID }) { return manual }
@@ -291,6 +344,10 @@ public final class TranslationSessionController: ObservableObject {
         let key = context.key
         if !forceNewVersion, inFlightKey == key { return }
         requestTask?.cancel()
+        requestGeneration &+= 1
+        let translationGeneration = requestGeneration
+        manualNoSelection.remove(key)
+        isNoSelection = false
         inFlightKey = key
         state = .loading
         errorMessage = nil
@@ -331,7 +388,10 @@ public final class TranslationSessionController: ObservableObject {
                 )
                 guard !Task.isCancelled else { return }
                 await MainActor.run { [weak self] in
-                    guard let self, self.context?.key == key else { return }
+                    guard let self,
+                          self.context?.key == key,
+                          self.requestGeneration == translationGeneration,
+                          !self.isNoSelection else { return }
                     self.inFlightKey = nil
                     self.availableVersions.insert(saved, at: 0)
                     self.selectedVersion = saved
@@ -340,20 +400,26 @@ public final class TranslationSessionController: ObservableObject {
                 }
             } catch is CancellationError {
                 await MainActor.run { [weak self] in
-                    guard let self, self.context?.key == key else { return }
+                    guard let self,
+                          self.context?.key == key,
+                          self.requestGeneration == translationGeneration else { return }
                     self.inFlightKey = nil
                     self.state = .idle
                 }
             } catch let error as AITranslationError {
                 await MainActor.run { [weak self] in
-                    guard let self, self.context?.key == key else { return }
+                    guard let self,
+                          self.context?.key == key,
+                          self.requestGeneration == translationGeneration else { return }
                     self.inFlightKey = nil
                     self.state = .failed(error.localizedDescription)
                     self.errorMessage = error.localizedDescription
                 }
             } catch {
                 await MainActor.run { [weak self] in
-                    guard let self, self.context?.key == key else { return }
+                    guard let self,
+                          self.context?.key == key,
+                          self.requestGeneration == translationGeneration else { return }
                     self.inFlightKey = nil
                     self.state = .failed(error.localizedDescription)
                     self.errorMessage = error.localizedDescription

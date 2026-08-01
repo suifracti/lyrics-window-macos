@@ -222,13 +222,17 @@ public enum LyricsPersistenceMapper {
             isSynchronized: version.isSynced,
             source: DatabaseSourceIdentifier.source(for: version.source),
             confidence: version.confidence,
-            providerSourceID: version.providerSourceID
+            providerSourceID: version.providerSourceID,
+            language: version.language
         )
     }
 
     private static func language(for document: LyricsDocument) -> String {
-        let text = document.lines.first?.originalText ?? document.title ?? ""
-        return ScriptDetector.guessLanguage(text) ?? "und"
+        if let language = document.language, !language.isEmpty {
+            return language
+        }
+        let text = document.lines.map(\.originalText).joined(separator: "\n")
+        return LyricsLanguageGate.inferredLanguage(text: text) ?? "und"
     }
 
     private struct HashLine: Encodable {

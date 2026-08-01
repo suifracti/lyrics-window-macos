@@ -185,7 +185,8 @@ struct CapsuleLyricsView: View {
                     isSynchronized: true,
                     preferences: state.preferences,
                     availableWidth: 580,
-                    visibleLayerCount: visibleLayerCount
+                    visibleLayerCount: visibleLayerCount,
+                    language: state.liveLyricsLanguage
                 )
                 .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -197,7 +198,8 @@ struct CapsuleLyricsView: View {
                         isSynchronized: true,
                         preferences: state.preferences,
                         availableWidth: 580,
-                        visibleLayerCount: visibleLayerCount
+                        visibleLayerCount: visibleLayerCount,
+                        language: state.liveLyricsLanguage
                     )
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }

@@ -187,6 +187,16 @@ struct TranslationSessionContract {
         precondition(calls == 2, "duplicate in-flight request was not merged")
         precondition(saves.count == 1, "stale track translation reached persistence")
         precondition(saves[0].sourceContentHash == hashB, "saved translation belongs to the wrong track")
+
+        await MainActor.run {
+            controller.selectNone()
+            precondition(controller.isNoSelection, "explicit no-translation selection was not retained")
+            let projected = controller.project(onto: [
+                LyricLine(timestamp: 0, originalText: "原文", translationText: "不应显示")
+            ])
+            precondition(projected.first?.translationText == nil, "no-selection leaked a translation layer")
+            precondition(controller.selectedVersion == nil, "no-selection kept a selected translation")
+        }
         print("translation session contracts passed")
     }
 }

@@ -13,6 +13,7 @@ struct FloatingLyricsStatusView: View {
         case .alignmentQueued, .alignmentRunning: return "纯文本 / 未排轴"
         case .alignmentPreview: return "排轴预览"
         case .noLyrics: return "暂无歌词"
+        case .noSelection: return "未选择歌词"
         case .noMatch: return "未找到歌词"
         case .candidates: return "候选待确认"
         case .failed: return "歌词加载失败"
@@ -24,7 +25,7 @@ struct FloatingLyricsStatusView: View {
         switch state {
         case .loading, .alignmentRunning: return "arrow.triangle.2.circlepath"
         case .failed: return "exclamationmark.triangle"
-        case .noLyrics, .noMatch: return "text.page.slash"
+        case .noLyrics, .noSelection, .noMatch: return "text.page.slash"
         case .candidates: return "list.bullet.rectangle"
         case .alignmentQueued: return "clock.badge.exclamationmark"
         default: return "music.note"

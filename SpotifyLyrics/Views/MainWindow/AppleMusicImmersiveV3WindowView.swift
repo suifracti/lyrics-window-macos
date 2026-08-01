@@ -57,7 +57,7 @@ struct AppleMusicImmersiveV3WindowView: View {
         .frame(minWidth: minimumWidth, minHeight: minimumHeight)
         .preferredColorScheme(.dark)
         .sheet(isPresented: $isAlignmentDetailsPresented) {
-            if let report = state.lyricsState.alignmentReport {
+            if let report = state.liveLyricsState.alignmentReport {
                 AlignmentPreviewView(report: report)
             }
         }
@@ -277,6 +277,7 @@ struct AppleMusicImmersiveV3WindowView: View {
                     openWindow(id: "lyrics-editor")
                 }
             }
+            lyricsVersionMenuContent
             translationMenuContent
             alignmentMenuContent
 
@@ -301,8 +302,18 @@ struct AppleMusicImmersiveV3WindowView: View {
     }
 
     @ViewBuilder
+    private var lyricsVersionMenuContent: some View {
+        Divider()
+        Menu("歌词版本") {
+            Button("无歌词版本") { state.selectNoLyricsVersion() }
+                .disabled(state.isLyricsSelectionEmpty)
+            Text(state.isLyricsSelectionEmpty ? "当前会话未选择版本" : "当前会话使用已采用版本")
+        }
+    }
+
+    @ViewBuilder
     private var translationMenuContent: some View {
-        if !state.lyrics.isEmpty {
+        if !state.liveLyrics.isEmpty {
             Divider()
             switch state.translationState {
             case .loading:
@@ -314,23 +325,27 @@ struct AppleMusicImmersiveV3WindowView: View {
                 Text("翻译：上次请求失败")
                 Button("重试翻译") { state.translateCurrentLyrics() }
             case .idle:
-                Text("翻译：暂无版本")
+                Text(state.isTranslationSelectionEmpty ? "翻译：未选择版本" : "翻译：暂无版本")
                 Button("翻译") { state.translateCurrentLyrics() }
             case .loaded:
-                Text("翻译：已加载")
+                Text(state.isTranslationSelectionEmpty ? "翻译：未选择版本" : "翻译：已加载")
                 Button("重新翻译") { state.retranslateCurrentLyrics() }
-                Menu("翻译版本") {
-                    ForEach(state.translationVersions, id: \.record.id) { version in
-                        Button {
-                            state.selectTranslation(versionID: version.record.id)
-                        } label: {
-                            Text("\(version.record.model.isEmpty ? version.record.sourceKind.rawValue : version.record.model) · \(version.record.createdAt.formatted(date: .abbreviated, time: .shortened))")
-                        }
+            }
+            Menu("翻译版本") {
+                Button("无翻译版本") { state.selectNoTranslationVersion() }
+                    .disabled(state.isTranslationSelectionEmpty)
+                if !state.translationVersions.isEmpty { Divider() }
+                ForEach(state.translationVersions, id: \.record.id) { version in
+                    Button {
+                        state.selectTranslation(versionID: version.record.id)
+                    } label: {
+                        Text("\(version.record.model.isEmpty ? version.record.sourceKind.rawValue : version.record.model) · \(version.record.createdAt.formatted(date: .abbreviated, time: .shortened))")
                     }
-                    if state.selectedTranslation?.record.isLocked == false {
-                        Button("锁定当前版本") { state.lockSelectedTranslation() }
-                        Button("删除当前版本", role: .destructive) { state.deleteSelectedTranslation() }
-                    }
+                }
+                if state.selectedTranslation?.record.isLocked == false {
+                    Divider()
+                    Button("锁定当前版本") { state.lockSelectedTranslation() }
+                    Button("删除当前版本", role: .destructive) { state.deleteSelectedTranslation() }
                 }
             }
         }
@@ -338,7 +353,7 @@ struct AppleMusicImmersiveV3WindowView: View {
 
     @ViewBuilder
     private var alignmentMenuContent: some View {
-        switch state.lyricsState {
+        switch state.liveLyricsState {
         case .alignmentQueued:
             Divider()
             Text("歌词：待对齐时间轴")
@@ -357,7 +372,7 @@ struct AppleMusicImmersiveV3WindowView: View {
             EmptyView()
         default:
             Divider()
-            Text("歌词：\(state.lyricsStatusMessage)")
+            Text("歌词：\(state.liveLyricsStatusMessage)")
         }
     }
 
@@ -502,7 +517,7 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
     let compact: Bool
 
     var body: some View {
-        if state.lyrics.isEmpty {
+        if state.liveLyrics.isEmpty {
             emptyState
         } else {
             lyricsScroll
@@ -529,10 +544,10 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
     }
 
     private var emptyTitle: String {
-        switch state.lyricsState {
+        switch state.liveLyricsState {
         case .loading: return "正在获取歌词…"
         case .failed: return "歌词暂不可用"
-        case .noLyrics, .noMatch: return "暂无歌词"
+        case .noLyrics, .noSelection, .noMatch: return "暂无歌词"
         case .candidates: return "请选择歌词候选"
         case .idle: return "等待正在播放的歌曲"
         default: return "歌词"
@@ -540,9 +555,10 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
     }
 
     private var emptyDetail: String {
-        switch state.lyricsState {
+        switch state.liveLyricsState {
         case .failed(_, let failure): return failure.userFacingMessage
         case .noLyrics, .noMatch: return "可从右上角工具菜单重试自动补全"
+        case .noSelection: return "当前会话未选择歌词版本；可从右上角重新搜索"
         default: return ""
         }
     }
@@ -550,13 +566,13 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
     private var lyricsScroll: some View {
         GeometryReader { geometry in
             ScrollViewReader { proxy in
-                let synchronized = state.lyricsAreSynchronized
+                let synchronized = state.liveLyricsAreSynchronized
                 let verticalPadding = synchronized
                     ? max(120, geometry.size.height * 0.47)
                     : 28.0
                 let scroll = ScrollView(.vertical) {
                     LazyVStack(alignment: .leading, spacing: rowSpacing) {
-                        ForEach(Array(state.lyrics.enumerated()), id: \.element.id) { index, line in
+                        ForEach(Array(state.liveLyrics.enumerated()), id: \.element.id) { index, line in
                             row(for: line, index: index)
                                 .id(line.id)
                         }
@@ -591,10 +607,10 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
                 .onAppear {
                     scrollToCurrentLine(using: proxy, animated: false)
                 }
-                .onChange(of: state.currentLineIndex) { _, _ in
+                .onChange(of: state.liveCurrentLineIndex) { _, _ in
                     scrollToCurrentLine(using: proxy, animated: true)
                 }
-                .onChange(of: state.lyricsSessionRevision) { _, _ in
+                .onChange(of: state.liveLyricsSessionRevision) { _, _ in
                     scrollToCurrentLine(using: proxy, animated: false)
                 }
             }
@@ -604,7 +620,7 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
     private var rowSpacing: CGFloat {
         let layerCount = (state.preferences.showRomaji ? 1 : 0)
             + (state.preferences.showTranslation ? 1 : 0)
-        if !state.lyricsAreSynchronized {
+        if !state.liveLyricsAreSynchronized {
             return max(18, (compact ? 21 : 24) - CGFloat(max(0, layerCount - 1)))
         }
         return max(20, (compact ? 24 : 28) - CGFloat(max(0, layerCount - 1)) * 2)
@@ -612,8 +628,8 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
 
     @ViewBuilder
     private func row(for line: LyricLine, index: Int) -> some View {
-        let currentIndex = state.currentLineIndex
-        let synchronized = state.lyricsAreSynchronized
+        let currentIndex = state.liveCurrentLineIndex
+        let synchronized = state.liveLyricsAreSynchronized
         let isActive = synchronized && currentIndex == index
         let distance = synchronized && currentIndex != nil
             ? abs(index - (currentIndex ?? index))
@@ -625,7 +641,8 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
             isSynchronized: synchronized,
             availableWidth: availableWidth,
             compact: compact,
-            preferences: state.preferences
+            preferences: state.preferences,
+            language: state.liveLyricsLanguage
         )
         if let timestamp = LyricsTimeline.validSeekTimestamp(
             for: line,
@@ -648,12 +665,12 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
     }
 
     private func scrollToCurrentLine(using proxy: ScrollViewProxy, animated: Bool) {
-        guard state.lyricsAreSynchronized,
-              let currentIndex = state.currentLineIndex,
-              state.lyrics.indices.contains(currentIndex) else {
+        guard state.liveLyricsAreSynchronized,
+              let currentIndex = state.liveCurrentLineIndex,
+              state.liveLyrics.indices.contains(currentIndex) else {
             return
         }
-        let id = state.lyrics[currentIndex].id
+        let id = state.liveLyrics[currentIndex].id
         let action = { proxy.scrollTo(id, anchor: UnitPoint(x: 0.5, y: 0.47)) }
         if animated {
             withAnimation(.easeInOut(duration: 0.34), action)
@@ -671,6 +688,7 @@ private struct AppleMusicImmersiveV3LyricRow: View {
     let availableWidth: CGFloat
     let compact: Bool
     let preferences: DisplayPreferences
+    let language: String?
 
     private var layerCount: Int {
         1 + (preferences.showRomaji ? 1 : 0) + (preferences.showTranslation && line.translationText != nil ? 1 : 0)
@@ -718,7 +736,10 @@ private struct AppleMusicImmersiveV3LyricRow: View {
     }
 
     private var displayKanaText: String? {
-        line.kanaText.map(JapaneseRomanizer.displayKana)
+        guard LyricsLanguageGate.allowsJapaneseReadings(language: language, text: line.originalText) else {
+            return nil
+        }
+        return line.kanaText.map(JapaneseRomanizer.displayKana)
     }
 
     /// Keep a confirmed token mapping when one exists. For older lyric data
@@ -752,6 +773,7 @@ private struct AppleMusicImmersiveV3LyricRow: View {
 
     private var distinctRomaji: String? {
         guard preferences.showRomaji,
+              LyricsLanguageGate.allowsJapaneseReadings(language: language, text: line.originalText),
               let romaji = line.romajiText?.trimmingCharacters(in: .whitespacesAndNewlines),
               !romaji.isEmpty else { return nil }
         // A malformed provider payload sometimes repeats the kana layer in

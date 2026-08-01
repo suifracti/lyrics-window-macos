@@ -23,6 +23,7 @@ swiftc -parse-as-library \
   "$ROOT_DIR/SpotifyLyrics/Persistence/DatabaseMigrator.swift" \
   "$ROOT_DIR/SpotifyLyrics/Persistence/LyricsRepository.swift" \
   "$ROOT_DIR/SpotifyLyrics/Persistence/AlignmentProvenanceStore.swift" \
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsLanguageGate.swift" \
   "$ROOT_DIR/SpotifyLyrics/Persistence/LyricsPersistenceMapper.swift" \
   "$ROOT_DIR/SpotifyLyrics/Persistence/TranslationRepository.swift" \
   "$ROOT_DIR/SpotifyLyrics/Persistence/LyricsEditingRepository.swift" \

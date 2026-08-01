@@ -24,6 +24,7 @@ swiftc -parse-as-library \
   "$ROOT/SpotifyLyrics/AI/OpenAICompatibleClient.swift" \
   "$ROOT/SpotifyLyrics/AI/AITranslationService.swift" \
   "$ROOT/SpotifyLyrics/Persistence/DatabaseModels.swift" \
+  "$ROOT/SpotifyLyrics/Lyrics/LyricsLanguageGate.swift" \
   "$ROOT/SpotifyLyrics/Persistence/LyricsPersistenceMapper.swift" \
   "$ROOT/SpotifyLyrics/Persistence/TranslationRepository.swift" \
   "$ROOT/SpotifyLyrics/Services/TranslationSessionController.swift" \

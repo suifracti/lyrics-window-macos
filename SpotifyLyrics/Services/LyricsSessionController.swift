@@ -6,6 +6,9 @@ public final class LyricsSessionController: ObservableObject {
     @Published public private(set) var state: LyricsLoadState = .idle
     @Published public private(set) var lyrics: [LyricLine] = []
     @Published public private(set) var isSynchronized = true
+    /// Session-only explicit absence. It never creates or deletes a database
+    /// version and invalidates all in-flight Provider work.
+    @Published public private(set) var isNoSelection = false
     @Published public private(set) var activeIdentity: TrackIdentity?
     @Published public private(set) var activeLyricsVersionID: UUID?
     @Published public private(set) var activeSourceContentHash: String?
@@ -76,6 +79,7 @@ public final class LyricsSessionController: ObservableObject {
         persistenceStatusMessage = nil
         lyrics = []
         isSynchronized = true
+        isNoSelection = false
         state = .loading(identity)
 
         LyricsE2ELog.log(
@@ -192,6 +196,7 @@ public final class LyricsSessionController: ObservableObject {
         alignmentProvenanceAvailability = .unavailable
         lyrics = []
         isSynchronized = true
+        isNoSelection = false
         state = .loading(identity)
         LyricsE2ELog.log("SESSION placeholder identity=\(identity.stableKey) msg=\(message)")
     }
@@ -202,6 +207,7 @@ public final class LyricsSessionController: ObservableObject {
         revision &+= 1
         lyrics = []
         isSynchronized = true
+        isNoSelection = false
         state = .failed(identity, failure)
         LyricsE2ELog.log("SESSION fail identity=\(identity.stableKey) \(failure)")
     }
@@ -234,8 +240,29 @@ public final class LyricsSessionController: ObservableObject {
         automaticRecoveryRetryIdentity = nil
         lyrics = []
         isSynchronized = true
+        isNoSelection = false
         state = .idle
         LyricsE2ELog.log("SESSION clear")
+    }
+
+    /// Keeps the live TrackIdentity while explicitly selecting no lyric
+    /// version. This is intentionally not a noMatch/failed state and is not
+    /// persisted as an empty LyricsVersion.
+    public func selectNoVersion(identity: TrackIdentity? = nil) {
+        guard let activeIdentity,
+              identity == nil || identity == activeIdentity else { return }
+        cancelCurrentRequest()
+        revision &+= 1
+        activeLyricsVersionID = nil
+        activeSourceContentHash = nil
+        alignmentProvenanceAvailability = .unavailable
+        automaticRecoveryRetryIdentity = nil
+        persistenceStatusMessage = nil
+        lyrics = []
+        isSynchronized = true
+        isNoSelection = true
+        state = .noSelection(activeIdentity)
+        LyricsE2ELog.log("SESSION explicit no-selection identity=\(activeIdentity.stableKey)")
     }
 
     public func enterMockPreview(lines: [LyricLine]) {
@@ -249,6 +276,7 @@ public final class LyricsSessionController: ObservableObject {
         automaticRecoveryRetryIdentity = nil
         lyrics = lines
         isSynchronized = true
+        isNoSelection = false
         state = .mockPreview
         LyricsE2ELog.log("SESSION mockPreview lines=\(lines.count)")
     }
@@ -260,6 +288,7 @@ public final class LyricsSessionController: ObservableObject {
         }
         guard !candidate.lines.isEmpty else {
             lyrics = []
+            isNoSelection = false
             state = .noLyrics(candidate.identity)
             return
         }
@@ -273,7 +302,10 @@ public final class LyricsSessionController: ObservableObject {
             isSynchronized: candidate.isSynchronized,
             source: candidate.source,
             confidence: candidate.confidence,
-            providerSourceID: candidate.providerSourceID
+            providerSourceID: candidate.providerSourceID,
+            spotifyTrackID: candidate.spotifyTrackID,
+            isrc: candidate.isrc,
+            language: candidate.language
         )
         applyLoadedDocument(document, identity: candidate.identity)
         persistAdoptedDocument(document)
@@ -320,6 +352,7 @@ public final class LyricsSessionController: ObservableObject {
         revision &+= 1
         lyrics = plain.lines
         isSynchronized = false
+        isNoSelection = false
         state = .alignmentRunning(identity, plain, 0)
         LyricsE2ELog.log("SESSION alignmentRunning start lines=\(plain.lines.count)")
     }
@@ -343,6 +376,7 @@ public final class LyricsSessionController: ObservableObject {
         revision &+= 1
         lyrics = timed.lines
         isSynchronized = true // allow scrub preview; still marked as preview in state
+        isNoSelection = false
         state = .alignmentPreview(identity, plain: plain, timed: timed, report: report)
         LyricsE2ELog.log("SESSION alignmentPreview lines=\(timed.lines.count) overall=\(report.overallConfidence) low=\(report.lowConfidenceCount)")
     }
@@ -420,6 +454,7 @@ public final class LyricsSessionController: ObservableObject {
         alignmentProvenanceAvailability = savedProvenanceAvailability
         lyrics = confirmed.lines
         isSynchronized = true
+        isNoSelection = false
         state = .loaded(confirmed)
         LyricsE2ELog.log("SESSION alignment confirmed lines=\(confirmed.lines.count) version=\(savedVersionID.uuidString)")
         guard saveLocal else { return nil }
@@ -432,7 +467,11 @@ public final class LyricsSessionController: ObservableObject {
     }
 
     private func applyLoadedDocument(_ document: LyricsDocument, identity: TrackIdentity) {
+        isNoSelection = false
         let enrichedLines = LyricsLayerEnricher.enrich(lines: document.lines)
+        let inferredLanguage = document.language ?? LyricsLanguageGate.inferredLanguage(
+            text: enrichedLines.map(\.originalText).joined(separator: "\n")
+        )
         let enriched = LyricsDocument(
             identity: identity,
             title: document.title,
@@ -443,7 +482,10 @@ public final class LyricsSessionController: ObservableObject {
             isSynchronized: document.isSynchronized,
             source: document.source,
             confidence: document.confidence,
-            providerSourceID: document.providerSourceID
+            providerSourceID: document.providerSourceID,
+            spotifyTrackID: document.spotifyTrackID,
+            isrc: document.isrc,
+            language: inferredLanguage
         )
         lyrics = enriched.lines
         isSynchronized = enriched.isSynchronized

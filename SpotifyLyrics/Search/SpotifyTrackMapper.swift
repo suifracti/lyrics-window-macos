@@ -13,6 +13,8 @@ public enum SpotifyTrackMapper {
             artists: artists,
             artistDisplay: display,
             album: dto.album.name,
+            albumID: dto.album.id,
+            albumURI: dto.album.uri,
             duration: TimeInterval(dto.durationMS) / 1_000,
             artworkURL: artworkURL(from: dto.album.images),
             isrc: dto.externalIDs?.isrc,
@@ -34,7 +36,11 @@ public enum SpotifyTrackMapper {
             isrc: metadata.isrc,
             spotifyId: metadata.spotifyID,
             artworkURL: metadata.artworkURL,
-            spotifyURL: URL(string: metadata.spotifyURI ?? "spotify:track:\(dto.id)")
+            spotifyURL: URL(string: metadata.spotifyURI ?? "spotify:track:\(dto.id)"),
+            artistLinks: metadata.artists.map {
+                TrackArtistLink(name: $0.name, url: spotifyURL(uri: $0.uri, id: $0.id, kind: "artist"))
+            },
+            albumURL: spotifyURL(uri: metadata.albumURI, id: metadata.albumID, kind: "album")
         )
     }
 
@@ -55,6 +61,14 @@ public enum SpotifyTrackMapper {
             .sorted { ($0.width ?? 0) > ($1.width ?? 0) }
             .compactMap { URL(string: $0.url) }
             .first
+    }
+
+    private static func spotifyURL(uri: String?, id: String?, kind: String) -> URL? {
+        if let uri, !uri.isEmpty, let url = URL(string: uri) {
+            return url
+        }
+        guard let id, !id.isEmpty else { return nil }
+        return URL(string: "spotify:\(kind):\(id)")
     }
 }
 

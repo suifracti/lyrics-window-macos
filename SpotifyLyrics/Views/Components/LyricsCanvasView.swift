@@ -7,7 +7,7 @@ struct LyricsCanvasView: View {
 
     var body: some View {
         Group {
-            switch state.lyricsState {
+            switch state.liveLyricsState {
             case .loaded(_), .mockPreview:
                 lyricsScroll
             case .alignmentQueued:
@@ -92,6 +92,17 @@ struct LyricsCanvasView: View {
                         ManualLyricsActionsView(state: state)
                     }
                 }
+            case .noSelection:
+                statusView(
+                    icon: "rectangle.slash",
+                    message: "未选择歌词版本",
+                    detail: "当前歌曲仍在播放；可重新搜索或从主窗口选择歌词版本。"
+                ) {
+                    VStack(spacing: 8) {
+                        retryButton
+                        ManualLyricsActionsView(state: state)
+                    }
+                }
             case .failed(_, let failure):
                 statusView(icon: "exclamationmark.triangle", message: "自动补全失败", detail: failure.userFacingMessage) {
                     VStack(spacing: 8) {
@@ -106,9 +117,9 @@ struct LyricsCanvasView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .id(state.lyricsSessionRevision)
+        .id(state.liveLyricsSessionRevision)
         .sheet(isPresented: $isAlignmentDetailsPresented) {
-            if let report = state.lyricsState.alignmentReport {
+            if let report = state.liveLyricsState.alignmentReport {
                 AlignmentPreviewView(report: report)
             }
         }
@@ -138,10 +149,10 @@ struct LyricsCanvasView: View {
                                 visibleLayerCount: visibleLayerCount
                             )
                         ) {
-                            ForEach(Array(state.lyrics.enumerated()), id: \.element.id) { index, line in
+                            ForEach(Array(state.liveLyrics.enumerated()), id: \.element.id) { index, line in
                                 if let seekTimestamp = LyricsTimeline.validSeekTimestamp(
                                     for: line,
-                                    isSynchronized: state.lyricsAreSynchronized,
+                                    isSynchronized: state.liveLyricsAreSynchronized,
                                     duration: state.currentTrack.duration
                                 ) {
                                     Button {
@@ -208,7 +219,7 @@ struct LyricsCanvasView: View {
                     .onChange(of: state.currentTime) { _, _ in
                         scrollToCurrentLine(using: proxy, animated: true)
                     }
-                    .onChange(of: state.lyricsSessionRevision) { _, _ in
+                    .onChange(of: state.liveLyricsSessionRevision) { _, _ in
                         lastScrolledLineIndex = nil
                         scrollToCurrentLine(using: proxy, animated: false)
                     }
@@ -219,6 +230,12 @@ struct LyricsCanvasView: View {
 
     private var translationControls: some View {
         HStack(spacing: 8) {
+            Menu("歌词版本") {
+                Button("无歌词版本") { state.selectNoLyricsVersion() }
+                    .disabled(state.isLyricsSelectionEmpty)
+                Text(state.isLyricsSelectionEmpty ? "当前会话未选择版本" : "当前会话使用已采用版本")
+            }
+            .menuStyle(.borderlessButton)
             Image(systemName: "character.bubble")
                 .foregroundStyle(LyricsDesignTokens.mutedText)
             if state.translationState == .loading {
@@ -226,6 +243,8 @@ struct LyricsCanvasView: View {
                 Text("正在翻译整首歌词…")
             } else if !state.translationState.userFacingMessage.isEmpty {
                 Text(state.translationState.userFacingMessage)
+            } else if state.isTranslationSelectionEmpty {
+                Text("未选择翻译版本（显示开关独立）")
             } else if state.selectedTranslation != nil {
                 Text("已加载翻译")
             } else {
@@ -238,21 +257,25 @@ struct LyricsCanvasView: View {
             } else {
                 Button("重新翻译") { state.retranslateCurrentLyrics() }
                     .buttonStyle(.bordered)
-                Menu("版本") {
-                    ForEach(state.translationVersions, id: \.record.id) { version in
-                        Button {
-                            state.selectTranslation(versionID: version.record.id)
-                        } label: {
-                            Text("\(version.record.model.isEmpty ? version.record.sourceKind.rawValue : version.record.model) · \(version.record.createdAt.formatted(date: .abbreviated, time: .shortened))")
-                        }
-                    }
-                    if state.selectedTranslation?.record.isLocked == false {
-                        Button("锁定当前版本") { state.lockSelectedTranslation() }
-                        Button("删除当前版本", role: .destructive) { state.deleteSelectedTranslation() }
+            }
+            Menu("翻译版本") {
+                Button("无翻译版本") { state.selectNoTranslationVersion() }
+                    .disabled(state.isTranslationSelectionEmpty)
+                if !state.translationVersions.isEmpty { Divider() }
+                ForEach(state.translationVersions, id: \.record.id) { version in
+                    Button {
+                        state.selectTranslation(versionID: version.record.id)
+                    } label: {
+                        Text("\(version.record.model.isEmpty ? version.record.sourceKind.rawValue : version.record.model) · \(version.record.createdAt.formatted(date: .abbreviated, time: .shortened))")
                     }
                 }
-                .menuStyle(.borderlessButton)
+                if state.selectedTranslation?.record.isLocked == false {
+                    Divider()
+                    Button("锁定当前版本") { state.lockSelectedTranslation() }
+                    Button("删除当前版本", role: .destructive) { state.deleteSelectedTranslation() }
+                }
             }
+            .menuStyle(.borderlessButton)
         }
         .font(.system(size: 11, design: .rounded))
         .foregroundStyle(LyricsDesignTokens.mutedText)
@@ -335,8 +358,8 @@ struct LyricsCanvasView: View {
     private func distance(from index: Int) -> Int {
         LyricsTimeline.presentationDistance(
             index: index,
-            currentIndex: state.currentLineIndex,
-            isSynchronized: state.lyricsAreSynchronized
+            currentIndex: state.liveCurrentLineIndex,
+            isSynchronized: state.liveLyricsAreSynchronized
         )
     }
 
@@ -348,12 +371,13 @@ struct LyricsCanvasView: View {
     ) -> some View {
         LyricLineView(
             line: line,
-            isActive: state.currentLineIndex == index,
+            isActive: state.liveCurrentLineIndex == index,
             distance: distance(from: index),
-            isSynchronized: state.lyricsAreSynchronized,
+            isSynchronized: state.liveLyricsAreSynchronized,
             preferences: state.preferences,
             availableWidth: availableWidth,
-            visibleLayerCount: visibleLayerCount
+            visibleLayerCount: visibleLayerCount,
+            language: state.liveLyricsLanguage
         )
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
@@ -361,12 +385,12 @@ struct LyricsCanvasView: View {
     }
 
     private func scrollToCurrentLine(using proxy: ScrollViewProxy, animated: Bool) {
-        guard let currentIndex = state.currentLineIndex,
-              state.lyrics.indices.contains(currentIndex),
+        guard let currentIndex = state.liveCurrentLineIndex,
+              state.liveLyrics.indices.contains(currentIndex),
               lastScrolledLineIndex != currentIndex else { return }
 
         let action = {
-            proxy.scrollTo(state.lyrics[currentIndex].id, anchor: .center)
+            proxy.scrollTo(state.liveLyrics[currentIndex].id, anchor: .center)
             // Mark it only after asking the proxy to locate the row. If the
             // first request happens while LazyVStack is still materializing,
             // a later clock tick can retry the same target.

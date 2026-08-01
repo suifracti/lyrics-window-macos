@@ -45,6 +45,9 @@ public struct LyricsDocument: Equatable, Sendable {
     /// verified the identifier; the request TrackIdentity is not evidence.
     public let spotifyTrackID: String?
     public let isrc: String?
+    /// Provider/database language metadata used only to gate Japanese reading
+    /// projections. It does not alter the original lyric text.
+    public let language: String?
 
     public init(
         identity: TrackIdentity,
@@ -58,7 +61,8 @@ public struct LyricsDocument: Equatable, Sendable {
         confidence: Double = 1,
         providerSourceID: String? = nil,
         spotifyTrackID: String? = nil,
-        isrc: String? = nil
+        isrc: String? = nil,
+        language: String? = nil
     ) {
         self.identity = identity
         self.title = title
@@ -72,6 +76,7 @@ public struct LyricsDocument: Equatable, Sendable {
         self.providerSourceID = providerSourceID
         self.spotifyTrackID = spotifyTrackID
         self.isrc = isrc
+        self.language = language
     }
 }
 
@@ -92,6 +97,9 @@ public struct LyricsCandidate: Identifiable, Equatable, Sendable {
     /// match score.
     public let spotifyTrackID: String?
     public let isrc: String?
+    /// Provider-declared source language, when available. It is used only by
+    /// the projection gate and never replaces the original lyric text.
+    public let language: String?
 
     public init(
         id: String,
@@ -106,7 +114,8 @@ public struct LyricsCandidate: Identifiable, Equatable, Sendable {
         confidence: Double,
         providerSourceID: String? = nil,
         spotifyTrackID: String? = nil,
-        isrc: String? = nil
+        isrc: String? = nil,
+        language: String? = nil
     ) {
         self.id = id
         self.identity = identity
@@ -121,6 +130,7 @@ public struct LyricsCandidate: Identifiable, Equatable, Sendable {
         self.providerSourceID = providerSourceID
         self.spotifyTrackID = spotifyTrackID
         self.isrc = isrc
+        self.language = language
     }
 }
 
@@ -177,6 +187,9 @@ public enum LyricsLoadState: Equatable {
     /// Preview timed result before user confirms (does not replace locked lyrics until confirm).
     case alignmentPreview(TrackIdentity, plain: LyricsDocument, timed: LyricsDocument, report: AlignmentReport)
     case noLyrics(TrackIdentity)
+    /// The user explicitly chose no current lyric version. This is session
+    /// state, not a Provider failure and not a persisted empty version.
+    case noSelection(TrackIdentity)
     case noMatch(TrackIdentity)
     case candidates(TrackIdentity, [LyricsCandidate])
     case failed(TrackIdentity, LyricsFailure)
@@ -186,7 +199,7 @@ public enum LyricsLoadState: Equatable {
         switch self {
         case .idle, .mockPreview:
             return nil
-        case .loading(let identity), .noLyrics(let identity), .noMatch(let identity), .failed(let identity, _):
+        case .loading(let identity), .noLyrics(let identity), .noSelection(let identity), .noMatch(let identity), .failed(let identity, _):
             return identity
         case .loaded(let document), .alignmentQueued(_, let document), .alignmentRunning(_, let document, _):
             return document.identity
@@ -265,6 +278,8 @@ public enum LyricsLoadState: Equatable {
             return "排轴预览（未确认）"
         case .noLyrics:
             return "暂未找到歌词"
+        case .noSelection:
+            return "未选择歌词版本"
         case .noMatch:
             return "自动补全未找到可用歌词"
         case .candidates:

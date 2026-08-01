@@ -120,7 +120,8 @@ public final class LyricsSearchManager: @unchecked Sendable {
                         confidence: document.confidence,
                         providerSourceID: document.providerSourceID,
                         spotifyTrackID: document.spotifyTrackID,
-                        isrc: document.isrc
+                        isrc: document.isrc,
+                        language: document.language
                     )
                     let decision = LyricsSafeMatcher.decide(
                         candidate: candidate,
@@ -187,7 +188,8 @@ public final class LyricsSearchManager: @unchecked Sendable {
                             confidence: item.confidence,
                             providerSourceID: item.providerSourceID,
                             spotifyTrackID: item.spotifyTrackID,
-                            isrc: item.isrc
+                            isrc: item.isrc,
+                            language: item.language
                         )
                         let enriched = Self.finalizeDocument(document, identity: identity)
                         LyricsE2ELog.log("MANAGER AUTO_ADOPT from-candidates provider=\(provider.name) strategy=\(variant.strategy.rawValue) kind=\(variant.queryKind.rawValue) tier=\(decision.tier) score=\(decision.score) evidence=\(decision.explanation.joined(separator: ";")) lines=\(enriched.lines.count)")
@@ -269,7 +271,8 @@ public final class LyricsSearchManager: @unchecked Sendable {
             confidence: document.confidence,
             providerSourceID: document.providerSourceID,
             spotifyTrackID: document.spotifyTrackID,
-            isrc: document.isrc
+            isrc: document.isrc,
+            language: document.language
         )
     }
 
@@ -287,7 +290,8 @@ public final class LyricsSearchManager: @unchecked Sendable {
             confidence: candidate.confidence,
             providerSourceID: candidate.providerSourceID,
             spotifyTrackID: candidate.spotifyTrackID,
-            isrc: candidate.isrc
+            isrc: candidate.isrc,
+            language: candidate.language
         )
     }
 }

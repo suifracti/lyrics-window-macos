@@ -1,6 +1,18 @@
 // Shared/Models/Models.swift
 import Foundation
 
+public struct TrackArtistLink: Identifiable, Equatable, Hashable, Sendable {
+    public let name: String
+    public let url: URL?
+
+    public var id: String { url?.absoluteString ?? "name:\(name)" }
+
+    public init(name: String, url: URL? = nil) {
+        self.name = name
+        self.url = url
+    }
+}
+
 public struct Track: Identifiable, Equatable, Hashable, Sendable {
     public let id: String
     public let title: String
@@ -12,6 +24,10 @@ public struct Track: Identifiable, Equatable, Hashable, Sendable {
     public let spotifyId: String?
     public let artworkURL: URL?
     public let spotifyURL: URL?
+    /// Structured identities are present for catalog results only. Desktop
+    /// playback metadata may legitimately leave these empty.
+    public let artistLinks: [TrackArtistLink]
+    public let albumURL: URL?
     
     public init(
         id: String = UUID().uuidString,
@@ -23,7 +39,9 @@ public struct Track: Identifiable, Equatable, Hashable, Sendable {
         isrc: String? = nil,
         spotifyId: String? = nil,
         artworkURL: URL? = nil,
-        spotifyURL: URL? = nil
+        spotifyURL: URL? = nil,
+        artistLinks: [TrackArtistLink] = [],
+        albumURL: URL? = nil
     ) {
         self.id = id
         self.title = title
@@ -35,6 +53,8 @@ public struct Track: Identifiable, Equatable, Hashable, Sendable {
         self.spotifyId = spotifyId
         self.artworkURL = artworkURL
         self.spotifyURL = spotifyURL
+        self.artistLinks = artistLinks
+        self.albumURL = albumURL
     }
 }
 

@@ -74,7 +74,8 @@ COMMON=(
   "SpotifyLyrics/Lyrics/LyricsE2ELog.swift"
   "SpotifyLyrics/AI/AITranslationModels.swift"
   "SpotifyLyrics/Persistence/DatabaseModels.swift"
-  "SpotifyLyrics/Persistence/LyricsPersistenceMapper.swift"
+  "SpotifyLyrics/Lyrics/LyricsLanguageGate.swift" \
+  "SpotifyLyrics/Persistence/LyricsPersistenceMapper.swift" \
   "SpotifyLyrics/Lyrics/LocalLyricsProvider.swift"
   "SpotifyLyrics/Lyrics/LRCLIBLyricsProvider.swift"
   "SpotifyLyrics/Lyrics/LyricsSearchManager.swift"
