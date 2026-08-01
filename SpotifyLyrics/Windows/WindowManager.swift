@@ -1,17 +1,45 @@
 import SwiftUI
 import AppKit
 
-// Window mode compatibility façade. Floating lyrics owns its lifecycle in a
-// dedicated NSPanel controller; capsule and full-screen remain unchanged.
+/// Window lifecycle façade for the auxiliary lyrics surfaces.  Each surface
+/// has one retained controller, while PlaybackState remains the single owner
+/// of playback, lyric, translation and current-line state.
 @MainActor
 public final class WindowManager: ObservableObject {
     public static let shared = WindowManager()
 
+    private struct FullScreenAuxiliaryVisibilitySnapshot {
+        let floatingWasVisible: Bool
+        let capsuleWasVisible: Bool
+    }
+
     private var floatingController: FloatingLyricsWindowController?
     private var capsuleController: CapsuleLyricsWindowController?
-    private var fullScreenWindow: NSWindow?
+    private var fullScreenController: FullScreenLyricsWindowController?
+    private var fullScreenAuxiliaryVisibilitySnapshot: FullScreenAuxiliaryVisibilitySnapshot?
+    private var terminationObserver: NSObjectProtocol?
+
+    private init() {
+        terminationObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.willTerminateNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            // Never resurrect auxiliary windows while the application is
+            // terminating.  The snapshot is transient and never persisted.
+            self?.fullScreenAuxiliaryVisibilitySnapshot = nil
+            self?.fullScreenController?.onDidHide = nil
+        }
+    }
+
+    deinit {
+        if let terminationObserver {
+            NotificationCenter.default.removeObserver(terminationObserver)
+        }
+    }
 
     public func toggleFloatingWindow(state: PlaybackState) {
+        guard fullScreenController?.isVisible != true else { return }
         if floatingController == nil {
             floatingController = FloatingLyricsWindowController()
         }
@@ -19,6 +47,7 @@ public final class WindowManager: ObservableObject {
     }
 
     public func restoreFloatingWindowIfConfigured(state: PlaybackState) {
+        guard fullScreenController?.isVisible != true else { return }
         if floatingController == nil {
             floatingController = FloatingLyricsWindowController()
         }
@@ -48,6 +77,7 @@ public final class WindowManager: ObservableObject {
     }
 
     public func toggleCapsulePlayer(state: PlaybackState) {
+        guard fullScreenController?.isVisible != true else { return }
         if capsuleController == nil {
             capsuleController = CapsuleLyricsWindowController()
         }
@@ -55,6 +85,7 @@ public final class WindowManager: ObservableObject {
     }
 
     public func restoreCapsuleWindowIfConfigured(state: PlaybackState) {
+        guard fullScreenController?.isVisible != true else { return }
         if capsuleController == nil {
             capsuleController = CapsuleLyricsWindowController()
         }
@@ -73,28 +104,76 @@ public final class WindowManager: ObservableObject {
         capsuleController?.isVisible == true
     }
 
+    public var fullScreenWindowIsVisible: Bool {
+        fullScreenController?.isVisible == true
+    }
+
     public func toggleFullScreen(state: PlaybackState) {
-        if let window = fullScreenWindow, window.isVisible {
-            window.orderOut(nil)
-            state.showFullScreen = false
+        if fullScreenController?.isVisible == true {
+            hideFullScreen()
         } else {
-            if fullScreenWindow == nil {
-                guard let mainScreen = NSScreen.main else { return }
-                let window = NSWindow(
-                    contentRect: mainScreen.frame,
-                    styleMask: [.borderless],
-                    backing: .buffered,
-                    defer: false
-                )
-                window.isOpaque = true
-                window.backgroundColor = .black
-                window.level = .modalPanel
-                window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-                window.contentView = NSHostingView(rootView: FullScreenLyricsView().environmentObject(state))
-                fullScreenWindow = window
-            }
-            fullScreenWindow?.makeKeyAndOrderFront(nil)
-            state.showFullScreen = true
+            showFullScreen(state: state)
+        }
+    }
+
+    public func showFullScreen(state: PlaybackState) {
+        guard fullScreenController?.isVisible != true else { return }
+        captureAndHideAuxiliaryWindows()
+
+        let controller = makeFullScreenController()
+        guard controller.show(state: state) else {
+            restoreAuxiliaryWindowsIfNeeded()
+            return
+        }
+    }
+
+    public func hideFullScreen() {
+        guard let controller = fullScreenController else {
+            restoreAuxiliaryWindowsIfNeeded()
+            return
+        }
+        controller.hide()
+        // `hide()` normally invokes the callback.  This fallback also covers
+        // a controller that had no visible panel but still held a snapshot.
+        if !controller.isVisible {
+            restoreAuxiliaryWindowsIfNeeded()
+        }
+    }
+
+    private func makeFullScreenController() -> FullScreenLyricsWindowController {
+        if let fullScreenController { return fullScreenController }
+        let controller = FullScreenLyricsWindowController()
+        controller.onDidHide = { [weak self] in
+            self?.finishFullScreenHide()
+        }
+        fullScreenController = controller
+        return controller
+    }
+
+    private func captureAndHideAuxiliaryWindows() {
+        guard fullScreenAuxiliaryVisibilitySnapshot == nil else { return }
+        let snapshot = FullScreenAuxiliaryVisibilitySnapshot(
+            floatingWasVisible: floatingController?.isVisible == true,
+            capsuleWasVisible: capsuleController?.isVisible == true
+        )
+        fullScreenAuxiliaryVisibilitySnapshot = snapshot
+        floatingController?.temporarilyHideForFullScreen()
+        capsuleController?.temporarilyHideForFullScreen()
+    }
+
+    private func finishFullScreenHide() {
+        restoreAuxiliaryWindowsIfNeeded()
+    }
+
+    private func restoreAuxiliaryWindowsIfNeeded() {
+        guard let snapshot = fullScreenAuxiliaryVisibilitySnapshot else { return }
+        fullScreenAuxiliaryVisibilitySnapshot = nil
+
+        if snapshot.floatingWasVisible {
+            floatingController?.restoreAfterFullScreen()
+        }
+        if snapshot.capsuleWasVisible {
+            capsuleController?.restoreAfterFullScreen()
         }
     }
 }

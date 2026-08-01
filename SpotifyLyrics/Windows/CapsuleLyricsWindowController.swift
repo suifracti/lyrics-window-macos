@@ -81,6 +81,34 @@ final class CapsuleLyricsWindowController: NSObject, ObservableObject, NSWindowD
         playbackState?.showCapsulePlayer = false
     }
 
+    /// Temporary fullscreen orchestration keeps the user's persisted
+    /// visibility and frame untouched.  It is deliberately separate from
+    /// `hide()`, which is the user's explicit hide action.
+    func temporarilyHideForFullScreen() {
+        guard isVisible else { return }
+        cancelHoverCollapse()
+        removeOutsideClickMonitors()
+        panel?.orderOut(nil)
+        isVisible = false
+        playbackState?.showCapsulePlayer = false
+    }
+
+    func restoreAfterFullScreen() {
+        guard let panel, !isVisible else { return }
+        if let settings {
+            applyFrame(for: presentationState, settings: settings)
+        }
+        panel.isMovable = presentationState == .expanded
+        panel.isMovableByWindowBackground = presentationState == .expanded
+        if presentationState == .expanded {
+            installOutsideClickMonitors()
+        }
+        panel.level = .floating
+        panel.orderFrontRegardless()
+        isVisible = true
+        playbackState?.showCapsulePlayer = true
+    }
+
     func expand() {
         guard isVisible else { return }
         cancelHoverCollapse()

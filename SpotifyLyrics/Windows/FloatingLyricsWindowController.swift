@@ -72,6 +72,25 @@ final class FloatingLyricsWindowController: NSObject, ObservableObject, NSWindow
         playbackState?.showFloatingWindow = false
     }
 
+    /// Temporary fullscreen orchestration does not change the user's
+    /// persisted visibility preference or frame.  WindowManager calls these
+    /// only for the duration of the fullscreen surface.
+    func temporarilyHideForFullScreen() {
+        guard isVisible else { return }
+        panel?.orderOut(nil)
+        isVisible = false
+        playbackState?.showFloatingWindow = false
+    }
+
+    func restoreAfterFullScreen() {
+        guard let panel, !isVisible else { return }
+        applyInteractionMode()
+        applyWindowLevel()
+        panel.orderFrontRegardless()
+        isVisible = true
+        playbackState?.showFloatingWindow = true
+    }
+
     func restoreInteractiveMode() {
         setInteractionMode(.interactive)
     }

@@ -53,6 +53,11 @@ struct SpotifyLyricsApp: App {
                 }
                 .keyboardShortcut("c", modifiers: [.command, .option])
 
+                Button("显示/隐藏全屏歌词") {
+                    WindowManager.shared.toggleFullScreen(state: playbackState)
+                }
+                .keyboardShortcut("g", modifiers: [.command, .option])
+
                 Button("收起顶部胶囊") {
                     WindowManager.shared.collapseCapsulePlayer()
                 }

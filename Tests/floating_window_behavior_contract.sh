@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 WINDOW="$ROOT_DIR/SpotifyLyrics/Windows/FloatingLyricsWindowController.swift"
 VIEW="$ROOT_DIR/SpotifyLyrics/Views/Floating/FloatingLyricsView.swift"
-LEGACY="$ROOT_DIR/SpotifyLyrics/Views/LyricsViews.swift"
+FULLSCREEN="$ROOT_DIR/SpotifyLyrics/Views/Fullscreen/FullScreenLyricsView.swift"
 PLAYBACK="$ROOT_DIR/SpotifyLyrics/Services/PlaybackState.swift"
 
 require_file() {
@@ -64,7 +64,11 @@ fi
   exit 1
 }
 
-require "$LEGACY" 'CapsulePlayerView' 'capsule compatibility path remains frozen'
-require "$LEGACY" 'FullScreenLyricsView' 'full-screen compatibility path remains frozen'
+require "$ROOT_DIR/SpotifyLyrics/Views/LyricsViews.swift" 'CapsulePlayerView' 'capsule compatibility path remains frozen'
+require "$FULLSCREEN" 'FullScreenLyricsView' 'formal fullscreen renderer is present'
+! grep -Eq 'FullScreenLyricsView' "$ROOT_DIR/SpotifyLyrics/Views/LyricsViews.swift" || {
+  echo 'FAIL: old LyricsViews fullscreen renderer remains as a second formal path' >&2
+  exit 1
+}
 
 echo "floating window behavior contract passed"
