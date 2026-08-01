@@ -126,7 +126,7 @@ struct PlaybackStateContract {
 
         precondition(state.hasLiveTrack)
         precondition(state.currentTrack.title == "Track A")
-        precondition(state.currentTrackIdentity?.stableKey.contains("spotify-id:spotify:track:a") == true)
+        precondition(state.currentTrackIdentity?.stableKey.contains("spotify-id:a") == true)
         precondition(state.currentTime >= 12)
 
         state.togglePlayPause()
@@ -164,7 +164,7 @@ struct PlaybackStateContract {
         try? await Task.sleep(nanoseconds: 320_000_000)
         precondition(provider.commandLog.contains("next"))
         precondition(state.currentTrack.title == "Track B")
-        precondition(state.currentTrackIdentity?.stableKey.contains("spotify-id:spotify:track:b") == true)
+        precondition(state.currentTrackIdentity?.stableKey.contains("spotify-id:b") == true)
         precondition(state.currentTime == 4)
         precondition(state.lyrics.isEmpty)
 

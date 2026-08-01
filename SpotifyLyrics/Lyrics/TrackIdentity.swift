@@ -10,8 +10,13 @@ public struct TrackIdentity: Hashable, Sendable, CustomStringConvertible {
     public let stableKey: String
 
     public init(track: Track) {
-        let normalizedID = Self.normalizeIdentifier(track.spotifyId)
-        let normalizedURI = Self.normalizeIdentifier(track.spotifyURL?.absoluteString)
+        // Spotify has historically reached this app in three shapes: a bare
+        // base62 ID, a spotify:track URI, and an open.spotify.com URL.  Keep
+        // one canonical representation at the identity boundary so those
+        // shapes cannot create three physical Track identities.
+        let normalizedID = Self.canonicalSpotifyTrackID(track.spotifyId)
+            ?? Self.canonicalSpotifyTrackID(track.spotifyURL?.absoluteString)
+        let normalizedURI = normalizedID.map { "spotify:track:\($0)" }
         let normalizedISRC = Self.normalizeIdentifier(track.isrc)
 
         self.spotifyTrackID = normalizedID
@@ -94,6 +99,53 @@ public struct TrackIdentity: Hashable, Sendable, CustomStringConvertible {
         return trimmed
     }
 
+    /// Returns the canonical lower-case Spotify track ID for a bare ID,
+    /// spotify:track URI, or open.spotify.com track URL.  This deliberately
+    /// rejects album, artist, episode, and malformed URLs instead of treating
+    /// them as opaque IDs.
+    public static func canonicalSpotifyTrackID(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        if trimmed.lowercased().hasPrefix("spotify:") {
+            let parts = trimmed.split(separator: ":", omittingEmptySubsequences: false)
+            guard parts.count == 3,
+                  parts[0].lowercased() == "spotify",
+                  parts[1].lowercased() == "track" else {
+                return nil
+            }
+            return canonicalBareSpotifyID(String(parts[2]))
+        }
+
+        if let url = URL(string: trimmed),
+           let host = url.host?.lowercased(),
+           host == "open.spotify.com",
+           let scheme = url.scheme?.lowercased(),
+           scheme == "http" || scheme == "https" {
+            let components = url.path.split(separator: "/", omittingEmptySubsequences: true)
+            guard components.count == 2,
+                  components[0].lowercased() == "track" else {
+                return nil
+            }
+            return canonicalBareSpotifyID(String(components[1]).removingPercentEncoding ?? "")
+        }
+
+        // A bare ID is kept intentionally permissive enough for existing
+        // synthetic/test identities, while still rejecting whitespace,
+        // punctuation, URI prefixes, and path-like strings. Hyphen and
+        // underscore are accepted for historical synthetic IDs; real Spotify
+        // IDs remain base62 and are normalized identically.
+        return canonicalBareSpotifyID(trimmed)
+    }
+
+    /// Returns the canonical spotify:track URI for any accepted Spotify track
+    /// identifier shape.
+    public static func canonicalSpotifyURI(_ value: String?) -> String? {
+        guard let id = canonicalSpotifyTrackID(value) else { return nil }
+        return "spotify:track:\(id)"
+    }
+
     public static func metadataFingerprint(
         title: String,
         artist: String,
@@ -107,5 +159,90 @@ public struct TrackIdentity: Hashable, Sendable, CustomStringConvertible {
             normalizedComponent(album),
             String(roundedDuration)
         ].joined(separator: "|")
+    }
+
+    private static func canonicalBareSpotifyID(_ value: String) -> String? {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard (1...64).contains(trimmed.utf8.count),
+              trimmed.unicodeScalars.allSatisfy({ scalar in
+                  scalar.value >= 0x30 && scalar.value <= 0x39 ||
+                  scalar.value >= 0x41 && scalar.value <= 0x5A ||
+                  scalar.value >= 0x61 && scalar.value <= 0x7A ||
+                  scalar.value == 0x2D || scalar.value == 0x5F
+              }) else {
+            return nil
+        }
+        return trimmed.lowercased()
+    }
+}
+
+public enum TrackIdentityRedirectError: Error, Equatable, Sendable, LocalizedError {
+    case cycle([String])
+    case maxDepthExceeded
+    case missingTarget(source: String, target: String)
+
+    public var errorDescription: String? {
+        switch self {
+        case .cycle(let keys):
+            return "Track identity redirect cycle: \(keys.joined(separator: " -> "))"
+        case .maxDepthExceeded:
+            return "Track identity redirect chain exceeds the supported depth"
+        case .missingTarget(let source, let target):
+            return "Track identity redirect target is missing: \(source) -> \(target)"
+        }
+    }
+}
+
+/// Resolves persisted Track identity redirects without changing physical rows.
+/// The resolver is deliberately immutable so reads in the repository cannot
+/// silently mutate redirect state or overwrite a conflicting mapping.
+public struct TrackIdentityRedirectResolver: Sendable, Equatable {
+    public let redirects: [String: String]
+    public let knownStableKeys: Set<String>
+    public let maxDepth: Int
+
+    public init(
+        redirects: [String: String],
+        knownStableKeys: Set<String>,
+        maxDepth: Int = 32
+    ) {
+        self.redirects = redirects
+        self.knownStableKeys = knownStableKeys
+        self.maxDepth = max(1, maxDepth)
+    }
+
+    public func resolve(_ stableKey: String) throws -> String {
+        var current = stableKey
+        var visited: [String] = []
+
+        for _ in 0..<maxDepth {
+            if let cycleStart = visited.firstIndex(of: current) {
+                throw TrackIdentityRedirectError.cycle(visited[cycleStart...] + [current])
+            }
+            visited.append(current)
+
+            guard let next = redirects[current] else {
+                return current
+            }
+            guard knownStableKeys.contains(next) else {
+                throw TrackIdentityRedirectError.missingTarget(source: current, target: next)
+            }
+            current = next
+        }
+
+        throw TrackIdentityRedirectError.maxDepthExceeded
+    }
+
+    /// Returns the logical identity family with the final canonical key first.
+    /// Physical source rows remain present and are only deduplicated in memory.
+    public func identityFamily(for stableKey: String) throws -> [String] {
+        let canonical = try resolve(stableKey)
+        var family = Set([canonical, stableKey])
+        for key in knownStableKeys where key != canonical {
+            if try resolve(key) == canonical {
+                family.insert(key)
+            }
+        }
+        return [canonical] + family.filter { $0 != canonical }.sorted()
     }
 }

@@ -33,7 +33,9 @@ let uriOnly = Track(
     duration: 120,
     spotifyURL: URL(string: "spotify:track:uri-only")
 )
-precondition(TrackIdentity(track: uriOnly).lookupKeys.first == "spotify-uri:spotify:track:uri-only")
+// A URI-only track is canonicalized to the same Spotify ID identity as a
+// bare-ID track; the canonical URI remains available in the lookup keys.
+precondition(TrackIdentity(track: uriOnly).lookupKeys.first == "spotify-id:uri-only")
 
 let isrcOnly = Track(
     title: "ISRC Song",

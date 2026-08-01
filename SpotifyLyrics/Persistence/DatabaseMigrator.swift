@@ -4,9 +4,17 @@ import SQLite3
 /// Forward-only SQLite schema migrations. The repository calls this from its
 /// actor, so no migration work runs on MainActor.
 public enum DatabaseMigrator {
-    public static let currentVersion = 3
+    public static let currentVersion = 4
+    public static let v4MigrationID = "track-identity-v4-initial"
+    private static let waterSourceStableKey = "spotify-id:spotify:track:5mqkkcsrujqyakvolven0w|metadata:水曜日の約束|kawasakirio|水曜日の約束|171"
+    private static let waterCanonicalStableKey = "spotify-id:5mqkkcsrujqyakvolven0w|metadata:水曜日の約束|kawasakirio|水曜日の約束|171"
+    private static let waterRedirectReason = "same Spotify track identity in canonical and URI-shaped historical keys"
+    private static let waterRedirectEvidence = "canonicalSpotifyIDSame;spotifyURIEqual;titleEqual;artistEqual;albumEqual;durationClose;noVersionTraitConflict;canonicalISRCTrusted"
 
-    public static func migrate(_ database: OpaquePointer) throws {
+    public static func migrate(
+        _ database: OpaquePointer,
+        allowV4Migration: Bool = true
+    ) throws {
         do {
             try execute(database, sql: """
                 CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -32,6 +40,19 @@ public enum DatabaseMigrator {
                 try migrateV3(database)
                 version = 3
             }
+            if version < 4 {
+                // A caller can deliberately open an existing production v3
+                // database in read-only-v4 compatibility mode. This is used
+                // while the redirect-first migration is being audited so a
+                // normal app launch cannot silently change the user's formal
+                // database before explicit confirmation.
+                if allowV4Migration {
+                    try migrateV4(database)
+                    version = 4
+                }
+            } else {
+                try validateV4(database)
+            }
         } catch let error as LyricsRepositoryError {
             // A corrupt/partially readable SQLite file must be reported as a
             // migration failure, not leaked as a generic database error. This
@@ -46,6 +67,18 @@ public enum DatabaseMigrator {
         } catch {
             throw LyricsRepositoryError.migrationFailed(currentVersion, error.localizedDescription)
         }
+    }
+
+    /// The initial v4 redirect is also available as an in-memory fallback for
+    /// an existing v3 database. It lets the repository preserve logical Water
+    /// identity-family reads without writing v4 tables before migration is
+    /// explicitly enabled.
+    public static func readOnlyInitialRedirects(knownStableKeys: Set<String>) -> [String: String] {
+        guard knownStableKeys.contains(waterSourceStableKey),
+              knownStableKeys.contains(waterCanonicalStableKey) else {
+            return [:]
+        }
+        return [waterSourceStableKey: waterCanonicalStableKey]
     }
 
     private static func migrateV1(_ database: OpaquePointer) throws {
@@ -254,6 +287,282 @@ public enum DatabaseMigrator {
             _ = try? execute(database, sql: "ROLLBACK;")
             throw error
         }
+    }
+
+    private static func migrateV4(_ database: OpaquePointer) throws {
+        try execute(database, sql: "BEGIN IMMEDIATE TRANSACTION;")
+        do {
+            // v4 is redirect-first. It adds logical identity metadata only;
+            // no Track, LyricsVersion, TranslationVersion, or UUID row is
+            // moved or deleted by this migration.
+            if try !hasColumn(database, table: "schema_migrations", column: "migration_id") {
+                try execute(database, sql: "ALTER TABLE schema_migrations ADD COLUMN migration_id TEXT;")
+            }
+            try execute(database, sql: """
+                UPDATE schema_migrations
+                SET migration_id = 'schema-v' || CAST(version AS TEXT)
+                WHERE migration_id IS NULL OR length(trim(migration_id)) = 0;
+
+                CREATE UNIQUE INDEX IF NOT EXISTS schema_migrations_migration_id
+                    ON schema_migrations(migration_id);
+
+                CREATE TABLE IF NOT EXISTS track_identity_redirects (
+                    source_stable_key TEXT PRIMARY KEY NOT NULL,
+                    canonical_stable_key TEXT NOT NULL,
+                    reason TEXT NOT NULL,
+                    evidence_kind TEXT NOT NULL,
+                    migration_id TEXT NOT NULL,
+                    created_at REAL NOT NULL,
+                    FOREIGN KEY (canonical_stable_key) REFERENCES tracks(stable_key)
+                );
+
+                CREATE INDEX IF NOT EXISTS track_identity_redirects_canonical
+                    ON track_identity_redirects(canonical_stable_key);
+
+                CREATE TABLE IF NOT EXISTS track_identity_merge_audit (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    migration_id TEXT NOT NULL,
+                    source_stable_key TEXT NOT NULL,
+                    canonical_stable_key TEXT NOT NULL,
+                    source_spotify_id TEXT,
+                    source_spotify_uri TEXT,
+                    source_isrc TEXT,
+                    source_title TEXT,
+                    source_artist_display TEXT,
+                    source_album TEXT,
+                    source_duration REAL,
+                    evidence TEXT NOT NULL,
+                    action TEXT NOT NULL,
+                    created_at REAL NOT NULL
+                );
+
+                CREATE INDEX IF NOT EXISTS track_identity_merge_audit_source
+                    ON track_identity_merge_audit(source_stable_key, created_at);
+                """)
+
+            try ensureRedirect(
+                database,
+                source: waterSourceStableKey,
+                canonical: waterCanonicalStableKey,
+                reason: waterRedirectReason,
+                evidenceKind: waterRedirectEvidence,
+                migrationID: v4MigrationID
+            )
+
+            let existingMigration = try scalarOptionalText(
+                database,
+                sql: "SELECT migration_id FROM schema_migrations WHERE version = 4 LIMIT 1;"
+            )
+            if let existingMigration, existingMigration != v4MigrationID {
+                throw LyricsRepositoryError.invalidData("schema v4 migration_id 冲突")
+            }
+            let migrationInsert = try prepare(database, sql: """
+                INSERT INTO schema_migrations(version, applied_at, migration_id)
+                VALUES (4, strftime('%s','now'), ?)
+                ON CONFLICT(version) DO UPDATE SET migration_id = excluded.migration_id;
+                """)
+            defer { sqlite3_finalize(migrationInsert) }
+            try bindText(v4MigrationID, at: 1, to: migrationInsert)
+            try stepDone(database, statement: migrationInsert)
+            try execute(database, sql: "PRAGMA user_version = 4;")
+            try validateV4(database)
+            try execute(database, sql: "COMMIT;")
+        } catch {
+            _ = try? execute(database, sql: "ROLLBACK;")
+            throw error
+        }
+    }
+
+    private static func validateV4(_ database: OpaquePointer) throws {
+        guard try hasTable(database, name: "track_identity_redirects"),
+              try hasTable(database, name: "track_identity_merge_audit"),
+              try hasColumn(database, table: "schema_migrations", column: "migration_id") else {
+            throw LyricsRepositoryError.invalidData("schema v4 identity redirect 表结构不完整")
+        }
+
+        let statement = try prepare(database, sql: """
+            SELECT r.source_stable_key, r.canonical_stable_key
+            FROM track_identity_redirects AS r
+            LEFT JOIN tracks AS t ON t.stable_key = r.canonical_stable_key
+            WHERE t.stable_key IS NULL;
+            """)
+        defer { sqlite3_finalize(statement) }
+        if sqlite3_step(statement) == SQLITE_ROW {
+            let source = columnText(statement, index: 0) ?? ""
+            let target = columnText(statement, index: 1) ?? ""
+            throw LyricsRepositoryError.invalidData("redirect target 不存在：\(source) -> \(target)")
+        }
+
+        let redirects = try rows(database, sql: "SELECT source_stable_key, canonical_stable_key FROM track_identity_redirects;")
+        let keys = Set(try rows(database, sql: "SELECT stable_key, stable_key FROM tracks;").flatMap { [$0.0, $0.1] })
+        let resolver = TrackIdentityRedirectResolver(
+            redirects: Dictionary(uniqueKeysWithValues: redirects),
+            knownStableKeys: keys
+        )
+        for (source, _) in redirects {
+            _ = try resolver.resolve(source)
+        }
+
+        let migration = try scalarOptionalText(
+            database,
+            sql: "SELECT migration_id FROM schema_migrations WHERE version = 4 LIMIT 1;"
+        )
+        guard migration == v4MigrationID else {
+            throw LyricsRepositoryError.invalidData("schema v4 migration_id 缺失或不匹配")
+        }
+
+        let hasWaterSource = try exists(
+            database,
+            sql: "SELECT 1 FROM tracks WHERE stable_key = ? LIMIT 1;",
+            value: waterSourceStableKey
+        )
+        let hasWaterCanonical = try exists(
+            database,
+            sql: "SELECT 1 FROM tracks WHERE stable_key = ? LIMIT 1;",
+            value: waterCanonicalStableKey
+        )
+        if hasWaterSource && hasWaterCanonical {
+            guard let waterRedirect = try redirectRow(database, source: waterSourceStableKey),
+                  waterRedirect.canonical == waterCanonicalStableKey,
+                  waterRedirect.reason == waterRedirectReason,
+                  waterRedirect.evidenceKind == waterRedirectEvidence,
+                  waterRedirect.migrationID == v4MigrationID else {
+                throw LyricsRepositoryError.invalidData("水曜日 redirect 缺失或证据不匹配")
+            }
+        }
+    }
+
+    private static func ensureRedirect(
+        _ database: OpaquePointer,
+        source: String,
+        canonical: String,
+        reason: String,
+        evidenceKind: String,
+        migrationID: String
+    ) throws {
+        guard source != canonical else { return }
+        guard try exists(database, sql: "SELECT 1 FROM tracks WHERE stable_key = ? LIMIT 1;", value: canonical) else {
+            // The mapping is only applicable to databases that contain both
+            // historical rows. Fresh installations simply have no redirect.
+            return
+        }
+        guard try exists(database, sql: "SELECT 1 FROM tracks WHERE stable_key = ? LIMIT 1;", value: source) else {
+            return
+        }
+
+        if let existing = try redirectRow(database, source: source) {
+            guard existing.canonical == canonical,
+                  existing.reason == reason,
+                  existing.evidenceKind == evidenceKind,
+                  existing.migrationID == migrationID else {
+                throw LyricsRepositoryError.invalidData("redirect 已存在但证据或目标冲突：\(source)")
+            }
+            return
+        }
+
+        let now = Date().timeIntervalSince1970
+        let insert = try prepare(database, sql: """
+            INSERT INTO track_identity_redirects(
+                source_stable_key, canonical_stable_key, reason, evidence_kind,
+                migration_id, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?);
+            """)
+        defer { sqlite3_finalize(insert) }
+        try bindText(source, at: 1, to: insert)
+        try bindText(canonical, at: 2, to: insert)
+        try bindText(reason, at: 3, to: insert)
+        try bindText(evidenceKind, at: 4, to: insert)
+        try bindText(migrationID, at: 5, to: insert)
+        try bindDouble(now, at: 6, to: insert)
+        try stepDone(database, statement: insert)
+
+        let audit = try prepare(database, sql: """
+            INSERT INTO track_identity_merge_audit(
+                migration_id, source_stable_key, canonical_stable_key,
+                source_spotify_id, source_spotify_uri, source_isrc,
+                source_title, source_artist_display, source_album, source_duration,
+                evidence, action, created_at
+            )
+            SELECT ?, stable_key, ?, spotify_id, spotify_uri, isrc,
+                   title, artist_display, album, duration, ?, 'redirect-only', ?
+            FROM tracks WHERE stable_key = ?;
+            """)
+        defer { sqlite3_finalize(audit) }
+        try bindText(migrationID, at: 1, to: audit)
+        try bindText(canonical, at: 2, to: audit)
+        try bindText(evidenceKind, at: 3, to: audit)
+        try bindDouble(now, at: 4, to: audit)
+        try bindText(source, at: 5, to: audit)
+        try stepDone(database, statement: audit)
+    }
+
+    private struct RedirectRow {
+        let canonical: String
+        let reason: String
+        let evidenceKind: String
+        let migrationID: String
+    }
+
+    private static func redirectRow(_ database: OpaquePointer, source: String) throws -> RedirectRow? {
+        let statement = try prepare(database, sql: """
+            SELECT canonical_stable_key, reason, evidence_kind, migration_id
+            FROM track_identity_redirects WHERE source_stable_key = ? LIMIT 1;
+            """)
+        defer { sqlite3_finalize(statement) }
+        try bindText(source, at: 1, to: statement)
+        guard sqlite3_step(statement) == SQLITE_ROW else { return nil }
+        guard let canonical = columnText(statement, index: 0),
+              let reason = columnText(statement, index: 1),
+              let evidence = columnText(statement, index: 2),
+              let migration = columnText(statement, index: 3) else {
+            throw LyricsRepositoryError.invalidData("redirect 字段缺失")
+        }
+        return RedirectRow(canonical: canonical, reason: reason, evidenceKind: evidence, migrationID: migration)
+    }
+
+    private static func hasTable(_ database: OpaquePointer, name: String) throws -> Bool {
+        try exists(database, sql: "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1;", value: name)
+    }
+
+    private static func hasColumn(_ database: OpaquePointer, table: String, column: String) throws -> Bool {
+        let statement = try prepare(database, sql: "PRAGMA table_info(\(quoteIdentifier(table)));" )
+        defer { sqlite3_finalize(statement) }
+        while sqlite3_step(statement) == SQLITE_ROW {
+            if columnText(statement, index: 1) == column { return true }
+        }
+        return false
+    }
+
+    private static func quoteIdentifier(_ value: String) -> String {
+        "\"" + value.replacingOccurrences(of: "\"", with: "\"\"") + "\""
+    }
+
+    private static func exists(_ database: OpaquePointer, sql: String, value: String) throws -> Bool {
+        let statement = try prepare(database, sql: sql)
+        defer { sqlite3_finalize(statement) }
+        try bindText(value, at: 1, to: statement)
+        return sqlite3_step(statement) == SQLITE_ROW
+    }
+
+    private static func scalarOptionalText(_ database: OpaquePointer, sql: String) throws -> String? {
+        let statement = try prepare(database, sql: sql)
+        defer { sqlite3_finalize(statement) }
+        guard sqlite3_step(statement) == SQLITE_ROW else { return nil }
+        return columnText(statement, index: 0)
+    }
+
+    private static func rows(_ database: OpaquePointer, sql: String) throws -> [(String, String)] {
+        let statement = try prepare(database, sql: sql)
+        defer { sqlite3_finalize(statement) }
+        var result: [(String, String)] = []
+        while sqlite3_step(statement) == SQLITE_ROW {
+            guard let first = columnText(statement, index: 0),
+                  let second = columnText(statement, index: 1) else {
+                throw LyricsRepositoryError.invalidData("SQLite identity row 字段缺失")
+            }
+            result.append((first, second))
+        }
+        return result
     }
 
     private static func legacyGroups(_ database: OpaquePointer) throws -> [LegacyGroup] {
