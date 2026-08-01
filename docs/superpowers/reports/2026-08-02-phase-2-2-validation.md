@@ -1,9 +1,9 @@
 # Lyric Island Phase 2.2 验收报告
 
-日期：2026-08-02  
-工作目录：`/Users/apple/backup/sptifylyrics`  
-分支：`codex/phase-2-2-overnight`  
-起始基线：`0b6ccf3e24404375865d900fcaf72b86a07deb67`  
+日期：2026-08-02
+工作目录：`/Users/apple/backup/sptifylyrics`
+分支：`codex/phase-2-2-overnight`
+起始基线：`0b6ccf3e24404375865d900fcaf72b86a07deb67`
 本报告提交前 HEAD：`f299cf41ebc8f532dca8f5e6c6edac309c7d648f`
 
 ## 1. 范围
