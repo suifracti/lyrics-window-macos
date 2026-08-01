@@ -38,12 +38,30 @@ public final class WindowManager: ObservableObject {
         }
     }
 
-    public func toggleFloatingWindow(state: PlaybackState) {
+    public func showFloatingLyrics(state: PlaybackState) {
+        guard fullScreenController?.isVisible != true else { return }
+        if floatingController == nil {
+            floatingController = FloatingLyricsWindowController()
+        }
+        floatingController?.show(state: state, settings: AppSettingsStore.shared)
+    }
+
+    public func hideFloatingLyrics() {
+        floatingController?.hide()
+    }
+
+    public func toggleFloatingLyrics(state: PlaybackState) {
         guard fullScreenController?.isVisible != true else { return }
         if floatingController == nil {
             floatingController = FloatingLyricsWindowController()
         }
         floatingController?.toggle(state: state, settings: AppSettingsStore.shared)
+    }
+
+    /// Compatibility entry point for callers outside the current production
+    /// surface. New production call sites use `toggleFloatingLyrics`.
+    public func toggleFloatingWindow(state: PlaybackState) {
+        toggleFloatingLyrics(state: state)
     }
 
     public func restoreFloatingWindowIfConfigured(state: PlaybackState) {
@@ -76,12 +94,30 @@ public final class WindowManager: ObservableObject {
         setFloatingInteractionMode(.interactive, state: state)
     }
 
-    public func toggleCapsulePlayer(state: PlaybackState) {
+    public func showCapsule(state: PlaybackState) {
+        guard fullScreenController?.isVisible != true else { return }
+        if capsuleController == nil {
+            capsuleController = CapsuleLyricsWindowController()
+        }
+        capsuleController?.show(state: state, settings: AppSettingsStore.shared)
+    }
+
+    public func hideCapsule() {
+        capsuleController?.hide()
+    }
+
+    public func toggleCapsule(state: PlaybackState) {
         guard fullScreenController?.isVisible != true else { return }
         if capsuleController == nil {
             capsuleController = CapsuleLyricsWindowController()
         }
         capsuleController?.toggle(state: state, settings: AppSettingsStore.shared)
+    }
+
+    /// Compatibility entry point for callers outside the current production
+    /// surface. New production call sites use `toggleCapsule`.
+    public func toggleCapsulePlayer(state: PlaybackState) {
+        toggleCapsule(state: state)
     }
 
     public func restoreCapsuleWindowIfConfigured(state: PlaybackState) {
@@ -122,21 +158,21 @@ public final class WindowManager: ObservableObject {
 
         let controller = makeFullScreenController()
         guard controller.show(state: state) else {
-            restoreAuxiliaryWindowsIfNeeded()
+            restoreFloatingSurfacesAfterFullscreen()
             return
         }
     }
 
     public func hideFullScreen() {
         guard let controller = fullScreenController else {
-            restoreAuxiliaryWindowsIfNeeded()
+            restoreFloatingSurfacesAfterFullscreen()
             return
         }
         controller.hide()
         // `hide()` normally invokes the callback.  This fallback also covers
         // a controller that had no visible panel but still held a snapshot.
         if !controller.isVisible {
-            restoreAuxiliaryWindowsIfNeeded()
+            restoreFloatingSurfacesAfterFullscreen()
         }
     }
 
@@ -162,10 +198,10 @@ public final class WindowManager: ObservableObject {
     }
 
     private func finishFullScreenHide() {
-        restoreAuxiliaryWindowsIfNeeded()
+        restoreFloatingSurfacesAfterFullscreen()
     }
 
-    private func restoreAuxiliaryWindowsIfNeeded() {
+    public func restoreFloatingSurfacesAfterFullscreen() {
         guard let snapshot = fullScreenAuxiliaryVisibilitySnapshot else { return }
         fullScreenAuxiliaryVisibilitySnapshot = nil
 

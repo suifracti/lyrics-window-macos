@@ -44,6 +44,11 @@ final class FloatingLyricsWindowController: NSObject, ObservableObject, NSWindow
         }
     }
 
+    func show(state: PlaybackState, settings: AppSettingsStore) {
+        configure(state: state, settings: settings)
+        show()
+    }
+
     func restoreIfConfigured(state: PlaybackState, settings: AppSettingsStore) {
         configure(state: state, settings: settings)
         guard !didRestore else { return }
@@ -168,7 +173,7 @@ final class FloatingLyricsWindowController: NSObject, ObservableObject, NSWindow
         playbackState?.showFloatingWindow = true
     }
 
-    private func hide() {
+    func hide() {
         guard let panel else { return }
         saveFrame(panel)
         panel.orderOut(nil)

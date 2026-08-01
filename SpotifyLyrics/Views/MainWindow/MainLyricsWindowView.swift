@@ -315,7 +315,7 @@ struct MainLyricsWindowView: View {
             }
             Divider()
             Button("悬浮歌词", systemImage: "rectangle.on.rectangle") {
-                WindowManager.shared.toggleFloatingWindow(state: state)
+                WindowManager.shared.toggleFloatingLyrics(state: state)
             }
             Menu("悬浮歌词交互") {
                 Button("可编辑 / 可拖动") {
@@ -333,7 +333,7 @@ struct MainLyricsWindowView: View {
                 }
             }
             Button("顶部胶囊", systemImage: "capsule") {
-                WindowManager.shared.toggleCapsulePlayer(state: state)
+                WindowManager.shared.toggleCapsule(state: state)
             }
             Button("全屏歌词", systemImage: "arrow.up.left.and.arrow.down.right") {
                 WindowManager.shared.toggleFullScreen(state: state)

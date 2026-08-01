@@ -224,7 +224,7 @@ struct CapsuleLyricsView: View {
 
             HStack(spacing: 8) {
                 Button("主窗口") { NSApp.activate(ignoringOtherApps: true) }
-                Button("悬浮歌词") { WindowManager.shared.toggleFloatingWindow(state: state) }
+                Button("悬浮歌词") { WindowManager.shared.toggleFloatingLyrics(state: state) }
                 if state.canOpenLyricsEditor {
                     Button("编辑歌词") {
                         state.prepareLyricsEditor()

@@ -44,12 +44,12 @@ struct SpotifyLyricsApp: App {
             }
             CommandMenu("窗口") {
                 Button("显示/隐藏悬浮歌词") {
-                    WindowManager.shared.toggleFloatingWindow(state: playbackState)
+                    WindowManager.shared.toggleFloatingLyrics(state: playbackState)
                 }
                 .keyboardShortcut("f", modifiers: [.command, .option])
 
                 Button("显示/隐藏顶部胶囊") {
-                    WindowManager.shared.toggleCapsulePlayer(state: playbackState)
+                    WindowManager.shared.toggleCapsule(state: playbackState)
                 }
                 .keyboardShortcut("c", modifiers: [.command, .option])
 

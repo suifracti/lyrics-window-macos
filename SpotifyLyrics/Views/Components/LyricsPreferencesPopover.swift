@@ -30,10 +30,10 @@ struct LyricsPreferencesPopover: View {
                     .foregroundStyle(LyricsDesignTokens.mutedText)
 
                 modeButton("悬浮歌词", systemImage: "rectangle.on.rectangle", isActive: playbackState.showFloatingWindow) {
-                    WindowManager.shared.toggleFloatingWindow(state: playbackState)
+                    WindowManager.shared.toggleFloatingLyrics(state: playbackState)
                 }
                 modeButton("顶部胶囊", systemImage: "capsule", isActive: playbackState.showCapsulePlayer) {
-                    WindowManager.shared.toggleCapsulePlayer(state: playbackState)
+                    WindowManager.shared.toggleCapsule(state: playbackState)
                 }
                 modeButton("全屏歌词", systemImage: "arrow.up.left.and.arrow.down.right", isActive: playbackState.showFullScreen) {
                     WindowManager.shared.toggleFullScreen(state: playbackState)
