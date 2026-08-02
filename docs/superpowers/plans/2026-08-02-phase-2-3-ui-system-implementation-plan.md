@@ -4,6 +4,25 @@
 >
 > 本计划建立在 `0b6ccf3e24404375865d900fcaf72b86a07deb67` 及其后的 Phase 2.2 独立提交之上。Phase 2.3 只处理主窗口 UI 系统、响应式布局和展示层抽象；不改变业务数据、播放链路、歌词 Provider、翻译、排轴或窗口产品边界。
 
+### Phase 2.2 当前状态
+
+- 工程与架构：**通过**。
+- 合同、构建和签名：**通过**。
+- 胶囊与桌面歌词最终视觉：**未定稿**。
+- 真实 Spotify 歌曲交互：**待用户验收**。
+- 当前胶囊截图只代表结构基线，不是 Phase 2.3 的视觉目标。
+
+当前已知的视觉待修项应进入 presentation 设计，而不是在本计划中提前修改：
+
+- collapsed 过宽，视觉上像横向通知；
+- hover 控制键位于最左侧，阅读顺序不自然；
+- expanded 面积过大，仍接近迷你主窗口；
+- 歌词对比度不足；
+- 进度条过长；
+- 底部文字入口需要在后续图标化并收紧。
+
+因此，Phase 2.2 的“工程通过”不得被写成“胶囊视觉最终完成”。
+
 ## 0. 冻结边界
 
 ### 本阶段允许
@@ -13,6 +32,15 @@
 - 为现有 V2、歌词专注、V3、浮动歌词、顶部胶囊、全屏歌词建立稳定的 presentation 接口。
 - 设计只读 Preview Lab；可以使用当前 live projection 或脱敏 Mock snapshot 进行视觉比较。
 - 增加针对 UI projection、尺寸阈值、长句重排和 Reduce Motion 的纯合同测试。
+
+### 已冻结的 Phase 2.3 产品决策
+
+- `760×520` 是技术上可打开的下限，不代表舒适可读尺寸。
+- `800×600` 是最低舒适可读尺寸和布局降级参考；两者不再共享同一个 `minimum` 语义。
+- `automaticCompactLyricsFocus` 默认关闭，用户可以开启，且不得覆盖手工选择的 layout family。
+- 长句和多层歌词的降级顺序为：保留当前行原文完整 → 减少远处上下文 → 适度缩小字号 → 必要时增加纵向空间；不裁掉当前行原文，辅助层可逐级弱化。
+- Backdrop preset 固定规划为：`Default`、`Clear`、`Immersive`、`High Contrast`、`Custom`。
+- Reduce Motion 禁用弹簧、明显位移和 blur morph，只保留极短的 opacity transition。
 
 ### 本阶段禁止
 
@@ -112,7 +140,7 @@ flowchart LR
 
 `SpotifyLyrics/Design/LyricsDesignTokens.swift` 当前集中定义：
 
-- 窗口默认/最小尺寸：`1040×680`、`760×520`；
+- 窗口默认/技术可打开下限：`1040×680`、`760×520`；舒适可读和布局降级参考为 `800×600`，两者语义不同；
 - 基本圆角、标题/行间距、画布 padding、封面尺寸和沉浸分栏 breakpoint；
 - primary/secondary/muted/accent/control/background 色彩；
 - backdrop gradient；
@@ -131,7 +159,7 @@ flowchart LR
 
 以下是只读审计发现，不是本轮修改清单：
 
-1. **最小尺寸不一致**：`LyricsDesignTokens.minimumMainWindowSize` 为 `760×520`，而 V3 `MainWindowResponsiveThresholds` 为 `800×600`。`MainLyricsWindowView` 又有窗口恢复/布局相关约束。2.3A 必须先确定一个公开的“窗口最小可用尺寸”与一个“布局可降级尺寸”，不能让两个数字同时代表不同语义。
+1. **尺寸语义曾经混用**：`LyricsDesignTokens.minimumMainWindowSize` 为技术可打开下限 `760×520`，而 V3 `MainWindowResponsiveThresholds` 的 `800×600` 是舒适可读和布局降级参考。2.3A 必须保留两个明确命名，不能把它们都叫作 `minimum`，也不能因为窗口能打开就承诺在该尺寸下完整舒适展示。
 2. **V3 布局常量内嵌**：wide/compact/stacked 分支使用 `64/48`、`32/28`、`24/28` padding，`45/55`、`40/60` 分栏比例、封面比例和最小封面尺寸；这些数字没有统一 token 名称。
 3. **V3 歌词行常量内嵌**：`AppleMusicImmersiveV3LyricRow` 附近使用 Ruby/罗马音/翻译 opacity、`lineLimit(2)`、`fixedSize`、动画 duration；部分行为与 `LyricsDesignTokens.lyricEmphasis` 重复但不完全一致。
 4. **主窗口 V2/V3 重复控件**：`MainLyricsWindowView` 与 V3 各自有 toolbar、搜索/设置/布局菜单、状态菜单和底部/transport 区域；同一命令的视觉包裹不统一。
@@ -152,7 +180,7 @@ LyricTokens            // line emphasis, ruby/romaji/translation hierarchy
 PresentationTokens     // capsule/floating/fullscreen style input
 ```
 
-每个 token 必须说明适用界面、可响应变量和是否可被用户设置覆盖。颜色取色、播放时长、当前行、窗口 frame 不属于静态 Design Token。
+每个 token 必须说明适用界面、可响应变量和是否可被用户设置覆盖。颜色取色、播放时长、当前行、窗口 frame 不属于静态 Design Token。Backdrop 的 preset 集合暂定为 `Default`、`Clear`、`Immersive`、`High Contrast`、`Custom`；本阶段只规划其输入输出，不立即增加用户设置。
 
 ## 3. V3 背景和 Artwork 管线审计
 
@@ -185,7 +213,7 @@ PresentationTokens     // capsule/floating/fullscreen style input
 
 1. 一行从短句变成长句时，SwiftUI intrinsic height 改变会影响行间距和当前行锚点；如果滚动容器没有稳定的行 identity，可能出现跳动。
 2. Ruby 词块的宽度与原文宽度不一致时，不能用整体 `scaleEffect` 解决；应保留 token flow 的 overhang/换行策略。
-3. 原文、Ruby、罗马音、翻译同时开启时，`lineLimit(2)` 可能裁剪辅助文本，而不是让字号响应式收缩；需要在 2.3B/2.3E 设计规则。
+3. 原文、Ruby、罗马音、翻译同时开启时，`lineLimit(2)` 可能裁剪辅助文本，而不是让字号响应式收缩；需要在 2.3B/2.3E 按“当前行原文优先、远处上下文先减、字号其次、纵向空间最后”的顺序处理。
 4. 当前行 transition、opacity/blur 和容器 geometry 的动画修饰符分散，可能在进度 tick、设置切换和切歌时发生错误的隐式动画。
 5. 纯文本模式必须完全跳过 current-line anchor、自动滚动和远近景深；统一组件不能把 synchronized 行为泄漏到 plain text。
 
@@ -193,9 +221,9 @@ PresentationTokens     // capsule/floating/fullscreen style input
 
 - 先把 `LyricDocumentProjection`（可见行、当前 index、同步/纯文本、状态）与 `LyricVisualState`（字号、opacity、blur、层显隐、垂直节奏）分离。
 - 行 identity 只使用稳定的歌词版本/行 index 组合；不把 currentTime 放入 identity。
-- 长句计算先确定最大主文本宽度，再根据启用层数和窗口宽度调整字号/层级；不要用平均铺开或强制裁剪隐藏原文。
+- 长句计算先确定最大主文本宽度，再按“保留当前行原文完整 → 减少远处上下文 → 适度缩小字号 → 增加纵向空间”的顺序降级；不得用平均铺开、强制裁剪或隐藏当前行原文解决布局问题。
 - synchronized 只对有限的前后 projection 做动画；plain text 使用静态可滚动全文。
-- Reduce Motion 开启时取消/缩短位移和模糊过渡，只保留 opacity 或无动画更新。
+- Reduce Motion 开启时禁用弹簧、明显位移和 blur morph，只保留极短 opacity transition 或无动画更新。
 
 ## 5. 稳定 Presentation 接口设计（本阶段只设计）
 
@@ -278,11 +306,26 @@ PresentationTokens     // capsule/floating/fullscreen style input
 
 约束：不拥有窗口 frame、screen、visibility 或 pass-through 的持久化；这些仍归 `FloatingLyricsWindowController`/`WindowManager`。
 
-## 6. Preview Lab 只读架构
+## 6. Preview Lab 与 Release Experience Library
 
-### 目标
+未来所有可维护的旧 UI、动画、背景、布局和 presentation version 都应有正式可切换的归档路径，但必须与 Debug 诊断工具分层。两层都只消费 live projection 或明确的 Mock snapshot，不复制业务状态。
 
-用于并排比较“当前渲染”和候选 presentation，不作为用户设置，不写入正式状态，不影响播放。
+### 6.1 Release Experience Library
+
+- 正式用户可从高级次级入口进入；普通设置首页不展示全部版本。
+- 支持推荐、经典、历史和实验 presentation 的预览、应用和恢复推荐。
+- 不显示开发诊断信息、编译信息、内部 geometry 或调试锚点。
+- 应用只改变现有 presentation/style 设置或本地展示选择，不创建歌词版本、不写歌词数据库、不改变播放位置。
+
+### 6.2 Debug Preview Lab
+
+- 仅 Debug 构建可用。
+- 支持 A/B 并排、Mock 状态、左/中/右锚点、geometry 读数和诊断数据。
+- 不进入 Release UI，也不作为普通用户设置入口。
+
+### 6.3 共同目标和数据边界
+
+两层均用于比较“当前渲染”和候选 presentation，不创建第二套业务状态，不影响播放。
 
 ### 数据边界
 
@@ -302,14 +345,14 @@ snapshot 可以包含脱敏的 track metadata、artwork snapshot 引用、歌词
 - 创建 polling timer、网络任务、seek 或播放控制；
 - 写 `UserDefaults`、SQLite、lyrics cache、frame/visibility 状态；
 - 用搜索预览数组伪装 live projection；
-- 把 Preview Lab 作为 Release 用户入口。
+- 将 Debug 诊断数据泄漏到 Release Experience Library。
 
 ### 应用/取消语义
 
 - “比较”只替换本地 preview selection；
-- “应用”只能在未来明确批准后将 presentation ID/样式写入现有设置键，且应在外层捕获；
+- Release Experience Library 的“应用”只能将 presentation ID/样式写入现有或经评审的展示设置键，且应在外层捕获；Debug Preview Lab 的“应用”只改变本地预览选择，不写持久化设置；
 - “取消/关闭”丢弃 preview selection，不产生业务副作用；
-- 当前阶段只实现文档和合同，不创建 Preview Lab View。
+- 当前阶段只实现文档和合同，不创建 Release Experience Library 或 Preview Lab View。
 
 ## 7. Phase 2.3 分阶段实施路线
 
@@ -317,7 +360,7 @@ snapshot 可以包含脱敏的 track metadata、artwork snapshot 引用、歌词
 
 ### 2.3A：Design Tokens 与 motion policy
 
-**目标**：建立 Foundation/Surface/Layout/Lyric/Presentation token 层，统一 Reduce Motion 和窗口尺寸语义。
+**目标**：建立 Foundation/Surface/Layout/Lyric/Presentation token 层，统一 Reduce Motion 和窗口尺寸语义。`760×520` 固定为技术可打开下限，`800×600` 固定为舒适可读/布局降级参考；automatic compact focus 默认关闭但可由用户开启。
 
 **前置依赖**：本审计计划；Phase 2.2 presentation IDs；`AppSettingsStore` 现有设置保持不变。
 
@@ -339,7 +382,7 @@ snapshot 可以包含脱敏的 track metadata、artwork snapshot 引用、歌词
 
 **目标**：将 V3 的 wide/compactSplit/stacked/automatic focus 几何计算移到可测试的 `MainLayoutPresentation`，保留布局 family 和手工歌词专注。
 
-**前置依赖**：2.3A；明确 `760×520` 与 `800×600` 的窗口语义；2.2 自动 focus 已验收。
+**前置依赖**：2.3A；按已冻结的 `760×520` 技术下限与 `800×600` 舒适参考实现；2.2 自动 focus 已验收且默认关闭。
 
 **预计修改模块**：
 
@@ -377,7 +420,7 @@ snapshot 可以包含脱敏的 track metadata、artwork snapshot 引用、歌词
 
 ### 2.3D：背景 preset、取色与高亮
 
-**目标**：以现有缓存为唯一数据底座，定义 `BackdropPresentation` preset，统一 V3 与全屏的纹理/色板/暗幕/噪点层级。
+**目标**：以现有缓存为唯一数据底座，定义 `BackdropPresentation` 的 `Default`、`Clear`、`Immersive`、`High Contrast`、`Custom` preset 输入，统一 V3 与全屏的纹理/色板/暗幕/噪点层级。
 
 **前置依赖**：2.3A；先完成 V3/legacy 两条缓存路径的 key 和生命周期审计；2.3B 的容器几何。
 
@@ -436,9 +479,9 @@ snapshot 可以包含脱敏的 track metadata、artwork snapshot 引用、歌词
 
 **migration 风险**：无。注意不要新增 UserDefaults key 来代替业务状态。
 
-### 2.3G：Presentation version interface 与 Preview Lab 只读骨架
+### 2.3G：Presentation version interface、Experience Library 与 Debug Preview Lab 骨架
 
-**目标**：把 capsule/floating/fullscreen/main layout/backdrop/transition/progress 的展示变体收敛到稳定 ID 和纯配置接口，为“另类归档”及未来 Preview Lab 提供回退边界。
+**目标**：把 capsule/floating/fullscreen/main layout/backdrop/transition/progress 的展示变体收敛到稳定 ID 和纯配置接口，为 Release Experience Library 与 Debug Preview Lab 提供不同的入口和回退边界。Release 允许正式用户预览/应用/恢复推荐；Debug 才允许诊断数据、Mock 状态和锚点比较。
 
 **前置依赖**：2.3A–F；2.2 的 `capsule.*`、`floatingLyrics.*` 和全屏现有 presentation helper。
 
@@ -452,7 +495,7 @@ snapshot 可以包含脱敏的 track metadata、artwork snapshot 引用、歌词
 
 **不应修改**：两个浮动 Controller 的独立生命周期、frame/screen/visibility/lock/pass-through、AppSettingsStore key 语义。
 
-**验收**：旧/新 presentation 可以回退；切换只影响展示，不写歌词数据库/不 seek；Preview snapshot 无 session/timer/network/DB；胶囊和桌面歌词仍可同时显示且状态一致。
+**验收**：旧/新 presentation 可以回退；Release Experience Library 与 Debug Preview Lab 的权限/入口分层清晰；切换只影响展示，不写歌词数据库/不 seek；preview snapshot 无 session/timer/network/DB；胶囊和桌面歌词仍可同时显示且状态一致。
 
 **migration 风险**：无 DB migration。若未来要持久化某个 presentation ID，只能复用/新增经评审的设置 key，不能借用歌词或 Track 表。
 
@@ -468,7 +511,7 @@ snapshot 可以包含脱敏的 track metadata、artwork snapshot 引用、歌词
 - transition：暂停/seek/切歌/设置切换不发生错误隐式 seek；
 - status：loading/noSelection/noMatch/plain/candidates/failed 的唯一映射；
 - presentation：legacy/new ID 的切换不影响 frame/screen/lock/pass-through；
-- Preview Lab：不创建 session/timer、不写 DB/UserDefaults、不改变播放位置。
+- Release Experience Library / Debug Preview Lab：不创建 session/timer、不写歌词 DB、不改变播放位置；Debug 诊断数据不出现在 Release。
 
 ### 真实/受控验收
 
@@ -514,19 +557,19 @@ docs: add phase 2.3 validation report
 2. 当前 Ruby/长句排版已有真实自定义布局，2.3 应修复 projection/animation/多层策略，不应换成普通 `Text` 或重新生成读音。
 3. 当前 compact focus 已有集中阈值和设置开关，2.3 重点是把 geometry 可测试化，并解决最小尺寸语义不一致。
 4. 当前 capsule/floating/fullscreen 已有稳定 presentation 版本或独立 Controller；2.3 应建立统一展示输入，不应合并窗口或复制状态。
-5. Preview Lab 只能是只读 snapshot renderer；若未来需要“应用”展示方案，必须另行确认设置持久化语义。
+5. 未来应同时规划 Release Experience Library 和 Debug Preview Lab：前者是正式用户可用的高级 presentation 归档入口，后者保留诊断和 Mock/A-B 能力；两者都只能是只读 projection renderer，不得复制业务状态。
 6. Phase 2.3 全部计划默认不需要数据库 migration；任何要求修改 SQLite 的 UI 诉求都应移出本阶段。
 
 ## 11. 仍需用户醒来后决定的产品问题
 
 这些问题不阻塞本只读计划，但在对应子阶段开始前必须确认：
 
-1. 最小窗口的产品语义：保留 `760×520` 作为可打开尺寸，还是将 `800×600` 统一为最低可读尺寸；两者不能继续同时表示“minimum”。
-2. `automaticCompactLyricsFocus` 是否默认关闭并允许用户关闭（当前冻结行为是关闭默认，保留手工布局选择）。
-3. 长句在多层同时开启时优先缩小字号、减少远处层，还是允许纵向滚动占用更多空间；当前计划优先保证原文不裁剪。
-4. `BackdropPresentation` 的 preset 数量和是否允许 Preview Lab 仅比较、不持久化；默认只读。
-5. Reduce Motion 的降级目标：完全禁用位移/模糊动画，还是保留极短 opacity 过渡；当前计划采用后者。
-6. 全产品 presentation version 是否最终允许普通用户切换，还是只保留 Debug/内部归档；本计划不把它加入正式设置。
+1. `800×600` 舒适可读参考下，哪些次要控件可以进一步隐藏；`760×520` 只保证技术可打开。
+2. Release Experience Library 的正式入口名称、推荐/经典/历史/实验四类的默认排序和“恢复推荐”的确认文案。
+3. `Custom` backdrop 是否允许用户保存自定义参数，还是第一版只保存 preset 选择。
+4. Release Experience Library 是否允许应用 presentation 后立即影响所有窗口，还是先只影响主窗口并提供预览确认。
+5. 视觉验收时，胶囊 collapsed/hover/expanded 的最终宽度、控制键顺序、对比度和进度条长度。
+6. 当前胶囊截图只作为结构基线；最终视觉目标必须由用户验收后再冻结，不能由 Phase 2.2 合同截图自动决定。
 
 ## 12. 完成条件
 

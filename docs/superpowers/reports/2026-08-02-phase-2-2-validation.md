@@ -6,6 +6,15 @@
 起始基线：`0b6ccf3e24404375865d900fcaf72b86a07deb67`
 本报告提交前 HEAD：`f299cf41ebc8f532dca8f5e6c6edac309c7d648f`
 
+## 当前产品状态结论
+
+- 工程与架构：**通过**。
+- 合同、构建和签名：**通过**。
+- 胶囊与桌面歌词最终视觉：**未定稿**。
+- 真实 Spotify 歌曲交互：**待用户验收**。
+
+本报告中的胶囊截图和窗口 smoke check 只代表结构基线，不代表最终设计目标。当前已知视觉待修项包括：collapsed 过宽、hover 控制键位于最左侧、expanded 面积过大且接近迷你主窗口、歌词对比度不足、进度条过长，以及底部文字入口需要在后续图标化并收紧。它们暂不在 Phase 2.2 修复，纳入 Phase 2.3 presentation 设计。
+
 ## 1. 范围
 
 本批次完成 Phase 2.2 的五个实现阶段：
@@ -93,6 +102,19 @@ flowchart LR
 
 `integrity_check=ok`；`foreign_key_check` 为空。没有 migration、删除、reparent、版本写入或 sidecar 操作。
 
+### SHA 时间点澄清（只读）
+
+本批次存在两个不同的文件检查点，不能把它们当成同一时刻的哈希：
+
+| SHA-256 | 文件 | 时间点/含义 |
+|---|---|---|
+| `47e32afab6b7e2a648dc7323acac447250e8be6703720089165905d4d37076c9` | `/Users/apple/Library/Application Support/SpotifyLyrics/SpotifyLyrics.sqlite3` | Phase 2.2 验收报告记录的正式库前后检查点；对应报告提交时间约为 `2026-08-02 02:27:56 +08:00`。 |
+| `e5c42d8c674131246f83c8b42ebd838a40fa0d41ca8d0e8334bd7a0d7689a512` | `/tmp/spotifylyrics-phase2-2-final-runtime/SpotifyLyrics.sqlite3`，以及当前正式库 | 后续只读复核使用的临时副本；副本 mtime 为 `2026-08-02 02:50:33 +08:00`。正式库随后从这个相同 SHA 的副本恢复，当前正式库与副本逐字节一致。 |
+
+只读复核结果：当前正式库和恢复副本均为 `PRAGMA journal_mode=delete`，没有伴随的 `SpotifyLyrics.sqlite3-wal` 或 `SpotifyLyrics.sqlite3-shm` 文件；本批次没有执行 `wal_checkpoint` 或其他 checkpoint 命令。因此，不能把 `47e32… → e5c42…` 简单归因于当前 WAL/SHM 文件或一次已记录的 checkpoint。
+
+可用的最近两份临时副本进行只读 dump 对比时，表数量、schema、歌词正文、翻译、时间轴、parent、redirect 和 audit 均保持一致；观察到的唯一逻辑差异是 `tracks` 中「空心 / 光澤」记录的 `updated_at` 元数据时间变化。历史 `47e32…` 原始文件本身未保留在当前工作目录，所以无法仅凭现存文件证明该哈希差异的唯一底层原因，也不应猜测为 WAL 或迁移。可以确认的是：歌词业务数据没有变化，当前库完整性为 `ok`，`foreign_key_check` 为空，最终恢复源 SHA 为 `e5c42…`。
+
 ## 6. 截图索引
 
 以下截图使用目标 App 的独立窗口捕获，未加入 Git，避免提交私人桌面内容：
@@ -109,13 +131,13 @@ flowchart LR
 |---|---|---|
 | 胶囊 collapsed / hover / expanded | PASS（窗口 smoke check） | 三态合同与目标 App 窗口捕获；真实歌曲内容未接入 |
 | 胶囊独立开关桌面歌词 | PASS（合同） | `WindowManager` façade；未改变两个 panel 的 frame/visibility 绑定 |
-| legacy / transparent / Light Material | PASS（合同/构建） | 样式 presentation ID 与 settings publisher 接线；材质细节需本地视觉验收 |
+| legacy / transparent / Light Material | 工程 PASS；最终视觉未定稿 | 样式 presentation ID 与 settings publisher 接线；材质细节、胶囊比例、对比度和控件排序需用户本地验收 |
 | 解锁 hover 控件 / 锁定 / 穿透恢复 | PASS（合同） | 真实鼠标穿透长流程未在本环境完成 |
 | V3 宽 / 小 / 恢复 | PASS（合同/构建） | 自动专注默认关闭，阈值集中；真实拖拽缩放未完成 |
 | 全屏前后辅助窗口恢复 | PASS（既有合同） | 物理窗口组合未完成 |
 | 多显示器、拔屏、Space | UNVERIFIED | 当前环境未执行物理外接屏/拔屏测试 |
 | Reduce Motion 降级 | UNVERIFIED | 未在系统设置中切换验证 |
-| 正式数据库不变 | PASS | SHA-256、schema、完整性均一致 |
+| 正式数据库不变 | 工程检查 PASS；SHA 检查点已澄清 | Phase 2.2 报告记录 `47e32… → 47e32…`；后续恢复副本为 `e5c42…`，详见上方 SHA 澄清 |
 | 敏感信息扫描 | PASS | diff 未发现 API key、token、Authorization header 或私密二进制 |
 
 ## 8. 已知问题与醒后需确认
@@ -123,8 +145,9 @@ flowchart LR
 1. 当前合同和临时 App 运行证明了结构接线，但没有替代真实 Spotify 歌曲下的视觉验收。
 2. `CapsuleLyricsWindowPersistence` 使用屏幕 `visibleFrame` 与 `safeAreaInsets.top`；多显示器实际屏幕排列、拔屏和全屏 Space 仍需人工确认。
 3. V3 自动歌词专注是临时显示 projection，默认关闭，不改变用户选择的 layout family；用户需要确认阈值和进入/退出时的视觉取舍。
-4. 胶囊与桌面歌词的产品关系已按方案 C 落地：胶囊控制、桌面歌词多行显示；用户仍可决定透明模式与 Light Material 的最终默认视觉。
-5. 本批次没有开始 Phase 2.3，也没有开始 Phase 2.4。
+4. 胶囊与桌面歌词的产品关系已按方案 C 落地：胶囊控制、桌面歌词多行显示；当前实现是结构基线，不是最终视觉。collapsed 宽度、hover 控件顺序、expanded 面积、歌词对比度、进度条长度和底部入口图标化均留给 Phase 2.3 presentation 设计。
+5. 当前胶囊截图不得作为 Phase 2.3 的视觉目标。
+6. 本批次没有开始 Phase 2.3 代码，也没有开始 Phase 2.4。
 
 ## 9. 停止点
 
