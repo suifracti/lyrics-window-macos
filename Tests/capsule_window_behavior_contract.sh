@@ -32,7 +32,9 @@ done
 
 require "$CONTROLLER" 'NSPanel' 'capsule uses a dedicated NSPanel'
 require "$CONTROLLER" 'nonactivatingPanel' 'capsule panel does not steal keyboard focus'
-require "$CONTROLLER" 'level[[:space:]]*=[[:space:]]*\.floating' 'capsule stays at floating level'
+require "$CONTROLLER" 'effectivePanelLevel' 'capsule centralizes its window level policy'
+require "$CONTROLLER" '\.floating' 'normal capsule stays at floating level'
+require "$CONTROLLER" '\.statusBar' 'Debug top-attached prototype can reach the physical top edge'
 require "$CONTROLLER" 'canJoinAllSpaces' 'capsule joins all Spaces'
 require "$CONTROLLER" 'fullScreenAuxiliary' 'capsule is visible above full-screen content'
 require "$CONTROLLER" 'didChangeScreenParametersNotification' 'capsule observes display changes'
@@ -41,8 +43,8 @@ require "$CONTROLLER" 'removeMonitor' 'event monitor is removed'
 require "$CONTROLLER" 'deinit' 'controller has explicit cleanup'
 require "$CONTROLLER" '350_000_000' 'hover collapse uses the confirmed debounce'
 require "$CONTROLLER" 'presentationState == \.expanded' 'expanded state is the only draggable state'
-! grep -Eq '\.statusBar|\.modalPanel' "$CONTROLLER" || {
-  echo 'FAIL: capsule uses a system/status/modal window level' >&2
+! grep -Eq '\.modalPanel' "$CONTROLLER" || {
+  echo 'FAIL: capsule uses a modal window level' >&2
   exit 1
 }
 ! grep -Eq 'Timer\.scheduledTimer|LyricsSessionController|TranslationSessionController|PlaybackProvider|URLSession' "$CONTROLLER" "$VIEW" || {

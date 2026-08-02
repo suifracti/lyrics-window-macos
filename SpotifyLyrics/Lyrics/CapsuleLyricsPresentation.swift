@@ -32,6 +32,12 @@ public enum CapsuleDynamicIslandDarkV4 {
     public static let hoverSize = CGSize(width: 332, height: 44)
     public static let expandedSize = CGSize(width: 600, height: 168)
 
+    /// Debug-only host envelope for the top-attached prototype. The
+    /// production presentation still uses the state-sized panel frames; this
+    /// value is intentionally large enough to keep the AppKit window fixed
+    /// while the internal island grows downward.
+    public static let debugEnvelopeSize = CGSize(width: 680, height: 240)
+
     public static func targetSize(for state: CapsulePresentationState) -> CGSize {
         switch state {
         case .collapsed:
@@ -51,6 +57,46 @@ public enum CapsuleDynamicIslandDarkV4 {
         return CGSize(
             width: min(target.width, max(1, availableSize.width)),
             height: min(target.height, max(1, availableSize.height))
+        )
+    }
+
+    /// Returns the fixed transparent host frame for the Debug top-attached
+    /// prototype. AppKit coordinates use the physical screen frame, so the
+    /// envelope's top edge is exactly `screenFrame.maxY` with no visible-frame
+    /// or legacy top-inset adjustment.
+    public static func topAttachedEnvelopeFrame(
+        screenFrame: CGRect,
+        envelopeSize: CGSize = debugEnvelopeSize
+    ) -> CGRect {
+        guard screenFrame.width > 0, screenFrame.height > 0 else {
+            return CGRect(origin: screenFrame.origin, size: envelopeSize)
+        }
+
+        let size = CGSize(
+            width: min(max(1, envelopeSize.width), screenFrame.width),
+            height: min(max(1, envelopeSize.height), screenFrame.height)
+        )
+        return CGRect(
+            x: screenFrame.midX - size.width / 2,
+            y: screenFrame.maxY - size.height,
+            width: size.width,
+            height: size.height
+        )
+    }
+
+    /// Returns the internal island rect in the fixed envelope's bottom-left
+    /// coordinate space. Its top edge stays flush with the envelope top while
+    /// the state change only moves the bottom edge downward.
+    public static func topAttachedIslandFrame(
+        for state: CapsulePresentationState,
+        envelopeSize: CGSize = debugEnvelopeSize
+    ) -> CGRect {
+        let size = clampedSize(for: state, availableSize: envelopeSize)
+        return CGRect(
+            x: (envelopeSize.width - size.width) / 2,
+            y: envelopeSize.height - size.height,
+            width: size.width,
+            height: size.height
         )
     }
 

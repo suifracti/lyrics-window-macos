@@ -31,7 +31,7 @@ struct SpotifyLyricsApp: App {
                     // Showing the existing capsule after the main scene is
                     // ready keeps the harness deterministic without adding a
                     // second window, timer or business-state owner.
-                    if ProcessInfo.processInfo.arguments.contains("--debug-capsule-v4") {
+                    if DebugDatabaseSafety.isForcedPresentationArgument {
                         WindowManager.shared.setCapsuleDebugPresentation(
                             .dynamicIslandDarkV4,
                             state: playbackState

@@ -10,7 +10,20 @@ import Darwin
 enum DebugDatabaseSafety {
     static let forcedPresentationID = "capsule.dynamicIslandDark.v4"
     static let forcedPresentationArgument = "--debug-capsule-v4"
+    static let topAttachedPresentationArgument = "--debug-capsule-v4-top-attached"
     static let databaseEnvironmentKey = "SPOTIFYLYRICS_DATABASE_PATH"
+
+    static var isForcedPresentationArgument: Bool {
+        let arguments = ProcessInfo.processInfo.arguments
+        return arguments.contains(forcedPresentationArgument)
+            || arguments.contains(topAttachedPresentationArgument)
+    }
+
+    static var forcedPresentationMode: String {
+        ProcessInfo.processInfo.arguments.contains(topAttachedPresentationArgument)
+            ? "topAttachedEnvelope"
+            : "stateSizedEnvelope"
+    }
 
     struct Status: Equatable {
         let configuredDatabaseURL: URL?
@@ -54,6 +67,7 @@ enum DebugDatabaseSafety {
         let lines = [
             "[SpotifyLyrics][DebugSafety] event=forced_presentation",
             "[SpotifyLyrics][DebugSafety] forced_presentation_id=\(forcedPresentationID)",
+            "[SpotifyLyrics][DebugSafety] forced_presentation_mode=\(forcedPresentationMode)",
             "[SpotifyLyrics][DebugSafety] database_path=\(actualPath)",
             "[SpotifyLyrics][DebugSafety] formal_database_path=\(formalURL.path)",
             "[SpotifyLyrics][DebugSafety] temporary_copy=\(isTemporary ? "YES" : "NO")",
@@ -80,7 +94,7 @@ enum DebugDatabaseSafety {
     /// Command-line v4 runs therefore cannot even initialize the app against
     /// the formal database.
     static func failClosedForCommandLineV4IfNeeded() {
-        guard ProcessInfo.processInfo.arguments.contains(forcedPresentationArgument) else {
+        guard isForcedPresentationArgument else {
             return
         }
 
@@ -116,7 +130,8 @@ enum DebugDatabaseSafety {
         let temporary = !formal && isTemporaryURL(actual.resolvingSymlinksInPath())
         emit([
             "[SpotifyLyrics][DebugSafety] event=repository_open",
-            "[SpotifyLyrics][DebugSafety] forced_presentation_id=\(ProcessInfo.processInfo.arguments.contains(forcedPresentationArgument) ? forcedPresentationID : "none")",
+            "[SpotifyLyrics][DebugSafety] forced_presentation_id=\(isForcedPresentationArgument ? forcedPresentationID : "none")",
+            "[SpotifyLyrics][DebugSafety] forced_presentation_mode=\(isForcedPresentationArgument ? forcedPresentationMode : "none")",
             "[SpotifyLyrics][DebugSafety] database_path=\(actual.path)",
             "[SpotifyLyrics][DebugSafety] temporary_copy=\(temporary ? "YES" : "NO")",
             "[SpotifyLyrics][DebugSafety] formal_database_opened=\(formal ? "YES" : "NO")"

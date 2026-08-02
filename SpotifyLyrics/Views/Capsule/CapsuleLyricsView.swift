@@ -41,13 +41,24 @@ struct CapsuleLyricsView: View {
         activePresentation == .dynamicIslandDarkV4
     }
 
+    private var isDebugTopAttachedV4: Bool {
+#if DEBUG
+        isDynamicIslandDarkV4 && windowController.debugTopAttachedEnvelope
+#else
+        false
+#endif
+    }
+
     private var shellCornerRadius: CGFloat {
         guard isDynamicIslandDarkV4 else { return 18 }
         return windowController.presentationState == .expanded ? 24 : 20
     }
 
-    private var shellShape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: shellCornerRadius, style: .continuous)
+    private var shellShape: CapsuleV4ShellShape {
+        CapsuleV4ShellShape(
+            cornerRadius: shellCornerRadius,
+            topAttached: isDebugTopAttachedV4
+        )
     }
 
     private var progressBinding: Binding<Double> {
@@ -80,7 +91,21 @@ struct CapsuleLyricsView: View {
 
     @ViewBuilder
     private var sizedContainer: some View {
-        if isDynamicIslandDarkV4 {
+        if isDebugTopAttachedV4 {
+            let islandSize = CapsuleDynamicIslandDarkV4.targetSize(
+                for: windowController.presentationState
+            )
+            ZStack(alignment: .top) {
+                dynamicIslandDarkV4Container
+                    .frame(width: islandSize.width, height: islandSize.height)
+                    .clipShape(shellShape)
+            }
+            .frame(
+                width: CapsuleDynamicIslandDarkV4.debugEnvelopeSize.width,
+                height: CapsuleDynamicIslandDarkV4.debugEnvelopeSize.height,
+                alignment: .top
+            )
+        } else if isDynamicIslandDarkV4 {
             let size = CapsuleDynamicIslandDarkV4.targetSize(for: windowController.presentationState)
             dynamicIslandDarkV4Container
                 .frame(width: size.width, height: size.height)
@@ -702,6 +727,48 @@ struct CapsuleLyricsView: View {
     private func formatTime(_ seconds: Double) -> String {
         let value = max(0, Int(seconds.rounded(.down)))
         return String(format: "%d:%02d", value / 60, value % 60)
+    }
+}
+
+/// A v4 Debug-only shell whose top edge is intentionally flat. The shape is
+/// placed at the top of a fixed transparent envelope, so state changes reveal
+/// more of the island downward rather than moving the host window or exposing
+/// rounded corners at the physical screen edge. Non-debug presentations use
+/// the same type with `topAttached == false`, preserving their existing shell.
+private struct CapsuleV4ShellShape: Shape {
+    let cornerRadius: CGFloat
+    let topAttached: Bool
+
+    func path(in rect: CGRect) -> Path {
+        guard topAttached else {
+            return RoundedRectangle(
+                cornerRadius: cornerRadius,
+                style: .continuous
+            ).path(in: rect)
+        }
+
+        let radius = min(
+            max(0, cornerRadius),
+            min(rect.width / 2, rect.height / 2)
+        )
+        let curve = radius * 0.5522848
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - radius))
+        path.addCurve(
+            to: CGPoint(x: rect.maxX - radius, y: rect.maxY),
+            control1: CGPoint(x: rect.maxX, y: rect.maxY - radius + curve),
+            control2: CGPoint(x: rect.maxX - radius + curve, y: rect.maxY)
+        )
+        path.addLine(to: CGPoint(x: rect.minX + radius, y: rect.maxY))
+        path.addCurve(
+            to: CGPoint(x: rect.minX, y: rect.maxY - radius),
+            control1: CGPoint(x: rect.minX + radius - curve, y: rect.maxY),
+            control2: CGPoint(x: rect.minX, y: rect.maxY - radius + curve)
+        )
+        path.closeSubpath()
+        return path
     }
 }
 
