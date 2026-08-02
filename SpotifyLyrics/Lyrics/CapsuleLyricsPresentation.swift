@@ -1,4 +1,5 @@
 import Foundation
+import CoreGraphics
 
 /// Minimal identity contract shared by every capsule renderer.
 ///
@@ -20,6 +21,70 @@ public enum CapsuleLyricsPresentationVersion: String, CaseIterable, Sendable, Ca
     public static let archived: [Self] = [.legacyV1]
 
     public var id: String { rawValue }
+}
+
+/// The v4 shape envelope and top-center geometry.  This is deliberately a
+/// value-only layer: it knows nothing about windows, playback, lyrics, or
+/// persistence.  AppKit maps the resulting frame onto the existing capsule
+/// controller.
+public enum CapsuleDynamicIslandDarkV4 {
+    public static let collapsedSize = CGSize(width: 312, height: 40)
+    public static let hoverSize = CGSize(width: 332, height: 44)
+    public static let expandedSize = CGSize(width: 600, height: 168)
+
+    public static func targetSize(for state: CapsulePresentationState) -> CGSize {
+        switch state {
+        case .collapsed:
+            return collapsedSize
+        case .hover:
+            return hoverSize
+        case .expanded:
+            return expandedSize
+        }
+    }
+
+    public static func clampedSize(
+        for state: CapsulePresentationState,
+        availableSize: CGSize
+    ) -> CGSize {
+        let target = targetSize(for: state)
+        return CGSize(
+            width: min(target.width, max(1, availableSize.width)),
+            height: min(target.height, max(1, availableSize.height))
+        )
+    }
+
+    /// Returns a frame whose top edge stays anchored while the envelope grows
+    /// downwards.  The horizontal offset is intentionally relative to the
+    /// screen center and is clamped to the visible frame.
+    public static func topCenteredFrame(
+        for state: CapsulePresentationState,
+        visibleFrame: CGRect,
+        safeTopInset: CGFloat,
+        horizontalOffset: CGFloat = 0
+    ) -> CGRect {
+        guard visibleFrame.size.width > 0, visibleFrame.size.height > 0 else {
+            return CGRect(origin: visibleFrame.origin, size: targetSize(for: state))
+        }
+
+        let safeInset = max(0, safeTopInset)
+        let size = clampedSize(
+            for: state,
+            availableSize: CGSize(
+                width: visibleFrame.size.width,
+                height: max(1, visibleFrame.size.height - safeInset)
+            )
+        )
+        let minX = visibleFrame.origin.x
+        let maxX = max(minX, visibleFrame.origin.x + visibleFrame.size.width - size.width)
+        let centeredX = visibleFrame.origin.x + visibleFrame.size.width / 2 - size.width / 2 + horizontalOffset
+        let x = min(max(centeredX, minX), maxX)
+        let y = max(
+            visibleFrame.origin.y,
+            visibleFrame.origin.y + visibleFrame.size.height - safeInset - size.height
+        )
+        return CGRect(x: x, y: y, width: size.width, height: size.height)
+    }
 }
 
 public enum CapsulePresentationState: Equatable, Sendable {

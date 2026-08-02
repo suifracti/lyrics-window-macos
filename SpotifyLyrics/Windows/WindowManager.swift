@@ -145,6 +145,21 @@ public final class WindowManager: ObservableObject {
         }
         capsuleController?.setDebugAnchor(anchor)
     }
+
+    /// Debug-only presentation injection for v4 geometry verification. It
+    /// reuses the existing capsule controller and never persists a version.
+    func setCapsuleDebugPresentation(
+        _ presentation: CapsuleLyricsPresentationVersion?,
+        state: PlaybackState
+    ) {
+        if capsuleController == nil {
+            capsuleController = CapsuleLyricsWindowController()
+        }
+        capsuleController?.setDebugPresentation(presentation)
+        if presentation != nil, capsuleController?.isVisible != true {
+            capsuleController?.show(state: state, settings: AppSettingsStore.shared)
+        }
+    }
 #endif
 
     public var capsuleWindowIsVisible: Bool {

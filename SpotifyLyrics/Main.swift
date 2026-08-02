@@ -95,6 +95,20 @@ struct SpotifyLyricsApp: App {
                     WindowManager.shared.setCapsuleDebugAnchor(.topRight)
                 }
             }
+            CommandMenu("胶囊呈现（调试）") {
+                Button("验证 v4 外壳与尺寸") {
+                    WindowManager.shared.setCapsuleDebugPresentation(
+                        .dynamicIslandDarkV4,
+                        state: playbackState
+                    )
+                }
+                Button("恢复当前正式呈现") {
+                    WindowManager.shared.setCapsuleDebugPresentation(
+                        nil,
+                        state: playbackState
+                    )
+                }
+            }
 #endif
         }
     }

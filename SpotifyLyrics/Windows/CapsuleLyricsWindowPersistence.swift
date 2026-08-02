@@ -34,6 +34,16 @@ final class CapsuleLyricsWindowPersistence {
         }
     }
 
+    func size(
+        for state: CapsulePresentationState,
+        presentation: CapsuleLyricsPresentationVersion
+    ) -> NSSize {
+        guard presentation == .dynamicIslandDarkV4 else {
+            return size(for: state)
+        }
+        return CapsuleDynamicIslandDarkV4.targetSize(for: state)
+    }
+
     func screenIdentifier(_ screen: NSScreen) -> String {
         if let number = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber {
             return "display-\(number.uint32Value)"
@@ -69,6 +79,31 @@ final class CapsuleLyricsWindowPersistence {
         )
     }
 
+    func frame(
+        for state: CapsulePresentationState,
+        screen: NSScreen,
+        horizontalOffset: CGFloat,
+        presentation: CapsuleLyricsPresentationVersion
+    ) -> NSRect {
+        guard presentation == .dynamicIslandDarkV4 else {
+            return frame(
+                for: state,
+                screen: screen,
+                horizontalOffset: horizontalOffset
+            )
+        }
+
+        return CapsuleDynamicIslandDarkV4.topCenteredFrame(
+            for: state,
+            visibleFrame: screen.visibleFrame,
+            safeTopInset: topSafeInset(for: screen),
+            // v4's phase-2 envelope is anchored at the screen center. The
+            // existing v2 offset remains persisted for v2/v3 and is not
+            // allowed to displace the v4 verification shell.
+            horizontalOffset: 0
+        )
+    }
+
 #if DEBUG
     func frame(
         for state: CapsulePresentationState,
@@ -97,6 +132,31 @@ final class CapsuleLyricsWindowPersistence {
             topSafeInset: topSafeInset(for: screen)
         )
     }
+
+    func frame(
+        for state: CapsulePresentationState,
+        screen: NSScreen,
+        horizontalOffset: CGFloat,
+        debugAnchor: CapsuleDebugAnchor,
+        presentation: CapsuleLyricsPresentationVersion
+    ) -> NSRect {
+        guard presentation != .dynamicIslandDarkV4 else {
+            // v4's verification build intentionally validates the real
+            // top-center anchor; the old comparison anchors remain for v2.
+            return frame(
+                for: state,
+                screen: screen,
+                horizontalOffset: horizontalOffset,
+                presentation: presentation
+            )
+        }
+        return frame(
+            for: state,
+            screen: screen,
+            horizontalOffset: horizontalOffset,
+            debugAnchor: debugAnchor
+        )
+    }
 #endif
 
     func restoreFrame(
@@ -121,6 +181,27 @@ final class CapsuleLyricsWindowPersistence {
         )
     }
 
+    func restoreFrame(
+        for state: CapsulePresentationState,
+        settings: AppSettingsStore,
+        mainWindow: NSWindow?,
+        presentation: CapsuleLyricsPresentationVersion
+    ) -> NSRect {
+        let screen = mainWindow?.screen
+            ?? screen(for: settings.capsuleWindowScreenID)
+            ?? NSScreen.main
+            ?? NSScreen.screens.first
+        guard let screen else {
+            return NSRect(origin: .zero, size: size(for: state, presentation: presentation))
+        }
+        return frame(
+            for: state,
+            screen: screen,
+            horizontalOffset: CGFloat(settings.capsuleWindowHorizontalOffset),
+            presentation: presentation
+        )
+    }
+
 #if DEBUG
     func restoreFrame(
         for state: CapsulePresentationState,
@@ -140,6 +221,29 @@ final class CapsuleLyricsWindowPersistence {
             screen: screen,
             horizontalOffset: CGFloat(settings.capsuleWindowHorizontalOffset),
             debugAnchor: debugAnchor
+        )
+    }
+
+    func restoreFrame(
+        for state: CapsulePresentationState,
+        settings: AppSettingsStore,
+        mainWindow: NSWindow?,
+        debugAnchor: CapsuleDebugAnchor,
+        presentation: CapsuleLyricsPresentationVersion
+    ) -> NSRect {
+        let screen = mainWindow?.screen
+            ?? screen(for: settings.capsuleWindowScreenID)
+            ?? NSScreen.main
+            ?? NSScreen.screens.first
+        guard let screen else {
+            return NSRect(origin: .zero, size: size(for: state, presentation: presentation))
+        }
+        return frame(
+            for: state,
+            screen: screen,
+            horizontalOffset: CGFloat(settings.capsuleWindowHorizontalOffset),
+            debugAnchor: debugAnchor,
+            presentation: presentation
         )
     }
 #endif

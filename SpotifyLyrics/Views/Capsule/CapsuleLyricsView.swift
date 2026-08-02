@@ -33,7 +33,20 @@ struct CapsuleLyricsView: View {
     }
 
     private var activePresentation: CapsuleLyricsPresentationVersion {
-        CapsuleLyricsPresentationVersion.current
+        windowController.activePresentation
+    }
+
+    private var isDynamicIslandDarkV4: Bool {
+        activePresentation == .dynamicIslandDarkV4
+    }
+
+    private var shellCornerRadius: CGFloat {
+        guard isDynamicIslandDarkV4 else { return 18 }
+        return windowController.presentationState == .expanded ? 24 : 20
+    }
+
+    private var shellShape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: shellCornerRadius, style: .continuous)
     }
 
     private var progressBinding: Binding<Double> {
@@ -44,18 +57,7 @@ struct CapsuleLyricsView: View {
     }
 
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                }
-
-            content
-                .padding(.horizontal, 14)
-                .padding(.vertical, windowController.presentationState == .expanded ? 14 : 8)
-        }
+        sizedContainer
         .contentShape(Rectangle())
         .onHover { inside in
             inside ? windowController.pointerEntered() : windowController.pointerExited()
@@ -71,6 +73,61 @@ struct CapsuleLyricsView: View {
     }
 
     @ViewBuilder
+    private var sizedContainer: some View {
+        if isDynamicIslandDarkV4 {
+            let size = CapsuleDynamicIslandDarkV4.targetSize(for: windowController.presentationState)
+            capsuleContainer
+                .frame(width: size.width, height: size.height)
+                .clipShape(shellShape)
+        } else {
+            capsuleContainer
+        }
+    }
+
+    private var capsuleContainer: some View {
+        ZStack {
+            capsuleBackground
+
+            content
+                .padding(.horizontal, 14)
+                .padding(.vertical, windowController.presentationState == .expanded ? 14 : 8)
+        }
+    }
+
+    @ViewBuilder
+    private var capsuleBackground: some View {
+        if isDynamicIslandDarkV4 {
+            shellShape
+                .fill(Color(red: 0.018, green: 0.020, blue: 0.026).opacity(0.98))
+                .overlay {
+                    shellShape
+                        .stroke(Color.white.opacity(0.105), lineWidth: 0.75)
+                }
+                .overlay(alignment: .top) {
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.08),
+                            Color.white.opacity(0.015),
+                            Color.clear
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .frame(height: 1)
+                    .padding(.horizontal, shellCornerRadius)
+                    .clipShape(Capsule())
+                }
+        } else {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                }
+        }
+    }
+
+    @ViewBuilder
     private var content: some View {
         switch activePresentation {
         case .legacyV1:
@@ -78,9 +135,8 @@ struct CapsuleLyricsView: View {
         case .controlFocusedV2:
             controlFocusedContent
         case .dynamicIslandDarkV4:
-            // The v4 ID is registered in phase 1 only. Until its renderer is
-            // implemented, keep the existing control-focused renderer as a
-            // compatibility fallback; v4 is not selected as current.
+            // Phase 2 implements only the v4 shell and geometry. Content
+            // remains the existing renderer until the later layout phase.
             controlFocusedContent
         }
     }

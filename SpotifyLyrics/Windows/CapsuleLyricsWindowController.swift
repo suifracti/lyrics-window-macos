@@ -27,6 +27,10 @@ final class CapsuleLyricsWindowController: NSObject, ObservableObject, NSWindowD
     private var isApplyingFrame = false
 #if DEBUG
     private var debugAnchor: CapsuleDebugAnchor = .topCenter
+    @Published private(set) var debugPresentation: CapsuleLyricsPresentationVersion? =
+        ProcessInfo.processInfo.arguments.contains("--debug-capsule-v4")
+        ? .dynamicIslandDarkV4
+        : nil
 #endif
 
     override init() {
@@ -139,7 +143,25 @@ final class CapsuleLyricsWindowController: NSObject, ObservableObject, NSWindowD
         guard isVisible, let settings else { return }
         applyFrame(for: presentationState, settings: settings)
     }
+
+    /// Selects a renderer only for a Debug verification session. This is an
+    /// injection into the existing controller, not a persisted presentation
+    /// preference or a second window path.
+    func setDebugPresentation(_ presentation: CapsuleLyricsPresentationVersion?) {
+        guard debugPresentation != presentation else { return }
+        debugPresentation = presentation
+        guard isVisible, let settings else { return }
+        applyFrame(for: presentationState, settings: settings)
+    }
 #endif
+
+    var activePresentation: CapsuleLyricsPresentationVersion {
+#if DEBUG
+        debugPresentation ?? CapsuleLyricsPresentationVersion.current
+#else
+        CapsuleLyricsPresentationVersion.current
+#endif
+    }
 
     func pointerEntered() {
         cancelHoverCollapse()
@@ -238,13 +260,15 @@ final class CapsuleLyricsWindowController: NSObject, ObservableObject, NSWindowD
             for: state,
             settings: settings,
             mainWindow: WindowStatePersistence.shared.attachedMainWindow,
-            debugAnchor: debugAnchor
+            debugAnchor: debugAnchor,
+            presentation: activePresentation
         )
 #else
         return persistence.restoreFrame(
             for: state,
             settings: settings,
-            mainWindow: WindowStatePersistence.shared.attachedMainWindow
+            mainWindow: WindowStatePersistence.shared.attachedMainWindow,
+            presentation: activePresentation
         )
 #endif
     }
