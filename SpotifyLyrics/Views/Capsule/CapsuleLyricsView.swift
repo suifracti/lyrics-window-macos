@@ -1,5 +1,45 @@
 import SwiftUI
 
+/// Motion policy for the Debug v4 island. Geometry and content use separate
+/// transactions so the fixed top anchor never inherits the content cross-fade
+/// and a spring cannot overshoot the 40/44 pt compact envelope.
+private enum CapsuleV4Motion {
+    static let collapsedToHoverDuration = 0.24
+    static let hoverToExpandedDuration = 0.36
+    static let contentFadeDuration = 0.12
+    static let contentFadeDelay = 0.05
+
+    static func geometryAnimation(
+        for targetState: CapsulePresentationState,
+        reduceMotion: Bool
+    ) -> Animation {
+        if reduceMotion {
+            return .easeOut(duration: 0.10)
+        }
+
+        switch targetState {
+        case .collapsed, .hover:
+            return .easeOut(duration: collapsedToHoverDuration)
+        case .expanded:
+            return .easeInOut(duration: hoverToExpandedDuration)
+        }
+    }
+
+    static func contentAnimation(
+        for targetState: CapsulePresentationState,
+        reduceMotion: Bool
+    ) -> Animation {
+        if reduceMotion {
+            return .easeOut(duration: 0.08)
+        }
+
+        let animation = Animation.easeOut(duration: contentFadeDuration)
+        return targetState == .expanded
+            ? animation.delay(contentFadeDelay)
+            : animation
+    }
+}
+
 /// Compact, hover and expanded presentations for the top capsule.  The view
 /// observes the same PlaybackState as every other window and never owns a
 /// timer, provider, lyric session or translation session.
@@ -90,9 +130,11 @@ struct CapsuleLyricsView: View {
             }
         }
         .animation(
-            accessibilityReduceMotion
-                ? .easeOut(duration: 0.10)
-                : .spring(response: 0.32, dampingFraction: 0.86, blendDuration: 0.04),
+            isDynamicIslandDarkV4
+                ? nil
+                : (accessibilityReduceMotion
+                    ? .easeOut(duration: 0.10)
+                    : .spring(response: 0.32, dampingFraction: 0.86, blendDuration: 0.04)),
             value: windowController.presentationState
         )
         .accessibilityElement(children: .contain)
@@ -115,11 +157,25 @@ struct CapsuleLyricsView: View {
                 height: CapsuleDynamicIslandDarkV4.debugEnvelopeSize.height,
                 alignment: .top
             )
+            .animation(
+                CapsuleV4Motion.geometryAnimation(
+                    for: windowController.presentationState,
+                    reduceMotion: accessibilityReduceMotion
+                ),
+                value: windowController.presentationState
+            )
         } else if isDynamicIslandDarkV4 {
             let size = CapsuleDynamicIslandDarkV4.targetSize(for: windowController.presentationState)
             dynamicIslandDarkV4Container
                 .frame(width: size.width, height: size.height)
                 .clipShape(shellShape)
+                .animation(
+                    CapsuleV4Motion.geometryAnimation(
+                        for: windowController.presentationState,
+                        reduceMotion: accessibilityReduceMotion
+                    ),
+                    value: windowController.presentationState
+                )
         } else {
             capsuleContainer
         }
@@ -211,9 +267,10 @@ struct CapsuleLyricsView: View {
         }
         .transition(.opacity)
         .animation(
-            accessibilityReduceMotion
-                ? .easeOut(duration: 0.08)
-                : .easeOut(duration: 0.14),
+            CapsuleV4Motion.contentAnimation(
+                for: state,
+                reduceMotion: accessibilityReduceMotion
+            ),
             value: state
         )
     }
