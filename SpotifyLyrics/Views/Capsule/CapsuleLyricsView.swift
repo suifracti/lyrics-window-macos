@@ -7,6 +7,7 @@ struct CapsuleLyricsView: View {
     @ObservedObject var state: PlaybackState
     @ObservedObject var windowController: CapsuleLyricsWindowController
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
     @State private var draftPosition: Double?
 
     private var selection: CapsuleLyricsSelection {
@@ -67,7 +68,12 @@ struct CapsuleLyricsView: View {
                 windowController.expand()
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: windowController.presentationState)
+        .animation(
+            accessibilityReduceMotion
+                ? .easeOut(duration: 0.08)
+                : .easeInOut(duration: 0.22),
+            value: windowController.presentationState
+        )
         .accessibilityElement(children: .contain)
         .accessibilityLabel("顶部胶囊")
     }
@@ -76,11 +82,21 @@ struct CapsuleLyricsView: View {
     private var sizedContainer: some View {
         if isDynamicIslandDarkV4 {
             let size = CapsuleDynamicIslandDarkV4.targetSize(for: windowController.presentationState)
-            capsuleContainer
+            dynamicIslandDarkV4Container
                 .frame(width: size.width, height: size.height)
                 .clipShape(shellShape)
         } else {
             capsuleContainer
+        }
+    }
+
+    private var dynamicIslandDarkV4Container: some View {
+        ZStack {
+            capsuleBackground
+
+            dynamicIslandDarkV4Content
+                .padding(.horizontal, windowController.presentationState == .expanded ? 14 : 10)
+                .padding(.vertical, windowController.presentationState == .expanded ? 12 : 6)
         }
     }
 
@@ -135,10 +151,219 @@ struct CapsuleLyricsView: View {
         case .controlFocusedV2:
             controlFocusedContent
         case .dynamicIslandDarkV4:
-            // Phase 2 implements only the v4 shell and geometry. Content
-            // remains the existing renderer until the later layout phase.
-            controlFocusedContent
+            dynamicIslandDarkV4Content
         }
+    }
+
+    @ViewBuilder
+    private var dynamicIslandDarkV4Content: some View {
+        switch windowController.presentationState {
+        case .collapsed:
+            v4CollapsedContent
+        case .hover:
+            v4HoverContent
+        case .expanded:
+            v4ExpandedContent
+        }
+    }
+
+    /// Compact keeps one strong identity cue and one unambiguous playback
+    /// state. It intentionally does not become a horizontal notification row
+    /// full of secondary labels.
+    private var v4CollapsedContent: some View {
+        HStack(spacing: 8) {
+            v4Artwork(size: 26)
+
+            Text(state.hasLiveTrack ? state.currentTrack.title : "SpotifyLyrics")
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .foregroundStyle(Color.white.opacity(0.96))
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Image(systemName: state.hasLiveTrack
+                  ? (state.isPlaying ? "pause.fill" : "play.fill")
+                  : "ellipsis")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(Color.white.opacity(0.92))
+                .frame(width: 18, height: 18)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+    }
+
+    /// Hover keeps the same island outline and reveals controls after the
+    /// identity block. The order is deliberately artwork → metadata →
+    /// transport, never transport → artwork.
+    private var v4HoverContent: some View {
+        HStack(spacing: 8) {
+            v4Artwork(size: 28)
+
+            VStack(alignment: .leading, spacing: 0) {
+                Text(state.hasLiveTrack ? state.currentTrack.title : "等待 Spotify 播放")
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .foregroundStyle(Color.white.opacity(0.96))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+
+                Text(state.hasLiveTrack ? state.currentTrack.artist : "Desktop")
+                    .font(.system(size: 9, weight: .medium, design: .rounded))
+                    .foregroundStyle(Color.white.opacity(0.62))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            HStack(spacing: 2) {
+                v4TransportButton("backward.end.fill", help: "上一首") { state.previousTrack() }
+                v4TransportButton(
+                    state.isPlaying ? "pause.fill" : "play.fill",
+                    help: "播放/暂停"
+                ) { state.togglePlayPause() }
+                v4TransportButton("forward.end.fill", help: "下一首") { state.nextTrack() }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+    }
+
+    /// Expanded is a single continuous island: controls and metadata stay on
+    /// the left while the live current lyric owns the right side. No following
+    /// row or text-heavy toolbar is rendered here.
+    private var v4ExpandedContent: some View {
+        HStack(alignment: .center, spacing: 16) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 9) {
+                    v4Artwork(size: 60)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(state.hasLiveTrack ? state.currentTrack.title : "等待 Spotify 播放")
+                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                            .foregroundStyle(Color.white.opacity(0.98))
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+
+                        Text(state.hasLiveTrack ? state.currentTrack.artist : "Spotify Desktop")
+                            .font(.system(size: 10, weight: .medium, design: .rounded))
+                            .foregroundStyle(Color.white.opacity(0.68))
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                HStack(spacing: 7) {
+                    Slider(value: progressBinding, in: 0...duration, onEditingChanged: { editing in
+                        if !editing, let draftPosition {
+                            state.seek(to: draftPosition, source: "capsule-v4-slider")
+                            self.draftPosition = nil
+                        }
+                    })
+                    .controlSize(.mini)
+                    .tint(Color.white.opacity(0.84))
+
+                    Text("\(formatTime(draftPosition ?? state.currentTime)) / \(formatTime(duration))")
+                        .font(.system(size: 8, weight: .medium, design: .monospaced))
+                        .foregroundStyle(Color.white.opacity(0.56))
+                        .monospacedDigit()
+                        .fixedSize()
+                }
+
+                HStack(spacing: 10) {
+                    v4TransportButton("backward.end.fill", help: "上一首") { state.previousTrack() }
+                    v4TransportButton(
+                        state.isPlaying ? "pause.fill" : "play.fill",
+                        help: "播放/暂停"
+                    ) { state.togglePlayPause() }
+                    v4TransportButton("forward.end.fill", help: "下一首") { state.nextTrack() }
+
+                    Spacer(minLength: 2)
+
+                    Menu {
+                        Button("打开主窗口") { NSApp.activate(ignoringOtherApps: true) }
+                        Button("显示/隐藏桌面歌词") {
+                            WindowManager.shared.toggleFloatingLyrics(state: state)
+                        }
+                        if state.canOpenLyricsEditor {
+                            Button("编辑歌词") {
+                                state.prepareLyricsEditor()
+                                openWindow(id: "lyrics-editor")
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(Color.white.opacity(0.74))
+                            .frame(width: 24, height: 24)
+                    }
+                    .menuStyle(.borderlessButton)
+                    .fixedSize()
+                    .help("更多操作")
+                }
+            }
+            .frame(width: 236, alignment: .leading)
+
+            v4LyricProjection
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+    }
+
+    @ViewBuilder
+    private var v4LyricProjection: some View {
+        if let current = selection.current {
+            CapsuleV4LyricRowView(
+                line: current,
+                preferences: state.preferences,
+                availableWidth: 292,
+                visibleLayerCount: visibleLayerCount,
+                language: state.liveLyricsLanguage
+            )
+        } else if let status = selection.status {
+            VStack(alignment: .leading, spacing: 5) {
+                Image(systemName: selection.isSynchronized ? "music.note" : "text.quote")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(Color.white.opacity(0.78))
+                Text(status)
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(Color.white.opacity(0.86))
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            Text("—")
+                .font(.system(size: 22, weight: .medium, design: .rounded))
+                .foregroundStyle(Color.white.opacity(0.42))
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func v4Artwork(size: CGFloat) -> some View {
+        ArtworkView(
+            track: state.currentTrack,
+            size: size,
+            showsAlbumLabel: false,
+            cornerRadiusRatio: 0.16
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: size * 0.16, style: .continuous)
+                .stroke(Color.white.opacity(0.16), lineWidth: 0.6)
+        }
+    }
+
+    private func v4TransportButton(
+        _ systemName: String,
+        help: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(Color.white.opacity(0.94))
+                .frame(width: 24, height: 24)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(!state.canInteractWithPlayback)
+        .help(help)
     }
 
     @ViewBuilder
@@ -474,5 +699,53 @@ private struct CapsuleLyricsRowView: View {
         // single-row boundary; clipping prevents the panel from growing.
         .frame(height: Self.rowHeight, alignment: .topLeading)
         .clipped()
+    }
+}
+
+/// V4 keeps the shared LyricLineView renderer, but gives it a dedicated
+/// single-current-line viewport.  That preserves the global language gates,
+/// Ruby modes and translation selection without allowing the expanded island
+/// to grow into a multi-line lyrics panel.
+private struct CapsuleV4LyricRowView: View {
+    let line: LyricLine
+    let preferences: DisplayPreferences
+    let availableWidth: CGFloat
+    let visibleLayerCount: Int
+    let language: String?
+    @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
+
+    private var v4Preferences: DisplayPreferences {
+        var adjusted = preferences
+        // The expanded island has a deliberately short lyric viewport. Keep
+        // the current line visually primary even when the user has selected
+        // compact global assistant sizes; the selected layers and language
+        // gates remain unchanged.
+        adjusted.fontSize = max(adjusted.fontSize, 20)
+        adjusted.assistantFontSize = max(adjusted.assistantFontSize, 12)
+        adjusted.rubyFontSize = max(adjusted.rubyFontSize, 9)
+        adjusted.opacity = 1
+        return adjusted
+    }
+
+    var body: some View {
+        LyricLineView(
+            line: line,
+            isActive: true,
+            distance: 0,
+            isSynchronized: true,
+            preferences: v4Preferences,
+            availableWidth: availableWidth,
+            visibleLayerCount: visibleLayerCount,
+            language: language
+        )
+        .lineLimit(1)
+        .truncationMode(.tail)
+        .frame(maxWidth: .infinity, maxHeight: 96, alignment: .leading)
+        .clipped()
+        .transaction { transaction in
+            if accessibilityReduceMotion {
+                transaction.animation = nil
+            }
+        }
     }
 }

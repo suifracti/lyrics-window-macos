@@ -25,6 +25,20 @@ struct SpotifyLyricsApp: App {
             MainLyricsWindowView()
                 .environmentObject(playbackState)
                 .environmentObject(appSettings)
+#if DEBUG
+                .onAppear {
+                    // A command-line v4 run is a controlled visual harness.
+                    // Showing the existing capsule after the main scene is
+                    // ready keeps the harness deterministic without adding a
+                    // second window, timer or business-state owner.
+                    if ProcessInfo.processInfo.arguments.contains("--debug-capsule-v4") {
+                        WindowManager.shared.setCapsuleDebugPresentation(
+                            .dynamicIslandDarkV4,
+                            state: playbackState
+                        )
+                    }
+                }
+#endif
         }
         .defaultSize(width: 1152, height: 720)
         .windowStyle(.hiddenTitleBar)
