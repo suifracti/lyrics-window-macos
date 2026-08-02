@@ -51,13 +51,23 @@ struct CapsuleLyricsView: View {
 
     private var shellCornerRadius: CGFloat {
         guard isDynamicIslandDarkV4 else { return 18 }
-        return windowController.presentationState == .expanded ? 24 : 20
+        return windowController.presentationState == .expanded ? 26 : 22
+    }
+
+    /// The artwork and title keep the same leading anchor in every v4 state.
+    /// Only the island envelope changes; the content does not re-center inside
+    /// each state-specific width.
+    private var v4ContentHorizontalPadding: CGFloat {
+        14
     }
 
     private var shellShape: CapsuleV4ShellShape {
         CapsuleV4ShellShape(
             cornerRadius: shellCornerRadius,
-            topAttached: isDebugTopAttachedV4
+            topAttached: isDebugTopAttachedV4,
+            topAttachedCornerRadius: isDebugTopAttachedV4
+                ? (windowController.presentationState == .expanded ? 14 : 11)
+                : 0
         )
     }
 
@@ -81,8 +91,8 @@ struct CapsuleLyricsView: View {
         }
         .animation(
             accessibilityReduceMotion
-                ? .easeOut(duration: 0.08)
-                : .easeInOut(duration: 0.22),
+                ? .easeOut(duration: 0.10)
+                : .spring(response: 0.32, dampingFraction: 0.86, blendDuration: 0.04),
             value: windowController.presentationState
         )
         .accessibilityElement(children: .contain)
@@ -120,7 +130,7 @@ struct CapsuleLyricsView: View {
             capsuleBackground
 
             dynamicIslandDarkV4Content
-                .padding(.horizontal, windowController.presentationState == .expanded ? 14 : 10)
+                .padding(.horizontal, v4ContentHorizontalPadding)
                 .padding(.vertical, windowController.presentationState == .expanded ? 12 : 6)
         }
     }
@@ -182,14 +192,30 @@ struct CapsuleLyricsView: View {
 
     @ViewBuilder
     private var dynamicIslandDarkV4Content: some View {
-        switch windowController.presentationState {
-        case .collapsed:
+        let state = windowController.presentationState
+        ZStack(alignment: .topLeading) {
             v4CollapsedContent
-        case .hover:
+                .opacity(state == .collapsed ? 1 : 0)
+                .allowsHitTesting(state == .collapsed)
+                .accessibilityHidden(state != .collapsed)
+
             v4HoverContent
-        case .expanded:
+                .opacity(state == .hover ? 1 : 0)
+                .allowsHitTesting(state == .hover)
+                .accessibilityHidden(state != .hover)
+
             v4ExpandedContent
+                .opacity(state == .expanded ? 1 : 0)
+                .allowsHitTesting(state == .expanded)
+                .accessibilityHidden(state != .expanded)
         }
+        .transition(.opacity)
+        .animation(
+            accessibilityReduceMotion
+                ? .easeOut(duration: 0.08)
+                : .easeOut(duration: 0.14),
+            value: state
+        )
     }
 
     /// Compact keeps one strong identity cue and one unambiguous playback
@@ -730,14 +756,16 @@ struct CapsuleLyricsView: View {
     }
 }
 
-/// A v4 Debug-only shell whose top edge is intentionally flat. The shape is
+/// A v4 Debug-only shell whose top edge has shallow shoulders. The shape is
 /// placed at the top of a fixed transparent envelope, so state changes reveal
-/// more of the island downward rather than moving the host window or exposing
-/// rounded corners at the physical screen edge. Non-debug presentations use
-/// the same type with `topAttached == false`, preserving their existing shell.
+/// more of the island downward rather than moving the host window. The upper
+/// corner radius keeps the island from reading as a flat rectangle while the
+/// bottom uses a deeper continuous curve. Non-debug presentations use the
+/// same type with `topAttached == false`, preserving their existing shell.
 private struct CapsuleV4ShellShape: Shape {
     let cornerRadius: CGFloat
     let topAttached: Bool
+    let topAttachedCornerRadius: CGFloat
 
     func path(in rect: CGRect) -> Path {
         guard topAttached else {
@@ -747,25 +775,41 @@ private struct CapsuleV4ShellShape: Shape {
             ).path(in: rect)
         }
 
-        let radius = min(
+        let bottomRadius = min(
             max(0, cornerRadius),
             min(rect.width / 2, rect.height / 2)
         )
-        let curve = radius * 0.5522848
-        var path = Path()
-        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - radius))
-        path.addCurve(
-            to: CGPoint(x: rect.maxX - radius, y: rect.maxY),
-            control1: CGPoint(x: rect.maxX, y: rect.maxY - radius + curve),
-            control2: CGPoint(x: rect.maxX - radius + curve, y: rect.maxY)
+        let topRadius = min(
+            max(0, topAttachedCornerRadius),
+            min(rect.width / 2, rect.height / 2)
         )
-        path.addLine(to: CGPoint(x: rect.minX + radius, y: rect.maxY))
+        let bottomCurve = bottomRadius * 0.5522848
+        let topCurve = topRadius * 0.5522848
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX + topRadius, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX - topRadius, y: rect.minY))
         path.addCurve(
-            to: CGPoint(x: rect.minX, y: rect.maxY - radius),
-            control1: CGPoint(x: rect.minX + radius - curve, y: rect.maxY),
-            control2: CGPoint(x: rect.minX, y: rect.maxY - radius + curve)
+            to: CGPoint(x: rect.maxX, y: rect.minY + topRadius),
+            control1: CGPoint(x: rect.maxX - topRadius + topCurve, y: rect.minY),
+            control2: CGPoint(x: rect.maxX, y: rect.minY + topRadius - topCurve)
+        )
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - bottomRadius))
+        path.addCurve(
+            to: CGPoint(x: rect.maxX - bottomRadius, y: rect.maxY),
+            control1: CGPoint(x: rect.maxX, y: rect.maxY - bottomRadius + bottomCurve),
+            control2: CGPoint(x: rect.maxX - bottomRadius + bottomCurve, y: rect.maxY)
+        )
+        path.addLine(to: CGPoint(x: rect.minX + bottomRadius, y: rect.maxY))
+        path.addCurve(
+            to: CGPoint(x: rect.minX, y: rect.maxY - bottomRadius),
+            control1: CGPoint(x: rect.minX + bottomRadius - bottomCurve, y: rect.maxY),
+            control2: CGPoint(x: rect.minX, y: rect.maxY - bottomRadius + bottomCurve)
+        )
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + topRadius))
+        path.addCurve(
+            to: CGPoint(x: rect.minX + topRadius, y: rect.minY),
+            control1: CGPoint(x: rect.minX, y: rect.minY + topRadius - topCurve),
+            control2: CGPoint(x: rect.minX + topRadius - topCurve, y: rect.minY)
         )
         path.closeSubpath()
         return path
