@@ -3,9 +3,22 @@ import AppKit
 
 @main
 struct SpotifyLyricsApp: App {
-    @StateObject private var appSettings = AppSettingsStore.shared
-    @StateObject private var playbackState = PlaybackState(settings: AppSettingsStore.shared)
-    @StateObject private var settingsData = SettingsDataController()
+    @StateObject private var appSettings: AppSettingsStore
+    @StateObject private var playbackState: PlaybackState
+    @StateObject private var settingsData: SettingsDataController
+
+    init() {
+#if DEBUG
+        // This must run before any StateObject can construct a repository.
+        // A command-line v4 run without a temporary database exits here,
+        // before the formal Application Support database can be opened.
+        DebugDatabaseSafety.failClosedForCommandLineV4IfNeeded()
+#endif
+        let settings = AppSettingsStore.shared
+        _appSettings = StateObject(wrappedValue: settings)
+        _playbackState = StateObject(wrappedValue: PlaybackState(settings: settings))
+        _settingsData = StateObject(wrappedValue: SettingsDataController())
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -97,10 +110,7 @@ struct SpotifyLyricsApp: App {
             }
             CommandMenu("胶囊呈现（调试）") {
                 Button("验证 v4 外壳与尺寸") {
-                    WindowManager.shared.setCapsuleDebugPresentation(
-                        .dynamicIslandDarkV4,
-                        state: playbackState
-                    )
+                    activateDebugCapsuleV4()
                 }
                 Button("恢复当前正式呈现") {
                     WindowManager.shared.setCapsuleDebugPresentation(
@@ -112,4 +122,23 @@ struct SpotifyLyricsApp: App {
 #endif
         }
     }
+
+#if DEBUG
+    private func activateDebugCapsuleV4() {
+        if let refusal = DebugDatabaseSafety.menuActivationRefusalMessage() {
+            let alert = NSAlert()
+            alert.alertStyle = .warning
+            alert.messageText = "已阻止 v4 调试呈现"
+            alert.informativeText = refusal + "\n\n请使用临时数据库路径重新启动 Debug App。"
+            alert.addButton(withTitle: "知道了")
+            alert.runModal()
+            return
+        }
+
+        WindowManager.shared.setCapsuleDebugPresentation(
+            .dynamicIslandDarkV4,
+            state: playbackState
+        )
+    }
+#endif
 }

@@ -65,6 +65,9 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
         }
 
         database = handle
+#if DEBUG
+        DebugDatabaseSafety.logRepositoryOpen(databaseURL: databaseURL)
+#endif
         sqlite3_busy_timeout(handle, 3_000)
         do {
             try execute("PRAGMA foreign_keys = ON;")

@@ -127,6 +127,7 @@
 		110000862D83400100000001 /* FullScreenLyricsPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000862D83400100000000 /* FullScreenLyricsPresentation.swift */; };
 		110000872D83400100000001 /* FullScreenLyricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000872D83400100000000 /* FullScreenLyricsView.swift */; };
 		110000882D83400100000001 /* LyricsLanguageGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000882D83400100000000 /* LyricsLanguageGate.swift */; };
+		110000892D83400100000001 /* DebugDatabaseSafety.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000892D83400100000000 /* DebugDatabaseSafety.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -252,6 +253,7 @@
 		110000862D83400100000000 /* FullScreenLyricsPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullScreenLyricsPresentation.swift; sourceTree = "<group>"; };
 		110000872D83400100000000 /* FullScreenLyricsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullScreenLyricsView.swift; sourceTree = "<group>"; };
 		110000882D83400100000000 /* LyricsLanguageGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsLanguageGate.swift; sourceTree = "<group>"; };
+		110000892D83400100000000 /* DebugDatabaseSafety.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugDatabaseSafety.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -268,6 +270,7 @@
 			children = (
 				110000412D83400100000000 /* Resources */,
 				110000012D83400100000000 /* Main.swift */,
+				110000892D83400100000000 /* DebugDatabaseSafety.swift */,
 				110000022D83400100000000 /* Models.swift */,
 				110000032D83400100000000 /* MockData.swift */,
 				110000042D83400100000000 /* PlaybackState.swift */,
@@ -584,6 +587,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				110000012D83400100000001 /* Main.swift in Sources */,
+				110000892D83400100000001 /* DebugDatabaseSafety.swift in Sources */,
 				110000022D83400100000001 /* Models.swift in Sources */,
 				110000032D83400100000001 /* MockData.swift in Sources */,
 				110000042D83400100000001 /* PlaybackState.swift in Sources */,
