@@ -77,6 +77,11 @@ struct CapsuleLyricsView: View {
             legacyContent
         case .controlFocusedV2:
             controlFocusedContent
+        case .dynamicIslandDarkV4:
+            // The v4 ID is registered in phase 1 only. Until its renderer is
+            // implemented, keep the existing control-focused renderer as a
+            // compatibility fallback; v4 is not selected as current.
+            controlFocusedContent
         }
     }
 

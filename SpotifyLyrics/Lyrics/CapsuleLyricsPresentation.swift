@@ -1,11 +1,20 @@
 import Foundation
 
+/// Minimal identity contract shared by every capsule renderer.
+///
+/// A presentation is only a rendering choice. It must not own playback,
+/// lyric-session, timing, window, or persistence state.
+public protocol CapsulePresentation: Sendable {
+    var id: String { get }
+}
+
 /// Stable identifiers for the capsule's independently switchable presentation
 /// paths. The legacy path remains available as an internal rollback target;
 /// only the current value is used by the active capsule view.
-public enum CapsuleLyricsPresentationVersion: String, CaseIterable, Sendable {
+public enum CapsuleLyricsPresentationVersion: String, CaseIterable, Sendable, CapsulePresentation {
     case legacyV1 = "capsule.legacy.v1"
     case controlFocusedV2 = "capsule.controlFocused.v2"
+    case dynamicIslandDarkV4 = "capsule.dynamicIslandDark.v4"
 
     public static let current: Self = .controlFocusedV2
     public static let archived: [Self] = [.legacyV1]
