@@ -165,7 +165,8 @@ struct AppleMusicImmersiveV3WindowView: View {
                 availableHeight: geometry.size.height - verticalPadding * 2,
                 coverSize: coverSize,
                 alignment: .leading,
-                compact: false
+                compact: false,
+                progressDensity: .wide
             )
             .frame(width: leftWidth)
             .frame(maxHeight: .infinity)
@@ -197,7 +198,8 @@ struct AppleMusicImmersiveV3WindowView: View {
                 availableHeight: geometry.size.height - verticalPadding * 2,
                 coverSize: max(190, coverSize),
                 alignment: .leading,
-                compact: true
+                compact: true,
+                progressDensity: .medium
             )
             .frame(width: leftWidth)
             .frame(maxHeight: .infinity)
@@ -226,7 +228,8 @@ struct AppleMusicImmersiveV3WindowView: View {
                     availableHeight: coverSize + 190,
                     coverSize: max(180, coverSize),
                     alignment: .center,
-                    compact: true
+                    compact: true,
+                    progressDensity: .small
                 )
                 .frame(maxWidth: .infinity)
 
@@ -247,7 +250,8 @@ struct AppleMusicImmersiveV3WindowView: View {
         availableHeight: CGFloat,
         coverSize: CGFloat,
         alignment: HorizontalAlignment,
-        compact: Bool
+        compact: Bool,
+        progressDensity: AppleMusicImmersiveV3ProgressDensity
     ) -> some View {
         VStack(alignment: alignment, spacing: 0) {
             ArtworkView(
@@ -271,7 +275,8 @@ struct AppleMusicImmersiveV3WindowView: View {
 
             AppleMusicImmersiveV3TransportControls(
                 state: state,
-                alignment: alignment
+                alignment: alignment,
+                progressDensity: progressDensity
             )
             .frame(maxWidth: width, alignment: alignment == .center ? .center : .leading)
         }
@@ -521,23 +526,150 @@ struct AppleMusicImmersiveV3WindowView: View {
     }
 }
 
+private enum AppleMusicImmersiveV3ProgressDensity: Equatable {
+    case wide
+    case medium
+    case small
+    case focus
+
+    var containerHeight: CGFloat {
+        switch self {
+        case .wide: return 12
+        case .medium: return 11
+        case .small: return 9
+        case .focus: return 8
+        }
+    }
+
+    var trackHeight: CGFloat {
+        switch self {
+        case .wide, .medium: return LyricsDesignTokens.Progress.trackHeight
+        case .small, .focus: return LyricsDesignTokens.Progress.compactTrackHeight
+        }
+    }
+
+    var isFocus: Bool { self == .focus }
+}
+
+/// A restrained playback rail shared by every V3 size projection. It owns no
+/// clock and only sends an explicit seek after the user finishes editing.
+private struct AppleMusicImmersiveV3PlaybackProgress: View {
+    @ObservedObject var state: PlaybackState
+    let density: AppleMusicImmersiveV3ProgressDensity
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    @State private var isHovered = false
+    @State private var isEditing = false
+    @State private var draftPosition: Double = 0
+
+    private var duration: Double {
+        max(0.1, state.currentTrack.duration)
+    }
+
+    private var visiblePosition: Double {
+        let rawValue = isEditing ? draftPosition : state.currentTime
+        return min(max(rawValue, 0), duration)
+    }
+
+    private var progressFraction: Double {
+        min(max(visiblePosition / duration, 0), 1)
+    }
+
+    private var isEmphasized: Bool { isHovered || isEditing }
+
+    var body: some View {
+        GeometryReader { geometry in
+            let width = max(1, geometry.size.width)
+            let trackHeight = isEmphasized
+                ? LyricsDesignTokens.Progress.hoverTrackHeight
+                : density.trackHeight
+            let activeWidth = max(trackHeight, width * progressFraction)
+
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(Color.white.opacity(
+                        isEmphasized
+                            ? LyricsDesignTokens.Progress.hoverInactiveOpacity
+                            : LyricsDesignTokens.Progress.inactiveOpacity
+                    ))
+                    .frame(height: trackHeight)
+
+                Capsule()
+                    .fill(Color.white.opacity(
+                        isEmphasized
+                            ? LyricsDesignTokens.Progress.hoverActiveOpacity
+                            : LyricsDesignTokens.Progress.activeOpacity
+                    ))
+                    .frame(width: activeWidth, height: trackHeight)
+
+                if isEmphasized {
+                    Circle()
+                        .fill(.white)
+                        .frame(
+                            width: LyricsDesignTokens.Progress.hoverThumbSize,
+                            height: LyricsDesignTokens.Progress.hoverThumbSize
+                        )
+                        .offset(x: min(max(activeWidth - LyricsDesignTokens.Progress.hoverThumbSize / 2, 0), width - LyricsDesignTokens.Progress.hoverThumbSize / 2))
+                }
+
+                // The native control remains the accessibility and input
+                // surface; the custom rail above keeps the resting visual
+                // quiet without introducing a second seek implementation.
+                Slider(
+                    value: Binding(
+                        get: { visiblePosition },
+                        set: { draftPosition = min(max($0, 0), duration) }
+                    ),
+                    in: 0...duration,
+                    onEditingChanged: handleEditingChanged
+                )
+                .labelsHidden()
+                .tint(.clear)
+                .opacity(0.01)
+                .accessibilityLabel("播放进度")
+            }
+            .contentShape(Rectangle())
+            .onHover { hovering in
+                withAnimation(LyricsDesignTokens.Motion.animation(reduceMotion: reduceMotion, duration: 0.14)) {
+                    isHovered = hovering
+                }
+            }
+        }
+        .frame(
+            width: density.isFocus ? LyricsDesignTokens.Progress.focusWidth : nil,
+            height: density.containerHeight
+        )
+        .frame(maxWidth: density.isFocus ? nil : .infinity)
+        .animation(
+            LyricsDesignTokens.Motion.animation(reduceMotion: reduceMotion, duration: 0.14),
+            value: isEmphasized
+        )
+    }
+
+    private func handleEditingChanged(_ editing: Bool) {
+        if editing {
+            draftPosition = min(max(state.currentTime, 0), duration)
+            isEditing = true
+            return
+        }
+
+        guard isEditing else { return }
+        isEditing = false
+        state.seek(to: min(max(draftPosition, 0), duration), source: "v3-progress-slider")
+    }
+}
+
 private struct AppleMusicImmersiveV3TransportControls: View {
     @ObservedObject var state: PlaybackState
     let alignment: HorizontalAlignment
+    let progressDensity: AppleMusicImmersiveV3ProgressDensity
 
     var body: some View {
         VStack(alignment: alignment, spacing: LyricsDesignTokens.Spacing.sm + 1) {
-            Slider(
-                value: Binding(
-                    get: { state.currentTime },
-                    set: { state.seek(to: $0, source: "v3-progress-slider") }
-                ),
-                in: 0...max(0.1, state.currentTrack.duration)
+            AppleMusicImmersiveV3PlaybackProgress(
+                state: state,
+                density: progressDensity
             )
-            .controlSize(.small)
-            .tint(.white.opacity(0.82))
-            .frame(height: 10)
-            .accessibilityLabel("播放进度")
 
             HStack(spacing: LyricsDesignTokens.Spacing.md + 2) {
                 v3TransportButton("backward.fill", label: "上一首", enabled: state.canControlSpotify) {
@@ -619,6 +751,11 @@ private struct AppleMusicImmersiveV3FocusTransportControls: View {
                 .font(.system(size: 11, weight: .medium, design: .rounded))
                 .foregroundStyle(.white.opacity(0.62))
 
+            AppleMusicImmersiveV3PlaybackProgress(
+                state: state,
+                density: .focus
+            )
+
             Text("\(formatTime(state.currentTime)) / \(formatTime(state.currentTrack.duration))")
                 .font(.system(size: 11, weight: .medium, design: .rounded).monospacedDigit())
                 .foregroundStyle(.white.opacity(0.46))
@@ -640,6 +777,43 @@ private struct AppleMusicImmersiveV3FocusTransportControls: View {
     }
 }
 
+private struct AppleMusicImmersiveV3LyricProgressStatus: View {
+    enum Mode: Equatable {
+        case synchronized
+        case plainText
+    }
+
+    let mode: Mode
+    let currentIndex: Int?
+
+    private var title: String {
+        switch mode {
+        case .synchronized:
+            return currentIndex == nil ? "同步歌词 · 前奏" : "同步歌词"
+        case .plainText:
+            return "纯文本 · 未排轴"
+        }
+    }
+
+    private var icon: String {
+        switch mode {
+        case .synchronized: return "waveform"
+        case .plainText: return "text.alignleft"
+        }
+    }
+
+    var body: some View {
+        Label(title, systemImage: icon)
+            .font(.system(size: 11, weight: .medium, design: .rounded))
+            .foregroundStyle(.white.opacity(
+                mode == .synchronized
+                    ? LyricsDesignTokens.Material.secondaryTextOpacity
+                    : LyricsDesignTokens.Material.mutedTextOpacity
+            ))
+            .accessibilityLabel(title)
+    }
+}
+
 private struct AppleMusicImmersiveV3LyricsViewport: View {
     @ObservedObject var state: PlaybackState
     let availableWidth: CGFloat
@@ -649,15 +823,26 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        if state.liveLyrics.isEmpty {
-            if lyricsFocus {
-                focusEmptyState
-            } else {
-                emptyState
+        VStack(alignment: .leading, spacing: LyricsDesignTokens.Spacing.xs) {
+            if !state.liveLyrics.isEmpty {
+                AppleMusicImmersiveV3LyricProgressStatus(
+                    mode: state.liveLyricsAreSynchronized ? .synchronized : .plainText,
+                    currentIndex: state.liveLyricsAreSynchronized ? state.liveCurrentLineIndex : nil
+                )
+                .padding(.leading, 2)
             }
-        } else {
-            lyricsScroll
+
+            if state.liveLyrics.isEmpty {
+                if lyricsFocus {
+                    focusEmptyState
+                } else {
+                    emptyState
+                }
+            } else {
+                lyricsScroll
+            }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var focusEmptyState: some View {

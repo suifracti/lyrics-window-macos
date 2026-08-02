@@ -64,6 +64,22 @@ enum LyricsDesignTokens {
         static let mutedTextOpacity: Double = 0.46
     }
 
+    /// Progress is intentionally a quieter visual layer than the lyric
+    /// content.  Playback progress describes transport position; lyric
+    /// timing is represented separately by the viewport's timing status.
+    enum Progress {
+        static let trackHeight: CGFloat = 3
+        static let compactTrackHeight: CGFloat = 2
+        static let hoverTrackHeight: CGFloat = 4
+        static let inactiveOpacity: Double = 0.16
+        static let hoverInactiveOpacity: Double = 0.28
+        static let activeOpacity: Double = 0.58
+        static let hoverActiveOpacity: Double = 0.82
+        static let thumbSize: CGFloat = 8
+        static let hoverThumbSize: CGFloat = 10
+        static let focusWidth: CGFloat = 132
+    }
+
     enum Shadow {
         static let opacity: Double = 0.20
         static let radius: CGFloat = 18
