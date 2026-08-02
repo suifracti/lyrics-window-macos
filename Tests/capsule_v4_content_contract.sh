@@ -22,6 +22,11 @@ grep -F 'lineLimit(1)' "$VIEW" >/dev/null
 grep -F 'pause.fill' "$VIEW" >/dev/null
 grep -F 'forward.end.fill' "$VIEW" >/dev/null
 grep -F 'backward.end.fill' "$VIEW" >/dev/null
+grep -F 'truncationMode(.tail)' "$VIEW" >/dev/null
+grep -F 'return "暂无歌词"' "$VIEW" >/dev/null
+grep -F '"等待歌词"' "$VIEW" >/dev/null
+grep -F 'Color.white.opacity(0.72)' "$VIEW" >/dev/null
+grep -F 'font(.system(size: 15, weight: .bold' "$VIEW" >/dev/null
 
 # v4 expanded content is a single current-row projection; it must not render
 # the archived following-row context.

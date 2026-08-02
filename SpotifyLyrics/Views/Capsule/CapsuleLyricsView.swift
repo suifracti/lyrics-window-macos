@@ -178,7 +178,7 @@ struct CapsuleLyricsView: View {
                 .font(.system(size: 12, weight: .semibold, design: .rounded))
                 .foregroundStyle(Color.white.opacity(0.96))
                 .lineLimit(1)
-                .truncationMode(.middle)
+                .truncationMode(.tail)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             Image(systemName: state.hasLiveTrack
@@ -195,7 +195,7 @@ struct CapsuleLyricsView: View {
     /// identity block. The order is deliberately artwork → metadata →
     /// transport, never transport → artwork.
     private var v4HoverContent: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 10) {
             v4Artwork(size: 28)
 
             VStack(alignment: .leading, spacing: 0) {
@@ -203,17 +203,17 @@ struct CapsuleLyricsView: View {
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
                     .foregroundStyle(Color.white.opacity(0.96))
                     .lineLimit(1)
-                    .truncationMode(.middle)
+                    .truncationMode(.tail)
 
                 Text(state.hasLiveTrack ? state.currentTrack.artist : "Desktop")
                     .font(.system(size: 9, weight: .medium, design: .rounded))
-                    .foregroundStyle(Color.white.opacity(0.62))
+                    .foregroundStyle(Color.white.opacity(0.72))
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            HStack(spacing: 2) {
+            HStack(spacing: 4) {
                 v4TransportButton("backward.end.fill", help: "上一首") { state.previousTrack() }
                 v4TransportButton(
                     state.isPlaying ? "pause.fill" : "play.fill",
@@ -230,52 +230,43 @@ struct CapsuleLyricsView: View {
     /// row or text-heavy toolbar is rendered here.
     private var v4ExpandedContent: some View {
         HStack(alignment: .center, spacing: 16) {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 9) {
-                    v4Artwork(size: 60)
+                    v4Artwork(size: 62)
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(state.hasLiveTrack ? state.currentTrack.title : "等待 Spotify 播放")
-                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
                             .foregroundStyle(Color.white.opacity(0.98))
                             .lineLimit(1)
-                            .truncationMode(.middle)
+                            .truncationMode(.tail)
 
                         Text(state.hasLiveTrack ? state.currentTrack.artist : "Spotify Desktop")
-                            .font(.system(size: 10, weight: .medium, design: .rounded))
-                            .foregroundStyle(Color.white.opacity(0.68))
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                            .foregroundStyle(Color.white.opacity(0.72))
                             .lineLimit(1)
                             .truncationMode(.tail)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
-                HStack(spacing: 7) {
-                    Slider(value: progressBinding, in: 0...duration, onEditingChanged: { editing in
-                        if !editing, let draftPosition {
-                            state.seek(to: draftPosition, source: "capsule-v4-slider")
-                            self.draftPosition = nil
-                        }
-                    })
-                    .controlSize(.mini)
-                    .tint(Color.white.opacity(0.84))
+                HStack(spacing: 8) {
+                    v4ProgressSlider
 
                     Text("\(formatTime(draftPosition ?? state.currentTime)) / \(formatTime(duration))")
-                        .font(.system(size: 8, weight: .medium, design: .monospaced))
-                        .foregroundStyle(Color.white.opacity(0.56))
+                        .font(.system(size: 9, weight: .medium, design: .monospaced))
+                        .foregroundStyle(Color.white.opacity(0.68))
                         .monospacedDigit()
                         .fixedSize()
                 }
 
-                HStack(spacing: 10) {
+                HStack(spacing: 8) {
                     v4TransportButton("backward.end.fill", help: "上一首") { state.previousTrack() }
                     v4TransportButton(
                         state.isPlaying ? "pause.fill" : "play.fill",
                         help: "播放/暂停"
                     ) { state.togglePlayPause() }
                     v4TransportButton("forward.end.fill", help: "下一首") { state.nextTrack() }
-
-                    Spacer(minLength: 2)
 
                     Menu {
                         Button("打开主窗口") { NSApp.activate(ignoringOtherApps: true) }
@@ -307,32 +298,81 @@ struct CapsuleLyricsView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
 
+    private var v4ProgressSlider: some View {
+        GeometryReader { proxy in
+            let position = min(max(draftPosition ?? state.currentTime, 0), duration)
+            let fraction = duration > 0 ? position / duration : 0
+            let thumbSize: CGFloat = 7
+            let travel = max(0, proxy.size.width - thumbSize)
+
+            ZStack(alignment: .leading) {
+                Capsule(style: .continuous)
+                    .fill(Color.white.opacity(0.20))
+                    .frame(height: 3)
+
+                Capsule(style: .continuous)
+                    .fill(Color.white.opacity(0.82))
+                    .frame(width: max(3, travel * fraction + thumbSize / 2), height: 3)
+
+                Circle()
+                    .fill(Color.white.opacity(0.96))
+                    .frame(width: thumbSize, height: thumbSize)
+                    .offset(x: travel * fraction)
+
+                // Keep the native slider's accessibility and drag semantics,
+                // while drawing the track ourselves so the progress remains
+                // legible against the near-black v4 island.
+                Slider(value: progressBinding, in: 0...duration, onEditingChanged: { editing in
+                    if !editing, let draftPosition {
+                        state.seek(to: draftPosition, source: "capsule-v4-slider")
+                        self.draftPosition = nil
+                    }
+                })
+                .controlSize(.mini)
+                .opacity(0.02)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        }
+        .frame(height: 18)
+        .accessibilityLabel("播放进度")
+    }
+
     @ViewBuilder
     private var v4LyricProjection: some View {
         if let current = selection.current {
             CapsuleV4LyricRowView(
                 line: current,
                 preferences: state.preferences,
-                availableWidth: 292,
+                availableWidth: 318,
                 visibleLayerCount: visibleLayerCount,
                 language: state.liveLyricsLanguage
             )
+            .frame(maxWidth: .infinity, minHeight: 72, maxHeight: 112, alignment: .center)
         } else if let status = selection.status {
-            VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 8) {
                 Image(systemName: selection.isSynchronized ? "music.note" : "text.quote")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color.white.opacity(0.62))
+                Text(v4StatusText(status))
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
                     .foregroundStyle(Color.white.opacity(0.78))
-                Text(status)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundStyle(Color.white.opacity(0.86))
                     .lineLimit(1)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: 72, maxHeight: 112, alignment: .center)
         } else {
             Text("—")
                 .font(.system(size: 22, weight: .medium, design: .rounded))
                 .foregroundStyle(Color.white.opacity(0.42))
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, minHeight: 72, maxHeight: 112, alignment: .center)
+        }
+    }
+
+    private func v4StatusText(_ status: String) -> String {
+        switch status {
+        case "请回主窗口选择歌词", "未找到歌词", "未选择歌词", "等待歌词":
+            return "暂无歌词"
+        default:
+            return status
         }
     }
 
@@ -720,11 +760,31 @@ private struct CapsuleV4LyricRowView: View {
         // the current line visually primary even when the user has selected
         // compact global assistant sizes; the selected layers and language
         // gates remain unchanged.
-        adjusted.fontSize = max(adjusted.fontSize, 20)
-        adjusted.assistantFontSize = max(adjusted.assistantFontSize, 12)
+        let compactLength = max(
+            1,
+            line.originalText.filter { !$0.isWhitespace && !$0.isNewline }.count
+        )
+        // Keep short lines in the 22–28 pt range, then reduce only as the
+        // current line approaches the fixed one-row envelope. This prevents
+        // a long lyric from being clipped while preserving a strong focal
+        // size for ordinary lines.
+        let lengthFit = max(18, min(28, 28 - CGFloat(max(0, compactLength - 12)) * 1.2))
+        adjusted.fontSize = min(max(adjusted.fontSize, 18), lengthFit)
+        adjusted.assistantFontSize = min(max(adjusted.assistantFontSize, 12), adjusted.fontSize * 0.62)
         adjusted.rubyFontSize = max(adjusted.rubyFontSize, 9)
         adjusted.opacity = 1
         return adjusted
+    }
+
+    private var v4ContentScale: CGFloat {
+        let compactLength = max(
+            1,
+            line.originalText.filter { !$0.isWhitespace && !$0.isNewline }.count
+        )
+        // Ruby layouts are intentionally kept as one visual row in the
+        // expanded island. Scale only unusually long current lines, keeping
+        // ordinary lyric text at full size instead of shrinking every row.
+        return max(0.72, min(1, 13 / CGFloat(compactLength)))
     }
 
     var body: some View {
@@ -740,7 +800,8 @@ private struct CapsuleV4LyricRowView: View {
         )
         .lineLimit(1)
         .truncationMode(.tail)
-        .frame(maxWidth: .infinity, maxHeight: 96, alignment: .leading)
+        .scaleEffect(v4ContentScale, anchor: .leading)
+        .frame(maxWidth: .infinity, maxHeight: 112, alignment: .center)
         .clipped()
         .transaction { transaction in
             if accessibilityReduceMotion {
