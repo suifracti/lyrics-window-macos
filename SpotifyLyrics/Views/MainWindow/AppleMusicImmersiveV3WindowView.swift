@@ -1,8 +1,11 @@
 import SwiftUI
 
 enum MainWindowResponsiveThresholds {
-    static let minimumWidth: CGFloat = 800
-    static let minimumHeight: CGFloat = 600
+    static let technicalMinimumSize = LyricsDesignTokens.technicalMinimumMainWindowSize
+    static let comfortableMinimumSize = LyricsDesignTokens.comfortableMainWindowSize
+    // Compatibility aliases for callers and older contracts.
+    static let minimumWidth: CGFloat = technicalMinimumSize.width
+    static let minimumHeight: CGFloat = technicalMinimumSize.height
     static let wideBreakpoint: CGFloat = 1_080
     static let compactLyricsFocusWidth: CGFloat = 900
     static let compactLyricsFocusHeight: CGFloat = 640
@@ -16,6 +19,7 @@ struct AppleMusicImmersiveV3WindowView: View {
     @Binding var layoutStyleRawValue: String
     @Environment(\.openWindow) private var openWindow
     @EnvironmentObject private var settings: AppSettingsStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var isSearchPresented = false
     // The canvas starts clean. Controls reveal only when the pointer reaches
@@ -40,7 +44,10 @@ struct AppleMusicImmersiveV3WindowView: View {
                     .padding(.trailing, 26)
                     .opacity(toolsVisible ? 1 : 0)
                     .allowsHitTesting(toolsVisible)
-                    .animation(.easeInOut(duration: 0.24), value: toolsVisible)
+                    .animation(
+                        LyricsDesignTokens.Motion.animation(reduceMotion: reduceMotion),
+                        value: toolsVisible
+                    )
             }
             .contentShape(Rectangle())
             .onContinuousHover(coordinateSpace: .local) { phase in
@@ -55,14 +62,14 @@ struct AppleMusicImmersiveV3WindowView: View {
                 guard interactionToken > 0 else { return }
                 try? await Task.sleep(nanoseconds: 3_000_000_000)
                 guard !Task.isCancelled else { return }
-                withAnimation(.easeInOut(duration: 0.24)) {
+                withAnimation(LyricsDesignTokens.Motion.animation(reduceMotion: reduceMotion)) {
                     toolsVisible = false
                 }
             }
         }
         .frame(
-            minWidth: MainWindowResponsiveThresholds.minimumWidth,
-            minHeight: MainWindowResponsiveThresholds.minimumHeight
+            minWidth: MainWindowResponsiveThresholds.technicalMinimumSize.width,
+            minHeight: MainWindowResponsiveThresholds.technicalMinimumSize.height
         )
         .preferredColorScheme(.dark)
         .sheet(isPresented: $isAlignmentDetailsPresented) {
@@ -74,21 +81,39 @@ struct AppleMusicImmersiveV3WindowView: View {
 
     @ViewBuilder
     private func layout(for geometry: GeometryProxy) -> some View {
-        if compactLyricsFocus(in: geometry) {
-            compactLyricsFocusLayout(in: geometry)
-        } else if geometry.size.width >= MainWindowResponsiveThresholds.wideBreakpoint {
+        switch MainWindowResponsiveMode.resolve(
+            width: geometry.size.width,
+            height: geometry.size.height,
+            automaticLyricsFocus: settings.automaticCompactLyricsFocus,
+            wideBreakpoint: MainWindowResponsiveThresholds.wideBreakpoint,
+            comfortableSize: MainWindowResponsiveThresholds.comfortableMinimumSize,
+            compactFocusWidth: MainWindowResponsiveThresholds.compactLyricsFocusWidth,
+            compactFocusHeight: MainWindowResponsiveThresholds.compactLyricsFocusHeight
+        ) {
+        case .wide:
             wideLayout(in: geometry)
-        } else if geometry.size.width >= MainWindowResponsiveThresholds.minimumWidth {
-            compactSplitLayout(in: geometry)
-        } else {
-            stackedLayout(in: geometry)
+        case .medium:
+            mediumLayout(in: geometry)
+        case .small:
+            smallLayout(in: geometry)
+        case .lyricsFocus:
+            compactLyricsFocusLayout(in: geometry)
         }
     }
 
+    // Compatibility helpers retained for the Phase 2.2 contract and for
+    // diagnostics that name the automatic projection explicitly. The actual
+    // layout selection is centralized in MainWindowResponsiveMode.resolve.
     private func isAutomaticCompactLyricsFocus(in geometry: GeometryProxy) -> Bool {
-        guard settings.automaticCompactLyricsFocus else { return false }
-        return geometry.size.width <= MainWindowResponsiveThresholds.compactLyricsFocusWidth
-            || geometry.size.height <= MainWindowResponsiveThresholds.compactLyricsFocusHeight
+        MainWindowResponsiveMode.resolve(
+            width: geometry.size.width,
+            height: geometry.size.height,
+            automaticLyricsFocus: settings.automaticCompactLyricsFocus,
+            wideBreakpoint: MainWindowResponsiveThresholds.wideBreakpoint,
+            comfortableSize: MainWindowResponsiveThresholds.comfortableMinimumSize,
+            compactFocusWidth: MainWindowResponsiveThresholds.compactLyricsFocusWidth,
+            compactFocusHeight: MainWindowResponsiveThresholds.compactLyricsFocusHeight
+        ) == .lyricsFocus
     }
 
     private func compactLyricsFocus(in geometry: GeometryProxy) -> Bool {
@@ -101,18 +126,18 @@ struct AppleMusicImmersiveV3WindowView: View {
                 width: max(1, geometry.size.width - 48),
                 compact: true
             )
-            .padding(.horizontal, 24)
-            .padding(.vertical, 28)
+            .padding(.horizontal, LyricsDesignTokens.Spacing.windowSmall)
+            .padding(.vertical, LyricsDesignTokens.Spacing.xl)
 
             VStack(spacing: 0) {
-                HStack(spacing: 8) {
+                HStack(spacing: LyricsDesignTokens.Spacing.xs) {
                     providerStatusMenu
                     Spacer(minLength: 12)
                     searchButton
                     preferencesButton
                 }
-                .padding(.top, 18)
-                .padding(.horizontal, 24)
+                .padding(.top, LyricsDesignTokens.Spacing.md + 2)
+                .padding(.horizontal, LyricsDesignTokens.Spacing.windowSmall)
 
                 Spacer()
 
@@ -120,8 +145,8 @@ struct AppleMusicImmersiveV3WindowView: View {
                     state: state,
                     alignment: .center
                 )
-                .padding(.horizontal, 24)
-                .padding(.bottom, 24)
+                .padding(.horizontal, LyricsDesignTokens.Spacing.windowSmall)
+                .padding(.bottom, LyricsDesignTokens.Spacing.lg)
                 .background {
                     LinearGradient(
                         colors: [Color.clear, Color.black.opacity(0.58)],
@@ -135,8 +160,8 @@ struct AppleMusicImmersiveV3WindowView: View {
     }
 
     private func wideLayout(in geometry: GeometryProxy) -> some View {
-        let horizontalPadding: CGFloat = 64
-        let verticalPadding: CGFloat = 48
+        let horizontalPadding = LyricsDesignTokens.Spacing.windowWide
+        let verticalPadding = LyricsDesignTokens.Spacing.xl + LyricsDesignTokens.Spacing.sm
         let contentWidth = max(1, geometry.size.width - horizontalPadding * 2)
         let leftWidth = contentWidth * 0.45
         let rightWidth = contentWidth * 0.55
@@ -166,9 +191,9 @@ struct AppleMusicImmersiveV3WindowView: View {
         .padding(.vertical, verticalPadding)
     }
 
-    private func compactSplitLayout(in geometry: GeometryProxy) -> some View {
-        let horizontalPadding: CGFloat = 32
-        let verticalPadding: CGFloat = 28
+    private func mediumLayout(in geometry: GeometryProxy) -> some View {
+        let horizontalPadding = LyricsDesignTokens.Spacing.windowMedium
+        let verticalPadding = LyricsDesignTokens.Spacing.xl + LyricsDesignTokens.Spacing.xxs
         let contentWidth = max(1, geometry.size.width - horizontalPadding * 2)
         let leftWidth = contentWidth * 0.4
         let rightWidth = contentWidth * 0.6
@@ -198,12 +223,12 @@ struct AppleMusicImmersiveV3WindowView: View {
         .padding(.vertical, verticalPadding)
     }
 
-    private func stackedLayout(in geometry: GeometryProxy) -> some View {
-        let horizontalPadding: CGFloat = 24
+    private func smallLayout(in geometry: GeometryProxy) -> some View {
+        let horizontalPadding = LyricsDesignTokens.Spacing.windowSmall
         let coverSize = min(geometry.size.width * 0.62, geometry.size.height * 0.34)
 
         return ScrollView(.vertical) {
-            VStack(alignment: .center, spacing: 24) {
+            VStack(alignment: .center, spacing: LyricsDesignTokens.Spacing.lg) {
                 trackColumn(
                     width: geometry.size.width - horizontalPadding * 2,
                     availableHeight: coverSize + 190,
@@ -220,7 +245,7 @@ struct AppleMusicImmersiveV3WindowView: View {
                 .frame(minHeight: max(420, geometry.size.height * 0.62))
             }
             .padding(.horizontal, horizontalPadding)
-            .padding(.vertical, 28)
+            .padding(.vertical, LyricsDesignTokens.Spacing.xl + LyricsDesignTokens.Spacing.xxs)
         }
         .scrollIndicators(.hidden)
     }
@@ -241,7 +266,7 @@ struct AppleMusicImmersiveV3WindowView: View {
             )
             .frame(maxWidth: width, alignment: alignment == .center ? .center : .leading)
 
-            Spacer().frame(height: compact ? 22 : 32)
+            Spacer().frame(height: compact ? LyricsDesignTokens.Spacing.lg - 2 : LyricsDesignTokens.Spacing.xl)
 
             TrackMetadataView(
                 track: state.currentTrack,
@@ -250,7 +275,7 @@ struct AppleMusicImmersiveV3WindowView: View {
             )
             .frame(maxWidth: width, alignment: alignment == .center ? .center : .leading)
 
-            Spacer().frame(height: compact ? 18 : 24)
+            Spacer().frame(height: compact ? LyricsDesignTokens.Spacing.md + 2 : LyricsDesignTokens.Spacing.lg)
 
             AppleMusicImmersiveV3TransportControls(
                 state: state,
@@ -279,7 +304,7 @@ struct AppleMusicImmersiveV3WindowView: View {
     }
 
     private var toolBar: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: LyricsDesignTokens.Spacing.xs) {
             windowModeMenu
             providerStatusMenu
             searchButton
@@ -287,7 +312,7 @@ struct AppleMusicImmersiveV3WindowView: View {
             preferencesButton
         }
         .font(.system(size: 14, weight: .medium))
-        .foregroundStyle(.white.opacity(0.82))
+        .foregroundStyle(.white.opacity(LyricsDesignTokens.Material.primaryTextOpacity))
     }
 
     private var windowModeMenu: some View {
@@ -489,7 +514,7 @@ struct AppleMusicImmersiveV3WindowView: View {
 
     private func revealTools() {
         if !toolsVisible {
-            withAnimation(.easeInOut(duration: 0.24)) {
+            withAnimation(LyricsDesignTokens.Motion.animation(reduceMotion: reduceMotion)) {
                 toolsVisible = true
             }
         }
@@ -502,7 +527,7 @@ private struct AppleMusicImmersiveV3TransportControls: View {
     let alignment: HorizontalAlignment
 
     var body: some View {
-        VStack(alignment: alignment, spacing: 13) {
+        VStack(alignment: alignment, spacing: LyricsDesignTokens.Spacing.sm + 1) {
             Slider(
                 value: Binding(
                     get: { state.currentTime },
@@ -515,7 +540,7 @@ private struct AppleMusicImmersiveV3TransportControls: View {
             .frame(height: 10)
             .accessibilityLabel("播放进度")
 
-            HStack(spacing: 18) {
+            HStack(spacing: LyricsDesignTokens.Spacing.md + 2) {
                 v3TransportButton("backward.fill", label: "上一首", enabled: state.canControlSpotify) {
                     state.previousTrack()
                 }
@@ -539,7 +564,7 @@ private struct AppleMusicImmersiveV3TransportControls: View {
 
                 Text("\(formatTime(state.currentTime)) / \(formatTime(state.currentTrack.duration))")
                     .font(.system(size: 12, weight: .medium, design: .rounded).monospacedDigit())
-                    .foregroundStyle(.white.opacity(0.62))
+                    .foregroundStyle(.white.opacity(LyricsDesignTokens.Material.secondaryTextOpacity))
                     .padding(.leading, 4)
             }
         }
@@ -575,6 +600,7 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
     @ObservedObject var state: PlaybackState
     let availableWidth: CGFloat
     let compact: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         if state.liveLyrics.isEmpty {
@@ -733,7 +759,7 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
         let id = state.liveLyrics[currentIndex].id
         let action = { proxy.scrollTo(id, anchor: UnitPoint(x: 0.5, y: 0.47)) }
         if animated {
-            withAnimation(.easeInOut(duration: 0.34), action)
+            withAnimation(LyricsDesignTokens.Motion.lyricAnimation(reduceMotion: reduceMotion), action)
         } else {
             action()
         }
@@ -749,6 +775,7 @@ private struct AppleMusicImmersiveV3LyricRow: View {
     let compact: Bool
     let preferences: DisplayPreferences
     let language: String?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var layerCount: Int {
         1 + (preferences.showRomaji ? 1 : 0) + (preferences.showTranslation && line.translationText != nil ? 1 : 0)
@@ -962,7 +989,13 @@ private struct AppleMusicImmersiveV3LyricRow: View {
         }
         .opacity(rowOpacity)
         .blur(radius: rowBlur)
-        .animation(.easeInOut(duration: 0.3), value: isActive)
-        .animation(.easeInOut(duration: 0.3), value: isSynchronized)
+        .animation(
+            LyricsDesignTokens.Motion.lyricAnimation(reduceMotion: reduceMotion),
+            value: isActive
+        )
+        .animation(
+            LyricsDesignTokens.Motion.lyricAnimation(reduceMotion: reduceMotion),
+            value: isSynchronized
+        )
     }
 }

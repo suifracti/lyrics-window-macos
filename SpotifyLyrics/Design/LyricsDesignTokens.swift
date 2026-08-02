@@ -5,7 +5,14 @@ enum LyricsDesignTokens {
     // V2 uses the smaller responsive blur values below to avoid fuzzy text.
     // blurRadius: 0.6 / blurRadius: 1.8
     static let defaultMainWindowSize = CGSize(width: 1040, height: 680)
-    static let minimumMainWindowSize = CGSize(width: 760, height: 520)
+    /// The smallest window that can still be opened by the app. It is not the
+    /// same thing as the comfortable reference size used by responsive layout.
+    static let technicalMinimumMainWindowSize = CGSize(width: 760, height: 520)
+    /// The reference floor at which the medium layout is expected to remain
+    /// comfortably readable without entering the small-window degradation.
+    static let comfortableMainWindowSize = CGSize(width: 800, height: 600)
+    /// Compatibility name retained for the older window-size contract.
+    static let minimumMainWindowSize = technicalMinimumMainWindowSize
 
     static let contentCornerRadius: CGFloat = 20
     static let headerSpacing: CGFloat = 16
@@ -18,6 +25,67 @@ enum LyricsDesignTokens {
     static let immersiveArtworkSize: CGFloat = 320
     static let immersiveColumnSpacing: CGFloat = 26
     static let immersiveWindowPadding: CGFloat = 28
+
+    // MARK: Shared Phase 2.3 tokens
+
+    enum Spacing {
+        static let xxs: CGFloat = 4
+        static let xs: CGFloat = 8
+        static let sm: CGFloat = 12
+        static let md: CGFloat = 16
+        static let lg: CGFloat = 24
+        static let xl: CGFloat = 32
+        static let windowWide: CGFloat = 64
+        static let windowMedium: CGFloat = 32
+        static let windowSmall: CGFloat = 24
+    }
+
+    enum CornerRadius {
+        static let control: CGFloat = 10
+        static let card: CGFloat = 16
+        static let canvas: CGFloat = 20
+        static let artwork: CGFloat = 14
+    }
+
+    enum Typography {
+        static let windowTitle = Font.system(size: 30, weight: .semibold, design: .rounded)
+        static let sectionTitle = Font.system(size: 20, weight: .semibold, design: .rounded)
+        static let body = Font.system(size: 15, weight: .regular, design: .rounded)
+        static let auxiliary = Font.system(size: 13, weight: .medium, design: .rounded)
+        static let metadata = Font.system(size: 12, weight: .medium, design: .rounded)
+    }
+
+    enum Material {
+        static let panelOpacity: Double = 0.18
+        static let controlOpacity: Double = 0.08
+        static let borderOpacity: Double = 0.12
+        static let primaryTextOpacity: Double = 0.92
+        static let secondaryTextOpacity: Double = 0.64
+        static let mutedTextOpacity: Double = 0.46
+    }
+
+    enum Shadow {
+        static let opacity: Double = 0.20
+        static let radius: CGFloat = 18
+        static let y: CGFloat = 8
+    }
+
+    enum Motion {
+        static let quickDuration: Double = 0.18
+        static let interfaceDuration: Double = 0.24
+        static let lyricDuration: Double = 0.34
+        static let reduceMotionDuration: Double = 0.12
+
+        static func animation(reduceMotion: Bool, duration: Double = interfaceDuration) -> Animation {
+            reduceMotion
+                ? .easeOut(duration: reduceMotionDuration)
+                : .easeInOut(duration: duration)
+        }
+
+        static func lyricAnimation(reduceMotion: Bool) -> Animation {
+            animation(reduceMotion: reduceMotion, duration: lyricDuration)
+        }
+    }
 
     static let primaryText = Color(red: 0.96, green: 0.94, blue: 0.90)
     static let secondaryText = Color(red: 0.77, green: 0.78, blue: 0.80)

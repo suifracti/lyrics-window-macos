@@ -29,3 +29,39 @@ enum MainWindowLayoutStyle: String, CaseIterable, Identifiable {
         }
     }
 }
+
+/// Pure size projection for the Apple Music V3 canvas. This describes the
+/// temporary presentation chosen by the available window geometry; it does
+/// not replace the user's persisted layout family.
+enum MainWindowResponsiveMode: String, Equatable, Sendable {
+    case wide
+    case medium
+    case small
+    case lyricsFocus
+
+    static func resolve(
+        width: CGFloat,
+        height: CGFloat,
+        automaticLyricsFocus: Bool,
+        wideBreakpoint: CGFloat = 1_080,
+        comfortableSize: CGSize = LyricsDesignTokens.comfortableMainWindowSize,
+        compactFocusWidth: CGFloat = 900,
+        compactFocusHeight: CGFloat = 640
+    ) -> MainWindowResponsiveMode {
+        if automaticLyricsFocus,
+           width <= compactFocusWidth || height <= compactFocusHeight {
+            return .lyricsFocus
+        }
+
+        if width >= wideBreakpoint {
+            return .wide
+        }
+
+        if width >= comfortableSize.width,
+           height >= comfortableSize.height {
+            return .medium
+        }
+
+        return .small
+    }
+}

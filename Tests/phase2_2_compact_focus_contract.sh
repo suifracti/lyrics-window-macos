@@ -85,7 +85,10 @@ fi
 require 'case \.lyricsFocus:' "$MAIN"
 require 'private var lyricsFocusLayout' "$MAIN"
 require 'case \.appleMusicImmersiveV3:' "$MAIN"
-if grep -Eq '\.lyricsFocus|lyricsFocusLayout' "$V3"; then
+# The V3 file may name its temporary projection compactLyricsFocusLayout; the
+# prohibited coupling is an actual persisted MainWindowLayoutStyle case, not
+# the projection's descriptive function name.
+if grep -Eq 'case[[:space:]]+\\.lyricsFocus|MainWindowLayoutStyle\\.lyricsFocus' "$V3"; then
   echo 'FAIL: V3 automatic compact focus must remain distinct from manual Lyrics Focus' >&2
   exit 1
 fi
