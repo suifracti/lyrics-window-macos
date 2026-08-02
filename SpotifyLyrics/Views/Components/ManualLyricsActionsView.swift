@@ -7,6 +7,7 @@ struct ManualLyricsActionsView: View {
     @ObservedObject var state: PlaybackState
     @Environment(\.openWindow) private var openWindow
     var compact = false
+    var compactLabel = "创建或导入歌词"
 
     var body: some View {
         Group {
@@ -14,7 +15,7 @@ struct ManualLyricsActionsView: View {
                 Menu {
                     actions
                 } label: {
-                    Label("创建或导入歌词", systemImage: "square.and.pencil")
+                    Label(compactLabel, systemImage: "square.and.pencil")
                 }
             } else {
                 VStack(spacing: 8) {

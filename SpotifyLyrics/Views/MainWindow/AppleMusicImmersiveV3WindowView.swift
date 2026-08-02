@@ -121,18 +121,19 @@ struct AppleMusicImmersiveV3WindowView: View {
     }
 
     private func compactLyricsFocusLayout(in geometry: GeometryProxy) -> some View {
-        ZStack(alignment: .top) {
+        ZStack(alignment: .topTrailing) {
             lyricsColumn(
                 width: max(1, geometry.size.width - 48),
-                compact: true
+                compact: true,
+                lyricsFocus: true,
+                onSearch: { isSearchPresented = true }
             )
             .padding(.horizontal, LyricsDesignTokens.Spacing.windowSmall)
-            .padding(.vertical, LyricsDesignTokens.Spacing.xl)
+            .padding(.top, LyricsDesignTokens.Spacing.xl + 18)
+            .padding(.bottom, LyricsDesignTokens.Spacing.xl + 22)
 
             VStack(spacing: 0) {
                 HStack(spacing: LyricsDesignTokens.Spacing.xs) {
-                    providerStatusMenu
-                    Spacer(minLength: 12)
                     searchButton
                     preferencesButton
                 }
@@ -141,20 +142,11 @@ struct AppleMusicImmersiveV3WindowView: View {
 
                 Spacer()
 
-                AppleMusicImmersiveV3TransportControls(
+                AppleMusicImmersiveV3FocusTransportControls(
                     state: state,
-                    alignment: .center
+                    reduceMotion: reduceMotion
                 )
-                .padding(.horizontal, LyricsDesignTokens.Spacing.windowSmall)
-                .padding(.bottom, LyricsDesignTokens.Spacing.lg)
-                .background {
-                    LinearGradient(
-                        colors: [Color.clear, Color.black.opacity(0.58)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .allowsHitTesting(false)
-                }
+                .padding(.bottom, LyricsDesignTokens.Spacing.md)
             }
         }
     }
@@ -294,11 +286,18 @@ struct AppleMusicImmersiveV3WindowView: View {
         )
     }
 
-    private func lyricsColumn(width: CGFloat, compact: Bool) -> some View {
+    private func lyricsColumn(
+        width: CGFloat,
+        compact: Bool,
+        lyricsFocus: Bool = false,
+        onSearch: (() -> Void)? = nil
+    ) -> some View {
         AppleMusicImmersiveV3LyricsViewport(
             state: state,
             availableWidth: max(240, width - (compact ? 22 : 34)),
-            compact: compact
+            compact: compact,
+            lyricsFocus: lyricsFocus,
+            onSearch: onSearch
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -596,18 +595,101 @@ private struct AppleMusicImmersiveV3TransportControls: View {
     }
 }
 
+private struct AppleMusicImmersiveV3FocusTransportControls: View {
+    @ObservedObject var state: PlaybackState
+    let reduceMotion: Bool
+
+    var body: some View {
+        HStack(spacing: LyricsDesignTokens.Spacing.sm) {
+            Button {
+                state.togglePlayPause()
+            } label: {
+                Image(systemName: state.isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.92))
+                    .frame(width: 28, height: 28)
+                    .background(Circle().fill(Color.white.opacity(0.10)))
+            }
+            .buttonStyle(.plain)
+            .disabled(!state.canInteractWithPlayback)
+            .opacity(state.canInteractWithPlayback ? 1 : 0.42)
+            .accessibilityLabel(state.isPlaying ? "暂停" : "播放")
+
+            Text(state.isPlaying ? "正在播放" : "已暂停")
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundStyle(.white.opacity(0.62))
+
+            Text("\(formatTime(state.currentTime)) / \(formatTime(state.currentTrack.duration))")
+                .font(.system(size: 11, weight: .medium, design: .rounded).monospacedDigit())
+                .foregroundStyle(.white.opacity(0.46))
+        }
+        .padding(.horizontal, LyricsDesignTokens.Spacing.sm)
+        .padding(.vertical, LyricsDesignTokens.Spacing.xs)
+        .background(Color.black.opacity(0.16), in: Capsule())
+        .animation(
+            LyricsDesignTokens.Motion.animation(reduceMotion: reduceMotion, duration: 0.16),
+            value: state.isPlaying
+        )
+        .accessibilityElement(children: .contain)
+    }
+
+    private func formatTime(_ seconds: TimeInterval) -> String {
+        let minutes = Int(seconds) / 60
+        let remainder = Int(seconds) % 60
+        return String(format: "%02d:%02d", minutes, remainder)
+    }
+}
+
 private struct AppleMusicImmersiveV3LyricsViewport: View {
     @ObservedObject var state: PlaybackState
     let availableWidth: CGFloat
     let compact: Bool
+    let lyricsFocus: Bool
+    let onSearch: (() -> Void)?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         if state.liveLyrics.isEmpty {
-            emptyState
+            if lyricsFocus {
+                focusEmptyState
+            } else {
+                emptyState
+            }
         } else {
             lyricsScroll
         }
+    }
+
+    private var focusEmptyState: some View {
+        VStack(spacing: LyricsDesignTokens.Spacing.md) {
+            Spacer(minLength: 0)
+
+            Image(systemName: "text.quote")
+                .font(.system(size: 24, weight: .medium))
+                .foregroundStyle(.white.opacity(0.48))
+
+            Text(emptyTitle)
+                .font(.system(size: 24, weight: .semibold, design: .rounded))
+                .foregroundStyle(.white.opacity(0.92))
+
+            if let onSearch {
+                HStack(spacing: LyricsDesignTokens.Spacing.sm) {
+                    Button(action: onSearch) {
+                        Label("搜索歌词", systemImage: "magnifyingglass")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(LyricsDesignTokens.accent)
+
+                    if state.canCreateManualLyrics {
+                        ManualLyricsActionsView(state: state, compact: true, compactLabel: "导入")
+                    }
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityElement(children: .combine)
     }
 
     private var emptyState: some View {

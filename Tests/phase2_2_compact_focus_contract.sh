@@ -61,10 +61,13 @@ if printf '%s\n' "$compact_layout" | grep -Eq '(mainWindow)?layoutStyleRawValue[
   exit 1
 fi
 require_in_block 'lyricsColumn\(' "$compact_layout" 'lyricsColumn'
-require_in_block 'AppleMusicImmersiveV3TransportControls\(' "$compact_layout" 'shared transport controls'
+require_in_block 'AppleMusicImmersiveV3FocusTransportControls\(' "$compact_layout" 'minimal focus transport controls'
 require_in_block 'searchButton' "$compact_layout" 'search access'
 require_in_block 'preferencesButton' "$compact_layout" 'settings access'
-require_in_block 'providerStatusMenu' "$compact_layout" 'provider recovery access'
+if printf '%s\n' "$compact_layout" | grep -Eq 'providerStatusMenu|AppleMusicImmersiveV3TransportControls\('; then
+  echo 'FAIL: compact lyrics focus must not expose the provider/tool-panel or full transport layout' >&2
+  exit 1
+fi
 require 'Button\("重试 Spotify"\)' "$V3"
 
 # The projection is a pure live-state view: no second timer, provider,
