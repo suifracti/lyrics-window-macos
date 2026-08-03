@@ -5,6 +5,18 @@ import ImageIO
 import SwiftUI
 import UniformTypeIdentifiers
 
+/// A single track-bound key projection shared by V3 and fullscreen through
+/// the same backdrop view and cache. Playback time is intentionally absent.
+enum AppleMusicImmersiveV3BackdropKey {
+    static func make(
+        identityKey: String,
+        artworkURL: URL?,
+        forceNoArtwork: Bool
+    ) -> String {
+        "\(identityKey)|\(artworkURL?.absoluteString ?? "no-artwork")|\(forceNoArtwork ? "debug-no-artwork" : "artwork")"
+    }
+}
+
 /// The V3 backdrop is deliberately track-bound rather than playback-bound.
 /// Cover data is reduced and sampled once per TrackIdentity/artwork key; the
 /// SwiftUI view never rebuilds a full-resolution blur on every time tick.
@@ -54,7 +66,11 @@ struct AppleMusicImmersiveV3BackdropView: View {
 
     private var requestKey: String {
         let identityKey = identity?.stableKey ?? track.id
-        return "\(identityKey)|\(track.artworkURL?.absoluteString ?? "no-artwork")|\(debugForceNoArtwork ? "debug-no-artwork" : "artwork")"
+        return AppleMusicImmersiveV3BackdropKey.make(
+            identityKey: identityKey,
+            artworkURL: track.artworkURL,
+            forceNoArtwork: debugForceNoArtwork
+        )
     }
 
     /// Debug-only visual validation switch. It exercises the same neutral

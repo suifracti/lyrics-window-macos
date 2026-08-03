@@ -43,10 +43,31 @@ struct ArtworkView: View {
         .shadow(color: .black.opacity(showsAlbumLabel ? 0.28 : 0.18), radius: size * 0.08, y: size * 0.04)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("专辑封面，(track.album)")
-        .task(id: "\(track.id)|\(track.artworkURL?.absoluteString ?? "no-artwork")") {
+        .task(id: "\(track.id)|\(effectiveArtworkURL?.absoluteString ?? "no-artwork")|\(debugForceNoArtwork ? "debug-no-artwork" : "artwork")") {
             remoteArtwork = nil
-            remoteArtwork = await ArtworkImageLoader.shared.image(for: track.artworkURL)
+            guard !debugForceNoArtwork else { return }
+            remoteArtwork = await ArtworkImageLoader.shared.image(for: effectiveArtworkURL)
         }
+    }
+
+    /// Debug-only fixture for visual validation. It forces the same formal
+    /// neutral placeholder used when a track has no artwork, including the
+    /// foreground cover, so a no-art screenshot cannot retain the previous
+    /// track's remote image. Release builds always use the real track URL.
+    private var debugForceNoArtwork: Bool {
+#if DEBUG
+        ProcessInfo.processInfo.environment["SPOTIFYLYRICS_BACKDROP_NO_ARTWORK"] == "1"
+#else
+        false
+#endif
+    }
+
+    private var effectiveArtworkURL: URL? {
+        debugForceNoArtwork ? nil : track.artworkURL
+    }
+
+    private var effectiveArtworkName: String {
+        debugForceNoArtwork ? "music.note" : track.artworkName
     }
 
     private var fallbackArtwork: some View {
@@ -69,7 +90,7 @@ struct ArtworkView: View {
                 .blur(radius: size * 0.12)
                 .offset(x: size * 0.18, y: -size * 0.14)
 
-            Image(systemName: track.artworkName)
+            Image(systemName: effectiveArtworkName)
                 .font(.system(size: size * 0.31, weight: .medium))
                 .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(LyricsDesignTokens.primaryText)

@@ -154,6 +154,7 @@ public struct BackdropPalette: Equatable, Sendable {
 /// pipeline.  `customV1` is reserved for a future Experience Library entry;
 /// the first four presets are the only runnable presets in this phase.
 public enum BackdropPresentationID: String, CaseIterable, Sendable {
+    case legacyV3V1 = "backdrop.legacyV3.v1"
     case defaultV1 = "backdrop.default.v1"
     case clearV1 = "backdrop.clear.v1"
     case immersiveV1 = "backdrop.immersive.v1"
@@ -183,11 +184,22 @@ public enum BackdropPresentationID: String, CaseIterable, Sendable {
 #endif
 
     public var isRunnableInPhase2_3D: Bool {
-        self != .customV1
+        switch self {
+        case .legacyV3V1, .customV1:
+            return false
+        case .defaultV1, .clearV1, .immersiveV1, .highContrastV1:
+            return true
+        }
     }
 
     public var style: BackdropPresentationStyle {
         switch self {
+        case .legacyV3V1:
+            // The retained V3 compatibility path has an identity, not a
+            // second cache or rendering implementation. Until the legacy
+            // surface is promoted into the Experience Library, it resolves
+            // to the safe default style when inspected by diagnostics.
+            return BackdropPresentationID.defaultV1.style
         case .defaultV1:
             return BackdropPresentationStyle(
                 textureIntensity: LyricsDesignTokens.Backdrop.textureIntensity,
@@ -209,39 +221,39 @@ public enum BackdropPresentationID: String, CaseIterable, Sendable {
             )
         case .clearV1:
             return BackdropPresentationStyle(
-                textureIntensity: 1.12,
-                artworkScreenOpacity: 0.72,
-                artworkOpacity: 0.82,
-                artworkScreenBlur: 18,
-                artworkBlur: 58,
-                artworkScreenScale: 1.12,
-                artworkScale: 1.28,
-                paletteSaturation: 0.94,
-                paletteOpacity: 0.72,
-                glowIntensity: 0.48,
-                lyricVeilMultiplier: 0.52,
-                minimumLyricVeil: 0.16,
-                vignetteIntensity: 0.28,
-                noiseIntensity: 0.022,
+                textureIntensity: 0.42,
+                artworkScreenOpacity: 0.28,
+                artworkOpacity: 0.30,
+                artworkScreenBlur: 34,
+                artworkBlur: 96,
+                artworkScreenScale: 1.08,
+                artworkScale: 1.20,
+                paletteSaturation: 0.20,
+                paletteOpacity: 0.42,
+                glowIntensity: 0.18,
+                lyricVeilMultiplier: 0.58,
+                minimumLyricVeil: 0.30,
+                vignetteIntensity: 0.22,
+                noiseIntensity: 0.006,
                 transitionDuration: 0.38,
                 outgoingTransitionDuration: 0.16
             )
         case .immersiveV1:
             return BackdropPresentationStyle(
-                textureIntensity: 1.08,
-                artworkScreenOpacity: 0.68,
-                artworkOpacity: 0.80,
-                artworkScreenBlur: 28,
-                artworkBlur: 80,
-                artworkScreenScale: 1.18,
-                artworkScale: 1.38,
+                textureIntensity: 1.25,
+                artworkScreenOpacity: 0.86,
+                artworkOpacity: 0.92,
+                artworkScreenBlur: 18,
+                artworkBlur: 58,
+                artworkScreenScale: 1.20,
+                artworkScale: 1.44,
                 paletteSaturation: 1.0,
-                paletteOpacity: 1.08,
-                glowIntensity: 0.72,
-                lyricVeilMultiplier: 0.76,
-                minimumLyricVeil: 0.24,
-                vignetteIntensity: 0.48,
-                noiseIntensity: 0.035,
+                paletteOpacity: 1.35,
+                glowIntensity: 0.92,
+                lyricVeilMultiplier: 0.82,
+                minimumLyricVeil: 0.26,
+                vignetteIntensity: 0.52,
+                noiseIntensity: 0.05,
                 transitionDuration: 0.46,
                 outgoingTransitionDuration: 0.20
             )
