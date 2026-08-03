@@ -442,6 +442,7 @@ private struct AISettingsView: View {
                             try keyStore.save(value)
                             apiKeyDraft = ""
                             hasStoredKey = true
+                            settings.aiTranslationAPIKeyConfigured = true
                             statusMessage = "API Key 已保存到 Keychain（不会显示或写入日志）。"
                         } catch {
                             statusMessage = "保存失败：\(error.localizedDescription)"
@@ -452,6 +453,7 @@ private struct AISettingsView: View {
                             try keyStore.delete()
                             hasStoredKey = false
                             apiKeyDraft = ""
+                            settings.aiTranslationAPIKeyConfigured = false
                             statusMessage = "API Key 已清除。"
                         } catch {
                             statusMessage = "清除失败：\(error.localizedDescription)"
@@ -479,7 +481,7 @@ private struct AISettingsView: View {
                         .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
                 }
                 HStack {
-                    Text("Temperature")
+                    Text("随机度（Temperature）")
                     Slider(value: configurationDoubleBinding(\.temperature), in: 0...2, step: 0.1)
                     Text(String(format: "%.1f", settings.aiTranslationConfiguration.temperature))
                         .monospacedDigit()
@@ -521,7 +523,7 @@ private struct AISettingsView: View {
         }
         .formStyle(.grouped)
         .onAppear {
-            hasStoredKey = keyStore.read()?.isEmpty == false
+            hasStoredKey = settings.aiTranslationAPIKeyConfigured
         }
     }
 

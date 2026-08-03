@@ -72,6 +72,7 @@ public final class AppSettingsStore: ObservableObject {
         public static let aiTemperature = "ai.temperature"
         public static let aiTimeout = "ai.timeout"
         public static let aiAutoTranslateNewLyrics = "ai.autoTranslateNewLyrics"
+        public static let aiAPIKeyConfigured = "ai.apiKeyConfigured"
     }
 
     public static let currentSettingsVersion = 1
@@ -164,6 +165,12 @@ public final class AppSettingsStore: ObservableObject {
         didSet { persistAITranslationConfiguration(aiTranslationConfiguration) }
     }
 
+    /// This is only a non-secret status flag. The key material itself remains
+    /// exclusively in Keychain and is never mirrored into UserDefaults.
+    @Published public var aiTranslationAPIKeyConfigured: Bool {
+        didSet { defaults.set(aiTranslationAPIKeyConfigured, forKey: Key.aiAPIKeyConfigured) }
+    }
+
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         self.presentationSelections = PresentationSelectionStore(defaults: defaults)
@@ -194,6 +201,7 @@ public final class AppSettingsStore: ObservableObject {
         displayPreferences = Self.loadDisplayPreferences(defaults: defaults, keepOnTop: keepOnTop)
         lyricsProviderConfiguration = Self.loadProviderConfiguration(defaults: defaults)
         aiTranslationConfiguration = Self.loadAITranslationConfiguration(defaults: defaults)
+        aiTranslationAPIKeyConfigured = defaults.object(forKey: Key.aiAPIKeyConfigured) as? Bool ?? false
 
         if defaults.object(forKey: Key.settingsVersion) == nil {
             defaults.set(Self.currentSettingsVersion, forKey: Key.settingsVersion)

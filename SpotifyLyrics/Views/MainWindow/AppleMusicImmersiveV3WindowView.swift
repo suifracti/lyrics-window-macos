@@ -28,6 +28,7 @@ struct AppleMusicImmersiveV3WindowView: View {
     @State private var toolsVisible = false
     @State private var interactionToken = 0
     @State private var isAlignmentDetailsPresented = false
+    @State private var isCurrentSongOperationsPresented = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -314,6 +315,7 @@ struct AppleMusicImmersiveV3WindowView: View {
         HStack(spacing: LyricsDesignTokens.Spacing.xs) {
             windowModeMenu
             providerStatusMenu
+            currentSongOperationsButton
             searchButton
             layoutMenu
             preferencesButton
@@ -482,6 +484,21 @@ struct AppleMusicImmersiveV3WindowView: View {
             )
         }
         .accessibilityLabel("搜索歌曲")
+    }
+
+    private var currentSongOperationsButton: some View {
+        Button {
+            isCurrentSongOperationsPresented.toggle()
+        } label: {
+            iconLabel("music.note.list", description: "当前歌曲")
+        }
+        .buttonStyle(.plain)
+        .popover(isPresented: $isCurrentSongOperationsPresented, arrowEdge: .top) {
+            CurrentSongOperationsView(state: state)
+                .environmentObject(settings)
+        }
+        .accessibilityLabel("当前歌曲操作")
+        .help("歌词版本、翻译和导入操作")
     }
 
     private var layoutMenu: some View {

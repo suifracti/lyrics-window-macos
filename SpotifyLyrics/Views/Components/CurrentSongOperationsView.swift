@@ -1,0 +1,289 @@
+import SwiftUI
+
+/// Compact, in-place operations for the currently playing TrackIdentity.
+/// Every command is forwarded to the existing PlaybackState/session methods;
+/// this view owns no repository, search task, timer, or playback command.
+struct CurrentSongOperationsView: View {
+    @ObservedObject var state: PlaybackState
+    @EnvironmentObject private var settings: AppSettingsStore
+    @Environment(\.openWindow) private var openWindow
+
+    @State private var notice = ""
+    @State private var showDeleteTranslationConfirmation = false
+
+    private var snapshot: CurrentSongOperationSnapshot {
+        CurrentSongOperationSnapshot(
+            title: state.currentTrack.title,
+            artist: state.currentTrack.artist,
+            lyricsState: CurrentSongLyricsState(loadState: state.liveLyricsState),
+            lyricsSource: state.liveLyricsSource,
+            lyricsVersionID: state.liveLyricsVersionID,
+            isSynchronized: state.liveLyricsAreSynchronized,
+            isLyricsNoSelection: state.isLyricsSelectionEmpty,
+            hasTranslationSelection: !state.isTranslationSelectionEmpty,
+            translationVersionCount: state.translationVersions.count
+        )
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            header
+            Divider()
+            lyricsSection
+            Divider()
+            languageSection
+            if !state.liveLyrics.isEmpty {
+                Divider()
+                translationSection
+            }
+            if hasAlignmentAction {
+                Divider()
+                alignmentSection
+            }
+            if !notice.isEmpty {
+                Text(notice)
+                    .font(.system(size: 11, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(18)
+        .frame(width: 360, alignment: .leading)
+        .preferredColorScheme(.dark)
+        .confirmationDialog(
+            "删除当前翻译版本？",
+            isPresented: $showDeleteTranslationConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("删除翻译", role: .destructive) { state.deleteSelectedTranslation() }
+            Button("取消", role: .cancel) {}
+        } message: {
+            Text("不会删除原文、读音或歌词版本。")
+        }
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("当前歌曲")
+                .font(.system(size: 15, weight: .semibold, design: .rounded))
+            Text(snapshot.title)
+                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                .lineLimit(1)
+            Text(snapshot.artist)
+                .font(.system(size: 12, weight: .medium, design: .rounded))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+        }
+    }
+
+    private var lyricsSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Label("歌词版本", systemImage: "text.quote")
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                Spacer()
+                Text(snapshot.lyricsStatusLabel)
+                    .font(.system(size: 11, design: .rounded))
+                    .foregroundStyle(snapshot.isLyricsNoSelection ? .orange : .secondary)
+            }
+            if let source = state.liveLyricsSource {
+                Text("来源：\(source.displayName)")
+                    .font(.system(size: 11, design: .rounded))
+                    .foregroundStyle(.secondary)
+            }
+            HStack(spacing: 8) {
+                primaryLyricsButton
+                Menu {
+                    Button("重新搜索歌词", systemImage: "arrow.clockwise") {
+                        state.retryLyrics()
+                    }
+                    if state.canCreateManualLyrics {
+                        Divider()
+                        importCreateMenu
+                    }
+                    Divider()
+                    Button("本次播放不使用", systemImage: "minus.circle") {
+                        state.selectNoLyricsVersion()
+                    }
+                    .disabled(state.isLyricsSelectionEmpty)
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .frame(width: 28, height: 28)
+                }
+                .menuStyle(.borderlessButton)
+                .help("歌词版本操作")
+            }
+            if state.canOpenLyricsEditor {
+                Button("查看版本历史", systemImage: "clock.arrow.circlepath") {
+                    openEditor()
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var primaryLyricsButton: some View {
+        switch snapshot.primaryLyricsAction {
+        case .edit:
+            Button("编辑当前版本", systemImage: "pencil") { openEditor() }
+                .buttonStyle(.borderedProminent)
+        case .chooseVersion:
+            Button("选择歌词版本", systemImage: "checklist") { state.retryLyrics() }
+                .buttonStyle(.bordered)
+        case .importOrCreate:
+            Menu("导入或创建", systemImage: "square.and.arrow.down") {
+                importCreateMenu
+            }
+            .menuStyle(.borderedButton)
+        case .none:
+            Button("重新搜索歌词", systemImage: "magnifyingglass") { state.retryLyrics() }
+                .buttonStyle(.bordered)
+                .disabled(!state.hasLiveTrack)
+        }
+    }
+
+    @ViewBuilder
+    private var importCreateMenu: some View {
+        Button("粘贴歌词", systemImage: "doc.on.clipboard") {
+            if state.prepareManualLyricsFromClipboard() { openWindow(id: "lyrics-editor") }
+        }
+        Button("导入 TXT", systemImage: "doc.text") {
+            if state.prepareManualLyricsFromTXT() { openWindow(id: "lyrics-editor") }
+        }
+        Button("导入 LRC", systemImage: "clock") {
+            if state.prepareManualLyricsFromLRC() { openWindow(id: "lyrics-editor") }
+        }
+        Button("创建空白歌词", systemImage: "plus.square") {
+            if state.prepareBlankLyricsEditor() { openWindow(id: "lyrics-editor") }
+        }
+    }
+
+    private var languageSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("显示层")
+                .font(.system(size: 12, weight: .medium, design: .rounded))
+            Toggle("显示翻译", isOn: displayBinding(\.showTranslation))
+            Toggle("显示假名", isOn: kanaBinding)
+            Toggle("显示罗马音", isOn: displayBinding(\.showRomaji))
+            if settings.displayPreferences.showKana {
+                Picker("假名模式", selection: displayBinding(\.kanaDisplayMode)) {
+                    Text("汉字上方注音").tag(KanaDisplayMode.inlineRuby)
+                    Text("独立假名行").tag(KanaDisplayMode.independentLine)
+                    Text("假名替换").tag(KanaDisplayMode.kanaReplacement)
+                }
+                .pickerStyle(.menu)
+            }
+            Text("隐藏翻译只改变显示层；无翻译版本会改变当前选择。")
+                .font(.system(size: 10, design: .rounded))
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var translationSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Label("翻译版本", systemImage: "character.book.closed")
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                Spacer()
+                Text(snapshot.translationStatusLabel)
+                    .font(.system(size: 11, design: .rounded))
+                    .foregroundStyle(state.isTranslationSelectionEmpty ? .orange : .secondary)
+            }
+            Menu {
+                Button("无翻译版本") { state.selectNoTranslationVersion() }
+                    .disabled(state.isTranslationSelectionEmpty)
+                if !state.translationVersions.isEmpty { Divider() }
+                ForEach(state.translationVersions, id: \.record.id) { version in
+                    Button {
+                        state.selectTranslation(versionID: version.record.id)
+                    } label: {
+                        Text(versionTitle(version))
+                    }
+                }
+                Divider()
+                Button("翻译整首歌词") { state.translateCurrentLyrics() }
+                Button("重新翻译") { state.retranslateCurrentLyrics() }
+                if state.selectedTranslation?.record.isLocked == false {
+                    Divider()
+                    Button("锁定当前翻译") { state.lockSelectedTranslation() }
+                    Button("删除当前翻译", role: .destructive) {
+                        showDeleteTranslationConfirmation = true
+                    }
+                }
+            } label: {
+                Label("选择翻译版本", systemImage: "chevron.up.chevron.down")
+            }
+            .menuStyle(.borderedButton)
+        }
+    }
+
+    private var hasAlignmentAction: Bool {
+        switch state.liveLyricsState {
+        case .alignmentQueued, .alignmentRunning, .alignmentPreview:
+            return true
+        default:
+            return false
+        }
+    }
+
+    @ViewBuilder
+    private var alignmentSection: some View {
+        switch state.liveLyricsState {
+        case .alignmentQueued:
+            HStack {
+                Label("待排轴", systemImage: "waveform")
+                Spacer()
+                Button("选择本地音频") { state.alignCurrentLyricsWithLocalAudio() }
+            }
+        case .alignmentRunning:
+            HStack {
+                Label("正在排轴", systemImage: "waveform")
+                Spacer()
+                Button("取消") { state.cancelAlignmentPreview() }
+            }
+        case .alignmentPreview:
+            HStack {
+                Label("排轴预览", systemImage: "waveform.path.ecg")
+                Spacer()
+                Button("确认") { state.confirmAlignmentPreview(saveLocal: true) }
+                Button("放弃") { state.cancelAlignmentPreview() }
+            }
+        default:
+            EmptyView()
+        }
+    }
+
+    private func openEditor() {
+        state.prepareLyricsEditor()
+        openWindow(id: "lyrics-editor")
+    }
+
+    private func versionTitle(_ version: StoredTranslationVersion) -> String {
+        let model = version.record.model.isEmpty ? version.record.sourceKind.rawValue : version.record.model
+        return version.record.isLocked ? "🔒 \(model)" : model
+    }
+
+    private func displayBinding<Value>(_ keyPath: WritableKeyPath<DisplayPreferences, Value>) -> Binding<Value> {
+        Binding(
+            get: { settings.displayPreferences[keyPath: keyPath] },
+            set: { value in
+                var next = settings.displayPreferences
+                next[keyPath: keyPath] = value
+                settings.displayPreferences = next
+            }
+        )
+    }
+
+    private var kanaBinding: Binding<Bool> {
+        Binding(
+            get: { settings.displayPreferences.showKana },
+            set: { value in
+                var next = settings.displayPreferences
+                next.showKana = value
+                settings.displayPreferences = next
+            }
+        )
+    }
+}

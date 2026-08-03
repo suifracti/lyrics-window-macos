@@ -310,6 +310,8 @@ public final class PlaybackState: ObservableObject {
     public var liveLyricsAreSynchronized: Bool { lyricsSession.isSynchronized }
     public var liveLyricsSessionRevision: UInt64 { lyricsSession.revision }
     public var liveLyricsLanguage: String? { lyricsSession.activeDocument?.language }
+    public var liveLyricsVersionID: UUID? { lyricsSession.activeLyricsVersionID }
+    public var liveLyricsSource: LyricsSource? { lyricsSession.activeDocument?.source }
     public var isLyricsSelectionEmpty: Bool { lyricsSession.isNoSelection }
     public var liveCurrentLineIndex: Int? {
         LyricsTimeline.activeLineIndex(

@@ -138,6 +138,8 @@
 		110000F72D83400100000001 /* PresentationSelectionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F72D83400100000000 /* PresentationSelectionStore.swift */; };
 		110000F82D83400100000001 /* ExperienceLibrarySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F82D83400100000000 /* ExperienceLibrarySettingsView.swift */; };
 		110000F92D83400100000001 /* SettingsCenterPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F92D83400100000000 /* SettingsCenterPresentation.swift */; };
+		110000FA2D83400100000001 /* CurrentSongOperationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000FA2D83400100000000 /* CurrentSongOperationState.swift */; };
+		110000FB2D83400100000001 /* CurrentSongOperationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000FB2D83400100000000 /* CurrentSongOperationsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -274,6 +276,8 @@
 		110000F72D83400100000000 /* PresentationSelectionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentationSelectionStore.swift; sourceTree = "<group>"; };
 		110000F82D83400100000000 /* ExperienceLibrarySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExperienceLibrarySettingsView.swift; sourceTree = "<group>"; };
 		110000F92D83400100000000 /* SettingsCenterPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsCenterPresentation.swift; sourceTree = "<group>"; };
+		110000FA2D83400100000000 /* CurrentSongOperationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentSongOperationState.swift; sourceTree = "<group>"; };
+		110000FB2D83400100000000 /* CurrentSongOperationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentSongOperationsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -402,6 +406,7 @@
 				110000512D83400100000000 /* AppleMusicImmersiveV3BackdropView.swift */,
 				110000292D83400100000000 /* SongSearchPopover.swift */,
 				110000722D83400100000000 /* ManualLyricsActionsView.swift */,
+				110000FB2D83400100000000 /* CurrentSongOperationsView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -417,6 +422,7 @@
 				110000F62D83400100000000 /* PresentationPreviewRendererRegistry.swift */,
 				110000F72D83400100000000 /* PresentationSelectionStore.swift */,
 				110000F92D83400100000000 /* SettingsCenterPresentation.swift */,
+				110000FA2D83400100000000 /* CurrentSongOperationState.swift */,
 				1100001B2D83400100000000 /* BackdropPalette.swift */,
 				1100001C2D83400100000000 /* MainWindowLayoutStyle.swift */,
 			);
@@ -637,6 +643,8 @@
 				110000F72D83400100000001 /* PresentationSelectionStore.swift in Sources */,
 				110000F82D83400100000001 /* ExperienceLibrarySettingsView.swift in Sources */,
 				110000F92D83400100000001 /* SettingsCenterPresentation.swift in Sources */,
+				110000FA2D83400100000001 /* CurrentSongOperationState.swift in Sources */,
+				110000FB2D83400100000001 /* CurrentSongOperationsView.swift in Sources */,
 				1100000D2D83400100000001 /* PlaybackProvider.swift in Sources */,
 				1100000E2D83400100000001 /* SpotifyDesktopProvider.swift in Sources */,
 				1100000F2D83400100000001 /* MockPlaybackProvider.swift in Sources */,
