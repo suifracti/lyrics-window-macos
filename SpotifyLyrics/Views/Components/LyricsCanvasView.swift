@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LyricsCanvasView: View {
     @ObservedObject var state: PlaybackState
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var lastScrolledLineIndex: Int?
     @State private var isAlignmentDetailsPresented = false
 
@@ -187,6 +188,14 @@ struct LyricsCanvasView: View {
                             ),
                             alignment: .leading
                         )
+                        .animation(
+                            LyricsTransitionPolicy.animation(reduceMotion: reduceMotion),
+                            value: visibleLayerCount
+                        )
+                        .animation(
+                            LyricsTransitionPolicy.animation(reduceMotion: reduceMotion),
+                            value: state.liveLyricsAreSynchronized
+                        )
 
                         Spacer(minLength: 0)
                     }
@@ -222,6 +231,9 @@ struct LyricsCanvasView: View {
                     .onChange(of: state.liveLyricsSessionRevision) { _, _ in
                         lastScrolledLineIndex = nil
                         scrollToCurrentLine(using: proxy, animated: false)
+                    }
+                    .onChange(of: state.preferences) { _, _ in
+                        scrollToCurrentLine(using: proxy, animated: true, force: true)
                     }
                 }
             }
@@ -384,10 +396,14 @@ struct LyricsCanvasView: View {
         .id(line.id)
     }
 
-    private func scrollToCurrentLine(using proxy: ScrollViewProxy, animated: Bool) {
+    private func scrollToCurrentLine(
+        using proxy: ScrollViewProxy,
+        animated: Bool,
+        force: Bool = false
+    ) {
         guard let currentIndex = state.liveCurrentLineIndex,
               state.liveLyrics.indices.contains(currentIndex),
-              lastScrolledLineIndex != currentIndex else { return }
+              force || lastScrolledLineIndex != currentIndex else { return }
 
         let action = {
             proxy.scrollTo(state.liveLyrics[currentIndex].id, anchor: .center)
@@ -398,7 +414,7 @@ struct LyricsCanvasView: View {
         }
 
         if animated {
-            withAnimation(.easeInOut(duration: 0.24), action)
+            LyricsTransitionPolicy.perform(reduceMotion: reduceMotion, action)
         } else {
             action()
         }

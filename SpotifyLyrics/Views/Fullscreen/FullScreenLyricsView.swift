@@ -7,6 +7,7 @@ struct FullScreenLyricsView: View {
     @ObservedObject var state: PlaybackState
     @ObservedObject var windowController: FullScreenLyricsWindowController
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var lastScrolledLineIndex: Int?
     @State private var draftSeekTime: Double?
 
@@ -184,13 +185,24 @@ struct FullScreenLyricsView: View {
                 .padding(.vertical, 24)
             }
             .scrollIndicators(.hidden)
+            // Replace a live document directly.  This prevents a rapid
+            // A→B→A switch from animating rows from the previous song.
+            .id("lyrics-document-\(state.liveLyricsSessionRevision)")
             .frame(maxWidth: width, maxHeight: .infinity, alignment: .center)
             .onChange(of: state.currentTime) { _, _ in
                 guard let index = state.liveCurrentLineIndex,
                       index != lastScrolledLineIndex,
                       rows.indices.contains(index) else { return }
                 lastScrolledLineIndex = index
-                withAnimation(.easeInOut(duration: 0.22)) {
+                LyricsTransitionPolicy.perform(reduceMotion: reduceMotion) {
+                    proxy.scrollTo(rows[index].id, anchor: .center)
+                }
+            }
+            .onChange(of: state.preferences) { _, _ in
+                guard let index = state.liveCurrentLineIndex,
+                      rows.indices.contains(index) else { return }
+                lastScrolledLineIndex = index
+                LyricsTransitionPolicy.perform(reduceMotion: reduceMotion) {
                     proxy.scrollTo(rows[index].id, anchor: .center)
                 }
             }

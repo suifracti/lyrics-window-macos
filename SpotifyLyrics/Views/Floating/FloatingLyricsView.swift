@@ -7,6 +7,7 @@ struct FloatingLyricsView: View {
     @ObservedObject var state: PlaybackState
     @ObservedObject var windowController: FloatingLyricsWindowController
     @EnvironmentObject private var settings: AppSettingsStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isHovering = false
 
     private var presentationVersion: FloatingLyricsPresentationVersion {
@@ -172,9 +173,18 @@ struct FloatingLyricsView: View {
                 .padding(.vertical, 24)
             }
             .scrollIndicators(.hidden)
+            // A new live session replaces this scroll surface directly; old
+            // rows must never animate into a newly selected track.
+            .id("lyrics-document-\(state.liveLyricsSessionRevision)")
             .onChange(of: selection.currentIndex) { _, index in
                 guard let index, selection.autoScroll else { return }
-                withAnimation(.easeInOut(duration: 0.22)) {
+                LyricsTransitionPolicy.perform(reduceMotion: reduceMotion) {
+                    proxy.scrollTo(rows[index].id, anchor: .center)
+                }
+            }
+            .onChange(of: state.preferences) { _, _ in
+                guard let index = selection.currentIndex else { return }
+                LyricsTransitionPolicy.perform(reduceMotion: reduceMotion) {
                     proxy.scrollTo(rows[index].id, anchor: .center)
                 }
             }

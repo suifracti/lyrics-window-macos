@@ -9,6 +9,7 @@ struct LyricLineView: View {
     let availableWidth: CGFloat
     let visibleLayerCount: Int
     let language: String?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(
         line: LyricLine,
@@ -37,6 +38,28 @@ struct LyricLineView: View {
             isSynchronized: isSynchronized,
             availableWidth: availableWidth,
             visibleLayerCount: visibleLayerCount
+        )
+    }
+
+    private var transitionStyle: LyricsTransitionStyle {
+        LyricsTransitionPolicy.activeStyle
+    }
+
+    private var layoutSignature: LyricsLayoutSignature {
+        LyricsTransitionPolicy.signature(
+            line: line,
+            preferences: preferences,
+            availableWidth: availableWidth,
+            visibleLayerCount: visibleLayerCount,
+            isSynchronized: isSynchronized,
+            distance: distance
+        )
+    }
+
+    private var transitionAnimation: Animation? {
+        LyricsTransitionPolicy.animation(
+            style: transitionStyle,
+            reduceMotion: reduceMotion
         )
     }
 
@@ -154,6 +177,7 @@ struct LyricLineView: View {
                                 .foregroundStyle(LyricsDesignTokens.secondaryText.opacity(rubyOpacity))
                                 .lineSpacing(2)
                                 .padding(.top, 2)
+                                .transition(.opacity)
                         }
                     } else if preferences.kanaDisplayMode == .inlineRuby,
                               LyricsLanguageGate.allowsJapaneseReadings(language: language, text: line.originalText),
@@ -194,6 +218,7 @@ struct LyricLineView: View {
                         .font(.system(size: secondaryFontSize, weight: fontWeight, design: .rounded))
                         .foregroundStyle(LyricsDesignTokens.secondaryText.opacity(rubyOpacity))
                         .lineSpacing(2)
+                        .transition(.opacity)
                 }
 
                 if let romaji = distinctRomaji {
@@ -202,6 +227,7 @@ struct LyricLineView: View {
                         .foregroundStyle(LyricsDesignTokens.mutedText.opacity(effectiveOpacity * 0.64))
                         .lineSpacing(2)
                         .padding(.top, auxiliaryTopSpacing)
+                        .transition(.opacity)
                 }
 
                 if preferences.showTranslation, let translation = line.translationText, !translation.isEmpty {
@@ -210,13 +236,16 @@ struct LyricLineView: View {
                         .foregroundStyle(LyricsDesignTokens.mutedText.opacity(effectiveOpacity * 0.72))
                         .lineSpacing(2)
                         .padding(.top, hasVisibleRomaji ? 3 : auxiliaryTopSpacing)
+                        .transition(.opacity)
                 }
             }
             .padding(.vertical, emphasis.verticalPadding)
-            .blur(radius: emphasis.blurRadius)
+            // Reduce Motion removes blur interpolation entirely.  The row
+            // still receives the short opacity/layout transition below.
+            .blur(radius: reduceMotion ? 0 : emphasis.blurRadius)
             .fixedSize(horizontal: false, vertical: true)
-            .animation(.easeInOut(duration: 0.24), value: isActive)
-            .animation(.easeInOut(duration: 0.24), value: visibleLayerCount)
+            .animation(transitionAnimation, value: isActive)
+            .animation(transitionAnimation, value: layoutSignature)
         }
     }
 

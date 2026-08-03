@@ -941,8 +941,19 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
                     .padding(.top, verticalPadding)
                     .padding(.bottom, verticalPadding)
                     .padding(.trailing, compact ? 10 : 18)
+                    .animation(
+                        LyricsTransitionPolicy.animation(reduceMotion: reduceMotion),
+                        value: rowSpacing
+                    )
+                    .animation(
+                        LyricsTransitionPolicy.animation(reduceMotion: reduceMotion),
+                        value: synchronized
+                    )
                 }
                 .scrollIndicators(.hidden)
+                // A new live session is a direct document replacement.  Its
+                // old rows must not animate into a different track.
+                .id("lyrics-document-\(state.liveLyricsSessionRevision)")
 
                 Group {
                     if synchronized {
@@ -972,6 +983,9 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
                 }
                 .onChange(of: state.liveLyricsSessionRevision) { _, _ in
                     scrollToCurrentLine(using: proxy, animated: false)
+                }
+                .onChange(of: state.preferences) { _, _ in
+                    scrollToCurrentLine(using: proxy, animated: true)
                 }
             }
         }
@@ -1033,7 +1047,7 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
         let id = state.liveLyrics[currentIndex].id
         let action = { proxy.scrollTo(id, anchor: UnitPoint(x: 0.5, y: 0.47)) }
         if animated {
-            withAnimation(LyricsDesignTokens.Motion.lyricAnimation(reduceMotion: reduceMotion), action)
+            LyricsTransitionPolicy.perform(reduceMotion: reduceMotion, action)
         } else {
             action()
         }
@@ -1198,6 +1212,21 @@ private struct AppleMusicImmersiveV3LyricRow: View {
         return .regular
     }
 
+    private var layoutSignature: LyricsLayoutSignature {
+        LyricsTransitionPolicy.signature(
+            line: line,
+            preferences: preferences,
+            availableWidth: availableWidth,
+            visibleLayerCount: layerCount,
+            isSynchronized: isSynchronized,
+            distance: distance
+        )
+    }
+
+    private var transitionAnimation: Animation? {
+        LyricsTransitionPolicy.animation(reduceMotion: reduceMotion)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if shouldRenderInlineRuby,
@@ -1237,6 +1266,7 @@ private struct AppleMusicImmersiveV3LyricRow: View {
                         .foregroundStyle(.white.opacity(rubyOpacity))
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
+                        .transition(.opacity)
                 }
             } else if shouldShowKana, let kana = displayKanaText {
                 Text(kana)
@@ -1251,6 +1281,7 @@ private struct AppleMusicImmersiveV3LyricRow: View {
                     .foregroundStyle(.white.opacity(romajiOpacity))
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
+                    .transition(.opacity)
             }
 
             if preferences.showTranslation, let translation = line.translationText, !translation.isEmpty {
@@ -1259,17 +1290,18 @@ private struct AppleMusicImmersiveV3LyricRow: View {
                     .foregroundStyle(.white.opacity(0.58))
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
+                    .transition(.opacity)
             }
         }
         .opacity(rowOpacity)
-        .blur(radius: rowBlur)
+        .blur(radius: reduceMotion ? 0 : rowBlur)
         .animation(
-            LyricsDesignTokens.Motion.lyricAnimation(reduceMotion: reduceMotion),
+            transitionAnimation,
             value: isActive
         )
         .animation(
-            LyricsDesignTokens.Motion.lyricAnimation(reduceMotion: reduceMotion),
-            value: isSynchronized
+            transitionAnimation,
+            value: layoutSignature
         )
     }
 }

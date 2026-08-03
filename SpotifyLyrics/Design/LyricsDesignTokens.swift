@@ -1,5 +1,100 @@
 import SwiftUI
 
+/// Stable, presentation-only policies for lyric row reflow.  The policy
+/// owns neither playback state nor a scroll position; it only chooses how an
+/// already-computed lyric projection changes its layout.
+enum LyricsTransitionStyle: String, CaseIterable, Identifiable, Sendable {
+    case systemV1 = "lyricsTransition.system.v1"
+    case smoothRelayoutV1 = "lyricsTransition.smoothRelayout.v1"
+    case noneV1 = "lyricsTransition.none.v1"
+
+    static let active: LyricsTransitionStyle = .smoothRelayoutV1
+
+    var id: String { rawValue }
+
+    func animation(reduceMotion: Bool) -> Animation? {
+        guard self != .noneV1 else { return nil }
+        if reduceMotion {
+            return .easeOut(duration: LyricsDesignTokens.Motion.reduceMotionDuration)
+        }
+
+        switch self {
+        case .systemV1:
+            return .easeInOut(duration: LyricsDesignTokens.Motion.interfaceDuration)
+        case .smoothRelayoutV1:
+            return .easeInOut(duration: LyricsDesignTokens.Motion.lyricDuration)
+        case .noneV1:
+            return nil
+        }
+    }
+}
+
+/// A small Equatable value that changes only when a row's layout inputs
+/// change.  Playback time is deliberately not part of this signature.
+struct LyricsLayoutSignature: Equatable {
+    let lineID: UUID
+    let contentHash: Int
+    let widthBucket: Int
+    let visibleLayerCount: Int
+    let isSynchronized: Bool
+    let distance: Int
+    let kanaMode: KanaDisplayMode
+}
+
+enum LyricsTransitionPolicy {
+    static let activeStyle = LyricsTransitionStyle.active
+
+    static func animation(
+        style: LyricsTransitionStyle = activeStyle,
+        reduceMotion: Bool
+    ) -> Animation? {
+        style.animation(reduceMotion: reduceMotion)
+    }
+
+    static func perform(
+        style: LyricsTransitionStyle = activeStyle,
+        reduceMotion: Bool,
+        _ action: () -> Void
+    ) {
+        guard let animation = animation(style: style, reduceMotion: reduceMotion) else {
+            action()
+            return
+        }
+        withAnimation(animation, action)
+    }
+
+    static func signature(
+        line: LyricLine,
+        preferences: DisplayPreferences,
+        availableWidth: CGFloat,
+        visibleLayerCount: Int,
+        isSynchronized: Bool,
+        distance: Int
+    ) -> LyricsLayoutSignature {
+        var hasher = Hasher()
+        hasher.combine(line.originalText)
+        hasher.combine(line.translationText)
+        hasher.combine(line.romajiText)
+        hasher.combine(line.kanaText)
+        hasher.combine(line.rubyTokens)
+        hasher.combine(preferences.showOriginal)
+        hasher.combine(preferences.showTranslation)
+        hasher.combine(preferences.showRomaji)
+        hasher.combine(preferences.kanaDisplayMode)
+        hasher.combine(preferences.hideDistantAuxiliary)
+
+        return LyricsLayoutSignature(
+            lineID: line.id,
+            contentHash: hasher.finalize(),
+            widthBucket: Int((max(0, availableWidth) / 8).rounded()),
+            visibleLayerCount: visibleLayerCount,
+            isSynchronized: isSynchronized,
+            distance: distance,
+            kanaMode: preferences.kanaDisplayMode
+        )
+    }
+}
+
 enum LyricsDesignTokens {
     // Kept as documented compatibility values for the original UI contract;
     // V2 uses the smaller responsive blur values below to avoid fuzzy text.
