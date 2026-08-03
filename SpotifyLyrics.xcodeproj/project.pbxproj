@@ -135,6 +135,7 @@
 		110000F42D83400100000001 /* PresentationPreviewLabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F42D83400100000000 /* PresentationPreviewLabView.swift */; };
 		110000F52D83400100000001 /* PresentationPreviewAdapters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F52D83400100000000 /* PresentationPreviewAdapters.swift */; };
 		110000F62D83400100000001 /* PresentationPreviewRendererRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F62D83400100000000 /* PresentationPreviewRendererRegistry.swift */; };
+		110000F72D83400100000001 /* PresentationSelectionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F72D83400100000000 /* PresentationSelectionStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -268,6 +269,7 @@
 		110000F42D83400100000000 /* PresentationPreviewLabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Debug/PresentationPreviewLabView.swift; sourceTree = "<group>"; };
 		110000F52D83400100000000 /* PresentationPreviewAdapters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Debug/PresentationPreviewAdapters.swift; sourceTree = "<group>"; };
 		110000F62D83400100000000 /* PresentationPreviewRendererRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentationPreviewRendererRegistry.swift; sourceTree = "<group>"; };
+		110000F72D83400100000000 /* PresentationSelectionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentationSelectionStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -408,6 +410,7 @@
 				110000F12D83400100000000 /* PresentationPreviewContext.swift */,
 				110000F02D83400100000000 /* PresentationCatalog.swift */,
 				110000F62D83400100000000 /* PresentationPreviewRendererRegistry.swift */,
+				110000F72D83400100000000 /* PresentationSelectionStore.swift */,
 				1100001B2D83400100000000 /* BackdropPalette.swift */,
 				1100001C2D83400100000000 /* MainWindowLayoutStyle.swift */,
 			);
@@ -625,6 +628,7 @@
 				110000F12D83400100000001 /* PresentationPreviewContext.swift in Sources */,
 				110000F02D83400100000001 /* PresentationCatalog.swift in Sources */,
 				110000F62D83400100000001 /* PresentationPreviewRendererRegistry.swift in Sources */,
+				110000F72D83400100000001 /* PresentationSelectionStore.swift in Sources */,
 				1100000D2D83400100000001 /* PlaybackProvider.swift in Sources */,
 				1100000E2D83400100000001 /* SpotifyDesktopProvider.swift in Sources */,
 				1100000F2D83400100000001 /* MockPlaybackProvider.swift in Sources */,

@@ -48,6 +48,18 @@ enum MainWindowResponsiveMode: String, Equatable, Sendable {
         compactFocusWidth: CGFloat = 900,
         compactFocusHeight: CGFloat = 640
     ) -> MainWindowResponsiveMode {
+        if let raw = UserDefaults.standard.string(
+            forKey: PresentationSelectionStore.runtimeKey(for: .responsiveLayout)
+        ) {
+            switch raw {
+            case "responsiveLayout.wide.v1": return .wide
+            case "responsiveLayout.medium.v1": return .medium
+            case "responsiveLayout.small.v1": return .small
+            case "responsiveLayout.lyricsFocus.v1": return .lyricsFocus
+            default: break
+            }
+        }
+
         if automaticLyricsFocus,
            width <= compactFocusWidth || height <= compactFocusHeight {
             return .lyricsFocus

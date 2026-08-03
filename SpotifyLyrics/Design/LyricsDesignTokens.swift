@@ -8,7 +8,14 @@ enum LyricsTransitionStyle: String, CaseIterable, Identifiable, Sendable {
     case smoothRelayoutV1 = "lyricsTransition.smoothRelayout.v1"
     case noneV1 = "lyricsTransition.none.v1"
 
-    static let active: LyricsTransitionStyle = .smoothRelayoutV1
+    static var active: LyricsTransitionStyle {
+        guard let raw = UserDefaults.standard.string(
+            forKey: PresentationSelectionStore.runtimeKey(for: .lyricsTransition)
+        ), let selected = LyricsTransitionStyle(rawValue: raw) else {
+            return .smoothRelayoutV1
+        }
+        return selected
+    }
 
     var id: String { rawValue }
 
@@ -42,7 +49,7 @@ struct LyricsLayoutSignature: Equatable {
 }
 
 enum LyricsTransitionPolicy {
-    static let activeStyle = LyricsTransitionStyle.active
+    static var activeStyle: LyricsTransitionStyle { LyricsTransitionStyle.active }
 
     static func animation(
         style: LyricsTransitionStyle = activeStyle,
@@ -310,7 +317,14 @@ enum LyricsStatePresentation: String, CaseIterable, Identifiable, Sendable {
     case systemV1 = "lyricsStatePresentation.system.v1"
     case contentFirstV1 = "lyricsStatePresentation.contentFirst.v1"
 
-    static let active: LyricsStatePresentation = .contentFirstV1
+    static var active: LyricsStatePresentation {
+        guard let raw = UserDefaults.standard.string(
+            forKey: PresentationSelectionStore.runtimeKey(for: .lyricsState)
+        ), let selected = LyricsStatePresentation(rawValue: raw) else {
+            return .contentFirstV1
+        }
+        return selected
+    }
 
     var id: String { rawValue }
 }

@@ -78,6 +78,11 @@ public final class AppSettingsStore: ObservableObject {
 
     private let defaults: UserDefaults
 
+    /// Presentation choices share this UserDefaults boundary with the rest
+    /// of the settings store. The selection object is metadata/selection
+    /// only; it never owns a playback or lyrics runtime.
+    public let presentationSelections: PresentationSelectionStore
+
     @Published public var mainWindowLayoutStyleRawValue: String {
         didSet { defaults.set(mainWindowLayoutStyleRawValue, forKey: Key.mainWindowLayoutStyle) }
     }
@@ -161,6 +166,7 @@ public final class AppSettingsStore: ObservableObject {
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        self.presentationSelections = PresentationSelectionStore(defaults: defaults)
         let layout = defaults.string(forKey: Key.mainWindowLayoutStyle)
             ?? MainWindowLayoutStyle.appleMusicImmersiveV3.rawValue
         mainWindowLayoutStyleRawValue = layout
@@ -237,6 +243,106 @@ public final class AppSettingsStore: ObservableObject {
     }
 
     public var schemaVersion: Int { DatabaseMigrator.currentVersion }
+
+    /// Returns whether a catalog item can be applied to a live runtime
+    /// setting. Design-only and debug-only entries remain browseable but do
+    /// not become formal Release selections.
+    public func canApplyPresentation(
+        category: PresentationCategory,
+        stableID: String
+    ) -> Bool {
+        guard let metadata = presentationSelections.catalog.metadata(for: stableID),
+              metadata.category == category,
+              metadata.availability == .release else {
+            return false
+        }
+
+        switch category {
+        case .mainWindow:
+            return [
+                "mainWindow.lyricsFocus.v1",
+                "mainWindow.immersiveSplit.v2",
+                "mainWindow.appleMusicImmersiveV3.v3"
+            ].contains(stableID)
+        case .capsule:
+            return CapsuleLyricsPresentationVersion(rawValue: stableID) != nil
+        case .floatingLyrics:
+            return FloatingLyricsPresentationVersion(rawValue: stableID) != nil
+        case .backdrop, .lyricsTransition, .lyricsState, .progress, .responsiveLayout:
+            return true
+        case .fullscreen:
+            // The current fullscreen controller has one maintained runtime
+            // surface. Its catalog entry remains previewable, but there is no
+            // second user-selectable fullscreen implementation yet.
+            return false
+        }
+    }
+
+    /// Applies a catalog selection to the existing runtime settings. This is
+    /// the only bridge between the selection catalog and maintained runtime
+    /// settings; it does not create a second state source.
+    @discardableResult
+    public func applyPresentationSelection(
+        category: PresentationCategory,
+        stableID: String
+    ) -> Bool {
+        guard canApplyPresentation(category: category, stableID: stableID),
+              presentationSelections.apply(category: category, stableID: stableID) else {
+            return false
+        }
+
+        switch category {
+        case .mainWindow:
+            let rawValue: String
+            switch stableID {
+            case "mainWindow.lyricsFocus.v1": rawValue = MainWindowLayoutStyle.lyricsFocus.rawValue
+            case "mainWindow.immersiveSplit.v2": rawValue = MainWindowLayoutStyle.immersiveSplit.rawValue
+            default: rawValue = MainWindowLayoutStyle.appleMusicImmersiveV3.rawValue
+            }
+            mainWindowLayoutStyleRawValue = rawValue
+        case .capsule:
+            defaults.set(stableID, forKey: PresentationSelectionStore.runtimeKey(for: category))
+        case .floatingLyrics:
+            floatingLyricsPresentationRawValue = stableID
+        case .backdrop, .lyricsTransition, .lyricsState, .progress, .responsiveLayout:
+            defaults.set(stableID, forKey: PresentationSelectionStore.runtimeKey(for: category))
+        case .fullscreen:
+            break
+        }
+        return true
+    }
+
+    @discardableResult
+    public func restoreRecommendedPresentation(for category: PresentationCategory) -> String {
+        let stableID = presentationSelections.restoreRecommended(for: category)
+        guard canApplyPresentation(category: category, stableID: stableID) else {
+            return stableID
+        }
+        _ = applyRuntimePresentation(category: category, stableID: stableID)
+        return stableID
+    }
+
+    private func applyRuntimePresentation(category: PresentationCategory, stableID: String) -> Bool {
+        switch category {
+        case .mainWindow:
+            let rawValue: String
+            switch stableID {
+            case "mainWindow.lyricsFocus.v1": rawValue = MainWindowLayoutStyle.lyricsFocus.rawValue
+            case "mainWindow.immersiveSplit.v2": rawValue = MainWindowLayoutStyle.immersiveSplit.rawValue
+            case "mainWindow.appleMusicImmersiveV3.v3": rawValue = MainWindowLayoutStyle.appleMusicImmersiveV3.rawValue
+            default: return false
+            }
+            mainWindowLayoutStyleRawValue = rawValue
+        case .floatingLyrics:
+            guard FloatingLyricsPresentationVersion(rawValue: stableID) != nil else { return false }
+            floatingLyricsPresentationRawValue = stableID
+        case .capsule, .backdrop, .lyricsTransition, .lyricsState, .progress, .responsiveLayout:
+            defaults.set(stableID, forKey: PresentationSelectionStore.runtimeKey(for: category))
+        case .fullscreen:
+            return false
+        }
+        return true
+    }
 
     public func setProviderEnabled(_ id: LyricsProviderID, enabled: Bool) {
         guard !id.isLocal else { return }

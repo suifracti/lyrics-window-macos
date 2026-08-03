@@ -177,11 +177,20 @@ public enum BackdropPresentationID: String, CaseIterable, Sendable {
         }
 
         let shorthand = raw.hasPrefix("backdrop.") ? raw : "backdrop.\(raw).v1"
-        return BackdropPresentationID(rawValue: shorthand) ?? .defaultV1
+        return BackdropPresentationID(rawValue: shorthand) ?? persistedSelection
     }
 #else
-    public static let active: BackdropPresentationID = .defaultV1
+    public static var active: BackdropPresentationID { persistedSelection }
 #endif
+
+    private static var persistedSelection: BackdropPresentationID {
+        guard let raw = UserDefaults.standard.string(
+            forKey: PresentationSelectionStore.runtimeKey(for: .backdrop)
+        ), let selected = BackdropPresentationID(rawValue: raw), selected.isRunnableInPhase2_3D else {
+            return .defaultV1
+        }
+        return selected
+    }
 
     public var isRunnableInPhase2_3D: Bool {
         switch self {

@@ -214,10 +214,13 @@ final class CapsuleLyricsWindowController: NSObject, ObservableObject, NSWindowD
 
     var activePresentation: CapsuleLyricsPresentationVersion {
 #if DEBUG
-        debugPresentation ?? CapsuleLyricsPresentationVersion.current
-#else
-        CapsuleLyricsPresentationVersion.current
+        if let debugPresentation { return debugPresentation }
 #endif
+        let raw = UserDefaults.standard.string(
+            forKey: PresentationSelectionStore.runtimeKey(for: .capsule)
+        )
+        return raw.flatMap(CapsuleLyricsPresentationVersion.init(rawValue:))
+            ?? CapsuleLyricsPresentationVersion.current
     }
 
     private var isDebugTopAttachedEnvelope: Bool {
