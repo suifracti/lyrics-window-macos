@@ -148,6 +148,185 @@ public struct BackdropPalette: Equatable, Sendable {
     }
 }
 
+/// Stable, presentation-only IDs for the Phase 2.3D backdrop system.
+///
+/// These IDs do not create settings, database records, or a second artwork
+/// pipeline.  `customV1` is reserved for a future Experience Library entry;
+/// the first four presets are the only runnable presets in this phase.
+public enum BackdropPresentationID: String, CaseIterable, Sendable {
+    case defaultV1 = "backdrop.default.v1"
+    case clearV1 = "backdrop.clear.v1"
+    case immersiveV1 = "backdrop.immersive.v1"
+    case highContrastV1 = "backdrop.highContrast.v1"
+    case customV1 = "backdrop.custom.v1"
+
+    public static let defaultID: BackdropPresentationID = .defaultV1
+
+#if DEBUG
+    /// Debug-only override used by controlled visual validation. Release
+    /// builds always resolve to the default presentation.
+    public static var active: BackdropPresentationID {
+        guard let raw = ProcessInfo.processInfo.environment["SPOTIFYLYRICS_BACKDROP_PRESET"],
+              !raw.isEmpty else {
+            return .defaultV1
+        }
+
+        if let exact = BackdropPresentationID(rawValue: raw) {
+            return exact
+        }
+
+        let shorthand = raw.hasPrefix("backdrop.") ? raw : "backdrop.\(raw).v1"
+        return BackdropPresentationID(rawValue: shorthand) ?? .defaultV1
+    }
+#else
+    public static let active: BackdropPresentationID = .defaultV1
+#endif
+
+    public var isRunnableInPhase2_3D: Bool {
+        self != .customV1
+    }
+
+    public var style: BackdropPresentationStyle {
+        switch self {
+        case .defaultV1:
+            return BackdropPresentationStyle(
+                textureIntensity: LyricsDesignTokens.Backdrop.textureIntensity,
+                artworkScreenOpacity: 0.62,
+                artworkOpacity: 0.72,
+                artworkScreenBlur: 24,
+                artworkBlur: 72,
+                artworkScreenScale: 1.16,
+                artworkScale: 1.34,
+                paletteSaturation: LyricsDesignTokens.Backdrop.paletteSaturation,
+                paletteOpacity: 1.0,
+                glowIntensity: LyricsDesignTokens.Backdrop.glowIntensity,
+                lyricVeilMultiplier: LyricsDesignTokens.Backdrop.lyricVeilMultiplier,
+                minimumLyricVeil: LyricsDesignTokens.Backdrop.minimumLyricVeil,
+                vignetteIntensity: LyricsDesignTokens.Backdrop.vignetteIntensity,
+                noiseIntensity: LyricsDesignTokens.Backdrop.noiseIntensity,
+                transitionDuration: LyricsDesignTokens.Backdrop.transitionDuration,
+                outgoingTransitionDuration: LyricsDesignTokens.Backdrop.outgoingTransitionDuration
+            )
+        case .clearV1:
+            return BackdropPresentationStyle(
+                textureIntensity: 1.12,
+                artworkScreenOpacity: 0.72,
+                artworkOpacity: 0.82,
+                artworkScreenBlur: 18,
+                artworkBlur: 58,
+                artworkScreenScale: 1.12,
+                artworkScale: 1.28,
+                paletteSaturation: 0.94,
+                paletteOpacity: 0.72,
+                glowIntensity: 0.48,
+                lyricVeilMultiplier: 0.52,
+                minimumLyricVeil: 0.16,
+                vignetteIntensity: 0.28,
+                noiseIntensity: 0.022,
+                transitionDuration: 0.38,
+                outgoingTransitionDuration: 0.16
+            )
+        case .immersiveV1:
+            return BackdropPresentationStyle(
+                textureIntensity: 1.08,
+                artworkScreenOpacity: 0.68,
+                artworkOpacity: 0.80,
+                artworkScreenBlur: 28,
+                artworkBlur: 80,
+                artworkScreenScale: 1.18,
+                artworkScale: 1.38,
+                paletteSaturation: 1.0,
+                paletteOpacity: 1.08,
+                glowIntensity: 0.72,
+                lyricVeilMultiplier: 0.76,
+                minimumLyricVeil: 0.24,
+                vignetteIntensity: 0.48,
+                noiseIntensity: 0.035,
+                transitionDuration: 0.46,
+                outgoingTransitionDuration: 0.20
+            )
+        case .highContrastV1:
+            return BackdropPresentationStyle(
+                textureIntensity: 0.62,
+                artworkScreenOpacity: 0.38,
+                artworkOpacity: 0.44,
+                artworkScreenBlur: 26,
+                artworkBlur: 84,
+                artworkScreenScale: 1.16,
+                artworkScale: 1.34,
+                paletteSaturation: 0.56,
+                paletteOpacity: 0.56,
+                glowIntensity: 0.30,
+                lyricVeilMultiplier: 1.08,
+                minimumLyricVeil: 0.42,
+                vignetteIntensity: 0.56,
+                noiseIntensity: 0.012,
+                transitionDuration: 0.32,
+                outgoingTransitionDuration: 0.12
+            )
+        case .customV1:
+            // Custom is a stable future ID only. It deliberately falls back
+            // to the safe default until Experience Library editing exists.
+            return BackdropPresentationID.defaultV1.style
+        }
+    }
+}
+
+public struct BackdropPresentationStyle: Equatable, Sendable {
+    public let textureIntensity: Double
+    public let artworkScreenOpacity: Double
+    public let artworkOpacity: Double
+    public let artworkScreenBlur: Double
+    public let artworkBlur: Double
+    public let artworkScreenScale: Double
+    public let artworkScale: Double
+    public let paletteSaturation: Double
+    public let paletteOpacity: Double
+    public let glowIntensity: Double
+    public let lyricVeilMultiplier: Double
+    public let minimumLyricVeil: Double
+    public let vignetteIntensity: Double
+    public let noiseIntensity: Double
+    public let transitionDuration: Double
+    public let outgoingTransitionDuration: Double
+
+    public init(
+        textureIntensity: Double,
+        artworkScreenOpacity: Double,
+        artworkOpacity: Double,
+        artworkScreenBlur: Double,
+        artworkBlur: Double,
+        artworkScreenScale: Double,
+        artworkScale: Double,
+        paletteSaturation: Double,
+        paletteOpacity: Double,
+        glowIntensity: Double,
+        lyricVeilMultiplier: Double,
+        minimumLyricVeil: Double,
+        vignetteIntensity: Double,
+        noiseIntensity: Double,
+        transitionDuration: Double,
+        outgoingTransitionDuration: Double
+    ) {
+        self.textureIntensity = textureIntensity
+        self.artworkScreenOpacity = artworkScreenOpacity
+        self.artworkOpacity = artworkOpacity
+        self.artworkScreenBlur = artworkScreenBlur
+        self.artworkBlur = artworkBlur
+        self.artworkScreenScale = artworkScreenScale
+        self.artworkScale = artworkScale
+        self.paletteSaturation = paletteSaturation
+        self.paletteOpacity = paletteOpacity
+        self.glowIntensity = glowIntensity
+        self.lyricVeilMultiplier = lyricVeilMultiplier
+        self.minimumLyricVeil = minimumLyricVeil
+        self.vignetteIntensity = vignetteIntensity
+        self.noiseIntensity = noiseIntensity
+        self.transitionDuration = transitionDuration
+        self.outgoingTransitionDuration = outgoingTransitionDuration
+    }
+}
+
 /// Track-bound cache for the relatively expensive cover sampling step.
 ///
 /// Playback position never participates in the cache key. A new palette is

@@ -34,12 +34,18 @@ grep -q 'distance == 1 ? 0' "$window_file"
 
 grep -q 'task(id: requestKey)' "$backdrop_file"
 grep -q 'Task.detached(priority: .utility)' "$backdrop_file"
-grep -q 'blur(radius: 72)' "$backdrop_file"
 grep -q 'noiseData' "$backdrop_file"
 grep -q 'maxPixel: 320' "$backdrop_file"
-grep -q 'opacity(0.72)' "$backdrop_file"
 grep -q 'UnitPoint(x: 0.16, y: 0.52)' "$backdrop_file"
-grep -q 'Color.black.opacity(0.42)' "$backdrop_file"
+# Background parameters live in the semantic presentation style rather than
+# being duplicated as view literals. Keep the original V3 calibration values
+# as contract data while allowing the renderer to select a preset.
+grep -q 'artworkScreenBlur: 24' SpotifyLyrics/Design/BackdropPalette.swift
+grep -q 'artworkBlur: 72' SpotifyLyrics/Design/BackdropPalette.swift
+grep -q 'artworkScreenOpacity: 0.62' SpotifyLyrics/Design/BackdropPalette.swift
+grep -q 'artworkOpacity: 0.72' SpotifyLyrics/Design/BackdropPalette.swift
+grep -q 'glowIntensity: LyricsDesignTokens.Backdrop.glowIntensity' SpotifyLyrics/Design/BackdropPalette.swift
+grep -q 'lyricVeilMultiplier: LyricsDesignTokens.Backdrop.lyricVeilMultiplier' SpotifyLyrics/Design/BackdropPalette.swift
 
 # Visual calibration guardrails: keep the cover readable, keep ruby subordinate,
 # and make the unsynchronised path a plain reading surface rather than a fake
@@ -71,9 +77,9 @@ grep -q 'frame(width: 40, height: 40)' "$window_file"
 
 # V3 keeps the cached 320px artwork but exposes a second, lower-radius texture
 # layer so the cover does not collapse into a single theme-color wash.
-grep -q 'blur(radius: 24)' "$backdrop_file"
+grep -q 'blur(radius: style.artworkScreenBlur)' "$backdrop_file"
 grep -q 'blendMode(.screen)' "$backdrop_file"
-grep -q 'opacity(0.62)' "$backdrop_file"
+grep -q 'style.artworkScreenOpacity' "$backdrop_file"
 
 grep -q '.defaultSize(width: 1152, height: 720)' SpotifyLyrics/Main.swift
 

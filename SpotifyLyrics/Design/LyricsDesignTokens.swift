@@ -64,6 +64,31 @@ enum LyricsDesignTokens {
         static let mutedTextOpacity: Double = 0.46
     }
 
+    /// Semantic background tokens.  These describe the visual role of a
+    /// layer rather than exposing raw blur/opacity controls as user settings.
+    /// Preset-specific values are resolved by BackdropPresentationID.
+    enum Backdrop {
+        static let textureIntensity: Double = 1.0
+        static let paletteSaturation: Double = 0.78
+        static let glowIntensity: Double = 0.62
+        static let lyricVeilMultiplier: Double = 0.68
+        static let minimumLyricVeil: Double = 0.22
+        static let vignetteIntensity: Double = 0.42
+        static let noiseIntensity: Double = 0.035
+        static let transitionDuration: Double = 0.42
+        static let outgoingTransitionDuration: Double = 0.18
+    }
+
+    /// Surface tokens are intentionally separate from the artwork backdrop.
+    /// Materials belong to controls and utility surfaces, not to the entire
+    /// lyric canvas.
+    enum Surface {
+        static let localMaterialOpacity: Double = 0.66
+        static let localKeylineOpacity: Double = 0.12
+        static let localShadowOpacity: Double = 0.20
+        static let lyricSurfaceVeilOpacity: Double = 0.30
+    }
+
     /// Progress is intentionally a quieter visual layer than the lyric
     /// content.  Playback progress describes transport position; lyric
     /// timing is represented separately by the viewport's timing status.

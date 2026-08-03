@@ -12,10 +12,12 @@ struct AppleMusicImmersiveV3BackdropView: View {
     let track: Track
     let identity: TrackIdentity?
 
+    @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
     @State private var artworkImage: NSImage?
     @State private var outgoingArtworkImage: NSImage?
     @State private var noiseImage: NSImage?
     @State private var palette = BackdropPalette.neutral
+    @State private var accessibilityDisplayRevision = 0
 
     var body: some View {
         ZStack {
@@ -33,7 +35,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
             }
 
             // The veil is intentionally independent of playback position.
-            Color.black.opacity(max(0.22, palette.readabilityVeilOpacity * 0.68))
+            Color.black.opacity(readabilityVeilOpacity)
         }
         .ignoresSafeArea()
         .allowsHitTesting(false)
@@ -41,11 +43,79 @@ struct AppleMusicImmersiveV3BackdropView: View {
         .task(id: requestKey) {
             await loadSnapshot(for: requestKey)
         }
+        .onReceive(
+            NotificationCenter.default.publisher(
+                for: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification
+            )
+        ) { _ in
+            accessibilityDisplayRevision &+= 1
+        }
     }
 
     private var requestKey: String {
         let identityKey = identity?.stableKey ?? track.id
-        return "\(identityKey)|\(track.artworkURL?.absoluteString ?? "no-artwork")"
+        return "\(identityKey)|\(track.artworkURL?.absoluteString ?? "no-artwork")|\(debugForceNoArtwork ? "debug-no-artwork" : "artwork")"
+    }
+
+    /// Debug-only visual validation switch. It exercises the same neutral
+    /// fallback path without creating a second artwork loader or altering
+    /// production behavior.
+    private var debugForceNoArtwork: Bool {
+#if DEBUG
+        ProcessInfo.processInfo.environment["SPOTIFYLYRICS_BACKDROP_NO_ARTWORK"] == "1"
+#else
+        false
+#endif
+    }
+
+    private var presentationID: BackdropPresentationID {
+        BackdropPresentationID.active
+    }
+
+    private var presentationStyle: BackdropPresentationStyle {
+        presentationID.style
+    }
+
+    private var reduceTransparency: Bool {
+        // Referencing the revision makes the view redraw when the system
+        // accessibility display options change without reloading artwork.
+        let _ = accessibilityDisplayRevision
+        return NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
+    }
+
+    private var increaseContrast: Bool {
+        let _ = accessibilityDisplayRevision
+        return NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast
+    }
+
+    private var readabilityVeilOpacity: Double {
+        let style = presentationStyle
+        let paletteVeil = max(
+            style.minimumLyricVeil,
+            palette.readabilityVeilOpacity * style.lyricVeilMultiplier
+        )
+
+        if reduceTransparency {
+            return min(0.90, max(0.62, paletteVeil + 0.18))
+        }
+
+        if increaseContrast {
+            return min(0.88, paletteVeil + 0.14)
+        }
+
+        return min(0.82, paletteVeil)
+    }
+
+    private var artworkTransitionDuration: Double {
+        accessibilityReduceMotion
+            ? LyricsDesignTokens.Motion.reduceMotionDuration
+            : presentationStyle.transitionDuration
+    }
+
+    private var outgoingTransitionDuration: Double {
+        accessibilityReduceMotion
+            ? LyricsDesignTokens.Motion.reduceMotionDuration
+            : presentationStyle.outgoingTransitionDuration
     }
 
     private var neutralBackground: some View {
@@ -73,31 +143,40 @@ struct AppleMusicImmersiveV3BackdropView: View {
 
     @ViewBuilder
     private func artworkLayers(image: NSImage) -> some View {
+        let style = presentationStyle
+        let saturation = min(
+            1,
+            style.paletteSaturation + (increaseContrast ? 0.08 : 0)
+        )
+
         // Keep a second, lower-radius pass over the cached thumbnail so the
         // cover contributes visible texture instead of collapsing into one
         // uniformly blurred theme color.
         Image(nsImage: image)
             .resizable()
             .scaledToFill()
-            .scaleEffect(1.16)
-            .blur(radius: 24)
+            .scaleEffect(style.artworkScreenScale)
+            .blur(radius: style.artworkScreenBlur)
             .blendMode(.screen)
-            .opacity(0.62)
+            .opacity(min(1, style.artworkScreenOpacity * style.textureIntensity))
 
         Image(nsImage: image)
             .resizable()
             .scaledToFill()
-            .scaleEffect(1.34)
+            .scaleEffect(style.artworkScale)
             // The cache stores a 320px image, so a lower blur keeps cover
             // texture visible without doing full-resolution work per tick.
-            .blur(radius: 72)
-            .opacity(0.72)
+            .blur(radius: style.artworkBlur)
+            .opacity(min(1, style.artworkOpacity * style.textureIntensity))
 
         LinearGradient(
             colors: [
-                color(palette.primary).opacity(0.48),
-                color(palette.secondary).opacity(0.56),
-                color(palette.glow).opacity(0.30)
+                color(palette.primary, saturation: saturation)
+                    .opacity(min(1, 0.48 * style.paletteOpacity)),
+                color(palette.secondary, saturation: saturation)
+                    .opacity(min(1, 0.56 * style.paletteOpacity)),
+                color(palette.glow, saturation: saturation)
+                    .opacity(min(1, 0.30 * style.paletteOpacity))
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
@@ -105,7 +184,8 @@ struct AppleMusicImmersiveV3BackdropView: View {
 
         RadialGradient(
             colors: [
-                color(palette.glow).opacity(0.62),
+                color(palette.glow, saturation: saturation)
+                    .opacity(min(1, style.glowIntensity)),
                 .clear
             ],
             center: UnitPoint(x: 0.16, y: 0.52),
@@ -117,8 +197,8 @@ struct AppleMusicImmersiveV3BackdropView: View {
         LinearGradient(
             colors: [
                 .clear,
-                Color.black.opacity(0.10),
-                Color.black.opacity(0.30)
+                Color.black.opacity(min(0.24, style.lyricVeilMultiplier * 0.15)),
+                Color.black.opacity(min(0.48, style.lyricVeilMultiplier * 0.44))
             ],
             startPoint: .leading,
             endPoint: .trailing
@@ -127,7 +207,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
         RadialGradient(
             colors: [
                 .clear,
-                Color.black.opacity(0.42)
+                Color.black.opacity(min(0.72, style.vignetteIntensity))
             ],
             center: .center,
             startRadius: 150,
@@ -138,7 +218,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
             Image(nsImage: noiseImage)
                 .resizable(resizingMode: .tile)
                 .blendMode(.overlay)
-                .opacity(0.05)
+                .opacity(style.noiseIntensity)
         }
     }
 
@@ -147,6 +227,14 @@ struct AppleMusicImmersiveV3BackdropView: View {
         outgoingArtworkImage = artworkImage
         artworkImage = nil
         noiseImage = nil
+        // A track without artwork must not inherit the previous track's
+        // palette while its new snapshot is being resolved.
+        palette = .neutral
+
+        if debugForceNoArtwork {
+            outgoingArtworkImage = nil
+            return
+        }
 
         guard let artworkURL = track.artworkURL,
               let image = await ArtworkImageLoader.shared.image(for: artworkURL),
@@ -164,21 +252,31 @@ struct AppleMusicImmersiveV3BackdropView: View {
 
         let nextArtwork = NSImage(data: snapshot.artworkData)
         let nextNoise = NSImage(data: snapshot.noiseData)
-        withAnimation(.easeInOut(duration: 0.42)) {
+        withAnimation(.easeInOut(duration: artworkTransitionDuration)) {
             palette = snapshot.palette
             artworkImage = nextArtwork
             noiseImage = nextNoise
         }
 
-        try? await Task.sleep(nanoseconds: 460_000_000)
+        try? await Task.sleep(
+            nanoseconds: UInt64(outgoingTransitionDuration * 1_000_000_000)
+        )
         guard key == requestKey, !Task.isCancelled else { return }
-        withAnimation(.easeOut(duration: 0.18)) {
+        withAnimation(.easeOut(duration: outgoingTransitionDuration)) {
             outgoingArtworkImage = nil
         }
     }
 
-    private func color(_ value: BackdropColor) -> Color {
-        Color(red: value.red, green: value.green, blue: value.blue)
+    private func color(_ value: BackdropColor, saturation: Double = 1) -> Color {
+        let luminance = (value.red * 0.2126)
+            + (value.green * 0.7152)
+            + (value.blue * 0.0722)
+        let amount = min(1, max(0, saturation))
+        return Color(
+            red: luminance + (value.red - luminance) * amount,
+            green: luminance + (value.green - luminance) * amount,
+            blue: luminance + (value.blue - luminance) * amount
+        )
     }
 }
 
@@ -186,6 +284,13 @@ public struct AppleMusicImmersiveV3BackdropSnapshot: Sendable {
     public let artworkData: Data
     public let noiseData: Data
     public let palette: BackdropPalette
+
+    /// The snapshot keeps the sampled values together so V3 and fullscreen
+    /// consume the same immutable, track-bound evidence rather than deriving
+    /// their own background state.
+    public var luminance: Double { palette.luminance }
+    public var saturation: Double { palette.saturation }
+    public var readabilityVeilOpacity: Double { palette.readabilityVeilOpacity }
 
     public init(artworkData: Data, noiseData: Data, palette: BackdropPalette) {
         self.artworkData = artworkData
