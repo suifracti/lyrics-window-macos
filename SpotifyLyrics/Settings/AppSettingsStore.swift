@@ -73,6 +73,7 @@ public final class AppSettingsStore: ObservableObject {
         public static let aiTimeout = "ai.timeout"
         public static let aiAutoTranslateNewLyrics = "ai.autoTranslateNewLyrics"
         public static let aiAPIKeyConfigured = "ai.apiKeyConfigured"
+        public static let settingsCenterPresentation = "settings.centerPresentation"
     }
 
     public static let currentSettingsVersion = 1
@@ -83,6 +84,10 @@ public final class AppSettingsStore: ObservableObject {
     /// of the settings store. The selection object is metadata/selection
     /// only; it never owns a playback or lyrics runtime.
     public let presentationSelections: PresentationSelectionStore
+
+    @Published public var settingsCenterPresentationRawValue: String {
+        didSet { defaults.set(settingsCenterPresentationRawValue, forKey: Key.settingsCenterPresentation) }
+    }
 
     @Published public var mainWindowLayoutStyleRawValue: String {
         didSet { defaults.set(mainWindowLayoutStyleRawValue, forKey: Key.mainWindowLayoutStyle) }
@@ -174,6 +179,8 @@ public final class AppSettingsStore: ObservableObject {
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         self.presentationSelections = PresentationSelectionStore(defaults: defaults)
+        settingsCenterPresentationRawValue = defaults.string(forKey: Key.settingsCenterPresentation)
+            ?? SettingsCenterPresentationID.recommended.rawValue
         let layout = defaults.string(forKey: Key.mainWindowLayoutStyle)
             ?? MainWindowLayoutStyle.appleMusicImmersiveV3.rawValue
         mainWindowLayoutStyleRawValue = layout
@@ -210,6 +217,14 @@ public final class AppSettingsStore: ObservableObject {
 
     var mainWindowLayoutStyle: MainWindowLayoutStyle {
         MainWindowLayoutStyle(rawValue: mainWindowLayoutStyleRawValue) ?? .appleMusicImmersiveV3
+    }
+
+    public var settingsCenterPresentation: SettingsCenterPresentationID {
+        get {
+            SettingsCenterPresentationID(rawValue: settingsCenterPresentationRawValue)
+                ?? SettingsCenterPresentationID.recommended
+        }
+        set { settingsCenterPresentationRawValue = newValue.rawValue }
     }
 
     public var floatingWindowInteractionMode: FloatingLyricsInteractionMode {
@@ -253,8 +268,9 @@ public final class AppSettingsStore: ObservableObject {
     public var schemaVersion: Int { DatabaseMigrator.currentVersion }
 
     /// Returns whether a catalog item can be applied to a live runtime
-    /// setting. Design-only and debug-only entries remain browseable but do
-    /// not become formal Release selections.
+    /// setting. Design-only entries remain browseable but do not become
+    /// formal selections. Debug-only entries are likewise rejected by their
+    /// catalog availability; v4 is intentionally Release-capable.
     public func canApplyPresentation(
         category: PresentationCategory,
         stableID: String

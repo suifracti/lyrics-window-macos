@@ -30,6 +30,7 @@ struct CurrentSongOperationsView: View {
             header
             Divider()
             lyricsSection
+            versionStatusSection
             Divider()
             languageSection
             if !state.liveLyrics.isEmpty {
@@ -121,6 +122,54 @@ struct CurrentSongOperationsView: View {
                 .foregroundStyle(.secondary)
             }
         }
+    }
+
+    /// The current-song popover keeps the status vocabulary visible without
+    /// pretending that every status is present on the current record. The
+    /// detailed version list remains in the shared editor/history surface.
+    private var versionStatusSection: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack {
+                Label("版本状态", systemImage: "tag")
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                Spacer()
+                Text(snapshot.isLyricsNoSelection ? "本次播放不使用" : "当前使用")
+                    .font(.system(size: 11, design: .rounded))
+                    .foregroundStyle(snapshot.isLyricsNoSelection ? .orange : .secondary)
+            }
+            HStack(spacing: 6) {
+                statusChip(snapshot.isLyricsNoSelection ? "本次播放不使用" : "当前使用")
+                if let source = state.liveLyricsSource {
+                    if source == .neteaseExperimental || source == .qqExperimental {
+                        statusChip("实验")
+                    }
+                    if source == .manualImport || source == .manualCreate || source == .manualEdit || source == .automaticAlignment {
+                        statusChip("非默认")
+                    }
+                }
+                statusChip(state.liveLyricsAreSynchronized ? "已排轴" : "未排轴")
+            }
+            Menu("状态说明", systemImage: "info.circle") {
+                Text("当前使用：本次 Session 正在显示的版本")
+                Text("推荐：Provider 或本地仓库建议的版本")
+                Text("非默认：用户导入、创建、编辑或排轴版本")
+                Text("已归档：保留记录但不再作为默认候选")
+                Text("实验：实验 Provider 或实验呈现")
+                Text("锁定：不会被网络或 AI 自动覆盖")
+            }
+            .menuStyle(.borderlessButton)
+            .font(.system(size: 11, design: .rounded))
+            .foregroundStyle(.secondary)
+        }
+    }
+
+    private func statusChip(_ title: String) -> some View {
+        Text(title)
+            .font(.system(size: 10, weight: .medium, design: .rounded))
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 3)
+            .background(.quaternary.opacity(0.45), in: Capsule())
     }
 
     @ViewBuilder

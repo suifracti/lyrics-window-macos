@@ -35,6 +35,7 @@ public final class PresentationSelectionStore: ObservableObject {
             catalog: catalog
         )
         persistIfNeeded()
+        debugLog("event=init persisted=\(persistedSelections)")
     }
 
     /// The exact user value, including an unknown future ID. Keeping this
@@ -54,6 +55,17 @@ public final class PresentationSelectionStore: ObservableObject {
     public func currentStableID(for category: PresentationCategory) -> String {
         if let raw = persistedSelectedStableID(for: category), isRunnable(raw, category: category) {
             return raw
+        }
+        // An unset category keeps the catalog's current runtime choice. This
+        // is intentionally different from an explicitly unknown future ID,
+        // which falls back to the category recommendation below. It lets a
+        // recommended opt-in (currently capsule v4) coexist with the v2
+        // runtime default without silently switching existing users.
+        if persistedSelectedStableID(for: category) == nil,
+           let current = catalog.entries(for: category).first(where: {
+               $0.status == .current && isRunnable($0)
+           }) {
+            return current.stableID
         }
         return safeFallbackForUnknownID(for: category)
     }
@@ -95,16 +107,23 @@ public final class PresentationSelectionStore: ObservableObject {
             previewBaseline = persistedSelections
         }
         transientPreviewSelections[category.rawValue] = stableID
+        debugLog(
+            "event=preview category=\(category.rawValue) stableID=\(stableID) "
+                + "persisted=\(persistedSelections[category.rawValue] ?? "none") "
+                + "transient=\(transientPreviewSelections[category.rawValue] ?? "none")"
+        )
         objectWillChange.send()
         return true
     }
 
     /// Commits all currently previewed values as one UserDefaults update.
-    /// Design-only and debug-only entries cannot become formal Release user
-    /// selections. They may still be browsed by the Debug Preview Lab.
+    /// Design-only and unavailable entries cannot become formal user
+    /// selections. Debug-only entries follow their catalog availability and
+    /// are only browseable from Debug; v4 is Release-capable.
     @discardableResult
     public func applyPreview() -> Bool {
         guard !transientPreviewSelections.isEmpty else { return false }
+        debugLog("event=apply-before transient=\(transientPreviewSelections)")
         for (rawCategory, stableID) in transientPreviewSelections {
             guard let category = PresentationCategory(rawValue: rawCategory),
                   isRunnable(stableID, category: category) else {
@@ -118,6 +137,7 @@ public final class PresentationSelectionStore: ObservableObject {
         persistIfNeeded()
         transientPreviewSelections.removeAll()
         previewBaseline = nil
+        debugLog("event=apply-after persisted=\(persistedSelections)")
         objectWillChange.send()
         return true
     }
@@ -138,22 +158,33 @@ public final class PresentationSelectionStore: ObservableObject {
     /// by Preview, so cancel simply removes the overlay and restores the
     /// applied values.
     public func cancelPreview() {
+        debugLog("event=cancel-before transient=\(transientPreviewSelections) persisted=\(persistedSelections)")
         transientPreviewSelections.removeAll()
         previewBaseline = nil
         objectWillChange.send()
     }
 
-    /// Persists the category's recommended runnable entry. If the catalog's
-    /// recommendation is Debug-only (currently capsule v4), the safe current
-    /// runtime entry is used instead.
+    /// Persists the category's recommended runnable entry. If a product
+    /// recommendation is not runnable on this build, the safe current runtime
+    /// entry is used instead.
     @discardableResult
     public func restoreRecommended(for category: PresentationCategory) -> String {
-        let target = safeFallbackForUnknownID(for: category)
+        let target = catalog.entries(for: category).first(where: {
+            $0.status == .recommended && isRunnable($0)
+        })?.stableID
+            ?? safeFallbackForUnknownID(for: category)
         persistedSelections[category.rawValue] = target
         transientPreviewSelections.removeValue(forKey: category.rawValue)
         persistIfNeeded()
+        debugLog("event=restore-recommended category=\(category.rawValue) resolved=\(target) persisted=\(persistedSelections)")
         objectWillChange.send()
         return target
+    }
+
+    private func debugLog(_ message: @autoclosure () -> String) {
+#if DEBUG
+        print("[SpotifyLyrics][PresentationSelection] \(message())")
+#endif
     }
 
     private func isPreviewable(_ stableID: String, category: PresentationCategory) -> Bool {

@@ -25,6 +25,9 @@ grep -q 'selectNoLyricsVersion' "$VIEW"
 grep -q 'selectNoTranslationVersion' "$VIEW"
 grep -q 'prepareLyricsEditor\|prepareBlankLyricsEditor' "$VIEW"
 grep -q 'retryLyrics' "$VIEW"
+grep -q '版本状态' "$VIEW"
+grep -q '已归档' "$VIEW"
+grep -q '锁定' "$VIEW"
 if grep -Eq 'SQLite|Timer\(|currentTime\s*=|\.seek\(' "$VIEW"; then
   echo "FAIL: current-song view owns persistence, timers, or implicit seek" >&2
   exit 1
@@ -32,6 +35,9 @@ fi
 
 SETTINGS="$ROOT/SpotifyLyrics/Views/Settings/SettingsRootView.swift"
 grep -q '随机度（Temperature）' "$SETTINGS"
+grep -q '替换 API Key' "$SETTINGS"
+grep -q '恢复推荐设置中心' "$SETTINGS"
+grep -q 'settingsCenterPresentationRawValue' "$SETTINGS" || true
 if grep -q 'hasStoredKey = keyStore.read' "$SETTINGS"; then
   echo "FAIL: AI settings reads Keychain on ordinary page appearance" >&2
   exit 1

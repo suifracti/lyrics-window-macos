@@ -211,7 +211,9 @@ public struct PresentationCatalog: Sendable {
         // v3 exists as a frozen design/library identity, not as a separate
         // runtime renderer in the current source tree.
         entry("capsule.immersiveCompact.v3", "彩色沉浸胶囊（设计记录）", .capsule, "3", .classic, .designOnly, false, false, "仅保留设计身份；当前没有可运行 Preview Renderer。", [.capsule, .preview]),
-        entry("capsule.dynamicIslandDark.v4", "Dynamic Island Dark 胶囊", .capsule, "4", .recommended, .debugOnly, true, true, "近黑高对比岛体；Reduce Motion 下使用直接尺寸与透明度变化。", [.capsule, .preview]),
+        // v4 is Release-capable but remains opt-in: v2 stays current until
+        // the user explicitly applies v4 from the Experience Library.
+        entry("capsule.dynamicIslandDark.v4", "Dynamic Island Dark 胶囊", .capsule, "4", .recommended, .release, true, true, "近黑高对比岛体；Reduce Motion 下使用直接尺寸与透明度变化。", [.capsule, .preview]),
 
         entry("floatingLyrics.legacyPanel.v1", "桌面歌词旧面板", .floatingLyrics, "1", .archived, .release, true, true, "锁定和鼠标穿透状态必须有外部恢复入口。", [.floatingLyrics, .preview]),
         entry("floatingLyrics.transparent.v2", "透明桌面歌词", .floatingLyrics, "2", .current, .release, true, true, "透明模式不依赖背景色；相邻行仍需保持可读。", [.floatingLyrics, .preview]),

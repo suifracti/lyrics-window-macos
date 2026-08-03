@@ -25,6 +25,18 @@ struct ExperienceLibraryContract {
             catalog.metadata(for: "capsule.immersiveCompact.v3")?.isPreviewable == false,
             "design-only capsule must not claim runnable preview"
         )
+        require(
+            catalog.metadata(for: "capsule.controlFocused.v2")?.status == .current,
+            "control-focused v2 must remain the current capsule"
+        )
+        require(
+            catalog.metadata(for: "capsule.dynamicIslandDark.v4")?.availability == .release,
+            "dynamic-island dark v4 must be Release-capable"
+        )
+        require(
+            catalog.metadata(for: "capsule.dynamicIslandDark.v4")?.status == .recommended,
+            "dynamic-island dark v4 must remain the recommended capsule"
+        )
 
         let mainIDs = [
             "mainWindow.lyricsFocus.v1",

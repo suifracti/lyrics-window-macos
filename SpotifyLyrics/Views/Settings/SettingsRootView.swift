@@ -32,22 +32,52 @@ struct SettingsRootView: View {
     @State private var selection: SettingsCategory = .general
 
     var body: some View {
+        Group {
+            switch settings.settingsCenterPresentation {
+            case .classicNavigationV1:
+                settingsShell(includeExperienceLibrary: false, title: "经典设置")
+            case .experienceIntegratedV2:
+                settingsShell(includeExperienceLibrary: true, title: "设置")
+            }
+        }
+        .frame(minWidth: 780, idealWidth: 860, minHeight: 500, idealHeight: 580)
+        .preferredColorScheme(.dark)
+        .background(SettingsWindowBehavior())
+    }
+
+    @ViewBuilder
+    private func settingsShell(includeExperienceLibrary: Bool, title: String) -> some View {
         NavigationSplitView {
-            List(SettingsCategory.allCases, selection: $selection) { category in
-                Label(category.rawValue, systemImage: category.systemImage)
-                    .tag(category)
+            List(selection: $selection) {
+                ForEach(SettingsCategory.allCases.filter { includeExperienceLibrary || $0 != .experienceLibrary }) { category in
+                    Label(category.rawValue, systemImage: category.systemImage)
+                        .tag(category)
+                }
+                if !includeExperienceLibrary {
+                    Section {
+                        Button {
+                            settings.settingsCenterPresentation = .experienceIntegratedV2
+                        } label: {
+                            Label("恢复推荐设置中心", systemImage: "arrow.uturn.backward.circle")
+                        }
+                        .buttonStyle(.borderless)
+                        .help("返回带体验版本库的推荐设置中心")
+                    }
+                }
             }
             .listStyle(.sidebar)
-            .navigationTitle("设置")
-            .accessibilityIdentifier(SettingsCenterPresentationID.current.rawValue)
+            .navigationTitle(title)
+            .accessibilityIdentifier(settings.settingsCenterPresentation.rawValue)
             .frame(minWidth: 180)
         } detail: {
             SettingsDetailView(category: selection)
                 .environmentObject(settings)
         }
-        .frame(minWidth: 780, idealWidth: 860, minHeight: 500, idealHeight: 580)
-        .preferredColorScheme(.dark)
-        .background(SettingsWindowBehavior())
+        .onAppear {
+            if !includeExperienceLibrary, selection == .experienceLibrary {
+                selection = .general
+            }
+        }
     }
 }
 
@@ -435,7 +465,7 @@ private struct AISettingsView: View {
                 SecureField("API Key（只保存到 Keychain）", text: $apiKeyDraft)
                     .textFieldStyle(.roundedBorder)
                 HStack {
-                    Button("保存 API Key") {
+                    Button(hasStoredKey ? "替换 API Key" : "保存 API Key") {
                         let value = apiKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
                         guard !value.isEmpty else { return }
                         do {
@@ -459,10 +489,14 @@ private struct AISettingsView: View {
                             statusMessage = "清除失败：\(error.localizedDescription)"
                         }
                     }
-                    Text(hasStoredKey ? "Keychain 中已有 Key" : "未配置 Key")
+                    Text(hasStoredKey ? "已配置（Keychain）" : "未配置")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
+                Text("macOS 可能在首次保存、替换或清除时请求 Keychain 鉴权；仅浏览此页面不会读取 Key。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 Text("Base URL 支持已包含 /v1、完整 /v1/chat/completions 和自定义反代路径；应用不会重复拼接 /v1。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -580,6 +614,24 @@ private struct AdvancedSettingsView: View {
                     .foregroundStyle(.secondary)
             }
 
+            Section("设置中心") {
+                Picker("设置中心版本", selection: settingsCenterPresentationBinding) {
+                    Text("体验版本库集成（推荐）")
+                        .tag(SettingsCenterPresentationID.experienceIntegratedV2.rawValue)
+                    Text("经典导航")
+                        .tag(SettingsCenterPresentationID.classicNavigationV1.rawValue)
+                }
+                Text("两个设置中心共用同一份设置和 Keychain；切换不会删除体验版本库或重置已有设置。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if settings.settingsCenterPresentation == .classicNavigationV1 {
+                    Button("恢复推荐设置中心", systemImage: "arrow.uturn.backward.circle") {
+                        settings.settingsCenterPresentation = .experienceIntegratedV2
+                    }
+                }
+            }
+
             Section("Migration v2 规划") {
                 Text("当前数据库为 v1。历史 URI/ID stableKey 重复需要先备份，再按 Spotify ID 选择 canonical Track，重定向 aliases、lyrics_versions 和 lyric_lines，并保留 locked/manuallyEdited 版本。本阶段不执行合并。")
                     .font(.caption)
@@ -588,5 +640,12 @@ private struct AdvancedSettingsView: View {
             }
         }
         .formStyle(.grouped)
+    }
+
+    private var settingsCenterPresentationBinding: Binding<String> {
+        Binding(
+            get: { settings.settingsCenterPresentationRawValue },
+            set: { settings.settingsCenterPresentationRawValue = $0 }
+        )
     }
 }

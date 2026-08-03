@@ -21,6 +21,20 @@ struct PresentationSelectionStoreContract {
             "migrated main-window selection was not current"
         )
 
+        let freshSuiteName = "presentation-selection-fresh-\(UUID().uuidString)"
+        let freshDefaults = UserDefaults(suiteName: freshSuiteName)!
+        freshDefaults.removePersistentDomain(forName: freshSuiteName)
+        defer { freshDefaults.removePersistentDomain(forName: freshSuiteName) }
+        let freshStore = PresentationSelectionStore(defaults: freshDefaults)
+        precondition(
+            freshStore.currentStableID(for: .capsule) == "capsule.controlFocused.v2",
+            "recommended capsule v4 must not replace the current v2 runtime by default"
+        )
+        precondition(
+            freshStore.recommendedStableID(for: .capsule) == "capsule.dynamicIslandDark.v4",
+            "capsule v4 must remain the recommended presentation"
+        )
+
         let persistedBeforePreview = defaults.data(forKey: PresentationSelectionStore.storageKey)
         precondition(
             store.beginPreview(category: .mainWindow, stableID: "mainWindow.lyricsFocus.v1"),
@@ -69,8 +83,12 @@ struct PresentationSelectionStoreContract {
             "design-only presentation must not be applied as a runtime preview"
         )
         precondition(
-            !unknown.apply(category: .capsule, stableID: "capsule.dynamicIslandDark.v4"),
-            "debug-only capsule must not become a Release user selection"
+            unknown.apply(category: .capsule, stableID: "capsule.dynamicIslandDark.v4"),
+            "Release-capable capsule v4 should be explicitly applicable"
+        )
+        precondition(
+            PresentationCatalog.shared.metadata(for: "capsule.dynamicIslandDark.v4")?.availability == .release,
+            "capsule v4 must be marked Release-capable"
         )
 
         precondition(
@@ -79,4 +97,5 @@ struct PresentationSelectionStoreContract {
         )
         print("presentation selection store contract: PASS")
     }
+
 }
