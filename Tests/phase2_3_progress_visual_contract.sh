@@ -16,6 +16,7 @@ require() {
 
 # Progress is a shared visual vocabulary, not a second playback source.
 require "enum Progress" "$TOKENS"
+require "smallMaxWidth" "$TOKENS"
 require "AppleMusicImmersiveV3PlaybackProgress" "$V3"
 require "AppleMusicImmersiveV3ProgressDensity" "$V3"
 require "case wide" "$V3"
@@ -28,6 +29,8 @@ require "case focus" "$V3"
 require "progressDensity: .wide" "$V3"
 require "progressDensity: .medium" "$V3"
 require "progressDensity: .small" "$V3"
+require "progressMaxWidth" "$V3"
+require "progressDensity == .small" "$V3"
 require "density: .focus" "$V3"
 require "onEditingChanged" "$V3"
 require "onHover" "$V3"

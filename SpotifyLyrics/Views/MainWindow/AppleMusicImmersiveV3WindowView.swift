@@ -276,7 +276,10 @@ struct AppleMusicImmersiveV3WindowView: View {
             AppleMusicImmersiveV3TransportControls(
                 state: state,
                 alignment: alignment,
-                progressDensity: progressDensity
+                progressDensity: progressDensity,
+                progressMaxWidth: progressDensity == .small
+                    ? min(width, LyricsDesignTokens.Progress.smallMaxWidth)
+                    : nil
             )
             .frame(maxWidth: width, alignment: alignment == .center ? .center : .leading)
         }
@@ -556,6 +559,7 @@ private enum AppleMusicImmersiveV3ProgressDensity: Equatable {
 private struct AppleMusicImmersiveV3PlaybackProgress: View {
     @ObservedObject var state: PlaybackState
     let density: AppleMusicImmersiveV3ProgressDensity
+    let maxWidth: CGFloat?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var isHovered = false
@@ -639,7 +643,7 @@ private struct AppleMusicImmersiveV3PlaybackProgress: View {
             width: density.isFocus ? LyricsDesignTokens.Progress.focusWidth : nil,
             height: density.containerHeight
         )
-        .frame(maxWidth: density.isFocus ? nil : .infinity)
+        .frame(maxWidth: density.isFocus ? nil : (maxWidth ?? .infinity))
         .animation(
             LyricsDesignTokens.Motion.animation(reduceMotion: reduceMotion, duration: 0.14),
             value: isEmphasized
@@ -663,12 +667,14 @@ private struct AppleMusicImmersiveV3TransportControls: View {
     @ObservedObject var state: PlaybackState
     let alignment: HorizontalAlignment
     let progressDensity: AppleMusicImmersiveV3ProgressDensity
+    let progressMaxWidth: CGFloat?
 
     var body: some View {
         VStack(alignment: alignment, spacing: LyricsDesignTokens.Spacing.sm + 1) {
             AppleMusicImmersiveV3PlaybackProgress(
                 state: state,
-                density: progressDensity
+                density: progressDensity,
+                maxWidth: progressMaxWidth
             )
 
             HStack(spacing: LyricsDesignTokens.Spacing.md + 2) {
@@ -753,7 +759,8 @@ private struct AppleMusicImmersiveV3FocusTransportControls: View {
 
             AppleMusicImmersiveV3PlaybackProgress(
                 state: state,
-                density: .focus
+                density: .focus,
+                maxWidth: nil
             )
 
             Text("\(formatTime(state.currentTime)) / \(formatTime(state.currentTrack.duration))")

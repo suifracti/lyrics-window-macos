@@ -78,6 +78,8 @@ enum LyricsDesignTokens {
         static let thumbSize: CGFloat = 8
         static let hoverThumbSize: CGFloat = 10
         static let focusWidth: CGFloat = 132
+        /// Small-window transport stays compact instead of spanning the full canvas.
+        static let smallMaxWidth: CGFloat = 280
     }
 
     enum Shadow {
