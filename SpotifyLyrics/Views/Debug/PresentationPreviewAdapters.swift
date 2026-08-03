@@ -1,4 +1,3 @@
-#if DEBUG
 import SwiftUI
 
 /// Read-only adapters for the Preview Lab.  They render the visual grammar of
@@ -798,4 +797,3 @@ private func formatTime(_ seconds: Double) -> String {
     let value = max(0, Int(seconds.rounded(.down)))
     return String(format: "%d:%02d", value / 60, value % 60)
 }
-#endif

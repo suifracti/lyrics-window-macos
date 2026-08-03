@@ -126,7 +126,9 @@ final class CapsuleLyricsWindowController: NSObject, ObservableObject, NSWindowD
     func hide() {
         hoverCollapseTask?.cancel()
         removeOutsideClickMonitors()
+#if DEBUG
         removeDebugMouseMonitors()
+#endif
         savePosition()
         panel?.ignoresMouseEvents = false
         panel?.orderOut(nil)
@@ -143,7 +145,9 @@ final class CapsuleLyricsWindowController: NSObject, ObservableObject, NSWindowD
         guard isVisible else { return }
         cancelHoverCollapse()
         removeOutsideClickMonitors()
+#if DEBUG
         removeDebugMouseMonitors()
+#endif
         panel?.ignoresMouseEvents = false
         panel?.orderOut(nil)
         isVisible = false

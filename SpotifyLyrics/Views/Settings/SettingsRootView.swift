@@ -8,6 +8,7 @@ private enum SettingsCategory: String, CaseIterable, Identifiable {
     case lyricsSources = "歌词来源"
     case data = "数据与存储"
     case ai = "AI"
+    case experienceLibrary = "体验版本库"
     case advanced = "高级"
 
     var id: String { rawValue }
@@ -20,6 +21,7 @@ private enum SettingsCategory: String, CaseIterable, Identifiable {
         case .lyricsSources: return "books.vertical"
         case .data: return "externaldrive"
         case .ai: return "sparkles"
+        case .experienceLibrary: return "rectangle.on.rectangle"
         case .advanced: return "wrench.and.screwdriver"
         }
     }
@@ -37,6 +39,7 @@ struct SettingsRootView: View {
             }
             .listStyle(.sidebar)
             .navigationTitle("设置")
+            .accessibilityIdentifier(SettingsCenterPresentationID.current.rawValue)
             .frame(minWidth: 180)
         } detail: {
             SettingsDetailView(category: selection)
@@ -49,6 +52,7 @@ struct SettingsRootView: View {
 }
 
 private struct SettingsDetailView: View {
+    @EnvironmentObject private var settings: AppSettingsStore
     let category: SettingsCategory
 
     var body: some View {
@@ -60,6 +64,7 @@ private struct SettingsDetailView: View {
             case .lyricsSources: LyricsSourcesSettingsView()
             case .data: DataSettingsView()
             case .ai: AISettingsView()
+            case .experienceLibrary: ExperienceLibrarySettingsView(selectionStore: settings.presentationSelections)
             case .advanced: AdvancedSettingsView()
             }
         }

@@ -136,6 +136,8 @@
 		110000F52D83400100000001 /* PresentationPreviewAdapters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F52D83400100000000 /* PresentationPreviewAdapters.swift */; };
 		110000F62D83400100000001 /* PresentationPreviewRendererRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F62D83400100000000 /* PresentationPreviewRendererRegistry.swift */; };
 		110000F72D83400100000001 /* PresentationSelectionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F72D83400100000000 /* PresentationSelectionStore.swift */; };
+		110000F82D83400100000001 /* ExperienceLibrarySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F82D83400100000000 /* ExperienceLibrarySettingsView.swift */; };
+		110000F92D83400100000001 /* SettingsCenterPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F92D83400100000000 /* SettingsCenterPresentation.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -270,6 +272,8 @@
 		110000F52D83400100000000 /* PresentationPreviewAdapters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Debug/PresentationPreviewAdapters.swift; sourceTree = "<group>"; };
 		110000F62D83400100000000 /* PresentationPreviewRendererRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentationPreviewRendererRegistry.swift; sourceTree = "<group>"; };
 		110000F72D83400100000000 /* PresentationSelectionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentationSelectionStore.swift; sourceTree = "<group>"; };
+		110000F82D83400100000000 /* ExperienceLibrarySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExperienceLibrarySettingsView.swift; sourceTree = "<group>"; };
+		110000F92D83400100000000 /* SettingsCenterPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsCenterPresentation.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -366,6 +370,7 @@
 			isa = PBXGroup;
 			children = (
 				110000612D83400100000000 /* SettingsRootView.swift */,
+				110000F82D83400100000000 /* ExperienceLibrarySettingsView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -411,6 +416,7 @@
 				110000F02D83400100000000 /* PresentationCatalog.swift */,
 				110000F62D83400100000000 /* PresentationPreviewRendererRegistry.swift */,
 				110000F72D83400100000000 /* PresentationSelectionStore.swift */,
+				110000F92D83400100000000 /* SettingsCenterPresentation.swift */,
 				1100001B2D83400100000000 /* BackdropPalette.swift */,
 				1100001C2D83400100000000 /* MainWindowLayoutStyle.swift */,
 			);
@@ -629,6 +635,8 @@
 				110000F02D83400100000001 /* PresentationCatalog.swift in Sources */,
 				110000F62D83400100000001 /* PresentationPreviewRendererRegistry.swift in Sources */,
 				110000F72D83400100000001 /* PresentationSelectionStore.swift in Sources */,
+				110000F82D83400100000001 /* ExperienceLibrarySettingsView.swift in Sources */,
+				110000F92D83400100000001 /* SettingsCenterPresentation.swift in Sources */,
 				1100000D2D83400100000001 /* PlaybackProvider.swift in Sources */,
 				1100000E2D83400100000001 /* SpotifyDesktopProvider.swift in Sources */,
 				1100000F2D83400100000001 /* MockPlaybackProvider.swift in Sources */,
