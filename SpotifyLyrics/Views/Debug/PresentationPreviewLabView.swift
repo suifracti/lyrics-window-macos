@@ -2,9 +2,8 @@
 import SwiftUI
 import AppKit
 
-/// Debug-only, read-only catalog browser.  The Lab renders a generic snapshot
-/// card rather than replacing any existing surface renderer; its purpose in
-/// Phase 2.3G is to compare metadata and shared snapshot wiring safely.
+/// Debug-only, read-only catalog browser.  Each card is rendered by the
+/// category/stable-ID adapter registry against one immutable snapshot.
 struct PresentationPreviewLabView: View {
     @EnvironmentObject private var playbackState: PlaybackState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -16,6 +15,7 @@ struct PresentationPreviewLabView: View {
     @State private var comparedStableID: String?
     @State private var source: PresentationPreviewSource = .mock
     @State private var compareEnabled = true
+    @State private var capsulePreviewState: PresentationPreviewCapsuleState = .expanded
 
     private var categoryEntries: [PresentationMetadata] {
         catalog.entries(for: selectedCategory)
@@ -40,9 +40,10 @@ struct PresentationPreviewLabView: View {
     }
 
     private var previewContext: PresentationPreviewContext? {
+        let base: PresentationPreviewContext?
         switch source {
         case .mock:
-            return .mock(
+            base = .mock(
                 surface: .preview,
                 windowSize: PresentationPreviewSize(width: 1_060, height: 680),
                 reduceMotion: reduceMotion,
@@ -51,12 +52,13 @@ struct PresentationPreviewLabView: View {
             )
         case .live:
             guard playbackState.hasLiveTrack else { return nil }
-            return PresentationPreviewContextFactory.live(
+            base = PresentationPreviewContextFactory.live(
                 from: playbackState,
                 surface: .preview,
                 windowSize: PresentationPreviewSize(width: 1_060, height: 680)
             )
         }
+        return base?.with(capsuleState: capsulePreviewState)
     }
 
     var body: some View {
@@ -115,6 +117,31 @@ struct PresentationPreviewLabView: View {
 
                 Toggle("A/B 对照", isOn: $compareEnabled)
                     .toggleStyle(.checkbox)
+
+                if compareEnabled {
+                    Picker(
+                        "对照版本",
+                        selection: Binding(
+                            get: { comparedStableID ?? selectedEntry.stableID },
+                            set: { comparedStableID = $0 }
+                        )
+                    ) {
+                        ForEach(categoryEntries.filter { $0.stableID != selectedEntry.stableID }) { entry in
+                            Text("B · \(entry.displayName)").tag(entry.stableID)
+                        }
+                    }
+                    .frame(width: 220)
+                }
+
+                if selectedCategory == .capsule {
+                    Picker("胶囊状态", selection: $capsulePreviewState) {
+                        ForEach(PresentationPreviewCapsuleState.allCases, id: \.self) { state in
+                            Text(state.displayName).tag(state)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 260)
+                }
 
                 Spacer()
             }
@@ -193,63 +220,9 @@ struct PresentationPreviewLabView: View {
                     .foregroundStyle(.tertiary)
             }
 
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(spacing: 10) {
-                    Image(systemName: context.track.artworkName)
-                        .font(.system(size: 20, weight: .semibold))
-                        .frame(width: 42, height: 42)
-                        .background(Color.white.opacity(0.09), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(context.track.title)
-                            .font(.system(size: 15, weight: .semibold))
-                            .lineLimit(1)
-                        Text(context.track.artist)
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.64))
-                            .lineLimit(1)
-                    }
-                }
-
-                Divider().opacity(0.25)
-
-                if let current = context.currentLineIndex,
-                   context.lyrics.indices.contains(current) {
-                    Text(context.lyrics[current].originalText)
-                        .font(.system(size: 22, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white)
-                        .lineLimit(2)
-                    if context.showTranslation,
-                       let translation = context.lyrics[current].translationText,
-                       !translation.isEmpty {
-                        Text(translation)
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.62))
-                            .lineLimit(1)
-                    }
-                    if context.showRomaji,
-                       let romaji = context.lyrics[current].romajiText,
-                       !romaji.isEmpty {
-                        Text(romaji)
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.48))
-                            .lineLimit(1)
-                    }
-                } else {
-                    Text(context.lyricsState.displayName)
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.82))
-                }
-            }
-            .padding(16)
-            .frame(maxWidth: .infinity, minHeight: 220, alignment: .topLeading)
-            .background(
-                LinearGradient(
-                    colors: [Color.black.opacity(0.74), Color.indigo.opacity(0.28)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                ),
-                in: RoundedRectangle(cornerRadius: 18, style: .continuous)
-            )
+            PresentationPreviewAdapterView(entry: entry, context: context)
+                .frame(maxWidth: .infinity, minHeight: 250, maxHeight: 330)
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
 
             VStack(alignment: .leading, spacing: 3) {
                 Text("Snapshot: \(context.snapshotKey)")

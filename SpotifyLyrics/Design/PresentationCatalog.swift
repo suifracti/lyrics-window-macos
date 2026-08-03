@@ -210,8 +210,8 @@ public struct PresentationCatalog: Sendable {
         entry("capsule.controlFocused.v2", "控制器胶囊", .capsule, "2", .current, .release, true, true, "控制图标需要保持清晰；不以颜色传达唯一状态。", [.capsule, .preview]),
         // v3 exists as a frozen design/library identity, not as a separate
         // runtime renderer in the current source tree.
-        entry("capsule.immersiveCompact.v3", "彩色沉浸胶囊（设计记录）", .capsule, "3", .classic, .designOnly, false, true, "仅用于未来 Experience Library 的 mock 对照。", [.capsule, .preview]),
-        entry("capsule.dynamicIslandDark.v4", "Dynamic Island Dark 胶囊", .capsule, "4", .experimental, .debugOnly, true, true, "近黑高对比岛体；Reduce Motion 下使用直接尺寸与透明度变化。", [.capsule, .preview]),
+        entry("capsule.immersiveCompact.v3", "彩色沉浸胶囊（设计记录）", .capsule, "3", .classic, .designOnly, false, false, "仅保留设计身份；当前没有可运行 Preview Renderer。", [.capsule, .preview]),
+        entry("capsule.dynamicIslandDark.v4", "Dynamic Island Dark 胶囊", .capsule, "4", .recommended, .debugOnly, true, true, "近黑高对比岛体；Reduce Motion 下使用直接尺寸与透明度变化。", [.capsule, .preview]),
 
         entry("floatingLyrics.legacyPanel.v1", "桌面歌词旧面板", .floatingLyrics, "1", .archived, .release, true, true, "锁定和鼠标穿透状态必须有外部恢复入口。", [.floatingLyrics, .preview]),
         entry("floatingLyrics.transparent.v2", "透明桌面歌词", .floatingLyrics, "2", .current, .release, true, true, "透明模式不依赖背景色；相邻行仍需保持可读。", [.floatingLyrics, .preview]),
@@ -221,7 +221,7 @@ public struct PresentationCatalog: Sendable {
         entry("backdrop.clear.v1", "清透背景", .backdrop, "1", .classic, .release, true, true, "降低纹理和饱和度；保持稳定歌词暗幕。", [.mainWindow, .fullscreen, .preview]),
         entry("backdrop.immersive.v1", "沉浸背景", .backdrop, "1", .experimental, .release, true, true, "增强封面纹理和局部柔光；不牺牲文字可读性。", [.mainWindow, .fullscreen, .preview]),
         entry("backdrop.highContrast.v1", "高对比背景", .backdrop, "1", .classic, .release, true, true, "增强暗幕和文字对比，适合复杂封面。", [.mainWindow, .fullscreen, .preview]),
-        entry("backdrop.custom.v1", "自定义背景（预留）", .backdrop, "1", .experimental, .designOnly, false, true, "尚无用户参数编辑器；仅保留目录身份。", [.mainWindow, .fullscreen, .preview]),
+        entry("backdrop.custom.v1", "自定义背景（预留）", .backdrop, "1", .experimental, .designOnly, false, false, "尚无用户参数编辑器和可运行 Preview Renderer；仅保留目录身份。", [.mainWindow, .fullscreen, .preview]),
 
         entry("lyricsTransition.system.v1", "系统歌词过渡", .lyricsTransition, "1", .classic, .release, true, true, "Reduce Motion 下不使用弹簧和明显位移。", [.mainWindow, .fullscreen, .floatingLyrics, .capsule, .preview]),
         entry("lyricsTransition.smoothRelayout.v1", "平滑重排", .lyricsTransition, "1", .recommended, .release, true, true, "以行容器稳定 ID 进行布局变化，不由播放 tick 驱动。", [.mainWindow, .fullscreen, .floatingLyrics, .capsule, .preview]),

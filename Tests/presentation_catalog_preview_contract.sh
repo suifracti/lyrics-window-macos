@@ -13,6 +13,7 @@ swiftc -parse-as-library \
   "$ROOT/SpotifyLyrics/Design/PresentationCatalog.swift" \
   "$ROOT/SpotifyLyrics/Design/PresentationPreviewContext.swift" \
   "$ROOT/SpotifyLyrics/Design/PresentationPreviewEngine.swift" \
+  "$ROOT/SpotifyLyrics/Design/PresentationPreviewRendererRegistry.swift" \
   "$ROOT/Tests/presentation_catalog_preview_contract.swift" \
   -o "$TMP_DIR/presentation-catalog-preview-contract"
 

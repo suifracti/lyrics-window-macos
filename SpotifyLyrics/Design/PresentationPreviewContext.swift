@@ -5,6 +5,20 @@ public enum PresentationPreviewSource: String, CaseIterable, Sendable {
     case mock
 }
 
+public enum PresentationPreviewCapsuleState: String, CaseIterable, Sendable {
+    case collapsed
+    case hover
+    case expanded
+
+    public var displayName: String {
+        switch self {
+        case .collapsed: return "Collapsed"
+        case .hover: return "Hover"
+        case .expanded: return "Expanded"
+        }
+    }
+}
+
 public enum PresentationPreviewLyricsState: String, CaseIterable, Sendable {
     case idle
     case loading
@@ -84,6 +98,7 @@ public struct PresentationPreviewContext: Equatable, Sendable {
     public let increaseContrast: Bool
     public let windowSize: PresentationPreviewSize
     public let surface: PresentationSurface
+    public let capsuleState: PresentationPreviewCapsuleState
 
     public init(
         source: PresentationPreviewSource,
@@ -106,7 +121,8 @@ public struct PresentationPreviewContext: Equatable, Sendable {
         reduceTransparency: Bool,
         increaseContrast: Bool,
         windowSize: PresentationPreviewSize,
-        surface: PresentationSurface
+        surface: PresentationSurface,
+        capsuleState: PresentationPreviewCapsuleState = .expanded
     ) {
         self.source = source
         self.trackIdentity = trackIdentity
@@ -129,6 +145,7 @@ public struct PresentationPreviewContext: Equatable, Sendable {
         self.increaseContrast = increaseContrast
         self.windowSize = windowSize
         self.surface = surface
+        self.capsuleState = capsuleState
     }
 
     /// Stable enough for an A/B preview comparison.  It intentionally uses
@@ -144,7 +161,8 @@ public struct PresentationPreviewContext: Equatable, Sendable {
         windowSize: PresentationPreviewSize = PresentationPreviewSize(width: 960, height: 640),
         reduceMotion: Bool = false,
         reduceTransparency: Bool = false,
-        increaseContrast: Bool = false
+        increaseContrast: Bool = false,
+        capsuleState: PresentationPreviewCapsuleState = .expanded
     ) -> PresentationPreviewContext {
         let track = Track(
             id: "presentation-preview-track",
@@ -182,7 +200,35 @@ public struct PresentationPreviewContext: Equatable, Sendable {
             reduceTransparency: reduceTransparency,
             increaseContrast: increaseContrast,
             windowSize: windowSize,
-            surface: surface
+            surface: surface,
+            capsuleState: capsuleState
+        )
+    }
+
+    public func with(capsuleState: PresentationPreviewCapsuleState) -> PresentationPreviewContext {
+        PresentationPreviewContext(
+            source: source,
+            trackIdentity: trackIdentity,
+            track: track,
+            currentTime: currentTime,
+            duration: duration,
+            isPlaying: isPlaying,
+            lyricsState: lyricsState,
+            lyricsAreSynchronized: lyricsAreSynchronized,
+            lyrics: lyrics,
+            contextLineIndices: contextLineIndices,
+            currentLineIndex: currentLineIndex,
+            showOriginal: showOriginal,
+            showTranslation: showTranslation,
+            showRomaji: showRomaji,
+            kanaDisplayMode: kanaDisplayMode,
+            hasTranslationSelection: hasTranslationSelection,
+            reduceMotion: reduceMotion,
+            reduceTransparency: reduceTransparency,
+            increaseContrast: increaseContrast,
+            windowSize: windowSize,
+            surface: surface,
+            capsuleState: capsuleState
         )
     }
 }

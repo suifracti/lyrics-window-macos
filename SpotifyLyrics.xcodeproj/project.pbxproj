@@ -133,6 +133,8 @@
 		110000F22D83400100000001 /* PresentationPreviewEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F22D83400100000000 /* PresentationPreviewEngine.swift */; };
 		110000F32D83400100000001 /* PresentationPreviewLiveFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F32D83400100000000 /* PresentationPreviewLiveFactory.swift */; };
 		110000F42D83400100000001 /* PresentationPreviewLabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F42D83400100000000 /* PresentationPreviewLabView.swift */; };
+		110000F52D83400100000001 /* PresentationPreviewAdapters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F52D83400100000000 /* PresentationPreviewAdapters.swift */; };
+		110000F62D83400100000001 /* PresentationPreviewRendererRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F62D83400100000000 /* PresentationPreviewRendererRegistry.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -264,6 +266,8 @@
 		110000F22D83400100000000 /* PresentationPreviewEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentationPreviewEngine.swift; sourceTree = "<group>"; };
 		110000F32D83400100000000 /* PresentationPreviewLiveFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentationPreviewLiveFactory.swift; sourceTree = "<group>"; };
 		110000F42D83400100000000 /* PresentationPreviewLabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Debug/PresentationPreviewLabView.swift; sourceTree = "<group>"; };
+		110000F52D83400100000000 /* PresentationPreviewAdapters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Debug/PresentationPreviewAdapters.swift; sourceTree = "<group>"; };
+		110000F62D83400100000000 /* PresentationPreviewRendererRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentationPreviewRendererRegistry.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -303,6 +307,7 @@
 				1100007B2D83400100000000 /* CapsuleLyricsWindowPersistence.swift */,
 				1100007C2D83400100000000 /* CapsuleLyricsWindowController.swift */,
 				110000F42D83400100000000 /* PresentationPreviewLabView.swift */,
+				110000F52D83400100000000 /* PresentationPreviewAdapters.swift */,
 				110000002D83400000000024 /* Providers */,
 				110000002D83400000000025 /* Lyrics */,
 				110000002D83400000000026 /* Search */,
@@ -402,6 +407,7 @@
 				110000F22D83400100000000 /* PresentationPreviewEngine.swift */,
 				110000F12D83400100000000 /* PresentationPreviewContext.swift */,
 				110000F02D83400100000000 /* PresentationCatalog.swift */,
+				110000F62D83400100000000 /* PresentationPreviewRendererRegistry.swift */,
 				1100001B2D83400100000000 /* BackdropPalette.swift */,
 				1100001C2D83400100000000 /* MainWindowLayoutStyle.swift */,
 			);
@@ -618,6 +624,7 @@
 				110000F22D83400100000001 /* PresentationPreviewEngine.swift in Sources */,
 				110000F12D83400100000001 /* PresentationPreviewContext.swift in Sources */,
 				110000F02D83400100000001 /* PresentationCatalog.swift in Sources */,
+				110000F62D83400100000001 /* PresentationPreviewRendererRegistry.swift in Sources */,
 				1100000D2D83400100000001 /* PlaybackProvider.swift in Sources */,
 				1100000E2D83400100000001 /* SpotifyDesktopProvider.swift in Sources */,
 				1100000F2D83400100000001 /* MockPlaybackProvider.swift in Sources */,
@@ -712,6 +719,7 @@
 				110000E32D83400100000001 /* AlignmentSessionGuard.swift in Sources */,
 				110000E42D83400100000001 /* AlignmentPreviewView.swift in Sources */,
 				110000F42D83400100000001 /* PresentationPreviewLabView.swift in Sources */,
+				110000F52D83400100000001 /* PresentationPreviewAdapters.swift in Sources */,
 				110000732D83400100000001 /* FloatingLyricsPresentation.swift in Sources */,
 				110000742D83400100000001 /* FloatingLyricsStatusView.swift in Sources */,
 				110000752D83400100000001 /* FloatingLyricsView.swift in Sources */,

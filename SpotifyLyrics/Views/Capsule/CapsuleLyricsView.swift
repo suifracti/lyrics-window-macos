@@ -819,7 +819,7 @@ struct CapsuleLyricsView: View {
 /// corner radius keeps the island from reading as a flat rectangle while the
 /// bottom uses a deeper continuous curve. Non-debug presentations use the
 /// same type with `topAttached == false`, preserving their existing shell.
-private struct CapsuleV4ShellShape: Shape {
+struct CapsuleV4ShellShape: Shape {
     let cornerRadius: CGFloat
     let topAttached: Bool
     let topAttachedCornerRadius: CGFloat
