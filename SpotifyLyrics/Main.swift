@@ -51,6 +51,15 @@ struct SpotifyLyricsApp: App {
         }
         .defaultSize(width: 1100, height: 720)
 
+#if DEBUG
+        Window("Presentation Preview Lab", id: "presentation-preview-lab") {
+            PresentationPreviewLabView()
+                .environmentObject(playbackState)
+                .environmentObject(appSettings)
+        }
+        .defaultSize(width: 1_060, height: 680)
+#endif
+
         Settings {
             SettingsRootView()
                 .environmentObject(appSettings)
@@ -135,6 +144,11 @@ struct SpotifyLyricsApp: App {
             }
 #endif
         }
+#if DEBUG
+        .commands {
+            PresentationPreviewCommands()
+        }
+#endif
     }
 
 #if DEBUG
@@ -156,3 +170,18 @@ struct SpotifyLyricsApp: App {
     }
 #endif
 }
+
+#if DEBUG
+private struct PresentationPreviewCommands: Commands {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some Commands {
+        CommandMenu("预览实验室") {
+            Button("打开 Presentation Preview Lab") {
+                openWindow(id: "presentation-preview-lab")
+            }
+            .keyboardShortcut("p", modifiers: [.command, .option])
+        }
+    }
+}
+#endif

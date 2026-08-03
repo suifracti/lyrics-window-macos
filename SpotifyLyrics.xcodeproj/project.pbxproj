@@ -128,6 +128,11 @@
 		110000872D83400100000001 /* FullScreenLyricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000872D83400100000000 /* FullScreenLyricsView.swift */; };
 		110000882D83400100000001 /* LyricsLanguageGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000882D83400100000000 /* LyricsLanguageGate.swift */; };
 		110000892D83400100000001 /* DebugDatabaseSafety.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000892D83400100000000 /* DebugDatabaseSafety.swift */; };
+		110000F02D83400100000001 /* PresentationCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F02D83400100000000 /* PresentationCatalog.swift */; };
+		110000F12D83400100000001 /* PresentationPreviewContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F12D83400100000000 /* PresentationPreviewContext.swift */; };
+		110000F22D83400100000001 /* PresentationPreviewEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F22D83400100000000 /* PresentationPreviewEngine.swift */; };
+		110000F32D83400100000001 /* PresentationPreviewLiveFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F32D83400100000000 /* PresentationPreviewLiveFactory.swift */; };
+		110000F42D83400100000001 /* PresentationPreviewLabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F42D83400100000000 /* PresentationPreviewLabView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -254,6 +259,11 @@
 		110000872D83400100000000 /* FullScreenLyricsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullScreenLyricsView.swift; sourceTree = "<group>"; };
 		110000882D83400100000000 /* LyricsLanguageGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsLanguageGate.swift; sourceTree = "<group>"; };
 		110000892D83400100000000 /* DebugDatabaseSafety.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugDatabaseSafety.swift; sourceTree = "<group>"; };
+		110000F02D83400100000000 /* PresentationCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentationCatalog.swift; sourceTree = "<group>"; };
+		110000F12D83400100000000 /* PresentationPreviewContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentationPreviewContext.swift; sourceTree = "<group>"; };
+		110000F22D83400100000000 /* PresentationPreviewEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentationPreviewEngine.swift; sourceTree = "<group>"; };
+		110000F32D83400100000000 /* PresentationPreviewLiveFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentationPreviewLiveFactory.swift; sourceTree = "<group>"; };
+		110000F42D83400100000000 /* PresentationPreviewLabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Debug/PresentationPreviewLabView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -292,6 +302,7 @@
 				1100007A2D83400100000000 /* CapsuleLyricsView.swift */,
 				1100007B2D83400100000000 /* CapsuleLyricsWindowPersistence.swift */,
 				1100007C2D83400100000000 /* CapsuleLyricsWindowController.swift */,
+				110000F42D83400100000000 /* PresentationPreviewLabView.swift */,
 				110000002D83400000000024 /* Providers */,
 				110000002D83400000000025 /* Lyrics */,
 				110000002D83400000000026 /* Search */,
@@ -387,6 +398,10 @@
 			isa = PBXGroup;
 			children = (
 				1100000C2D83400100000000 /* LyricsDesignTokens.swift */,
+				110000F32D83400100000000 /* PresentationPreviewLiveFactory.swift */,
+				110000F22D83400100000000 /* PresentationPreviewEngine.swift */,
+				110000F12D83400100000000 /* PresentationPreviewContext.swift */,
+				110000F02D83400100000000 /* PresentationCatalog.swift */,
 				1100001B2D83400100000000 /* BackdropPalette.swift */,
 				1100001C2D83400100000000 /* MainWindowLayoutStyle.swift */,
 			);
@@ -599,6 +614,10 @@
 				1100000A2D83400100000001 /* TrackHeaderView.swift in Sources */,
 				1100000B2D83400100000001 /* LyricsPreferencesPopover.swift in Sources */,
 				1100000C2D83400100000001 /* LyricsDesignTokens.swift in Sources */,
+				110000F32D83400100000001 /* PresentationPreviewLiveFactory.swift in Sources */,
+				110000F22D83400100000001 /* PresentationPreviewEngine.swift in Sources */,
+				110000F12D83400100000001 /* PresentationPreviewContext.swift in Sources */,
+				110000F02D83400100000001 /* PresentationCatalog.swift in Sources */,
 				1100000D2D83400100000001 /* PlaybackProvider.swift in Sources */,
 				1100000E2D83400100000001 /* SpotifyDesktopProvider.swift in Sources */,
 				1100000F2D83400100000001 /* MockPlaybackProvider.swift in Sources */,
@@ -692,6 +711,7 @@
 				110000E22D83400100000001 /* AlignmentProvenanceStore.swift in Sources */,
 				110000E32D83400100000001 /* AlignmentSessionGuard.swift in Sources */,
 				110000E42D83400100000001 /* AlignmentPreviewView.swift in Sources */,
+				110000F42D83400100000001 /* PresentationPreviewLabView.swift in Sources */,
 				110000732D83400100000001 /* FloatingLyricsPresentation.swift in Sources */,
 				110000742D83400100000001 /* FloatingLyricsStatusView.swift in Sources */,
 				110000752D83400100000001 /* FloatingLyricsView.swift in Sources */,
