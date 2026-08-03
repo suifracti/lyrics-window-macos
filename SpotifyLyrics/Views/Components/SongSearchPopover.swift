@@ -96,15 +96,17 @@ struct SongSearchPopover: View {
             emptyState(icon: "music.note", title: "搜索歌曲或歌词", detail: "输入标题、艺人或专辑后开始")
         case .searching:
             emptyState(
-                icon: "hourglass",
-                title: "正在搜索…",
-                detail: "正在匹配本地索引、当前歌曲和 Spotify 在线曲库"
+                icon: "magnifyingglass",
+                title: "正在搜索",
+                detail: "正在查找歌曲和艺人"
             )
         case .noResults:
             emptyState(
                 icon: "books.vertical",
-                title: "暂无可用曲库来源",
-                detail: "Spotify 在线曲库没有返回匹配结果；本地和当前歌曲也没有可用候选。"
+                title: "没有找到歌曲",
+                detail: "换个标题、艺人名或 Spotify 链接再试。",
+                actionTitle: "重新搜索",
+                action: search
             )
         case .failed(_, let message):
             VStack(alignment: .leading, spacing: 10) {
@@ -112,11 +114,22 @@ struct SongSearchPopover: View {
                 emptyState(
                     icon: needsAuthorization ? "person.badge.key" : "exclamationmark.triangle",
                     title: needsAuthorization ? "需要授权 Spotify" : "搜索失败",
-                    detail: message
+                    detail: needsAuthorization
+                        ? "授权后即可搜索 Spotify 在线曲库。"
+                        : "暂时无法完成搜索，请检查网络后重试。"
                 )
-                Button("重新搜索", action: search)
-                    .buttonStyle(.bordered)
+                if needsAuthorization {
+                    Button("授权 Spotify") {
+                        playbackState.spotifyAuthorizationManager.authorize()
+                    }
+                    .buttonStyle(.borderedProminent)
                     .tint(LyricsDesignTokens.accent)
+                    .disabled(isAuthorizing)
+                } else {
+                    Button("重新搜索", action: search)
+                        .buttonStyle(.bordered)
+                        .tint(LyricsDesignTokens.accent)
+                }
             }
         case .results(_, let results):
             ScrollView {
@@ -210,7 +223,13 @@ struct SongSearchPopover: View {
         return false
     }
 
-    private func emptyState(icon: String, title: String, detail: String) -> some View {
+    private func emptyState(
+        icon: String,
+        title: String,
+        detail: String,
+        actionTitle: String? = nil,
+        action: (() -> Void)? = nil
+    ) -> some View {
         VStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 22, weight: .medium))
@@ -222,6 +241,13 @@ struct SongSearchPopover: View {
                 .font(.system(size: 11, design: .rounded))
                 .foregroundStyle(LyricsDesignTokens.mutedText)
                 .multilineTextAlignment(.center)
+            if let actionTitle, let action {
+                Button(actionTitle, action: action)
+                    .buttonStyle(.bordered)
+                    .tint(LyricsDesignTokens.accent)
+                    .controlSize(.small)
+                    .padding(.top, 3)
+            }
         }
         .frame(maxWidth: .infinity, minHeight: 140)
     }

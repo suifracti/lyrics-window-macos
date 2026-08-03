@@ -2,119 +2,18 @@ import SwiftUI
 
 struct LyricsCanvasView: View {
     @ObservedObject var state: PlaybackState
+    var onSearch: (() -> Void)? = nil
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var lastScrolledLineIndex: Int?
     @State private var isAlignmentDetailsPresented = false
 
     var body: some View {
         Group {
-            switch state.liveLyricsState {
-            case .loaded(_), .mockPreview:
-                lyricsScroll
-            case .alignmentQueued:
-                VStack(spacing: 10) {
-                    lyricsScroll
-                    statusView(
-                        icon: "timeline.selection",
-                        message: "待对齐时间轴",
-                        detail: state.songSearchSelectionMessage.isEmpty
-                            ? "已获取歌词正文；原文/假名/罗马音独立保存。当前无可靠时间轴，不会伪造同步高亮。"
-                            : state.songSearchSelectionMessage
-                    ) {
-                        VStack(spacing: 8) {
-                            Button("自动排轴") {
-                                state.alignCurrentLyricsWithLocalAudio()
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .tint(LyricsDesignTokens.accent)
-                            retryButton
-                        }
-                    }
-                    .frame(maxHeight: 160)
-                }
-            case .alignmentRunning(_, _, let progress):
-                VStack(spacing: 10) {
-                    lyricsScroll
-                    statusView(
-                        icon: "waveform",
-                        message: "正在自动排轴… \(Int(progress * 100))%",
-                        detail: state.songSearchSelectionMessage.isEmpty ? "识别音频并与已知歌词逐行对齐" : state.songSearchSelectionMessage
-                    ) {
-                        Button("取消") { state.cancelAlignmentPreview() }
-                            .buttonStyle(.bordered)
-                    }
-                    .frame(maxHeight: 140)
-                }
-            case .alignmentPreview(_, _, _, let report):
-                VStack(spacing: 10) {
-                    lyricsScroll
-                    statusView(
-                        icon: "checkmark.circle",
-                        message: String(format: "排轴预览 · 置信度 %.0f%%", report.overallConfidence * 100),
-                        detail: "低置信/未匹配 \(report.lowConfidenceCount) 行已标出。确认前不会覆盖保存；可试听 seek。"
-                    ) {
-                        HStack(spacing: 8) {
-                            Button("确认并保存") { state.confirmAlignmentPreview(saveLocal: true) }
-                                .buttonStyle(.borderedProminent)
-                                .tint(LyricsDesignTokens.accent)
-                            Button("逐行证据") { isAlignmentDetailsPresented = true }
-                                .buttonStyle(.bordered)
-                            Button("放弃") { state.cancelAlignmentPreview() }
-                                .buttonStyle(.bordered)
-                        }
-                    }
-                    .frame(maxHeight: 160)
-                }
-            case .loading:
-                statusView(icon: "magnifyingglass", message: "正在自动补全歌词…", detail: "Local → LRCLIB → 网易云/QQ（实验）多别名查询中")
-            case .noLyrics:
-                statusView(icon: "text.magnifyingglass", message: "暂未找到歌词", detail: "来源返回无词（例如纯音乐）。可导入本地音频做 ASR 草稿。") {
-                    VStack(spacing: 8) {
-                        retryButton
-                        Button("导入本地音频 · ASR 草稿") {
-                            state.importLocalAudioForASR()
-                        }
-                        .buttonStyle(.bordered)
-                        ManualLyricsActionsView(state: state)
-                    }
-                }
-            case .noMatch:
-                statusView(
-                    icon: "magnifyingglass",
-                    message: "自动补全未找到歌词",
-                    detail: "多别名与在线源均无正文（noTextSource）。可选：重试自动补全，或导入本地音频生成 ASR 草稿。"
-                ) {
-                    VStack(spacing: 8) {
-                        retryButton
-                        Button("导入本地音频 · ASR 草稿") {
-                            state.importLocalAudioForASR()
-                        }
-                        .buttonStyle(.bordered)
-                        ManualLyricsActionsView(state: state)
-                    }
-                }
-            case .noSelection:
-                statusView(
-                    icon: "rectangle.slash",
-                    message: "未选择歌词版本",
-                    detail: "当前歌曲仍在播放；可重新搜索或从主窗口选择歌词版本。"
-                ) {
-                    VStack(spacing: 8) {
-                        retryButton
-                        ManualLyricsActionsView(state: state)
-                    }
-                }
-            case .failed(_, let failure):
-                statusView(icon: "exclamationmark.triangle", message: "自动补全失败", detail: failure.userFacingMessage) {
-                    VStack(spacing: 8) {
-                        retryButton
-                        ManualLyricsActionsView(state: state)
-                    }
-                }
-            case .candidates(_, let candidates):
-                candidateList(candidates)
-            case .idle:
-                statusView(icon: "music.note", message: "等待 Spotify 歌曲", detail: "连接后将自动补全当前歌曲歌词")
+            switch LyricsStatePresentation.active {
+            case .systemV1:
+                systemStateContent
+            case .contentFirstV1:
+                contentFirstStateContent
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -123,6 +22,124 @@ struct LyricsCanvasView: View {
             if let report = state.liveLyricsState.alignmentReport {
                 AlignmentPreviewView(report: report)
             }
+        }
+    }
+
+    /// The archived renderer remains available as a rollback target. It uses
+    /// the same state and commands; only the presentation of non-document
+    /// states differs.
+    @ViewBuilder
+    private var systemStateContent: some View {
+        switch state.liveLyricsState {
+        case .loaded(_), .mockPreview:
+            lyricsScroll
+        case .alignmentQueued:
+            VStack(spacing: 10) {
+                lyricsScroll
+                statusView(
+                    icon: "timeline.selection",
+                    message: "待对齐时间轴",
+                    detail: state.songSearchSelectionMessage.isEmpty
+                        ? "已获取歌词正文；原文/假名/罗马音独立保存。当前无可靠时间轴，不会伪造同步高亮。"
+                        : state.songSearchSelectionMessage
+                ) {
+                    VStack(spacing: 8) {
+                        Button("自动排轴") { state.alignCurrentLyricsWithLocalAudio() }
+                            .buttonStyle(.borderedProminent)
+                            .tint(LyricsDesignTokens.accent)
+                        retryButton
+                    }
+                }
+                .frame(maxHeight: 160)
+            }
+        case .alignmentRunning(_, _, let progress):
+            VStack(spacing: 10) {
+                lyricsScroll
+                statusView(
+                    icon: "waveform",
+                    message: "正在自动排轴… \(Int(progress * 100))%",
+                    detail: state.songSearchSelectionMessage.isEmpty ? "识别音频并与已知歌词逐行对齐" : state.songSearchSelectionMessage
+                ) {
+                    Button("取消") { state.cancelAlignmentPreview() }
+                        .buttonStyle(.bordered)
+                }
+                .frame(maxHeight: 140)
+            }
+        case .alignmentPreview(_, _, _, let report):
+            VStack(spacing: 10) {
+                lyricsScroll
+                statusView(
+                    icon: "checkmark.circle",
+                    message: String(format: "排轴预览 · 置信度 %.0f%%", report.overallConfidence * 100),
+                    detail: "低置信/未匹配 \(report.lowConfidenceCount) 行已标出。确认前不会覆盖保存；可试听 seek。"
+                ) {
+                    HStack(spacing: 8) {
+                        Button("确认并保存") { state.confirmAlignmentPreview(saveLocal: true) }
+                            .buttonStyle(.borderedProminent)
+                            .tint(LyricsDesignTokens.accent)
+                        Button("逐行证据") { isAlignmentDetailsPresented = true }
+                            .buttonStyle(.bordered)
+                        Button("放弃") { state.cancelAlignmentPreview() }
+                            .buttonStyle(.bordered)
+                    }
+                }
+                .frame(maxHeight: 160)
+            }
+        case .loading:
+            statusView(icon: "magnifyingglass", message: "正在自动补全歌词…", detail: "Local → LRCLIB → 网易云/QQ（实验）多别名查询中")
+        case .noLyrics:
+            statusView(icon: "text.magnifyingglass", message: "暂未找到歌词", detail: "来源返回无词（例如纯音乐）。可导入本地音频做 ASR 草稿。") {
+                VStack(spacing: 8) {
+                    retryButton
+                    Button("导入本地音频 · ASR 草稿") { state.importLocalAudioForASR() }
+                        .buttonStyle(.bordered)
+                    ManualLyricsActionsView(state: state)
+                }
+            }
+        case .noMatch:
+            statusView(
+                icon: "magnifyingglass",
+                message: "自动补全未找到歌词",
+                detail: "多别名与在线源均无正文（noTextSource）。可选：重试自动补全，或导入本地音频生成 ASR 草稿。"
+            ) {
+                VStack(spacing: 8) {
+                    retryButton
+                    Button("导入本地音频 · ASR 草稿") { state.importLocalAudioForASR() }
+                        .buttonStyle(.bordered)
+                    ManualLyricsActionsView(state: state)
+                }
+            }
+        case .noSelection:
+            statusView(
+                icon: "rectangle.slash",
+                message: "未选择歌词版本",
+                detail: "当前歌曲仍在播放；可重新搜索或从主窗口选择歌词版本。"
+            ) {
+                VStack(spacing: 8) {
+                    retryButton
+                    ManualLyricsActionsView(state: state)
+                }
+            }
+        case .failed(_, let failure):
+            statusView(icon: "exclamationmark.triangle", message: "自动补全失败", detail: failure.userFacingMessage) {
+                VStack(spacing: 8) {
+                    retryButton
+                    ManualLyricsActionsView(state: state)
+                }
+            }
+        case .candidates(_, let candidates):
+            candidateList(candidates)
+        case .idle:
+            statusView(icon: "music.note", message: "等待 Spotify 歌曲", detail: "连接后将自动补全当前歌曲歌词")
+        }
+    }
+
+    @ViewBuilder
+    private var contentFirstStateContent: some View {
+        if !state.liveLyrics.isEmpty {
+            systemStateContent
+        } else {
+            LyricsStateContentFirstView(state: state, onSearch: onSearch)
         }
     }
 
@@ -429,5 +446,399 @@ struct LyricsCanvasView: View {
         ]
         .filter { $0 }
         .count
+    }
+}
+
+/// Content-first rendering for all non-document lyric states.  This is a
+/// presentation surface only: PlaybackState remains the owner of actions and
+/// the shared lyric session remains the owner of candidates. No timer or
+/// preview session is created here.
+struct LyricsStateContentFirstView: View {
+    @ObservedObject var state: PlaybackState
+    var compact = false
+    var lyricsFocus = false
+    var compactLabel: String? = nil
+    var onSearch: (() -> Void)? = nil
+
+    @State private var candidateToPreview: LyricsCandidate?
+
+    var body: some View {
+        Group {
+            if case .candidates(_, let candidates) = state.liveLyricsState {
+                candidateContent(candidates)
+            } else {
+                statusContent
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .sheet(item: $candidateToPreview) { candidate in
+            LyricsCandidatePreviewSheet(candidate: candidate) {
+                state.adoptLyricsCandidate(candidate)
+                candidateToPreview = nil
+            }
+        }
+    }
+
+    private var statusContent: some View {
+        VStack(spacing: compact ? 12 : 16) {
+            Spacer(minLength: compact ? 8 : 24)
+
+            Image(systemName: stateIcon)
+                .font(.system(size: compact ? 22 : 28, weight: .medium))
+                .foregroundStyle(LyricsDesignTokens.mutedText)
+
+            Text(stateTitle)
+                .font(.system(size: compact ? 22 : 28, weight: .semibold, design: .rounded))
+                .foregroundStyle(LyricsDesignTokens.primaryText)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+
+            Text(stateDetail)
+                .font(.system(size: compact ? 12 : 14, design: .rounded))
+                .foregroundStyle(LyricsDesignTokens.mutedText)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: compact ? 420 : 520)
+
+            primaryAction
+            secondaryActions
+
+            Spacer(minLength: compact ? 8 : 24)
+        }
+        .padding(.horizontal, compact ? 20 : LyricsDesignTokens.Spacing.xl)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder
+    private var primaryAction: some View {
+        switch state.liveLyricsState {
+        case .noLyrics, .noMatch, .failed:
+            Button("重新搜索歌词") { state.retryLyrics() }
+                .buttonStyle(.borderedProminent)
+                .tint(LyricsDesignTokens.accent)
+        case .noSelection:
+            if let onSearch {
+                Button("搜索歌词", action: onSearch)
+                    .buttonStyle(.borderedProminent)
+                    .tint(LyricsDesignTokens.accent)
+            }
+        case .idle where state.providerStatus != .ready:
+            Button("重试连接") { state.reconnectSpotify() }
+                .buttonStyle(.borderedProminent)
+                .tint(LyricsDesignTokens.accent)
+        default:
+            EmptyView()
+        }
+    }
+
+    @ViewBuilder
+    private var secondaryActions: some View {
+        HStack(spacing: LyricsDesignTokens.Spacing.sm) {
+            if state.canCreateManualLyrics {
+                ManualLyricsActionsView(
+                    state: state,
+                    compact: true,
+                    compactLabel: compactLabel ?? (lyricsFocus || compact ? "导入" : "导入或创建")
+                )
+            }
+
+            if case .noLyrics = state.liveLyricsState {
+                Menu {
+                    Button("导入本地音频 · ASR 草稿", systemImage: "waveform") {
+                        state.importLocalAudioForASR()
+                    }
+                } label: {
+                    Label("更多", systemImage: "ellipsis")
+                }
+                .menuStyle(.borderlessButton)
+            } else if case .noMatch = state.liveLyricsState {
+                Menu {
+                    Button("导入本地音频 · ASR 草稿", systemImage: "waveform") {
+                        state.importLocalAudioForASR()
+                    }
+                } label: {
+                    Label("更多", systemImage: "ellipsis")
+                }
+                .menuStyle(.borderlessButton)
+            }
+        }
+        .font(.system(size: 12, weight: .medium, design: .rounded))
+        .foregroundStyle(LyricsDesignTokens.mutedText)
+    }
+
+    private var stateIcon: String {
+        switch state.liveLyricsState {
+        case .loading:
+            return "magnifyingglass"
+        case .noLyrics:
+            return "text.quote"
+        case .noSelection:
+            return "rectangle.slash"
+        case .noMatch:
+            return "magnifyingglass"
+        case .failed:
+            return "exclamationmark.triangle"
+        case .idle:
+            return providerIcon
+        case .loaded:
+            return "text.quote"
+        default:
+            return "music.note"
+        }
+    }
+
+    private var providerIcon: String {
+        switch state.providerStatus {
+        case .connecting:
+            return "antenna.radiowaves.left.and.right"
+        case .permissionDenied:
+            return "lock.fill"
+        case .notInstalled, .notRunning, .noTrack, .unavailable:
+            return "music.note"
+        case .mockPreview, .ready:
+            return "music.note"
+        }
+    }
+
+    private var stateTitle: String {
+        switch state.liveLyricsState {
+        case .loading:
+            return "正在搜索歌词"
+        case .noLyrics:
+            return "暂无歌词"
+        case .noMatch:
+            return "没有找到歌词"
+        case .noSelection:
+            return "暂不使用歌词"
+        case .failed:
+            return "歌词暂不可用"
+        case .idle:
+            switch state.providerStatus {
+            case .connecting:
+                return "正在识别当前歌曲"
+            case .permissionDenied:
+                return "需要连接 Spotify"
+            case .notInstalled:
+                return "找不到 Spotify"
+            case .notRunning:
+                return "Spotify 尚未运行"
+            case .noTrack, .ready:
+                return "等待播放歌曲"
+            case .unavailable:
+                return "暂时无法读取当前歌曲"
+            case .mockPreview:
+                return "等待预览内容"
+            }
+        case .loaded:
+            return "暂无歌词"
+        default:
+            return "歌词"
+        }
+    }
+
+    private var stateDetail: String {
+        switch state.liveLyricsState {
+        case .loading:
+            return "正在为当前歌曲查找可用歌词。"
+        case .noLyrics:
+            return "当前歌曲还没有可用的歌词正文。"
+        case .noMatch:
+            return "没有找到足够可靠的歌词版本，可以重新搜索或导入本地内容。"
+        case .noSelection:
+            return "本次播放不显示歌词；已有版本没有被删除。"
+        case .failed(_, let failure):
+            return friendlyFailureDetail(failure)
+        case .idle:
+            switch state.providerStatus {
+            case .connecting:
+                return "连接成功后会自动搜索歌词。"
+            case .permissionDenied:
+                return "请允许 Lyric Island 读取 Spotify Desktop 的当前播放。"
+            case .notInstalled:
+                return "安装 Spotify Desktop 后即可同步当前歌曲。"
+            case .notRunning:
+                return "打开 Spotify Desktop 后即可同步当前歌曲。"
+            case .noTrack, .ready:
+                return "开始播放歌曲后会自动搜索歌词。"
+            case .unavailable(let message):
+                return message.isEmpty ? "稍后重试连接 Spotify。" : "暂时无法读取当前歌曲，请稍后重试。"
+            case .mockPreview:
+                return "当前没有可用于预览的歌词内容。"
+            }
+        case .loaded:
+            return "当前歌曲没有可显示的歌词行。"
+        default:
+            return ""
+        }
+    }
+
+    private func friendlyFailureDetail(_ failure: LyricsFailure) -> String {
+        switch failure {
+        case .networkUnavailable:
+            return "网络暂时不可用，请检查连接后重试。"
+        case .timedOut:
+            return "歌词服务响应超时，可以稍后重试。"
+        case .rateLimited:
+            return "歌词服务暂时繁忙，请稍后重试。"
+        case .serverError:
+            return "歌词服务暂时不可用，请稍后重试。"
+        case .parseFailure:
+            return "返回内容无法识别，可以重新搜索其他来源。"
+        case .cancelled:
+            return "这次搜索已取消，可以重新搜索。"
+        case .unknown:
+            return "歌词服务暂时不可用，请稍后重试。"
+        }
+    }
+
+    private func candidateContent(_ candidates: [LyricsCandidate]) -> some View {
+        let recommendedID = candidates.max { $0.confidence < $1.confidence }?.id
+
+        return ScrollView {
+            VStack(alignment: .leading, spacing: LyricsDesignTokens.Spacing.sm) {
+                Spacer(minLength: compact ? 8 : 20)
+                Text("选择歌词版本")
+                    .font(.system(size: compact ? 20 : 26, weight: .semibold, design: .rounded))
+                    .foregroundStyle(LyricsDesignTokens.primaryText)
+                Text("先预览内容，再决定是否采用。选择不会改变播放位置。")
+                    .font(.system(size: compact ? 12 : 14, design: .rounded))
+                    .foregroundStyle(LyricsDesignTokens.mutedText)
+
+                ForEach(candidates) { candidate in
+                    candidateRow(candidate, isRecommended: candidate.id == recommendedID)
+                }
+
+                Button("不使用任何歌词版本") {
+                    state.selectNoLyricsVersion()
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(LyricsDesignTokens.mutedText)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.top, 4)
+
+                if state.canCreateManualLyrics {
+                    ManualLyricsActionsView(
+                        state: state,
+                        compact: true,
+                        compactLabel: "导入或创建"
+                    )
+                    .frame(maxWidth: .infinity, alignment: .center)
+                }
+                Spacer(minLength: compact ? 8 : 20)
+            }
+            .padding(.horizontal, compact ? 18 : LyricsDesignTokens.Spacing.xl)
+            .frame(maxWidth: 640)
+            .frame(maxWidth: .infinity)
+        }
+        .scrollIndicators(.hidden)
+    }
+
+    private func candidateRow(_ candidate: LyricsCandidate, isRecommended: Bool) -> some View {
+        Button {
+            candidateToPreview = candidate
+        } label: {
+            HStack(spacing: LyricsDesignTokens.Spacing.sm) {
+                VStack(alignment: .leading, spacing: 5) {
+                    HStack(spacing: 6) {
+                        Text(candidate.title)
+                            .font(.system(size: compact ? 13 : 15, weight: .semibold, design: .rounded))
+                            .foregroundStyle(LyricsDesignTokens.primaryText)
+                            .lineLimit(1)
+                        if isRecommended {
+                            Text("推荐")
+                                .font(.system(size: 10, weight: .semibold, design: .rounded))
+                                .foregroundStyle(LyricsDesignTokens.accent)
+                        }
+                    }
+                    Text("\(candidate.artist) · \(candidate.album.isEmpty ? "未知专辑" : candidate.album)")
+                        .font(.system(size: 12, design: .rounded))
+                        .foregroundStyle(LyricsDesignTokens.mutedText)
+                        .lineLimit(1)
+                    HStack(spacing: 8) {
+                        Text(candidate.source.displayName)
+                        Text(languageLabel(candidate.language))
+                        Text(candidate.isSynchronized ? "含时间轴" : "纯文本")
+                    }
+                    .font(.system(size: 10, weight: .medium, design: .rounded))
+                    .foregroundStyle(LyricsDesignTokens.mutedText.opacity(0.9))
+                }
+
+                Spacer(minLength: 8)
+
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("\(Int(candidate.confidence * 100))%")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded).monospacedDigit())
+                        .foregroundStyle(LyricsDesignTokens.accent)
+                    Text("预览")
+                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .foregroundStyle(LyricsDesignTokens.primaryText.opacity(0.78))
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: LyricsDesignTokens.CornerRadius.card, style: .continuous)
+                    .fill(LyricsDesignTokens.controlBackground)
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("歌词候选：\(candidate.title)，\(candidate.artist)")
+        .accessibilityHint("预览后选择此版本")
+    }
+
+    private func languageLabel(_ language: String?) -> String {
+        guard let language, !language.isEmpty else { return "语言未知" }
+        switch language.lowercased() {
+        case "ja", "jp", "jpn", "japanese": return "日语"
+        case "zh", "zh-hans", "zh-cn", "chi", "chinese": return "中文"
+        case "en", "eng", "english": return "英语"
+        case "ko", "kor", "korean": return "韩语"
+        default: return language
+        }
+    }
+}
+
+private struct LyricsCandidatePreviewSheet: View {
+    let candidate: LyricsCandidate
+    let onAdopt: () -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(candidate.title)
+                        .font(.title2.weight(.semibold))
+                    Text("\(candidate.artist) · \(candidate.source.displayName)")
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Text(candidate.isSynchronized ? "含时间轴" : "纯文本")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.secondary)
+            }
+
+            Text("候选预览")
+                .font(.headline)
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 8) {
+                    ForEach(Array(candidate.lines.prefix(8)), id: \.id) { line in
+                        Text(line.originalText.isEmpty ? " " : line.originalText)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+            }
+            .frame(minHeight: 160)
+
+            HStack {
+                Spacer()
+                Button("取消") { dismiss() }
+                Button("采用此版本", action: onAdopt)
+                    .buttonStyle(.borderedProminent)
+            }
+        }
+        .padding(22)
+        .frame(width: 460, height: 360)
     }
 }

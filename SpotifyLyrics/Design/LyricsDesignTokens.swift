@@ -302,6 +302,19 @@ enum LyricsDesignTokens {
     }
 }
 
+/// Presentation-only policy for loading, empty, error and candidate states.
+/// It deliberately does not live in AppSettingsStore: the two renderings use
+/// the same live LyricsLoadState and commands, and the recommended rendering
+/// can evolve without creating a second persisted state machine.
+enum LyricsStatePresentation: String, CaseIterable, Identifiable, Sendable {
+    case systemV1 = "lyricsStatePresentation.system.v1"
+    case contentFirstV1 = "lyricsStatePresentation.contentFirst.v1"
+
+    static let active: LyricsStatePresentation = .contentFirstV1
+
+    var id: String { rawValue }
+}
+
 struct LyricEmphasis {
     let primaryFontSize: CGFloat
     let secondaryFontSize: CGFloat

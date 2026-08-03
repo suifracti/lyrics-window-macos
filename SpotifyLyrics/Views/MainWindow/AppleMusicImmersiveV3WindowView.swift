@@ -853,54 +853,22 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
     }
 
     private var focusEmptyState: some View {
-        VStack(spacing: LyricsDesignTokens.Spacing.md) {
-            Spacer(minLength: 0)
-
-            Image(systemName: "text.quote")
-                .font(.system(size: 24, weight: .medium))
-                .foregroundStyle(.white.opacity(0.48))
-
-            Text(emptyTitle)
-                .font(.system(size: 24, weight: .semibold, design: .rounded))
-                .foregroundStyle(.white.opacity(0.92))
-
-            if let onSearch {
-                HStack(spacing: LyricsDesignTokens.Spacing.sm) {
-                    Button(action: onSearch) {
-                        Label("搜索歌词", systemImage: "magnifyingglass")
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(LyricsDesignTokens.accent)
-
-                    if state.canCreateManualLyrics {
-                        ManualLyricsActionsView(state: state, compact: true, compactLabel: "导入")
-                    }
-                }
-            }
-
-            Spacer(minLength: 0)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .accessibilityElement(children: .combine)
+        LyricsStateContentFirstView(
+            state: state,
+            compact: true,
+            lyricsFocus: true,
+            compactLabel: "导入",
+            onSearch: onSearch
+        )
     }
 
     private var emptyState: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Spacer()
-            Text(emptyTitle)
-                .font(.system(size: compact ? 24 : 30, weight: .semibold, design: .rounded))
-                .foregroundStyle(.white.opacity(0.88))
-            Text(emptyDetail)
-                .font(.system(size: compact ? 13 : 15, design: .rounded))
-                .foregroundStyle(.white.opacity(0.58))
-            if state.canCreateManualLyrics {
-                ManualLyricsActionsView(state: state)
-                    .padding(.top, 8)
-            }
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
+        LyricsStateContentFirstView(
+            state: state,
+            compact: compact,
+            lyricsFocus: false,
+            onSearch: onSearch
+        )
     }
 
     private var emptyTitle: String {

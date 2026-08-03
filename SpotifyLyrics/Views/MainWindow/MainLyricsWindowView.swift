@@ -127,7 +127,7 @@ struct MainLyricsWindowView: View {
                         .padding(.top, 10)
                 }
 
-                LyricsViewport(state: state)
+                LyricsViewport(state: state, onSearch: { isSearchPresented = true })
             }
 
             PlaybackControlsView(state: state)
