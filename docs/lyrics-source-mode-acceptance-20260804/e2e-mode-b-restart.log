@@ -1,0 +1,8 @@
+[2026-08-04T10:30:52Z] LOG_RESET
+[2026-08-04T10:30:52Z] PlaybackState init providers=Local LRC,LRCLIB,NetEase Experimental,QQ Music Experimental
+[2026-08-04T10:30:53Z] PERSISTENCE startup ready
+[2026-08-04T10:30:53Z] SESSION clear
+[2026-08-04T10:30:53Z] Playback trackChange identity=spotify-id:0waylezs4qigyi4pjvcp4m|metadata:0feathaku|hisui|0feathaku|137 title=0 (feat. haku) artist=hisui duration=136.819
+[2026-08-04T10:30:53Z] SESSION begin rev=1 identity=spotify-id:0waylezs4qigyi4pjvcp4m|metadata:0feathaku|hisui|0feathaku|137 title=0 (feat. haku) artist=hisui duration=136.819 spotifyId=spotify:track:0WayLEzS4QiGYi4pjvcp4M
+[2026-08-04T10:30:53Z] SESSION persistence miss rev=1 identity=spotify-id:0waylezs4qigyi4pjvcp4m|metadata:0feathaku|hisui|0feathaku|137
+[2026-08-04T10:30:53Z] MANAGER start title=0 (feat. haku) artist=hisui variants=4 providers=["Local LRC", "LRCLIB", "NetEase Experimental", "QQ Music Experimental"] queryOverride=

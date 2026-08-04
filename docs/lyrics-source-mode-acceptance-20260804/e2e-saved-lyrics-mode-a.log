@@ -1,0 +1,10 @@
+[2026-08-04T10:32:14Z] LOG_RESET
+[2026-08-04T10:32:14Z] PlaybackState init providers=Local LRC,LRCLIB
+[2026-08-04T10:32:15Z] PERSISTENCE startup ready
+[2026-08-04T10:32:16Z] SESSION clear
+[2026-08-04T10:32:16Z] Playback trackChange identity=spotify-id:54ha2kpoj2ga3krtf9uliz|metadata:usotsukiemily|sana|hushabylittlegirl|235 title=usotsuki emily artist=sana duration=234.776
+[2026-08-04T10:32:16Z] SESSION begin rev=1 identity=spotify-id:54ha2kpoj2ga3krtf9uliz|metadata:usotsukiemily|sana|hushabylittlegirl|235 title=usotsuki emily artist=sana duration=234.776 spotifyId=spotify:track:54HA2kPOj2gA3KRTF9Uliz
+[2026-08-04T10:32:16Z] SESSION persistence hit rev=1 source=lrclib provider=lrclib:10963306 lines=41 sync=false
+[2026-08-04T10:32:16Z] SESSION search finished rev=1 result=match(lrclib,lines=41,sync=false) diag=0
+[2026-08-04T10:32:16Z] SESSION apply alignmentQueued source=lrclib lines=41 first=長い夜は嫌いじゃない
+[2026-08-04T10:32:16Z] SESSION persistence save rev=1 disposition=Optional(SpotifyLyrics.LyricsPersistenceSaveDisposition.duplicate) lines=41

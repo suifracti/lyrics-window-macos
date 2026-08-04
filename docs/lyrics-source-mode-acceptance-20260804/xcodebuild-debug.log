@@ -1,0 +1,232 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project SpotifyLyrics.xcodeproj -scheme SpotifyLyrics -configuration Debug -derivedDataPath DerivedData build
+
+2026-08-04 18:29:21.776 xcodebuild[43456:10024474] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:macOS, arch:arm64, id:00008132-0001685C0103001C, name:My Mac }
+{ platform:macOS, arch:x86_64, id:00008132-0001685C0103001C, name:My Mac }
+{ platform:macOS, name:Any Mac }
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (1 target)
+    Target 'SpotifyLyrics' in project 'SpotifyLyrics' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: f28848e6ea1613753ae751aeee292d3a
+Build description path: /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/XCBuildData/f28848e6ea1613753ae751aeee292d3a.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk /Users/apple/backup/sptifylyrics/DerivedData/SDKStatCaches.noindex/macosx26.5-25F70-e082c4a02f00227109f4ed75e425c832.sdkstatcache
+    cd /Users/apple/backup/sptifylyrics/SpotifyLyrics.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk -o /Users/apple/backup/sptifylyrics/DerivedData/SDKStatCaches.noindex/macosx26.5-25F70-e082c4a02f00227109f4ed75e425c832.sdkstatcache
+
+SwiftDriver SpotifyLyrics normal arm64 com.apple.xcode.tools.swift.compiler (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name SpotifyLyrics -Onone @/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk -target arm64-apple-macos14.0 -g -module-cache-path /Users/apple/backup/sptifylyrics/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/apple/backup/sptifylyrics/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug -F /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/apple/backup/sptifylyrics/DerivedData/SDKStatCaches.noindex/macosx26.5-25F70-e082c4a02f00227109f4ed75e425c832.sdkstatcache -output-file-map /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/apple/backup/sptifylyrics/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/apple/backup/sptifylyrics/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/apple/backup/sptifylyrics/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics_const_extract_protocols.json -Xcc -iquote -Xcc /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SpotifyLyrics-generated-files.hmap -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SpotifyLyrics-own-target-headers.hmap -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SpotifyLyrics-all-target-headers.hmap -Xcc -iquote -Xcc /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SpotifyLyrics-project-headers.hmap -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/include -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/DerivedSources-normal/arm64 -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/DerivedSources/arm64 -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics-Swift.h -working-directory /Users/apple/backup/sptifylyrics -experimental-emit-module-separately -disable-cmo
+
+ProcessInfoPlistFile /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/Info.plist /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/empty-SpotifyLyrics.plist (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    builtin-infoPlistUtility /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/empty-SpotifyLyrics.plist -producttype com.apple.product-type.application -genpkginfo /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/PkgInfo -expandbuildsettings -platform macosx -o /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/Info.plist
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ SpotifyLyrics (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+EmitSwiftModule normal arm64 (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    
+
+SwiftCompile normal arm64 Compiling\ CurrentSongOperationsView.swift /Users/apple/backup/sptifylyrics/SpotifyLyrics/Views/Components/CurrentSongOperationsView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftCompile normal arm64 /Users/apple/backup/sptifylyrics/SpotifyLyrics/Views/Components/CurrentSongOperationsView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    
+
+SwiftCompile normal arm64 Compiling\ LyricsProviderConfiguration.swift /Users/apple/backup/sptifylyrics/SpotifyLyrics/Settings/LyricsProviderConfiguration.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftCompile normal arm64 /Users/apple/backup/sptifylyrics/SpotifyLyrics/Settings/LyricsProviderConfiguration.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling LyricsProviderConfiguration.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftCompile normal arm64 Compiling\ FloatingLyricsView.swift /Users/apple/backup/sptifylyrics/SpotifyLyrics/Views/Floating/FloatingLyricsView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftCompile normal arm64 /Users/apple/backup/sptifylyrics/SpotifyLyrics/Views/Floating/FloatingLyricsView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    
+
+SwiftCompile normal arm64 Compiling\ ReadingSettingsView.swift /Users/apple/backup/sptifylyrics/SpotifyLyrics/Views/Settings/ReadingSettingsView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftCompile normal arm64 /Users/apple/backup/sptifylyrics/SpotifyLyrics/Views/Settings/ReadingSettingsView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    
+
+SwiftCompile normal arm64 Compiling\ Main.swift,\ PlaybackState.swift /Users/apple/backup/sptifylyrics/SpotifyLyrics/Main.swift /Users/apple/backup/sptifylyrics/SpotifyLyrics/Services/PlaybackState.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftCompile normal arm64 /Users/apple/backup/sptifylyrics/SpotifyLyrics/Main.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    
+
+SwiftCompile normal arm64 /Users/apple/backup/sptifylyrics/SpotifyLyrics/Services/PlaybackState.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    
+
+SwiftCompile normal arm64 Compiling\ MainLyricsWindowView.swift /Users/apple/backup/sptifylyrics/SpotifyLyrics/Views/MainWindow/MainLyricsWindowView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftCompile normal arm64 /Users/apple/backup/sptifylyrics/SpotifyLyrics/Views/MainWindow/MainLyricsWindowView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    
+
+SwiftCompile normal arm64 Compiling\ FloatingLyricsWindowController.swift /Users/apple/backup/sptifylyrics/SpotifyLyrics/Windows/FloatingLyricsWindowController.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftCompile normal arm64 /Users/apple/backup/sptifylyrics/SpotifyLyrics/Windows/FloatingLyricsWindowController.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    
+
+SwiftCompile normal arm64 Compiling\ AppSettingsStore.swift /Users/apple/backup/sptifylyrics/SpotifyLyrics/Settings/AppSettingsStore.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftCompile normal arm64 /Users/apple/backup/sptifylyrics/SpotifyLyrics/Settings/AppSettingsStore.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    
+
+SwiftCompile normal arm64 Compiling\ ExperienceLibrarySettingsView.swift /Users/apple/backup/sptifylyrics/SpotifyLyrics/Views/Settings/ExperienceLibrarySettingsView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftCompile normal arm64 /Users/apple/backup/sptifylyrics/SpotifyLyrics/Views/Settings/ExperienceLibrarySettingsView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    
+
+SwiftCompile normal arm64 Compiling\ SettingsRootView.swift /Users/apple/backup/sptifylyrics/SpotifyLyrics/Views/Settings/SettingsRootView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+SwiftCompile normal arm64 /Users/apple/backup/sptifylyrics/SpotifyLyrics/Views/Settings/SettingsRootView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    
+
+SwiftCompile normal arm64 Compiling\ AppleMusicImmersiveV3WindowView.swift /Users/apple/backup/sptifylyrics/SpotifyLyrics/Views/MainWindow/AppleMusicImmersiveV3WindowView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+SwiftCompile normal arm64 /Users/apple/backup/sptifylyrics/SpotifyLyrics/Views/MainWindow/AppleMusicImmersiveV3WindowView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling ReadingSettingsView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftCompile normal arm64 Compiling\ ReadingSessionController.swift /Users/apple/backup/sptifylyrics/SpotifyLyrics/Lyrics/ReadingSessionController.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftCompile normal arm64 /Users/apple/backup/sptifylyrics/SpotifyLyrics/Lyrics/ReadingSessionController.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling FloatingLyricsWindowController.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftDriverJobDiscovery normal arm64 Compiling AppSettingsStore.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftDriverJobDiscovery normal arm64 Compiling FloatingLyricsView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ExperienceLibrarySettingsView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftDriverJobDiscovery normal arm64 Compiling MainLyricsWindowView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftDriverJobDiscovery normal arm64 Compiling CurrentSongOperationsView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftDriverJobDiscovery normal arm64 Compiling Main.swift, PlaybackState.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ReadingSessionController.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for SpotifyLyrics (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftDriver\ Compilation\ Requirements SpotifyLyrics normal arm64 com.apple.xcode.tools.swift.compiler (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name SpotifyLyrics -Onone @/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk -target arm64-apple-macos14.0 -g -module-cache-path /Users/apple/backup/sptifylyrics/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/apple/backup/sptifylyrics/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug -F /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/apple/backup/sptifylyrics/DerivedData/SDKStatCaches.noindex/macosx26.5-25F70-e082c4a02f00227109f4ed75e425c832.sdkstatcache -output-file-map /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/apple/backup/sptifylyrics/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/apple/backup/sptifylyrics/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/apple/backup/sptifylyrics/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics_const_extract_protocols.json -Xcc -iquote -Xcc /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SpotifyLyrics-generated-files.hmap -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SpotifyLyrics-own-target-headers.hmap -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SpotifyLyrics-all-target-headers.hmap -Xcc -iquote -Xcc /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SpotifyLyrics-project-headers.hmap -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/include -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/DerivedSources-normal/arm64 -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/DerivedSources/arm64 -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics-Swift.h -working-directory /Users/apple/backup/sptifylyrics -experimental-emit-module-separately -disable-cmo
+
+Copy /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.swiftmodule/Project/arm64-apple-macos.swiftsourceinfo /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics.swiftsourceinfo (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics.swiftsourceinfo /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.swiftmodule/Project/arm64-apple-macos.swiftsourceinfo
+
+SwiftDriverJobDiscovery normal arm64 Compiling SettingsRootView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+Copy /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.swiftmodule/arm64-apple-macos.swiftdoc /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics.swiftdoc (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics.swiftdoc /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.swiftmodule/arm64-apple-macos.swiftdoc
+
+Copy /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.swiftmodule/arm64-apple-macos.abi.json /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics.abi.json (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics.abi.json /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.swiftmodule/arm64-apple-macos.abi.json
+
+Copy /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.swiftmodule/arm64-apple-macos.swiftmodule /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics.swiftmodule (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics.swiftmodule /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.swiftmodule/arm64-apple-macos.swiftmodule
+
+SwiftDriverJobDiscovery normal arm64 Compiling AppleMusicImmersiveV3WindowView.swift (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+SwiftDriver\ Compilation SpotifyLyrics normal arm64 com.apple.xcode.tools.swift.compiler (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name SpotifyLyrics -Onone @/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk -target arm64-apple-macos14.0 -g -module-cache-path /Users/apple/backup/sptifylyrics/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/apple/backup/sptifylyrics/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug -F /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/apple/backup/sptifylyrics/DerivedData/SDKStatCaches.noindex/macosx26.5-25F70-e082c4a02f00227109f4ed75e425c832.sdkstatcache -output-file-map /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/apple/backup/sptifylyrics/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/apple/backup/sptifylyrics/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/apple/backup/sptifylyrics/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics_const_extract_protocols.json -Xcc -iquote -Xcc /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SpotifyLyrics-generated-files.hmap -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SpotifyLyrics-own-target-headers.hmap -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SpotifyLyrics-all-target-headers.hmap -Xcc -iquote -Xcc /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SpotifyLyrics-project-headers.hmap -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/include -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/DerivedSources-normal/arm64 -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/DerivedSources/arm64 -Xcc -I/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics-Swift.h -working-directory /Users/apple/backup/sptifylyrics -experimental-emit-module-separately -disable-cmo
+
+Ld /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics.debug.dylib normal (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-macos14.0 -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk -O0 -L/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug -L/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug -F/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug -F/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug -filelist /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics.LinkFileList -install_name @rpath/SpotifyLyrics.debug.dylib -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -object_path_lto -Xlinker /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -dependency_info -Xlinker /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics.swiftmodule @/Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics-linker-args.resp -Xlinker -alias -Xlinker _main -Xlinker ___debug_main_executable_dylib_entry_point -Xlinker -no_adhoc_codesign -o /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics.debug.dylib
+
+ConstructStubExecutorLinkFileList /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SpotifyLyrics-ExecutorLinkFileList-normal-arm64.txt (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    construct-stub-executor-link-file-list /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics.debug.dylib /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SpotifyLyrics-ExecutorLinkFileList-normal-arm64.txt
+note: Using stub executor library with Swift entry point. (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+
+Ld /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics normal (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-macos14.0 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk -O0 -L/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug -F/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug -Xlinker -rpath -Xlinker @executable_path -rdynamic -Xlinker -no_deduplicate -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SpotifyLyrics-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SpotifyLyrics-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SpotifyLyrics-ExecutorLinkFileList-normal-arm64.txt /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics.debug.dylib -Xlinker -no_adhoc_codesign -o /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics
+
+ExtractAppIntentsMetadata (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name SpotifyLyrics --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk --xcode-version 17F113 --platform-family macOS --deployment-target 14.0 --bundle-identifier com.spotifylyrics.app --output /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/Resources --target-triple arm64-apple-macos14.0 --binary-file /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics --dependency-file /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics_dependency_info.dat --stringsdata-file /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics.SwiftFileList --metadata-file-list /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SpotifyLyrics.DependencyMetadataFileList --static-metadata-file-list /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SpotifyLyrics.DependencyStaticMetadataFileList --swift-const-vals-list /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/Objects-normal/arm64/SpotifyLyrics.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-08-04 18:29:30.215 appintentsmetadataprocessor[43493:10024856] Starting appintentsmetadataprocessor export
+2026-08-04 18:29:30.221 appintentsmetadataprocessor[43493:10024856] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+CopySwiftLibs /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics.debug.dylib --scan-folder /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/Frameworks --scan-folder /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/PlugIns --scan-folder /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/Library/SystemExtensions --scan-folder /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/Extensions --platform macosx --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os --back-deploy-swift-span
+
+CodeSign /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics.debug.dylib (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics.debug.dylib
+
+CodeSign /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/__preview.dylib (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/__preview.dylib
+/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/__preview.dylib: replacing existing signature
+
+CodeSign /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --entitlements /Users/apple/backup/sptifylyrics/DerivedData/Build/Intermediates.noindex/SpotifyLyrics.build/Debug/SpotifyLyrics.build/SpotifyLyrics.app.xcent --timestamp\=none --generate-entitlement-der /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app
+
+Validate /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    builtin-validationUtility /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app -no-validate-extension -infoplist-subpath Contents/Info.plist
+
+RegisterWithLaunchServices /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app (in target 'SpotifyLyrics' from project 'SpotifyLyrics')
+    cd /Users/apple/backup/sptifylyrics
+    /System/Library/Frameworks/CoreServices.framework/Versions/Current/Frameworks/LaunchServices.framework/Versions/Current/Support/lsregister -f -R -trusted /Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app
+
+** BUILD SUCCEEDED **
+

@@ -336,14 +336,88 @@ private struct SpotifySettingsView: View {
 
 private struct LyricsSourcesSettingsView: View {
     @EnvironmentObject private var settings: AppSettingsStore
+    @State private var discoveryQuery = ""
 
     var body: some View {
         Form {
-            SettingsPageHeader(title: "歌词来源", detail: "SQLite 和本地文件始终保留；在线 Provider 可单独关闭并调整顺序。")
+            SettingsPageHeader(
+                title: "歌词来源",
+                detail: "单一免费来源模式控制是否调用实验接口；SQLite 已保存版本始终可恢复，不受模式切换影响。"
+            )
+
+            Section("歌词来源模式") {
+                Picker("模式", selection: Binding(
+                    get: { settings.lyricsSourceMode },
+                    set: { settings.lyricsSourceMode = $0 }
+                )) {
+                    ForEach(LyricsSourceMode.allCases) { mode in
+                        Text(mode.title).tag(mode)
+                    }
+                }
+                .pickerStyle(.radioGroup)
+                .accessibilityIdentifier("lyricsSourceMode.picker")
+
+                Text(settings.lyricsSourceMode.detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                if settings.lyricsSourceMode.isExperimental {
+                    Label(
+                        "实验模式：可能随时失效，不保证覆盖率，不建议用于正式商业发行。不含任何付费歌词 API。",
+                        systemImage: "exclamationmark.triangle.fill"
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                    .accessibilityIdentifier("lyricsSourceMode.experimentalBanner")
+                }
+
+                HStack {
+                    Text("稳定 ID")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(settings.lyricsSourceMode.rawValue)
+                        .font(.caption.monospaced())
+                        .textSelection(.enabled)
+                        .foregroundStyle(.secondary)
+                }
+
+                Button("恢复默认模式（标准免费）") {
+                    settings.restoreDefaultLyricsSourceMode()
+                }
+                .accessibilityIdentifier("lyricsSourceMode.restoreDefault")
+            }
 
             Section("Provider 顺序") {
                 ForEach(Array(settings.lyricsProviderConfiguration.order.enumerated()), id: \.element) { index, id in
                     providerRow(id: id, index: index)
+                }
+            }
+
+            Section("外部发现（仅浏览器）") {
+                Text("Uta-Net、UtaTime、AWA 只用于「可能存在歌词」时的外链与复制检索词，不会自动提取、缓存或再分发歌词正文。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                TextField("歌曲名 艺人（可选）", text: $discoveryQuery)
+                    .textFieldStyle(.roundedBorder)
+
+                HStack {
+                    Button("复制检索词") {
+                        let text = discoveryQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !text.isEmpty else { return }
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(text, forType: .string)
+                    }
+                    .disabled(discoveryQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+
+                    ForEach(LyricsDiscoverySite.allCases) { site in
+                        Button(site.title) {
+                            if let url = site.browserURL(query: discoveryQuery) {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }
+                        .help(site.detail)
+                    }
                 }
             }
         }
@@ -351,7 +425,9 @@ private struct LyricsSourcesSettingsView: View {
     }
 
     private func providerRow(id: LyricsProviderID, index: Int) -> some View {
-        HStack(spacing: 10) {
+        let activeInMode = settings.isProviderActiveInCurrentMode(id)
+        let blockedByMode = id.isExperimental && !settings.lyricsSourceMode.allowsExperimentalProviders
+        return HStack(spacing: 10) {
             Image(systemName: id.systemImage)
                 .frame(width: 22)
                 .foregroundStyle(id.isExperimental ? .orange : .accentColor)
@@ -362,6 +438,15 @@ private struct LyricsSourcesSettingsView: View {
                     Text(id.stabilityLabel)
                         .font(.caption2)
                         .foregroundStyle(id.isExperimental ? .orange : .secondary)
+                    if blockedByMode {
+                        Text("当前模式未启用")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    } else if activeInMode {
+                        Text("参与搜索")
+                            .font(.caption2)
+                            .foregroundStyle(.green)
+                    }
                 }
                 Text(id.detail)
                     .font(.caption)
@@ -373,7 +458,7 @@ private struct LyricsSourcesSettingsView: View {
                 set: { settings.setProviderEnabled(id, enabled: $0) }
             ))
             .labelsHidden()
-            .disabled(id.isLocal)
+            .disabled(id.isLocal || blockedByMode)
             Button { settings.moveProvider(id, offset: -1) } label: {
                 Image(systemName: "chevron.up")
             }
@@ -386,6 +471,7 @@ private struct LyricsSourcesSettingsView: View {
             .disabled(index == settings.lyricsProviderConfiguration.order.count - 1)
         }
         .help(id.detail)
+        .opacity(blockedByMode ? 0.55 : 1)
     }
 }
 

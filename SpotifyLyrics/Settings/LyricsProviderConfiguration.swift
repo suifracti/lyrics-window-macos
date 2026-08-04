@@ -1,5 +1,100 @@
 import Foundation
 
+// MARK: - Source mode (stable product IDs)
+
+/// User-selectable free lyrics source policy. One setting value drives which
+/// online providers may run; it does not create a second search stack.
+public enum LyricsSourceMode: String, CaseIterable, Codable, Identifiable, Sendable {
+    /// Local + SQLite + LRCLIB + user import/create. No experimental probes.
+    case standardFree = "lyricsSourceMode.standardFree.v1"
+    /// Standard free plus NetEase/QQ experimental providers. Not for commercial shipping.
+    case experimentalFree = "lyricsSourceMode.experimentalFree.v1"
+
+    public var id: String { rawValue }
+
+    public static let `default` = LyricsSourceMode.standardFree
+
+    public var title: String {
+        switch self {
+        case .standardFree: return "标准免费模式（推荐）"
+        case .experimentalFree: return "扩展免费实验模式"
+        }
+    }
+
+    public var shortTitle: String {
+        switch self {
+        case .standardFree: return "标准免费"
+        case .experimentalFree: return "扩展实验"
+        }
+    }
+
+    public var detail: String {
+        switch self {
+        case .standardFree:
+            return "仅使用本地歌词、已保存版本、LRCLIB 与用户导入/创建。不调用网易或 QQ 实验接口。"
+        case .experimentalFree:
+            return "在标准免费能力之上，额外尝试网易云与 QQ 音乐实验源。可能失效，不保证覆盖率，不建议正式商业发行。"
+        }
+    }
+
+    public var isExperimental: Bool {
+        self == .experimentalFree
+    }
+
+    public var allowsExperimentalProviders: Bool {
+        self == .experimentalFree
+    }
+}
+
+// MARK: - Minimal capability classification
+
+/// Coarse policy class for providers. Not a second architecture — used only to
+/// decide mode gating and UI labels.
+public enum LyricsProviderCapabilityClass: String, Codable, Sendable {
+    case local
+    case openFree
+    case experimentalFree
+    case discoveryOnly
+    /// User paste / LRC-TXT import / manual create — not a network provider ID.
+    case userContent
+}
+
+/// Policy for user-authored content paths (paste, import, manual create).
+/// Always allowed in both free modes; never implies a paid source.
+public enum LyricsUserContentPolicy {
+    public static let policy = LyricsProviderPolicy(
+        capabilityClass: .userContent,
+        allowsAutomaticSearch: false,
+        allowsLyricsBody: true,
+        allowsLocalCache: true,
+        allowsExport: true,
+        outboundOnly: false,
+        allowedInStandardFree: true,
+        allowedInExperimentalFree: true
+    )
+}
+
+public struct LyricsProviderPolicy: Equatable, Sendable {
+    public let capabilityClass: LyricsProviderCapabilityClass
+    public let allowsAutomaticSearch: Bool
+    public let allowsLyricsBody: Bool
+    public let allowsLocalCache: Bool
+    public let allowsExport: Bool
+    /// When true, the source may only open external browsers / copy query text.
+    public let outboundOnly: Bool
+    public let allowedInStandardFree: Bool
+    public let allowedInExperimentalFree: Bool
+
+    public func isAllowed(in mode: LyricsSourceMode) -> Bool {
+        switch mode {
+        case .standardFree: return allowedInStandardFree
+        case .experimentalFree: return allowedInExperimentalFree
+        }
+    }
+}
+
+// MARK: - Provider IDs
+
 /// Stable identifiers used by the settings layer. `sqliteDatabase` is a
 /// persistence source rather than a LyricsProvider instance, so PlaybackState
 /// keeps it ahead of the network providers without constructing a second
@@ -58,17 +153,143 @@ public enum LyricsProviderID: String, CaseIterable, Codable, Hashable, Identifia
         case .lrclib:
             return "公共在线歌词源，网络失败会隔离"
         case .netEaseExperimental:
-            return "实验源；目录命中不代表正文可用"
+            return "实验源；目录命中不代表正文可用；仅扩展免费实验模式可用"
         case .qqExperimental:
-            return "实验源；结果必须经过版本匹配"
+            return "实验源；结果必须经过版本匹配；仅扩展免费实验模式可用"
+        }
+    }
+
+    public var policy: LyricsProviderPolicy {
+        switch self {
+        case .localFiles:
+            return LyricsProviderPolicy(
+                capabilityClass: .local,
+                allowsAutomaticSearch: true,
+                allowsLyricsBody: true,
+                allowsLocalCache: false, // never rewrites user LRC files
+                allowsExport: true,
+                outboundOnly: false,
+                allowedInStandardFree: true,
+                allowedInExperimentalFree: true
+            )
+        case .sqliteDatabase:
+            return LyricsProviderPolicy(
+                capabilityClass: .local,
+                allowsAutomaticSearch: true,
+                allowsLyricsBody: true,
+                allowsLocalCache: true,
+                allowsExport: true,
+                outboundOnly: false,
+                allowedInStandardFree: true,
+                allowedInExperimentalFree: true
+            )
+        case .lrclib:
+            return LyricsProviderPolicy(
+                capabilityClass: .openFree,
+                allowsAutomaticSearch: true,
+                allowsLyricsBody: true,
+                allowsLocalCache: true, // high-confidence Session save only
+                allowsExport: true,
+                outboundOnly: false,
+                allowedInStandardFree: true,
+                allowedInExperimentalFree: true
+            )
+        case .netEaseExperimental, .qqExperimental:
+            return LyricsProviderPolicy(
+                capabilityClass: .experimentalFree,
+                allowsAutomaticSearch: true,
+                allowsLyricsBody: true,
+                allowsLocalCache: true,
+                allowsExport: true,
+                outboundOnly: false,
+                allowedInStandardFree: false,
+                allowedInExperimentalFree: true
+            )
+        }
+    }
+
+    public func isAllowed(in mode: LyricsSourceMode) -> Bool {
+        policy.isAllowed(in: mode)
+    }
+}
+
+// MARK: - External discovery (outbound only; never scrapes lyric body)
+
+/// Free external sites that may only open a browser or copy a search query.
+/// No automatic lyric body extraction.
+public enum LyricsDiscoverySite: String, CaseIterable, Identifiable, Sendable {
+    case utaNet
+    case utaTime
+    case awa
+
+    public var id: String { rawValue }
+
+    public var title: String {
+        switch self {
+        case .utaNet: return "Uta-Net"
+        case .utaTime: return "UtaTime"
+        case .awa: return "AWA"
+        }
+    }
+
+    public var detail: String {
+        switch self {
+        case .utaNet:
+            return "可能存在日语歌词页面。仅打开浏览器或复制检索词，不自动抓取正文。"
+        case .utaTime:
+            return "可能存在原文/罗马音页。仅打开浏览器或复制检索词，不自动抓取正文。"
+        case .awa:
+            return "歌词在 App 内展示；Web 无公开歌词 API。仅打开站点，不抓取正文。"
+        }
+    }
+
+    public var policy: LyricsProviderPolicy {
+        LyricsProviderPolicy(
+            capabilityClass: .discoveryOnly,
+            allowsAutomaticSearch: false,
+            allowsLyricsBody: false,
+            allowsLocalCache: false,
+            allowsExport: false,
+            outboundOnly: true,
+            allowedInStandardFree: true,
+            allowedInExperimentalFree: true
+        )
+    }
+
+    /// Best-effort public search or home URL. Failures leave the user in Safari
+    /// without embedding or scraping the page.
+    public func browserURL(query: String) -> URL? {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        switch self {
+        case .utaNet:
+            if trimmed.isEmpty {
+                return URL(string: "https://www.uta-net.com/")
+            }
+            var components = URLComponents(string: "https://www.uta-net.com/search/")
+            components?.queryItems = [URLQueryItem(name: "Keyword", value: trimmed)]
+            return components?.url
+        case .utaTime:
+            if trimmed.isEmpty {
+                return URL(string: "https://www.utatime.com/")
+            }
+            // Site search paths change often; open home and let the user paste
+            // the copied query rather than scraping a fragile search endpoint.
+            return URL(string: "https://www.utatime.com/")
+        case .awa:
+            return URL(string: "https://awa.fm/")
         }
     }
 }
+
+// MARK: - Per-provider enablement / order
 
 public struct LyricsProviderConfiguration: Equatable, Sendable {
     public var enabled: Set<LyricsProviderID>
     public var order: [LyricsProviderID]
 
+    /// Default enablement: local + open free on; experimental IDs remain
+    /// listed so switching to experimentalFree can use them without re-toggling,
+    /// but `LyricsSourceMode.standardFree` hard-blocks them at runtime.
     public static let `default` = LyricsProviderConfiguration(
         enabled: Set(LyricsProviderID.allCases),
         order: [
@@ -101,7 +322,13 @@ public struct LyricsProviderConfiguration: Equatable, Sendable {
         }
     }
 
+    /// Preference-level enablement only (ignores mode).
     public var orderedEnabledIDs: [LyricsProviderID] {
         order.filter { enabled.contains($0) }
+    }
+
+    /// Runtime chain for a source mode: preference enablement ∩ mode policy.
+    public func orderedEnabledIDs(for mode: LyricsSourceMode) -> [LyricsProviderID] {
+        order.filter { enabled.contains($0) && $0.isAllowed(in: mode) }
     }
 }

@@ -65,6 +65,9 @@ public final class AppSettingsStore: ObservableObject {
         public static let hideDistantAuxiliary = "display.hideDistantAuxiliary"
         public static let providerEnabled = "lyrics.providers.enabled"
         public static let providerOrder = "lyrics.providers.order"
+        /// Single free lyrics source mode. Stable values:
+        /// `lyricsSourceMode.standardFree.v1` / `lyricsSourceMode.experimentalFree.v1`.
+        public static let lyricsSourceMode = "lyrics.sourceMode"
         public static let aiBaseURL = "ai.baseURL"
         public static let aiModel = "ai.model"
         public static let aiTargetLanguage = "ai.targetLanguage"
@@ -182,6 +185,18 @@ public final class AppSettingsStore: ObservableObject {
         didSet { persistProviderConfiguration(lyricsProviderConfiguration) }
     }
 
+    /// Free lyrics source mode (standard vs experimental). Defaults to
+    /// standard free. Changing this rebuilds the online provider chain without
+    /// touching SQLite versions or TrackIdentity.
+    @Published public var lyricsSourceModeRawValue: String {
+        didSet { defaults.set(lyricsSourceModeRawValue, forKey: Key.lyricsSourceMode) }
+    }
+
+    public var lyricsSourceMode: LyricsSourceMode {
+        get { LyricsSourceMode(rawValue: lyricsSourceModeRawValue) ?? .standardFree }
+        set { lyricsSourceModeRawValue = newValue.rawValue }
+    }
+
     @Published public var aiTranslationConfiguration: AITranslationConfiguration {
         didSet { persistAITranslationConfiguration(aiTranslationConfiguration) }
     }
@@ -231,6 +246,8 @@ public final class AppSettingsStore: ObservableObject {
         displayPreferences = Self.loadDisplayPreferences(defaults: defaults, keepOnTop: keepOnTop)
         readingPreferences = Self.loadReadingPreferences(defaults: defaults)
         lyricsProviderConfiguration = Self.loadProviderConfiguration(defaults: defaults)
+        lyricsSourceModeRawValue = defaults.string(forKey: Key.lyricsSourceMode)
+            ?? LyricsSourceMode.standardFree.rawValue
         aiTranslationConfiguration = Self.loadAITranslationConfiguration(defaults: defaults)
         aiTranslationAPIKeyConfigured = defaults.object(forKey: Key.aiAPIKeyConfigured) as? Bool ?? false
         let cachedModels = Self.loadCachedModels(defaults: defaults)
@@ -463,6 +480,11 @@ public final class AppSettingsStore: ObservableObject {
 
     public func setProviderEnabled(_ id: LyricsProviderID, enabled: Bool) {
         guard !id.isLocal else { return }
+        // Experimental providers cannot be "armed" while standard free is
+        // selected — mode is the single gate. Preferences still keep order.
+        if id.isExperimental, !lyricsSourceMode.allowsExperimentalProviders, enabled {
+            return
+        }
         var configuration = lyricsProviderConfiguration
         if enabled {
             configuration.enabled.insert(id)
@@ -477,6 +499,11 @@ public final class AppSettingsStore: ObservableObject {
         lyricsProviderConfiguration.enabled.contains(id)
     }
 
+    /// Preference toggle on, and allowed by the active source mode.
+    public func isProviderActiveInCurrentMode(_ id: LyricsProviderID) -> Bool {
+        isProviderEnabled(id) && id.isAllowed(in: lyricsSourceMode)
+    }
+
     public func moveProvider(_ id: LyricsProviderID, offset: Int) {
         var configuration = lyricsProviderConfiguration
         guard let index = configuration.order.firstIndex(of: id) else { return }
@@ -484,6 +511,12 @@ public final class AppSettingsStore: ObservableObject {
         guard configuration.order.indices.contains(nextIndex) else { return }
         configuration.order.swapAt(index, nextIndex)
         lyricsProviderConfiguration = configuration
+    }
+
+    /// Restores the recommended free mode (standard). Does not wipe SQLite,
+    /// provider order, or individual enable flags.
+    public func restoreDefaultLyricsSourceMode() {
+        lyricsSourceMode = .standardFree
     }
 
     public func resetWindowState() {

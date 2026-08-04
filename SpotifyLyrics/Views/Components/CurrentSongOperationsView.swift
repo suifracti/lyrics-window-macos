@@ -107,6 +107,19 @@ struct CurrentSongOperationsView: View {
                 .font(.system(size: 12, weight: .medium, design: .rounded))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
+            // Read-only status only — settings owns the single mode control.
+            HStack(spacing: 6) {
+                Text("歌词来源：\(settings.lyricsSourceMode.shortTitle)")
+                    .font(.system(size: 11, design: .rounded))
+                    .foregroundStyle(.secondary)
+                if settings.lyricsSourceMode.isExperimental {
+                    Text("实验")
+                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.orange)
+                }
+            }
+            .accessibilityIdentifier("currentSong.lyricsSourceMode.readonly")
+            .accessibilityElement(children: .combine)
         }
     }
 

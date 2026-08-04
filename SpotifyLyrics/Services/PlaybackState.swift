@@ -62,6 +62,13 @@ public final class PlaybackState: ObservableObject {
     private var playbackAnchorPosition: TimeInterval = 0
     private var playbackAnchorDate = Date()
     private var lastProviderRefreshDate = Date.distantPast
+#if DEBUG
+    /// Optional acceptance harness: when `SPOTIFYLYRICS_ACCEPTANCE_CONTROL_PATH`
+    /// is set, a short timer applies mode / retry commands from that file.
+    /// Production launches never set the env, so this stays inert.
+    private var acceptanceControlTimer: Timer?
+    private var acceptanceControlLastPayload = ""
+#endif
     private struct LyricsProjectionCacheKey: Equatable {
         let identityKey: String?
         let revision: UInt64
@@ -98,7 +105,8 @@ public final class PlaybackState: ObservableObject {
         } else {
             lyricsProviders = Self.makeDefaultLyricsProviders(
                 index: sharedIndex,
-                configuration: resolvedSettings.lyricsProviderConfiguration
+                configuration: resolvedSettings.lyricsProviderConfiguration,
+                mode: resolvedSettings.lyricsSourceMode
             )
         }
         self.usesConfiguredLyricsProviders = lyricsProvider == nil
@@ -210,7 +218,23 @@ public final class PlaybackState: ObservableObject {
             .dropFirst()
             .sink { [weak self] configuration in
                 guard let self, self.usesConfiguredLyricsProviders else { return }
-                self.applyLyricsProviderConfiguration(configuration)
+                self.applyLyricsProviderConfiguration(
+                    configuration,
+                    mode: resolvedSettings.lyricsSourceMode
+                )
+            }
+            .store(in: &self.settingsCancellables)
+        resolvedSettings.$lyricsSourceModeRawValue
+            .dropFirst()
+            .sink { [weak self] rawValue in
+                guard let self, self.usesConfiguredLyricsProviders else { return }
+                // Use the emitted raw value — not a re-read that can race with
+                // batched settings updates during acceptance / UI toggles.
+                let mode = LyricsSourceMode(rawValue: rawValue) ?? .standardFree
+                self.applyLyricsProviderConfiguration(
+                    resolvedSettings.lyricsProviderConfiguration,
+                    mode: mode
+                )
             }
             .store(in: &self.settingsCancellables)
         resolvedSettings.$aiTranslationConfiguration
@@ -240,10 +264,13 @@ public final class PlaybackState: ObservableObject {
 
     private static func makeDefaultLyricsProviders(
         index: LocalLyricsIndex,
-        configuration: LyricsProviderConfiguration
+        configuration: LyricsProviderConfiguration,
+        mode: LyricsSourceMode = .standardFree
     ) -> [LyricsProvider] {
         var providers: [LyricsProvider] = []
-        for id in configuration.orderedEnabledIDs {
+        // Mode is the hard gate: experimental IDs never enter the chain under
+        // standard free, even if still listed as "enabled" in preferences.
+        for id in configuration.orderedEnabledIDs(for: mode) {
             switch id {
             case .localFiles:
                 providers.append(LocalLyricsProvider(index: index))
@@ -274,6 +301,9 @@ public final class PlaybackState: ObservableObject {
         if !providers.contains(where: { $0 is LocalLyricsProvider }) {
             providers.insert(LocalLyricsProvider(index: index), at: 0)
         }
+        LyricsE2ELog.log(
+            "Lyrics providers for mode=\(mode.rawValue): " + providers.map(\.name).joined(separator: ",")
+        )
         return providers
     }
 
@@ -646,12 +676,85 @@ public final class PlaybackState: ObservableObject {
         } else {
             providerStatus = .unavailable("已在设置中关闭启动连接")
         }
+#if DEBUG
+        startAcceptanceControlPollingIfNeeded()
+#endif
     }
 
-    private func applyLyricsProviderConfiguration(_ configuration: LyricsProviderConfiguration) {
+#if DEBUG
+    private func startAcceptanceControlPollingIfNeeded() {
+        let path = ProcessInfo.processInfo.environment["SPOTIFYLYRICS_ACCEPTANCE_CONTROL_PATH"]?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !path.isEmpty else { return }
+        LyricsE2ELog.log("ACCEPTANCE control polling path=\(path)")
+        acceptanceControlTimer?.invalidate()
+        acceptanceControlTimer = Timer.scheduledTimer(withTimeInterval: 0.35, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.pollAcceptanceControlFile(path: path)
+            }
+        }
+    }
+
+    private func pollAcceptanceControlFile(path: String) {
+        guard let raw = try? String(contentsOfFile: path, encoding: .utf8) else { return }
+        let payload = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !payload.isEmpty, payload != acceptanceControlLastPayload else { return }
+        acceptanceControlLastPayload = payload
+        LyricsE2ELog.log("ACCEPTANCE control apply payload=\(payload.replacingOccurrences(of: "\n", with: " | "))")
+
+        var wantsRetry = false
+        for line in payload.split(whereSeparator: \.isNewline) {
+            let token = line.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !token.isEmpty else { continue }
+            let lower = token.lowercased()
+            if lower == "retry" {
+                wantsRetry = true
+                continue
+            }
+            if lower == "a" || lower == "standard" || token == LyricsSourceMode.standardFree.rawValue {
+                applyAcceptanceMode(.standardFree)
+                continue
+            }
+            if lower == "b" || lower == "experimental" || token == LyricsSourceMode.experimentalFree.rawValue {
+                applyAcceptanceMode(.experimentalFree)
+                continue
+            }
+            LyricsE2ELog.log("ACCEPTANCE control ignore token=\(token)")
+        }
+        // Mode rebuild must finish before a retry so the next MANAGER start
+        // uses the gate that was just selected.
+        if wantsRetry {
+            let posBefore = currentTime
+            let identityBefore = currentTrackIdentity?.stableKey ?? ""
+            retryLyrics()
+            LyricsE2ELog.log(
+                "ACCEPTANCE control retry done identity=\(identityBefore) posBefore=\(posBefore) posAfter=\(currentTime)"
+            )
+        }
+    }
+
+    private func applyAcceptanceMode(_ mode: LyricsSourceMode) {
+        settingsStore.lyricsSourceMode = mode
+        // Explicit rebuild: do not rely solely on the Combine sink order when
+        // the same control payload also requests RETRY.
+        if usesConfiguredLyricsProviders {
+            applyLyricsProviderConfiguration(
+                settingsStore.lyricsProviderConfiguration,
+                mode: mode
+            )
+        }
+        LyricsE2ELog.log("ACCEPTANCE control mode=\(mode.rawValue)")
+    }
+#endif
+
+    private func applyLyricsProviderConfiguration(
+        _ configuration: LyricsProviderConfiguration,
+        mode: LyricsSourceMode
+    ) {
         let providers = Self.makeDefaultLyricsProviders(
             index: LocalLyricsIndex.shared,
-            configuration: configuration
+            configuration: configuration,
+            mode: mode
         )
         lyricsSession.updateProviders(providers)
         searchPreviewSession.updateProviders(providers)

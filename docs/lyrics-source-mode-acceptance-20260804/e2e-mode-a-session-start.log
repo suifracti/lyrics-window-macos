@@ -1,0 +1,33 @@
+[2026-08-04T10:40:35Z] LOG_RESET
+[2026-08-04T10:40:35Z] PlaybackState init providers=Local LRC,LRCLIB
+[2026-08-04T10:40:36Z] PERSISTENCE startup ready
+[2026-08-04T10:40:36Z] SESSION clear
+[2026-08-04T10:40:36Z] Playback trackChange identity=spotify-id:3jjdftlsjespyphls0csq4|metadata:カプセル|sana|カプセル|138 title=カプセル artist=sana duration=138.0
+[2026-08-04T10:40:36Z] SESSION begin rev=1 identity=spotify-id:3jjdftlsjespyphls0csq4|metadata:カプセル|sana|カプセル|138 title=カプセル artist=sana duration=138.0 spotifyId=spotify:track:3jJdFtLsjEsPYPhls0CsQ4
+[2026-08-04T10:40:36Z] SESSION persistence miss rev=1 identity=spotify-id:3jjdftlsjespyphls0csq4|metadata:カプセル|sana|カプセル|138
+[2026-08-04T10:40:36Z] MANAGER start title=カプセル artist=sana variants=6 providers=["Local LRC", "LRCLIB"] queryOverride=
+[2026-08-04T10:40:40Z] SESSION search finished rev=1 result=noMatch diag=12
+[2026-08-04T10:40:40Z]   DIAG Local LRC@primaryOriginal noMatch 0.00s
+[2026-08-04T10:40:40Z]   DIAG LRCLIB@primaryOriginal noMatch 0.87s
+[2026-08-04T10:40:40Z]   DIAG Local LRC@normalizedPrimary noMatch 0.00s
+[2026-08-04T10:40:40Z]   DIAG LRCLIB@normalizedPrimary noMatch 0.66s
+[2026-08-04T10:40:40Z]   DIAG Local LRC@romajiTitleArtist noMatch 0.00s
+[2026-08-04T10:40:40Z]   DIAG LRCLIB@romajiTitleArtist noMatch 0.67s
+[2026-08-04T10:40:40Z]   DIAG Local LRC@titleOnlyLoose noMatch 0.00s
+[2026-08-04T10:40:40Z]   DIAG LRCLIB@titleOnlyLoose noMatch 0.61s
+[2026-08-04T10:40:40Z]   DIAG Local LRC@titleOnlyLoose noMatch 0.00s
+[2026-08-04T10:40:40Z]   DIAG LRCLIB@titleOnlyLoose noMatch 0.68s
+[2026-08-04T10:40:40Z]   DIAG Local LRC@titleOnlyLoose noMatch 0.00s
+[2026-08-04T10:40:40Z]   DIAG LRCLIB@titleOnlyLoose noMatch 0.68s
+[2026-08-04T10:40:40Z] SESSION noMatch
+[2026-08-04T10:40:55Z] SESSION clear
+[2026-08-04T10:40:55Z] Playback trackChange identity=spotify-id:2ugj89l8tcihkyxzjf3xv6|metadata:finale|eill|mydreambox|244 title=Finale. artist=eill duration=244.118
+[2026-08-04T10:40:55Z] SESSION begin rev=2 identity=spotify-id:2ugj89l8tcihkyxzjf3xv6|metadata:finale|eill|mydreambox|244 title=Finale. artist=eill duration=244.118 spotifyId=spotify:track:2uGJ89l8tciHkYxzJF3xv6
+[2026-08-04T10:40:55Z] SESSION persistence miss rev=2 identity=spotify-id:2ugj89l8tcihkyxzjf3xv6|metadata:finale|eill|mydreambox|244
+[2026-08-04T10:40:55Z] MANAGER start title=Finale. artist=eill variants=4 providers=["Local LRC", "LRCLIB"] queryOverride=
+[2026-08-04T10:40:56Z] MANAGER AUTO_ADOPT provider=LRCLIB strategy=primaryOriginal kind=exactTitleFullArtist tier=autoHigh score=0.7999999999999999 evidence=titleExact +0.30;primaryArtistExact +0.30;durationClose +0.12;albumExact +0.08 lines=36 sync=false
+[2026-08-04T10:40:56Z] SESSION search finished rev=2 result=match(lrclib,lines=36,sync=false) diag=2
+[2026-08-04T10:40:56Z]   DIAG Local LRC@primaryOriginal noMatch 0.00s
+[2026-08-04T10:40:56Z]   DIAG LRCLIB@primaryOriginal match 0.38s
+[2026-08-04T10:40:56Z] SESSION apply alignmentQueued source=lrclib lines=36 first=君はほんとにわかってないよ
+[2026-08-04T10:40:56Z] SESSION persistence save rev=2 disposition=Optional(SpotifyLyrics.LyricsPersistenceSaveDisposition.inserted) lines=36

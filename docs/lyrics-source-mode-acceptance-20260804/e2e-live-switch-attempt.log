@@ -1,0 +1,29 @@
+[2026-08-04T10:31:56Z] LOG_RESET
+[2026-08-04T10:31:56Z] PlaybackState init providers=Local LRC,LRCLIB
+[2026-08-04T10:31:57Z] PERSISTENCE startup ready
+[2026-08-04T10:31:58Z] SESSION clear
+[2026-08-04T10:31:58Z] Playback trackChange identity=spotify-id:0waylezs4qigyi4pjvcp4m|metadata:0feathaku|hisui|0feathaku|137 title=0 (feat. haku) artist=hisui duration=136.819
+[2026-08-04T10:31:58Z] SESSION begin rev=1 identity=spotify-id:0waylezs4qigyi4pjvcp4m|metadata:0feathaku|hisui|0feathaku|137 title=0 (feat. haku) artist=hisui duration=136.819 spotifyId=spotify:track:0WayLEzS4QiGYi4pjvcp4M
+[2026-08-04T10:31:58Z] SESSION persistence miss rev=1 identity=spotify-id:0waylezs4qigyi4pjvcp4m|metadata:0feathaku|hisui|0feathaku|137
+[2026-08-04T10:31:58Z] MANAGER start title=0 (feat. haku) artist=hisui variants=4 providers=["Local LRC", "LRCLIB"] queryOverride=
+[2026-08-04T10:32:01Z] SESSION search finished rev=1 result=noMatch diag=8
+[2026-08-04T10:32:01Z]   DIAG Local LRC@primaryOriginal noMatch 0.01s
+[2026-08-04T10:32:01Z]   DIAG LRCLIB@primaryOriginal noMatch 0.94s
+[2026-08-04T10:32:01Z]   DIAG Local LRC@normalizedPrimary noMatch 0.00s
+[2026-08-04T10:32:01Z]   DIAG LRCLIB@normalizedPrimary noMatch 0.70s
+[2026-08-04T10:32:01Z]   DIAG Local LRC@titleOnlyLoose noMatch 0.00s
+[2026-08-04T10:32:01Z]   DIAG LRCLIB@titleOnlyLoose noMatch 0.72s
+[2026-08-04T10:32:01Z]   DIAG Local LRC@titleOnlyLoose noMatch 0.00s
+[2026-08-04T10:32:01Z]   DIAG LRCLIB@titleOnlyLoose noMatch 1.05s
+[2026-08-04T10:32:01Z] SESSION noMatch
+[2026-08-04T10:32:10Z] SESSION clear
+[2026-08-04T10:32:10Z] Playback trackChange identity=spotify-id:54ha2kpoj2ga3krtf9uliz|metadata:usotsukiemily|sana|hushabylittlegirl|235 title=usotsuki emily artist=sana duration=234.776
+[2026-08-04T10:32:10Z] SESSION begin rev=2 identity=spotify-id:54ha2kpoj2ga3krtf9uliz|metadata:usotsukiemily|sana|hushabylittlegirl|235 title=usotsuki emily artist=sana duration=234.776 spotifyId=spotify:track:54HA2kPOj2gA3KRTF9Uliz
+[2026-08-04T10:32:10Z] SESSION persistence miss rev=2 identity=spotify-id:54ha2kpoj2ga3krtf9uliz|metadata:usotsukiemily|sana|hushabylittlegirl|235
+[2026-08-04T10:32:10Z] MANAGER start title=usotsuki emily artist=sana variants=2 providers=["Local LRC", "LRCLIB"] queryOverride=
+[2026-08-04T10:32:11Z] MANAGER AUTO_ADOPT provider=LRCLIB strategy=primaryOriginal kind=exactTitleFullArtist tier=autoHigh score=0.7999999999999999 evidence=titleExact +0.30;primaryArtistExact +0.30;durationClose +0.12;albumExact +0.08 lines=41 sync=false
+[2026-08-04T10:32:11Z] SESSION search finished rev=2 result=match(lrclib,lines=41,sync=false) diag=2
+[2026-08-04T10:32:11Z]   DIAG Local LRC@primaryOriginal noMatch 0.00s
+[2026-08-04T10:32:11Z]   DIAG LRCLIB@primaryOriginal match 0.56s
+[2026-08-04T10:32:11Z] SESSION apply alignmentQueued source=lrclib lines=41 first=長い夜は嫌いじゃない
+[2026-08-04T10:32:11Z] SESSION persistence save rev=2 disposition=Optional(SpotifyLyrics.LyricsPersistenceSaveDisposition.inserted) lines=41

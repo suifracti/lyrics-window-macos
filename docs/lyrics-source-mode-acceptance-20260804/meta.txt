@@ -1,0 +1,6 @@
+workdir=/Users/apple/backup/sptifylyrics
+branch=codex/phase-2-11a-lyrics-retrieval
+HEAD=35d2b83cc4927f36bf683a1b0897bc6f52a9f1ad
+app=/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app
+tmp_db=/tmp/spotifylyrics-mode-accept-20260804183003.sqlite3
+tmp_db_probe=/tmp/spotifylyrics-mode-accept-expprobe-20260804183003.sqlite3
