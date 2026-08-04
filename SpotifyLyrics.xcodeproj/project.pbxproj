@@ -74,6 +74,9 @@
 		110000E02D83400100000001 /* TimedTranscript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000E02D83400100000000 /* TimedTranscript.swift */; };
 		110000E12D83400100000001 /* AudioInputMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000E12D83400100000000 /* AudioInputMetadata.swift */; };
 		110000FC2D83400100000001 /* SpotifyScreenCaptureAudioSpike.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000FC2D83400100000000 /* SpotifyScreenCaptureAudioSpike.swift */; };
+		110000FD2D83400100000001 /* CaptureContinuityPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000FD2D83400100000000 /* CaptureContinuityPolicy.swift */; };
+		110000FE2D83400100000001 /* CapturedAudioModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000FE2D83400100000000 /* CapturedAudioModels.swift */; };
+		110000FF2D83400100000001 /* LiveCaptureCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000FF2D83400100000000 /* LiveCaptureCoordinator.swift */; };
 		1100004C2D83400100000001 /* LocalAlignedLyricsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */; };
 		1100004D2D83400100000001 /* JapaneseReadingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */; };
 		110000A02D83400100000001 /* ReadingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000A02D83400100000000 /* ReadingModels.swift */; };
@@ -225,6 +228,9 @@
 		110000E02D83400100000000 /* TimedTranscript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimedTranscript.swift; sourceTree = "<group>"; };
 		110000E12D83400100000000 /* AudioInputMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioInputMetadata.swift; sourceTree = "<group>"; };
 		110000FC2D83400100000000 /* SpotifyScreenCaptureAudioSpike.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/SpotifyScreenCaptureAudioSpike.swift; sourceTree = "<group>"; };
+		110000FD2D83400100000000 /* CaptureContinuityPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/CaptureContinuityPolicy.swift; sourceTree = "<group>"; };
+		110000FE2D83400100000000 /* CapturedAudioModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/CapturedAudioModels.swift; sourceTree = "<group>"; };
+		110000FF2D83400100000000 /* LiveCaptureCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/LiveCaptureCoordinator.swift; sourceTree = "<group>"; };
 		1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAlignedLyricsStore.swift; sourceTree = "<group>"; };
 		1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JapaneseReadingPipeline.swift; sourceTree = "<group>"; };
 		110000A02D83400100000000 /* ReadingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingModels.swift; sourceTree = "<group>"; };
@@ -354,6 +360,9 @@
 				110000002D83400000000028 /* Spotify */,
 				110000002D83400000000029 /* Settings */,
 				110000FC2D83400100000000 /* SpotifyScreenCaptureAudioSpike.swift */,
+				110000FD2D83400100000000 /* CaptureContinuityPolicy.swift */,
+				110000FE2D83400100000000 /* CapturedAudioModels.swift */,
+				110000FF2D83400100000000 /* LiveCaptureCoordinator.swift */,
 			);
 			path = SpotifyLyrics;
 			sourceTree = "<group>";
@@ -726,6 +735,9 @@
 				110000E02D83400100000001 /* TimedTranscript.swift in Sources */,
 				110000E12D83400100000001 /* AudioInputMetadata.swift in Sources */,
 				110000FC2D83400100000001 /* SpotifyScreenCaptureAudioSpike.swift in Sources */,
+				110000FD2D83400100000001 /* CaptureContinuityPolicy.swift in Sources */,
+				110000FE2D83400100000001 /* CapturedAudioModels.swift in Sources */,
+				110000FF2D83400100000001 /* LiveCaptureCoordinator.swift in Sources */,
 				110000492D83400100000001 /* AudioPCMConverter.swift in Sources */,
 				110000482D83400100000001 /* AlignmentService.swift in Sources */,
 				110000472D83400100000001 /* AlignmentModels.swift in Sources */,

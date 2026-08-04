@@ -862,8 +862,14 @@ public final class PlaybackState: ObservableObject {
         }
 
         let seekTime = time
+        let previousPosition = currentTime
         #if DEBUG
         Self.seekLogger.debug("accepted source=\(source, privacy: .public) time=\(String(format: "%.3f", seekTime), privacy: .public) identity=\(self.currentTrackIdentity?.stableKey ?? "none", privacy: .public)")
+        LiveCaptureCoordinator.shared.notifyPlaybackPositionJump(
+            from: previousPosition,
+            to: seekTime,
+            isPlaying: isPlaying
+        )
         #endif
         resetPlaybackAnchor(to: seekTime)
 
@@ -1386,6 +1392,20 @@ public final class PlaybackState: ObservableObject {
         }
 
         isPlaying = snapshot.isPlaying
+#if DEBUG
+        // S2 live-capture continuity: Desktop position can jump after a user
+        // seek without going through seek(to:). Notify before we overwrite.
+        let previousPosition = currentTime
+        let incoming = snapshot.position
+        if hasLiveTrack,
+           abs(incoming - previousPosition) > 1.5 {
+            LiveCaptureCoordinator.shared.notifyPlaybackPositionJump(
+                from: previousPosition,
+                to: incoming,
+                isPlaying: snapshot.isPlaying
+            )
+        }
+#endif
         resetPlaybackAnchor(to: snapshot.position)
     }
 

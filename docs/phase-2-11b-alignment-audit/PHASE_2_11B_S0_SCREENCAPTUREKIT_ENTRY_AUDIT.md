@@ -348,16 +348,9 @@ lyricLineAbsoluteTime ≈ spotifyPositionStart
 
 ---
 
-### S2 — Spotify position 与不连续 `CapturedSegment`
+### S2 — Spotify position 与不连续 `CapturedSegment` — **DONE 2026-08-04**
 
-| 项 | 内容 |
-|---|---|
-| 修改文件 | `PlaybackState` 钩子（trackChange/pause/seek 检测）；新 `LiveCaptureCoordinator`；segment 模型 |
-| 数据库 | 无 |
-| 测试 | 中途开始、暂停、seek、切歌 A→B→A；断言 continuity 断裂与 temp 清理；guard 丢弃迟到段 |
-| 产物 | e2e 日志：`segment start/end identity position continuity` |
-| 风险 | position 与音频时钟漂移 |
-| 回退 | 关闭 coordinator；保留本地文件排轴 |
+见 `s2-live-capture/ACCEPTANCE.md`。`LiveCaptureCoordinator` + 集中阈值 + PlaybackState seek/跳变通知；pause/resume/seek/切歌/A→B→A 已有真实 Spotify 日志。
 
 ---
 

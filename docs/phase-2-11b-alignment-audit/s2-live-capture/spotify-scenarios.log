@@ -1,0 +1,7 @@
+=== pause ===
+=== resume ===
+=== seek forward +10 ===
+=== seek backward -8 ===
+=== next track (A->B) ===
+=== previous track (B->A) ===
+=== scenarios done, wait auto-stop ===

@@ -1,0 +1,8 @@
+[2026-08-04T11:39:36Z] S2 bind playback ok
+[SpotifyLyrics][DebugSafety] event=repository_open
+[SpotifyLyrics][DebugSafety] forced_presentation_id=none
+[SpotifyLyrics][DebugSafety] forced_presentation_mode=none
+[SpotifyLyrics][DebugSafety] database_path=/tmp/spotifylyrics-s2-20260804193934.sqlite3
+[SpotifyLyrics][DebugSafety] temporary_copy=YES
+[SpotifyLyrics][DebugSafety] formal_database_opened=NO
+[2026-08-04T11:39:39Z] LOG_RESET

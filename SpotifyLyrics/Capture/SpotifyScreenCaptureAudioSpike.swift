@@ -38,10 +38,16 @@ public final class SpotifyScreenCaptureAudioSpike: NSObject, ObservableObject {
     private var workDirectory: URL?
     private var selectedAppsDescription: String = ""
 
+    /// Optional sink for S2 continuity layer. Invoked on the capture queue.
+    nonisolated(unsafe) public var audioSampleHandler: ((CMSampleBuffer) -> Void)?
+
     private override init() {
         super.init()
         Self.scavengeOrphanTempDirectories()
-        if ProcessInfo.processInfo.environment["SPOTIFYLYRICS_SCK_SPIKE"] == "1" {
+        // Prefer S2 auto-start when both envs are set.
+        if ProcessInfo.processInfo.environment["SPOTIFYLYRICS_SCK_S2"] == "1" {
+            // LiveCaptureCoordinator owns start sequencing.
+        } else if ProcessInfo.processInfo.environment["SPOTIFYLYRICS_SCK_SPIKE"] == "1" {
             let seconds = Double(ProcessInfo.processInfo.environment["SPOTIFYLYRICS_SCK_SPIKE_SECONDS"] ?? "20") ?? 20
             Task { @MainActor in
                 // Allow the app scene to finish launching.
@@ -264,6 +270,7 @@ extension SpotifyScreenCaptureAudioSpike: SCStreamDelegate, SCStreamOutput {
         }
         guard type == .audio else { return }
         stats.ingestAudio(sampleBuffer)
+        audioSampleHandler?(sampleBuffer)
     }
 
     nonisolated public func stream(_ stream: SCStream, didStopWithError error: Error) {

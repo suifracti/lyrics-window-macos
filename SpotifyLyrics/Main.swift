@@ -37,8 +37,8 @@ struct SpotifyLyricsApp: App {
                             state: playbackState
                         )
                     }
-                    // Touch the DEBUG-only ScreenCaptureKit spike singleton so
-                    // SPOTIFYLYRICS_SCK_SPIKE=1 can auto-start without a menu click.
+                    // Touch DEBUG capture singletons so env-driven spikes can start.
+                    LiveCaptureCoordinator.shared.bind(playback: playbackState)
                     _ = SpotifyScreenCaptureAudioSpike.shared
                 }
 #endif
@@ -146,11 +146,19 @@ struct SpotifyLyricsApp: App {
                 }
             }
             CommandMenu("排轴捕获 Spike（调试）") {
-                Button("开始 Spotify 音频 Spike") {
+                Button("开始 Spotify 音频 Spike (S1)") {
                     Task { await SpotifyScreenCaptureAudioSpike.shared.start(autoStopAfter: 25) }
                 }
-                Button("停止 Spotify 音频 Spike") {
+                Button("停止 Spotify 音频 Spike (S1)") {
                     Task { await SpotifyScreenCaptureAudioSpike.shared.stop(reason: "menu") }
+                }
+                Divider()
+                Button("开始 Live Capture (S2)") {
+                    LiveCaptureCoordinator.shared.bind(playback: playbackState)
+                    Task { await LiveCaptureCoordinator.shared.start(autoStopAfter: 90) }
+                }
+                Button("停止 Live Capture (S2)") {
+                    Task { await LiveCaptureCoordinator.shared.stop(reason: .userStop) }
                 }
             }
 #endif
