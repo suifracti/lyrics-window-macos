@@ -8,3 +8,11 @@ Lyricify-App-main/
 # Xcode-local generated state; keep the project baseline reproducible.
 SpotifyLyrics.xcodeproj/project.xcworkspace/
 SpotifyLyrics.xcodeproj/xcuserdata/
+
+# Local Debug Team ID / signing only — never commit secrets or personal Team IDs.
+SpotifyLyrics/Config/DebugSigning.local.xcconfig
+*.mobileprovision
+*.p12
+*.cer
+*.certSigningRequest
+

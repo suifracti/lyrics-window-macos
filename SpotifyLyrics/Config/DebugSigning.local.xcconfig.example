@@ -1,0 +1,10 @@
+// Copy to DebugSigning.local.xcconfig (gitignored) and set your Team ID.
+//
+// Find Team ID:
+//   Xcode → Settings → Accounts → select Apple ID → Team → Team ID
+// or:
+//   security find-identity -v -p codesigning
+//
+// Personal Team (free) is enough for local Debug ScreenCaptureKit testing.
+
+DEVELOPMENT_TEAM = YOUR_TEAM_ID_HERE
