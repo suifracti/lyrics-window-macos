@@ -10,6 +10,8 @@ struct CurrentSongOperationsView: View {
 
     @State private var notice = ""
     @State private var showDeleteTranslationConfirmation = false
+    @State private var showDeleteReadingConfirmation = false
+    @State private var pendingReadingDeletionID: UUID?
     @State private var showCandidatePreview = false
     @State private var showReadingEditor = false
 
@@ -64,6 +66,23 @@ struct CurrentSongOperationsView: View {
             Button("取消", role: .cancel) {}
         } message: {
             Text("不会删除原文、读音或歌词版本。")
+        }
+        .confirmationDialog(
+            "删除当前读音版本？",
+            isPresented: $showDeleteReadingConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("删除读音版本", role: .destructive) {
+                if let versionID = pendingReadingDeletionID {
+                    state.deleteReading(versionID: versionID)
+                }
+                pendingReadingDeletionID = nil
+            }
+            Button("取消", role: .cancel) {
+                pendingReadingDeletionID = nil
+            }
+        } message: {
+            Text("不会删除原文、歌词版本、翻译或时间轴。锁定版本仍不可删除。")
         }
         .sheet(isPresented: $showCandidatePreview) {
             if let candidate = state.translationSessionPendingCandidate {
@@ -369,7 +388,10 @@ struct CurrentSongOperationsView: View {
                         if !version.record.isLocked {
                             Divider()
                             Button("归档") { state.archiveReading(versionID: version.record.id) }
-                            Button("删除", role: .destructive) { state.deleteReading(versionID: version.record.id) }
+                            Button("删除", role: .destructive) {
+                                pendingReadingDeletionID = version.record.id
+                                showDeleteReadingConfirmation = true
+                            }
                         }
                     } label: {
                         Image(systemName: "ellipsis")

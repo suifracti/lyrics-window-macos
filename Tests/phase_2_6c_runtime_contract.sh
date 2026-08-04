@@ -13,6 +13,8 @@ grep -q "line.kanaText = nil" "$ROOT_DIR/SpotifyLyrics/Lyrics/ReadingSessionCont
 grep -q "readingSurfaceText" "$ROOT_DIR/SpotifyLyrics/Views/Components/LyricLineView.swift"
 grep -q "AIReadingCandidateService" "$ROOT_DIR/SpotifyLyrics/Lyrics/ReadingSessionController.swift"
 grep -q "aiCandidateOnly" "$ROOT_DIR/SpotifyLyrics/Lyrics/ReadingSessionController.swift"
+grep -q "showDeleteReadingConfirmation" "$ROOT_DIR/SpotifyLyrics/Views/Components/CurrentSongOperationsView.swift"
+grep -q "删除当前读音版本" "$ROOT_DIR/SpotifyLyrics/Views/Components/CurrentSongOperationsView.swift"
 ! grep -Eq "Timer|DispatchSourceTimer|CADisplayLink" "$ROOT_DIR/SpotifyLyrics/Lyrics/ReadingSessionController.swift"
 ! grep -Eq "SPOTIFYLYRICS_DATABASE_PATH.*formal|defaultDatabaseURL.*reading" "$ROOT_DIR/SpotifyLyrics/Lyrics/ReadingSessionController.swift"
 
