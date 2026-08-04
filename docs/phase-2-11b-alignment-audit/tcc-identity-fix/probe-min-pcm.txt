@@ -1,0 +1,5 @@
+[2026-08-04T14:11:29Z] PCM reason=tick buffers=451 samples=432960 duration_s=9.020 inRate=48000.0 ch=2 peak=0.7838 rms=0.2577 active=true videoBuffers=0
+[2026-08-04T14:11:30Z] PCM reason=tick buffers=501 samples=480960 duration_s=10.020 inRate=48000.0 ch=2 peak=0.7838 rms=0.2600 active=true videoBuffers=0
+[2026-08-04T14:11:31Z] PCM reason=tick buffers=551 samples=528960 duration_s=11.020 inRate=48000.0 ch=2 peak=0.7838 rms=0.2604 active=true videoBuffers=0
+[2026-08-04T14:11:32Z] PCM reason=tick buffers=601 samples=576960 duration_s=12.020 inRate=48000.0 ch=2 peak=0.7838 rms=0.2622 active=true videoBuffers=0
+[2026-08-04T14:11:32Z] PCM reason=final buffers=603 samples=578880 duration_s=12.060 inRate=48000.0 ch=2 peak=0.7838 rms=0.2626 active=true videoBuffers=0
