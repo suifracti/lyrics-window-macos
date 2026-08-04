@@ -771,13 +771,24 @@ public final class PlaybackState: ObservableObject {
         }
     }
 
-    public func retryLyrics() {
+    public func retryLyrics(queryOverride: String? = nil) {
         if let previewTrack = searchPreviewTrack {
             let identity = TrackIdentity(track: previewTrack)
-            searchPreviewSession.retry(track: previewTrack, identity: identity)
+            searchPreviewSession.retry(
+                track: previewTrack,
+                identity: identity,
+                queryOverride: queryOverride
+            )
             songSearchSelectionMessage = "正在重新搜索所选歌曲歌词…"
         } else {
-            autoCompleteLyrics()
+            guard hasLiveTrack, let identity = currentTrackIdentity else { return }
+            let posBefore = currentTime
+            lyricsSession.retry(
+                track: currentTrack,
+                identity: identity,
+                queryOverride: queryOverride
+            )
+            LyricsE2ELog.log("UI retryLyrics dispatched queryOverride=\(queryOverride ?? "") posBefore=\(posBefore) (must not seek)")
         }
     }
 

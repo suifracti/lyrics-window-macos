@@ -15,12 +15,14 @@ public final class LyricsSessionController: ObservableObject {
     @Published public private(set) var alignmentProvenanceAvailability: AlignmentProvenanceAvailability = .unavailable
     @Published public private(set) var revision: UInt64 = 0
     @Published public private(set) var persistenceStatusMessage: String?
+    @Published public private(set) var activeSearchQuery: String?
 
     private let searchManager: LyricsSearchManager
     private let repository: (any LyricsRepository)?
     private var requestTask: Task<Void, Never>?
     private var automaticRecoveryRetryIdentity: TrackIdentity?
     private var activeTrack: Track?
+    private var searchQueryOverride: String?
 
     /// Primary production path: multi-variant LyricsSearchManager (not a dead Orchestrator).
     public init(
@@ -50,7 +52,7 @@ public final class LyricsSessionController: ObservableObject {
     }
 
     public func autoComplete(track: Track, identity: TrackIdentity) {
-        begin(track: track, identity: identity)
+        begin(track: track, identity: identity, resetQueryOverride: true)
     }
 
     public func updateProviders(_ providers: [LyricsProvider]) {
@@ -63,11 +65,19 @@ public final class LyricsSessionController: ObservableObject {
     public func begin(
         track: Track,
         identity: TrackIdentity,
-        automaticallySearch: Bool = true
+        automaticallySearch: Bool = true,
+        forceRefresh: Bool = false,
+        queryOverride: String? = nil,
+        resetQueryOverride: Bool = false
     ) {
         cancelCurrentRequest()
         revision &+= 1
         let requestRevision = revision
+        if resetQueryOverride || activeIdentity != identity {
+            searchQueryOverride = Self.normalizedQuery(queryOverride)
+        } else if let queryOverride {
+            searchQueryOverride = Self.normalizedQuery(queryOverride)
+        }
         if activeIdentity != identity {
             automaticRecoveryRetryIdentity = nil
         }
@@ -77,10 +87,12 @@ public final class LyricsSessionController: ObservableObject {
         activeSourceContentHash = nil
         alignmentProvenanceAvailability = .unavailable
         persistenceStatusMessage = nil
+        activeSearchQuery = searchQueryOverride
         lyrics = []
         isSynchronized = true
         isNoSelection = false
         state = .loading(identity)
+        let queryOverrideSnapshot = searchQueryOverride
 
         LyricsE2ELog.log(
             "SESSION begin rev=\(requestRevision) identity=\(identity.stableKey) title=\(track.title) artist=\(track.artist) duration=\(track.duration) spotifyId=\(track.spotifyId ?? "")"
@@ -97,11 +109,13 @@ public final class LyricsSessionController: ObservableObject {
             var cachedReference: StoredLyricsDocument?
             var persistenceError: String?
             var repositoryReady = false
+            var storedAliases: [TrackAlias] = []
 
             if let repository {
                 do {
                     try await repository.prepare()
                     repositoryReady = true
+                    storedAliases = (try? await repository.loadAliases(stableKey: identity.stableKey)) ?? []
                     if let cached = try await repository.loadBestStored(track: track, identity: identity) {
                         cachedReference = cached
                         LyricsE2ELog.log(
@@ -118,7 +132,13 @@ public final class LyricsSessionController: ObservableObject {
             }
 
             if outcome == nil, !Task.isCancelled {
-                let searched = await searchManager.search(track: track, identity: identity)
+                let searched = await searchManager.search(
+                    track: track,
+                    identity: identity,
+                    queryOverride: queryOverrideSnapshot,
+                    forceRefresh: forceRefresh,
+                    aliases: storedAliases
+                )
                 outcome = searched
             }
 
@@ -213,7 +233,26 @@ public final class LyricsSessionController: ObservableObject {
     }
 
     public func retry(track: Track, identity: TrackIdentity) {
-        autoComplete(track: track, identity: identity)
+        retry(track: track, identity: identity, queryOverride: nil)
+    }
+
+    public func retry(
+        track: Track,
+        identity: TrackIdentity,
+        queryOverride: String?
+    ) {
+        begin(
+            track: track,
+            identity: identity,
+            automaticallySearch: true,
+            forceRefresh: true,
+            queryOverride: queryOverride
+        )
+    }
+
+    public func clearSearchQueryOverride() {
+        searchQueryOverride = nil
+        activeSearchQuery = nil
     }
 
     @discardableResult
@@ -238,6 +277,8 @@ public final class LyricsSessionController: ObservableObject {
         alignmentProvenanceAvailability = .unavailable
         activeTrack = nil
         automaticRecoveryRetryIdentity = nil
+        searchQueryOverride = nil
+        activeSearchQuery = nil
         lyrics = []
         isSynchronized = true
         isNoSelection = false
@@ -548,6 +589,12 @@ public final class LyricsSessionController: ObservableObject {
     private func cancelCurrentRequest() {
         requestTask?.cancel()
         requestTask = nil
+    }
+
+    private static func normalizedQuery(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 
     private func persistAdoptedDocument(_ document: LyricsDocument) {

@@ -6,6 +6,7 @@ struct LyricsCanvasView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var lastScrolledLineIndex: Int?
     @State private var isAlignmentDetailsPresented = false
+    @State private var manualLyricsSearchQuery = ""
 
     var body: some View {
         Group {
@@ -91,6 +92,7 @@ struct LyricsCanvasView: View {
             statusView(icon: "text.magnifyingglass", message: "暂未找到歌词", detail: "来源返回无词（例如纯音乐）。可导入本地音频做 ASR 草稿。") {
                 VStack(spacing: 8) {
                     retryButton
+                    manualLyricsQueryEntry
                     Button("导入本地音频 · ASR 草稿") { state.importLocalAudioForASR() }
                         .buttonStyle(.bordered)
                     ManualLyricsActionsView(state: state)
@@ -104,6 +106,7 @@ struct LyricsCanvasView: View {
             ) {
                 VStack(spacing: 8) {
                     retryButton
+                    manualLyricsQueryEntry
                     Button("导入本地音频 · ASR 草稿") { state.importLocalAudioForASR() }
                         .buttonStyle(.bordered)
                     ManualLyricsActionsView(state: state)
@@ -124,6 +127,7 @@ struct LyricsCanvasView: View {
             statusView(icon: "exclamationmark.triangle", message: "自动补全失败", detail: failure.userFacingMessage) {
                 VStack(spacing: 8) {
                     retryButton
+                    manualLyricsQueryEntry
                     ManualLyricsActionsView(state: state)
                 }
             }
@@ -149,6 +153,23 @@ struct LyricsCanvasView: View {
         }
         .buttonStyle(.bordered)
         .tint(LyricsDesignTokens.accent)
+    }
+
+    private var manualLyricsQueryEntry: some View {
+        HStack(spacing: 6) {
+            TextField("标题或艺人搜索词", text: $manualLyricsSearchQuery)
+                .textFieldStyle(.roundedBorder)
+                .frame(width: 210)
+            Button("搜索") {
+                let query = manualLyricsSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !query.isEmpty else { return }
+                state.retryLyrics(queryOverride: query)
+            }
+            .buttonStyle(.bordered)
+            .disabled(manualLyricsSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("手动修改歌词搜索词")
     }
 
     private var lyricsScroll: some View {
@@ -363,7 +384,7 @@ struct LyricsCanvasView: View {
                                     .foregroundStyle(LyricsDesignTokens.mutedText)
                             }
                             Spacer()
-                            Text("\(Int(candidate.confidence * 100))%")
+                            Text("\(Int(candidate.displayedConfidence * 100))%")
                                 .font(.system(size: 12, design: .rounded).monospacedDigit())
                                 .foregroundStyle(LyricsDesignTokens.accent)
                         }
@@ -461,6 +482,7 @@ struct LyricsStateContentFirstView: View {
     var onSearch: (() -> Void)? = nil
 
     @State private var candidateToPreview: LyricsCandidate?
+    @State private var manualLyricsSearchQuery = ""
 
     var body: some View {
         Group {
@@ -535,6 +557,9 @@ struct LyricsStateContentFirstView: View {
     @ViewBuilder
     private var secondaryActions: some View {
         HStack(spacing: LyricsDesignTokens.Spacing.sm) {
+            if case .noMatch = state.liveLyricsState {
+                manualLyricsQueryEntry
+            }
             if state.canCreateManualLyrics {
                 ManualLyricsActionsView(
                     state: state,
@@ -599,6 +624,23 @@ struct LyricsStateContentFirstView: View {
         case .mockPreview, .ready:
             return "music.note"
         }
+    }
+
+    private var manualLyricsQueryEntry: some View {
+        HStack(spacing: 6) {
+            TextField("标题或艺人搜索词", text: $manualLyricsSearchQuery)
+                .textFieldStyle(.roundedBorder)
+                .frame(width: compact ? 170 : 220)
+            Button("搜索") {
+                let query = manualLyricsSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !query.isEmpty else { return }
+                state.retryLyrics(queryOverride: query)
+            }
+            .buttonStyle(.bordered)
+            .disabled(manualLyricsSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("手动修改歌词搜索词")
     }
 
     private var stateTitle: String {
@@ -693,7 +735,7 @@ struct LyricsStateContentFirstView: View {
     }
 
     private func candidateContent(_ candidates: [LyricsCandidate]) -> some View {
-        let recommendedID = candidates.max { $0.confidence < $1.confidence }?.id
+        let recommendedID = candidates.max { $0.displayedConfidence < $1.displayedConfidence }?.id
 
         return ScrollView {
             VStack(alignment: .leading, spacing: LyricsDesignTokens.Spacing.sm) {
@@ -757,17 +799,27 @@ struct LyricsStateContentFirstView: View {
                         .lineLimit(1)
                     HStack(spacing: 8) {
                         Text(candidate.source.displayName)
+                        if let provider = candidate.providerName {
+                            Text(provider)
+                        }
+                        Text(candidate.queryMethodLabel)
                         Text(languageLabel(candidate.language))
-                        Text(candidate.isSynchronized ? "含时间轴" : "纯文本")
+                        Text(candidate.timelineLabel)
                     }
                     .font(.system(size: 10, weight: .medium, design: .rounded))
                     .foregroundStyle(LyricsDesignTokens.mutedText.opacity(0.9))
+                    if !candidate.matchExplanation.isEmpty {
+                        Text(candidate.matchExplanation.prefix(3).joined(separator: " · "))
+                            .font(.system(size: 9, design: .rounded))
+                            .foregroundStyle(LyricsDesignTokens.mutedText.opacity(0.75))
+                            .lineLimit(1)
+                    }
                 }
 
                 Spacer(minLength: 8)
 
                 VStack(alignment: .trailing, spacing: 4) {
-                    Text("\(Int(candidate.confidence * 100))%")
+                    Text("\(Int(candidate.displayedConfidence * 100))%")
                         .font(.system(size: 12, weight: .semibold, design: .rounded).monospacedDigit())
                         .foregroundStyle(LyricsDesignTokens.accent)
                     Text("预览")
