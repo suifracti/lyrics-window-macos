@@ -1,0 +1,7 @@
+Executable=/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics
+Identifier=com.spotifylyrics.app
+CandidateCDHash sha256=df9c7dac13c476360f9026272713ff0f1b292dc9
+CandidateCDHashFull sha256=df9c7dac13c476360f9026272713ff0f1b292dc90eee7c7d0435d733fa9e0d15
+CDHash=df9c7dac13c476360f9026272713ff0f1b292dc9
+Signature=adhoc
+TeamIdentifier=not set

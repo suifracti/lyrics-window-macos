@@ -703,6 +703,11 @@ public final class PlaybackState: ObservableObject {
         LyricsE2ELog.log("ACCEPTANCE control apply payload=\(payload.replacingOccurrences(of: "\n", with: " | "))")
 
         var wantsRetry = false
+        var wantsAssistStart = false
+        var wantsAssistCancel = false
+        var wantsAssistSave = false
+        var assistSeconds: TimeInterval = 55
+        var assistMarkCount = 0
         for line in payload.split(whereSeparator: \.isNewline) {
             let token = line.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !token.isEmpty else { continue }
@@ -719,6 +724,43 @@ public final class PlaybackState: ObservableObject {
                 applyAcceptanceMode(.experimentalFree)
                 continue
             }
+            // DEBUG-only acceptance harness for Assist E2E (no product UI change).
+            if lower == "assist" || lower == "assist_start" {
+                wantsAssistStart = true
+                continue
+            }
+            if lower == "assist_cancel" {
+                wantsAssistCancel = true
+                continue
+            }
+            if lower == "assist_save" {
+                wantsAssistSave = true
+                continue
+            }
+            if lower.hasPrefix("assist_seconds=") {
+                let raw = String(lower.dropFirst("assist_seconds=".count))
+                if let v = Double(raw), v >= 20 { assistSeconds = v }
+                continue
+            }
+            if lower.hasPrefix("assist_mark=") {
+                let raw = String(lower.dropFirst("assist_mark=".count))
+                if let v = Int(raw), v > 0 { assistMarkCount = min(v, 40) }
+                continue
+            }
+            if lower == "assist_make_plain" {
+                acceptanceAssistMakePlain()
+                continue
+            }
+            if lower == "assist_undo" {
+                lyricsEditorSession.undo()
+                LyricsE2ELog.log("ACCEPTANCE control assist_undo")
+                continue
+            }
+            if lower == "assist_redo" {
+                lyricsEditorSession.redo()
+                LyricsE2ELog.log("ACCEPTANCE control assist_redo")
+                continue
+            }
             LyricsE2ELog.log("ACCEPTANCE control ignore token=\(token)")
         }
         // Mode rebuild must finish before a retry so the next MANAGER start
@@ -731,6 +773,76 @@ public final class PlaybackState: ObservableObject {
                 "ACCEPTANCE control retry done identity=\(identityBefore) posBefore=\(posBefore) posAfter=\(currentTime)"
             )
         }
+        if wantsAssistCancel {
+            cancelListeningAssist()
+            LyricsE2ELog.log("ACCEPTANCE control assist_cancel")
+        }
+        if wantsAssistStart {
+            // Skip explain sheet in harness; product UI still shows sheet for humans.
+            confirmListeningAssistAndCapture(seconds: assistSeconds)
+            LyricsE2ELog.log("ACCEPTANCE control assist_start seconds=\(assistSeconds)")
+        }
+        if assistMarkCount > 0 {
+            acceptanceAssistMark(count: assistMarkCount)
+        }
+        if wantsAssistSave {
+            lyricsEditorSession.confirmPartialSave = { timed, untimed in
+                LyricsE2ELog.log("ACCEPTANCE control assist_save partial timed=\(timed) untimed=\(untimed)")
+                return true
+            }
+            lyricsEditorSession.save()
+            LyricsE2ELog.log("ACCEPTANCE control assist_save invoked")
+        }
+    }
+
+    /// Acceptance harness: mark next untimed lines at advancing playback positions.
+    private func acceptanceAssistMark(count: Int) {
+        guard lyricsEditorSession.draft != nil else {
+            LyricsE2ELog.log("ACCEPTANCE assist_mark skipped no draft")
+            return
+        }
+        var marked = 0
+        var focus = lyricsEditorSession.draft?.lines.first(where: {
+            $0.startTime == nil
+                && !$0.originalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        })?.id
+        for _ in 0..<count {
+            guard let lineID = focus else { break }
+            let pos = min(max(0, currentTime), max(0, currentTrack.duration))
+            if let next = lyricsEditorSession.markLineAtPlayback(lineID: lineID, position: pos, advance: true) {
+                focus = next
+            } else {
+                focus = lyricsEditorSession.draft?.nextUntimedLineID(after: lineID)
+            }
+            marked += 1
+            // Advance playback slightly so marks are distinct and monotonic.
+            let nextPos = min(currentTrack.duration, currentTime + 2.5)
+            seek(to: nextPos, source: "acceptance-assist-mark")
+        }
+        LyricsE2ELog.log(
+            "ACCEPTANCE assist_mark done marked=\(marked) timed=\(lyricsEditorSession.draft?.timedNonBlankLineCount ?? -1) untimed=\(lyricsEditorSession.draft?.untimedNonBlankLineCount ?? -1)"
+        )
+    }
+
+    /// Acceptance harness: strip all line times and save as plain/unsynced child version
+    /// so Assist can run when only a synced provider document is loaded (sample B).
+    private func acceptanceAssistMakePlain() {
+        prepareLyricsEditor()
+        guard let lines = lyricsEditorSession.draft?.lines, !lines.isEmpty else {
+            LyricsE2ELog.log("ACCEPTANCE assist_make_plain skipped no draft")
+            return
+        }
+        for line in lines {
+            lyricsEditorSession.updateLine(line.id) { row in
+                row.startTime = nil
+                row.endTime = nil
+            }
+        }
+        lyricsEditorSession.confirmPartialSave = { _, _ in true }
+        lyricsEditorSession.save()
+        LyricsE2ELog.log(
+            "ACCEPTANCE assist_make_plain saved timed=\(lyricsEditorSession.draft?.timedNonBlankLineCount ?? -1) untimed=\(lyricsEditorSession.draft?.untimedNonBlankLineCount ?? -1)"
+        )
     }
 
     private func applyAcceptanceMode(_ mode: LyricsSourceMode) {
