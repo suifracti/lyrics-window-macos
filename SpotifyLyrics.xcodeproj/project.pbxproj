@@ -73,6 +73,7 @@
 		1100004B2D83400100000001 /* SpeechForcedAlignmentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004B2D83400100000000 /* SpeechForcedAlignmentService.swift */; };
 		110000E02D83400100000001 /* TimedTranscript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000E02D83400100000000 /* TimedTranscript.swift */; };
 		110000E12D83400100000001 /* AudioInputMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000E12D83400100000000 /* AudioInputMetadata.swift */; };
+		110000FC2D83400100000001 /* SpotifyScreenCaptureAudioSpike.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000FC2D83400100000000 /* SpotifyScreenCaptureAudioSpike.swift */; };
 		1100004C2D83400100000001 /* LocalAlignedLyricsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */; };
 		1100004D2D83400100000001 /* JapaneseReadingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */; };
 		110000A02D83400100000001 /* ReadingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000A02D83400100000000 /* ReadingModels.swift */; };
@@ -223,6 +224,7 @@
 		1100004B2D83400100000000 /* SpeechForcedAlignmentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechForcedAlignmentService.swift; sourceTree = "<group>"; };
 		110000E02D83400100000000 /* TimedTranscript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimedTranscript.swift; sourceTree = "<group>"; };
 		110000E12D83400100000000 /* AudioInputMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioInputMetadata.swift; sourceTree = "<group>"; };
+		110000FC2D83400100000000 /* SpotifyScreenCaptureAudioSpike.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/SpotifyScreenCaptureAudioSpike.swift; sourceTree = "<group>"; };
 		1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAlignedLyricsStore.swift; sourceTree = "<group>"; };
 		1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JapaneseReadingPipeline.swift; sourceTree = "<group>"; };
 		110000A02D83400100000000 /* ReadingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingModels.swift; sourceTree = "<group>"; };
@@ -351,6 +353,7 @@
 				110000002D83400000000027 /* Persistence */,
 				110000002D83400000000028 /* Spotify */,
 				110000002D83400000000029 /* Settings */,
+				110000FC2D83400100000000 /* SpotifyScreenCaptureAudioSpike.swift */,
 			);
 			path = SpotifyLyrics;
 			sourceTree = "<group>";
@@ -722,6 +725,7 @@
 				1100004A2D83400100000001 /* LineForcedAligner.swift in Sources */,
 				110000E02D83400100000001 /* TimedTranscript.swift in Sources */,
 				110000E12D83400100000001 /* AudioInputMetadata.swift in Sources */,
+				110000FC2D83400100000001 /* SpotifyScreenCaptureAudioSpike.swift in Sources */,
 				110000492D83400100000001 /* AudioPCMConverter.swift in Sources */,
 				110000482D83400100000001 /* AlignmentService.swift in Sources */,
 				110000472D83400100000001 /* AlignmentModels.swift in Sources */,
@@ -833,6 +837,7 @@
 				INFOPLIST_KEY_NSHighResolutionCapable = YES;
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "SpotifyLyrics 需要控制 Spotify 以读取当前歌曲、播放状态和封面。";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "SpotifyLyrics 使用语音识别，从你导入的本地音频生成日语歌词草稿（不会读取 Spotify 受保护音频）。";
+				INFOPLIST_KEY_NSScreenCaptureUsageDescription = "Debug Spike：仅捕获 Spotify 应用正在播放的音频，用于实验性歌词时间轴研究。不捕获麦克风、不捕获其他 App、不保存或导出音频文件，也不上传。";
 				INFOPLIST_KEY_LSMinimumSystemVersion = "14.0";
 				INFOPLIST_KEY_CFBundleDisplayName = SpotifyLyrics;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
@@ -855,6 +860,7 @@
 				INFOPLIST_KEY_NSHighResolutionCapable = YES;
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "SpotifyLyrics 需要控制 Spotify 以读取当前歌曲、播放状态和封面。";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "SpotifyLyrics 使用语音识别，从你导入的本地音频生成日语歌词草稿（不会读取 Spotify 受保护音频）。";
+				INFOPLIST_KEY_NSScreenCaptureUsageDescription = "Debug Spike：仅捕获 Spotify 应用正在播放的音频，用于实验性歌词时间轴研究。不捕获麦克风、不捕获其他 App、不保存或导出音频文件，也不上传。";
 				INFOPLIST_KEY_LSMinimumSystemVersion = "14.0";
 				INFOPLIST_KEY_CFBundleDisplayName = SpotifyLyrics;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;

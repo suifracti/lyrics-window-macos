@@ -1,0 +1,7 @@
+[SpotifyLyrics][DebugSafety] event=repository_open
+[SpotifyLyrics][DebugSafety] forced_presentation_id=none
+[SpotifyLyrics][DebugSafety] forced_presentation_mode=none
+[SpotifyLyrics][DebugSafety] database_path=/tmp/spotifylyrics-sck-s1-20260804193055.sqlite3
+[SpotifyLyrics][DebugSafety] temporary_copy=YES
+[SpotifyLyrics][DebugSafety] formal_database_opened=NO
+[2026-08-04T11:30:59Z] LOG_RESET
