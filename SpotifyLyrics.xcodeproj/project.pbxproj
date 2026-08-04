@@ -81,6 +81,9 @@
 		110001012D83400100000001 /* PartialAlignmentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001012D83400100000000 /* PartialAlignmentModels.swift */; };
 		110001022D83400100000001 /* AlignmentLocaleRecommender.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001022D83400100000000 /* AlignmentLocaleRecommender.swift */; };
 		110001032D83400100000001 /* SegmentPartialAlignmentPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001032D83400100000000 /* SegmentPartialAlignmentPipeline.swift */; };
+		110001042D83400100000001 /* AlignmentAnchor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001042D83400100000000 /* AlignmentAnchor.swift */; };
+		110001052D83400100000001 /* AnchorAlignmentPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001052D83400100000000 /* AnchorAlignmentPolicy.swift */; };
+		110001062D83400100000001 /* AnchorConstrainedAligner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001062D83400100000000 /* AnchorConstrainedAligner.swift */; };
 		1100004C2D83400100000001 /* LocalAlignedLyricsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */; };
 		1100004D2D83400100000001 /* JapaneseReadingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */; };
 		110000A02D83400100000001 /* ReadingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000A02D83400100000000 /* ReadingModels.swift */; };
@@ -239,6 +242,9 @@
 		110001012D83400100000000 /* PartialAlignmentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/PartialAlignmentModels.swift; sourceTree = "<group>"; };
 		110001022D83400100000000 /* AlignmentLocaleRecommender.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/AlignmentLocaleRecommender.swift; sourceTree = "<group>"; };
 		110001032D83400100000000 /* SegmentPartialAlignmentPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/SegmentPartialAlignmentPipeline.swift; sourceTree = "<group>"; };
+		110001042D83400100000000 /* AlignmentAnchor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/AlignmentAnchor.swift; sourceTree = "<group>"; };
+		110001052D83400100000000 /* AnchorAlignmentPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/AnchorAlignmentPolicy.swift; sourceTree = "<group>"; };
+		110001062D83400100000000 /* AnchorConstrainedAligner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/AnchorConstrainedAligner.swift; sourceTree = "<group>"; };
 		1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAlignedLyricsStore.swift; sourceTree = "<group>"; };
 		1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JapaneseReadingPipeline.swift; sourceTree = "<group>"; };
 		110000A02D83400100000000 /* ReadingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingModels.swift; sourceTree = "<group>"; };
@@ -375,6 +381,9 @@
 				110001012D83400100000000 /* PartialAlignmentModels.swift */,
 				110001022D83400100000000 /* AlignmentLocaleRecommender.swift */,
 				110001032D83400100000000 /* SegmentPartialAlignmentPipeline.swift */,
+				110001042D83400100000000 /* AlignmentAnchor.swift */,
+				110001052D83400100000000 /* AnchorAlignmentPolicy.swift */,
+				110001062D83400100000000 /* AnchorConstrainedAligner.swift */,
 			);
 			path = SpotifyLyrics;
 			sourceTree = "<group>";
@@ -754,6 +763,9 @@
 				110001012D83400100000001 /* PartialAlignmentModels.swift in Sources */,
 				110001022D83400100000001 /* AlignmentLocaleRecommender.swift in Sources */,
 				110001032D83400100000001 /* SegmentPartialAlignmentPipeline.swift in Sources */,
+				110001042D83400100000001 /* AlignmentAnchor.swift in Sources */,
+				110001052D83400100000001 /* AnchorAlignmentPolicy.swift in Sources */,
+				110001062D83400100000001 /* AnchorConstrainedAligner.swift in Sources */,
 				110000492D83400100000001 /* AudioPCMConverter.swift in Sources */,
 				110000482D83400100000001 /* AlignmentService.swift in Sources */,
 				110000472D83400100000001 /* AlignmentModels.swift in Sources */,

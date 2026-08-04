@@ -119,6 +119,13 @@ public struct HeldOutErrorStats: Codable, Equatable, Sendable {
     public let p90AbsoluteError: TimeInterval?
     public let p95AbsoluteError: TimeInterval?
     public let meanAbsoluteError: TimeInterval?
+    /// Absolute error ≤ 0.5 s
+    public let withinHalfSecondCount: Int
+    /// Absolute error ≤ 1.0 s
+    public let withinOneSecondCount: Int
+    /// Absolute error ≤ 2.0 s
+    public let withinTwoSecondCount: Int
+    /// Absolute error > 3.0 s (severe wrong timing / likely wrong line)
     public let obviousMismatchCount: Int
     public let note: String
 
@@ -129,6 +136,9 @@ public struct HeldOutErrorStats: Codable, Equatable, Sendable {
             p90AbsoluteError: nil,
             p95AbsoluteError: nil,
             meanAbsoluteError: nil,
+            withinHalfSecondCount: 0,
+            withinOneSecondCount: 0,
+            withinTwoSecondCount: 0,
             obviousMismatchCount: 0,
             note: note
         )
@@ -136,9 +146,41 @@ public struct HeldOutErrorStats: Codable, Equatable, Sendable {
 }
 
 public struct PartialAlignmentReport: Codable, Equatable, Sendable {
+    /// Primary candidate (S3B when constrained alignment ran; else S3A).
     public let candidate: PartialAlignmentCandidate
     public let heldOut: HeldOutErrorStats
     public let judgment: String
     public let wavPaths: [String]
+    /// S3A baseline for A/B comparison (always filled when speech succeeded).
+    public let s3aCandidate: PartialAlignmentCandidate?
+    public let s3aHeldOut: HeldOutErrorStats?
+    public let acceptedAnchors: [AlignmentAnchor]
+    public let rejectedAnchors: [AlignmentAnchor]
+    public let usedConstrainedAlignment: Bool
+    public let s3bFallbackReason: String?
+
+    public init(
+        candidate: PartialAlignmentCandidate,
+        heldOut: HeldOutErrorStats,
+        judgment: String,
+        wavPaths: [String],
+        s3aCandidate: PartialAlignmentCandidate? = nil,
+        s3aHeldOut: HeldOutErrorStats? = nil,
+        acceptedAnchors: [AlignmentAnchor] = [],
+        rejectedAnchors: [AlignmentAnchor] = [],
+        usedConstrainedAlignment: Bool = false,
+        s3bFallbackReason: String? = nil
+    ) {
+        self.candidate = candidate
+        self.heldOut = heldOut
+        self.judgment = judgment
+        self.wavPaths = wavPaths
+        self.s3aCandidate = s3aCandidate
+        self.s3aHeldOut = s3aHeldOut
+        self.acceptedAnchors = acceptedAnchors
+        self.rejectedAnchors = rejectedAnchors
+        self.usedConstrainedAlignment = usedConstrainedAlignment
+        self.s3bFallbackReason = s3bFallbackReason
+    }
 }
 #endif

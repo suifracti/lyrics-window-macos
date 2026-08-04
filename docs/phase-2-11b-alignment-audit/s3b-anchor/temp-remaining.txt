@@ -1,0 +1,8 @@
+temp sqlite leftovers (will delete):
+/tmp/spotifylyrics-s3b-20260804201853.sqlite3
+/tmp/spotifylyrics-s3b-20260804202238.sqlite3
+/tmp/spotifylyrics-s3b-20260804203224.sqlite3
+/tmp/spotifylyrics-s3b-b-20260804203520.sqlite3
+/tmp/spotifylyrics-s3b-perm.sqlite3
+wav_remaining=0 session_dirs=0
+formal_db_opened=NO in sample A/B spike logs

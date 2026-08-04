@@ -1,0 +1,1 @@
+/tmp/spotifylyrics-s3b-control.txt

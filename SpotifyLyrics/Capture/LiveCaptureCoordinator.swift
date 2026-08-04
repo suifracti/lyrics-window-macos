@@ -505,7 +505,14 @@ public final class LiveCaptureCoordinator: ObservableObject {
                 return
             }
             lastPartialReport = report
-            SCKSpikeLog.log("S3A judgment=\(report.judgment)")
+            SCKSpikeLog.log(
+                "S3B judgment=\(report.judgment) constrained=\(report.usedConstrainedAlignment) anchors=\(report.acceptedAnchors.count)/rej=\(report.rejectedAnchors.count) fallback=\(report.s3bFallbackReason ?? "none")"
+            )
+            if let s3a = report.s3aCandidate {
+                SCKSpikeLog.log(
+                    "S3B AB s3a_cov=\(String(format: "%.3f", s3a.coverageRatio)) s3b_cov=\(String(format: "%.3f", report.candidate.coverageRatio)) s3a_res=\(s3a.resolvedCount) s3b_res=\(report.candidate.resolvedCount)"
+                )
+            }
         } catch {
             if !isGenerationCurrent(gen) {
                 SCKSpikeLog.log("S3A cancelled gen=\(gen)")

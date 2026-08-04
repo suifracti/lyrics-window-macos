@@ -1,0 +1,1 @@
+/tmp/spotifylyrics-s3b-20260804203224.sqlite3

@@ -44,8 +44,7 @@ public enum SegmentPartialAlignmentPipeline {
         var ranges: [CapturedTimeRange] = []
         var totalTranscriptSegments = 0
         var totalCapturedDuration: TimeInterval = 0
-        // Best absolute time per lyric line across segments (prefer higher confidence).
-        var bestByLine: [Int: PartialAlignedLine] = [:]
+        var bundles: [SegmentSpeechBundle] = []
 
         let provider = SpeechTimedTranscriptProvider(localeIdentifier: localeRec.localeIdentifier)
 
@@ -77,23 +76,144 @@ public enum SegmentPartialAlignmentPipeline {
             SCKSpikeLog.log(
                 "S3A speech ok segmentID=\(segment.segmentID.uuidString.prefix(8)) transcriptSegments=\(transcript.segments.count) audioDuration=\(fmt(transcript.audioDuration))"
             )
+            bundles.append(
+                SegmentSpeechBundle(
+                    segment: segment,
+                    transcript: transcript,
+                    positionStart: posStart,
+                    positionEnd: posEnd
+                )
+            )
+        }
 
+        // --- S3A baseline (global Partial DP per segment) ---
+        let s3aLines = buildS3ALines(
+            bundles: bundles,
+            plainLines: plainLines,
+            ranges: ranges,
+            locale: localeRec.localeIdentifier,
+            groundTruthSyncedLines: groundTruthSyncedLines
+        )
+        let s3aCandidate = makeCandidate(
+            identity: identity,
+            sessionID: session.sessionID,
+            localeRec: localeRec,
+            ranges: ranges,
+            lines: s3aLines,
+            transcriptSegmentCount: totalTranscriptSegments,
+            capturedDuration: totalCapturedDuration
+        )
+        let s3aHeldOut = evaluateHeldOut(candidateLines: s3aLines, groundTruth: groundTruthSyncedLines)
+
+        // --- S3B anchors + constrained regions ---
+        let (accepted, rejected) = AnchorConstrainedAligner.selectAnchors(
+            bundles: bundles,
+            plainLines: plainLines
+        )
+        SCKSpikeLog.log(
+            "S3B anchors accepted=\(accepted.count) rejected=\(rejected.count)"
+        )
+        for a in accepted.prefix(20) {
+            SCKSpikeLog.log(
+                "S3B ANCHOR_OK line=\(a.lyricLineIndex) conf=\(fmt(a.overallConfidence)) t=\(fmt(a.absoluteStartTime)) lyric=\(a.lyricText.prefix(24)) speech=\(a.transcriptText.prefix(24))"
+            )
+        }
+        for r in rejected.prefix(15) {
+            SCKSpikeLog.log(
+                "S3B ANCHOR_REJ line=\(r.lyricLineIndex) reason=\(r.rejectionReason ?? "?") conf=\(fmt(r.overallConfidence))"
+            )
+        }
+
+        var usedConstrained = false
+        var fallbackReason: String? = nil
+        var s3bLines: [PartialAlignedLine]
+        if let constrained = AnchorConstrainedAligner.alignConstrained(
+            bundles: bundles,
+            plainLines: plainLines,
+            acceptedAnchors: accepted,
+            capturedRanges: ranges,
+            locale: localeRec.localeIdentifier
+        ) {
+            s3bLines = applyOutsideCaptured(
+                lines: constrained,
+                plainLines: plainLines,
+                ranges: ranges,
+                groundTruthSyncedLines: groundTruthSyncedLines
+            )
+            usedConstrained = true
+        } else {
+            s3bLines = s3aLines
+            fallbackReason = accepted.isEmpty
+                ? "insufficientAnchors_zero"
+                : "insufficientAnchors_need_\(AnchorAlignmentPolicy.minimumAnchorsForConstrained)"
+            SCKSpikeLog.log("S3B fallback to S3A reason=\(fallbackReason ?? "")")
+        }
+
+        let s3bCandidate = makeCandidate(
+            identity: identity,
+            sessionID: session.sessionID,
+            localeRec: localeRec,
+            ranges: ranges,
+            lines: s3bLines,
+            transcriptSegmentCount: totalTranscriptSegments,
+            capturedDuration: totalCapturedDuration
+        )
+        let s3bHeldOut = evaluateHeldOut(candidateLines: s3bLines, groundTruth: groundTruthSyncedLines)
+        let judgment = makeS3BJudgment(
+            s3a: s3aCandidate,
+            s3b: s3bCandidate,
+            s3aHeldOut: s3aHeldOut,
+            s3bHeldOut: s3bHeldOut,
+            acceptedCount: accepted.count,
+            usedConstrained: usedConstrained
+        )
+
+        let report = PartialAlignmentReport(
+            candidate: s3bCandidate,
+            heldOut: s3bHeldOut,
+            judgment: judgment,
+            wavPaths: usable.compactMap(\.temporaryPCMReference),
+            s3aCandidate: s3aCandidate,
+            s3aHeldOut: s3aHeldOut,
+            acceptedAnchors: accepted,
+            rejectedAnchors: rejected,
+            usedConstrainedAlignment: usedConstrained,
+            s3bFallbackReason: fallbackReason
+        )
+        try writeReport(report, sessionID: session.sessionID)
+        SCKSpikeLog.log(
+            "S3A coverage=\(fmt(s3aCandidate.coverageRatio)) resolved=\(s3aCandidate.resolvedCount) low=\(s3aCandidate.lowConfidenceCount) unresolved=\(s3aCandidate.unresolvedCount)"
+        )
+        SCKSpikeLog.log(
+            "S3B coverage=\(fmt(s3bCandidate.coverageRatio)) resolved=\(s3bCandidate.resolvedCount) low=\(s3bCandidate.lowConfidenceCount) unresolved=\(s3bCandidate.unresolvedCount) anchors=\(accepted.count) constrained=\(usedConstrained) judgment=\(judgment)"
+        )
+        return report
+    }
+
+    private static func buildS3ALines(
+        bundles: [SegmentSpeechBundle],
+        plainLines: [LyricLine],
+        ranges: [CapturedTimeRange],
+        locale: String,
+        groundTruthSyncedLines: [LyricLine]?
+    ) -> [PartialAlignedLine] {
+        var bestByLine: [Int: PartialAlignedLine] = [:]
+        for bundle in bundles {
+            let posStart = bundle.positionStart
             let result = LineForcedAligner.align(
                 lines: plainLines,
-                transcript: transcript,
-                audioDuration: max(transcript.audioDuration, segment.duration),
+                transcript: bundle.transcript,
+                audioDuration: max(bundle.transcript.audioDuration, bundle.segment.duration),
                 parameters: AlignmentParameters(
-                    recognizerID: transcript.backendID,
-                    localeIdentifier: localeRec.localeIdentifier,
+                    recognizerID: bundle.transcript.backendID,
+                    localeIdentifier: locale,
                     sampleRate: 16_000,
                     channels: 1
                 )
             )
-            // Partial: do NOT require result.isComplete.
             for (index, aligned) in result.lines.enumerated() {
                 let textLine = plainLines[index].originalText
                 if aligned.startTime < 0 {
-                    // Leave unresolved unless already set by another segment.
                     if bestByLine[index] == nil {
                         bestByLine[index] = PartialAlignedLine(
                             sourceLineIndex: index,
@@ -102,7 +222,7 @@ public enum SegmentPartialAlignmentPipeline {
                             startTime: nil,
                             endTime: nil,
                             confidence: aligned.confidence,
-                            segmentID: segment.segmentID,
+                            segmentID: bundle.segment.segmentID,
                             evidenceKind: aligned.evidence.kind.rawValue
                         )
                     }
@@ -124,7 +244,7 @@ public enum SegmentPartialAlignmentPipeline {
                     startTime: absStart,
                     endTime: absEnd,
                     confidence: aligned.confidence,
-                    segmentID: segment.segmentID,
+                    segmentID: bundle.segment.segmentID,
                     evidenceKind: aligned.evidence.kind.rawValue,
                     speechRelativeStart: aligned.startTime,
                     speechRelativeEnd: aligned.endTime
@@ -138,19 +258,43 @@ public enum SegmentPartialAlignmentPipeline {
                 }
             }
         }
+        return applyOutsideCaptured(
+            lines: plainLines.indices.map { index in
+                bestByLine[index] ?? PartialAlignedLine(
+                    sourceLineIndex: index,
+                    text: plainLines[index].originalText,
+                    status: .unresolved,
+                    startTime: nil,
+                    endTime: nil,
+                    confidence: 0,
+                    segmentID: nil,
+                    evidenceKind: "noEvidence"
+                )
+            },
+            plainLines: plainLines,
+            ranges: ranges,
+            groundTruthSyncedLines: groundTruthSyncedLines
+        )
+    }
 
-        // Mark lines outside all captured ranges.
-        var lines: [PartialAlignedLine] = []
+    private static func applyOutsideCaptured(
+        lines: [PartialAlignedLine],
+        plainLines: [LyricLine],
+        ranges: [CapturedTimeRange],
+        groundTruthSyncedLines: [LyricLine]?
+    ) -> [PartialAlignedLine] {
+        var byIndex = Dictionary(uniqueKeysWithValues: lines.map { ($0.sourceLineIndex, $0) })
+        var result: [PartialAlignedLine] = []
         for index in plainLines.indices {
-            if let row = bestByLine[index], row.startTime != nil {
-                lines.append(row)
+            if let row = byIndex[index], row.startTime != nil {
+                result.append(row)
                 continue
             }
             if let gt = groundTruthSyncedLines, index < gt.count {
                 let gtTime = gt[index].timestamp
                 let covered = ranges.contains { gtTime >= $0.start - 0.25 && gtTime <= $0.end + 0.25 }
                 if !covered {
-                    lines.append(
+                    result.append(
                         PartialAlignedLine(
                             sourceLineIndex: index,
                             text: plainLines[index].originalText,
@@ -165,11 +309,10 @@ public enum SegmentPartialAlignmentPipeline {
                     continue
                 }
             }
-            // Inside capture window but unresolved, or no ground truth to judge coverage.
-            if let row = bestByLine[index] {
-                lines.append(row)
+            if let row = byIndex[index] {
+                result.append(row)
             } else {
-                lines.append(
+                result.append(
                     PartialAlignedLine(
                         sourceLineIndex: index,
                         text: plainLines[index].originalText,
@@ -183,8 +326,18 @@ public enum SegmentPartialAlignmentPipeline {
                 )
             }
         }
-        lines.sort { $0.sourceLineIndex < $1.sourceLineIndex }
+        return result.sorted { $0.sourceLineIndex < $1.sourceLineIndex }
+    }
 
+    private static func makeCandidate(
+        identity: TrackIdentity,
+        sessionID: UUID,
+        localeRec: LocaleRecommendation,
+        ranges: [CapturedTimeRange],
+        lines: [PartialAlignedLine],
+        transcriptSegmentCount: Int,
+        capturedDuration: TimeInterval
+    ) -> PartialAlignmentCandidate {
         let resolved = lines.filter { $0.status == .resolved || $0.status == .interpolated }.count
         let low = lines.filter { $0.status == .lowConfidence }.count
         let unresolved = lines.filter { $0.status == .unresolved }.count
@@ -194,11 +347,10 @@ public enum SegmentPartialAlignmentPipeline {
             guard !timed.isEmpty else { return 0 }
             return timed.map(\.confidence).reduce(0, +) / Double(timed.count)
         }()
-        let coverage = plainLines.isEmpty ? 0 : Double(resolved + low) / Double(plainLines.count)
-
-        let candidate = PartialAlignmentCandidate(
+        let coverage = lines.isEmpty ? 0 : Double(resolved + low) / Double(lines.count)
+        return PartialAlignmentCandidate(
             trackIdentityDigest: String(identity.stableKey.prefix(48)),
-            captureSessionID: session.sessionID,
+            captureSessionID: sessionID,
             locale: localeRec.localeIdentifier,
             localeFallbackReason: localeRec.usedFallback ? localeRec.reason : nil,
             capturedRanges: ranges,
@@ -209,26 +361,9 @@ public enum SegmentPartialAlignmentPipeline {
             lowConfidenceCount: low,
             outsideCapturedRangeCount: outside,
             coverageRatio: coverage,
-            transcriptSegmentCount: totalTranscriptSegments,
-            capturedDuration: totalCapturedDuration
+            transcriptSegmentCount: transcriptSegmentCount,
+            capturedDuration: capturedDuration
         )
-
-        let heldOut = evaluateHeldOut(
-            candidateLines: lines,
-            groundTruth: groundTruthSyncedLines
-        )
-        let judgment = makeJudgment(candidate: candidate, heldOut: heldOut)
-        let report = PartialAlignmentReport(
-            candidate: candidate,
-            heldOut: heldOut,
-            judgment: judgment,
-            wavPaths: usable.compactMap(\.temporaryPCMReference)
-        )
-        try writeReport(report, sessionID: session.sessionID)
-        SCKSpikeLog.log(
-            "S3A done session=\(session.sessionID.uuidString.prefix(8)) lines=\(plainLines.count) resolved=\(resolved) low=\(low) unresolved=\(unresolved) outside=\(outside) coverage=\(fmt(coverage)) transcripts=\(totalTranscriptSegments) judgment=\(judgment)"
-        )
-        return report
     }
 
     /// Strip timestamps for algorithm input while preserving text order.
@@ -272,6 +407,9 @@ public enum SegmentPartialAlignmentPipeline {
         }
         var errors: [TimeInterval] = []
         var obvious = 0
+        var le05 = 0
+        var le1 = 0
+        var le2 = 0
         for line in candidateLines {
             guard let start = line.startTime,
                   line.status == .resolved || line.status == .lowConfidence || line.status == .interpolated,
@@ -280,6 +418,9 @@ public enum SegmentPartialAlignmentPipeline {
             guard gt.isFinite, gt >= 0 else { continue }
             let err = abs(start - gt)
             errors.append(err)
+            if err <= 0.5 { le05 += 1 }
+            if err <= 1.0 { le1 += 1 }
+            if err <= 2.0 { le2 += 1 }
             if err > 3.0 { obvious += 1 }
         }
         guard !errors.isEmpty else {
@@ -297,24 +438,52 @@ public enum SegmentPartialAlignmentPipeline {
             p90AbsoluteError: percentile(0.9),
             p95AbsoluteError: percentile(0.95),
             meanAbsoluteError: mean,
+            withinHalfSecondCount: le05,
+            withinOneSecondCount: le1,
+            withinTwoSecondCount: le2,
             obviousMismatchCount: obvious,
             note: "held_out_start_time_abs_error_seconds"
         )
     }
 
-    private static func makeJudgment(
-        candidate: PartialAlignmentCandidate,
-        heldOut: HeldOutErrorStats
+    /// Product-value judgment for S3B vs S3A (conservative; not forced PASS).
+    private static func makeS3BJudgment(
+        s3a: PartialAlignmentCandidate,
+        s3b: PartialAlignmentCandidate,
+        s3aHeldOut: HeldOutErrorStats,
+        s3bHeldOut: HeldOutErrorStats,
+        acceptedCount: Int,
+        usedConstrained: Bool
     ) -> String {
-        let coverage = candidate.coverageRatio
-        let median = heldOut.medianAbsoluteError
-        if coverage >= 0.45, let median, median <= 1.25, heldOut.obviousMismatchCount <= max(2, heldOut.comparedLineCount / 5) {
-            return "A_speech_dp_usable"
+        if !usedConstrained || acceptedCount < AnchorAlignmentPolicy.minimumAnchorsForConstrained {
+            return "C_insufficient_reliable_anchors"
         }
-        if coverage >= 0.15 || (heldOut.comparedLineCount > 0 && (median ?? 99) < 4.0) {
-            return "B_partial_needs_anchor_s3b"
+        let covGain = s3b.coverageRatio - s3a.coverageRatio
+        let s3aSevere = s3aHeldOut.obviousMismatchCount
+        let s3bSevere = s3bHeldOut.obviousMismatchCount
+        let heldOutComparable = s3aHeldOut.comparedLineCount > 0 && s3bHeldOut.comparedLineCount > 0
+        let errorWorse: Bool = {
+            guard heldOutComparable,
+                  let aMed = s3aHeldOut.medianAbsoluteError,
+                  let bMed = s3bHeldOut.medianAbsoluteError else { return false }
+            // "明显恶化": median up by >0.75s or severe mismatches increase by ≥2
+            return (bMed - aMed) > 0.75 || s3bSevere >= s3aSevere + 2
+        }()
+        // Coverage regression or held-out deterioration with anchors present:
+        // still experimental value, not "insufficient anchors".
+        if errorWorse || covGain < -0.02 {
+            return "B_coverage_up_but_errors_remain"
         }
-        return "C_speech_weak_on_singing"
+        if covGain >= 0.08, s3bSevere <= s3aSevere + 1 {
+            return "A_anchors_improve_coverage_safely"
+        }
+        if covGain > 0.02 || (s3b.resolvedCount > s3a.resolvedCount) {
+            return "B_coverage_up_but_errors_remain"
+        }
+        if acceptedCount >= 2 {
+            return "B_coverage_up_but_errors_remain"
+        }
+        return "C_insufficient_reliable_anchors"
     }
 
     private static func writeReport(_ report: PartialAlignmentReport, sessionID: UUID) throws {
@@ -333,41 +502,114 @@ public enum SegmentPartialAlignmentPipeline {
         let mdURL = root.appendingPathComponent("partial-\(sessionID.uuidString.prefix(8)).md")
         let c = report.candidate
         let h = report.heldOut
+        let a = report.s3aCandidate
+        let ah = report.s3aHeldOut
         var md = """
-        # S3A Partial Alignment Report
+        # S3B Anchor-Constrained Partial Alignment Report
 
         - session: `\(c.captureSessionID.uuidString)`
         - identity: `\(c.trackIdentityDigest)`
         - locale: `\(c.locale)` fallback: \(c.localeFallbackReason ?? "none")
         - capturedDuration: \(fmt(c.capturedDuration)) s
         - transcriptSegments: \(c.transcriptSegmentCount)
-        - lines: \(c.lines.count)
-        - resolved: \(c.resolvedCount)
-        - lowConfidence: \(c.lowConfidenceCount)
-        - unresolved: \(c.unresolvedCount)
-        - outsideCapturedRange: \(c.outsideCapturedRangeCount)
-        - coverageRatio: \(fmt(c.coverageRatio))
-        - overallConfidence: \(fmt(c.overallConfidence))
         - judgment: **\(report.judgment)**
+        - usedConstrainedAlignment: \(report.usedConstrainedAlignment)
+        - s3bFallbackReason: \(report.s3bFallbackReason ?? "none")
+        - acceptedAnchors: \(report.acceptedAnchors.count)
+        - rejectedAnchors: \(report.rejectedAnchors.count)
 
-        ## Held-out errors
+        ## A/B comparison (same capture + plain lyrics)
+
+        | metric | S3A | S3B |
+        |---|---:|---:|
+        | resolved | \(a?.resolvedCount ?? -1) | \(c.resolvedCount) |
+        | lowConfidence | \(a?.lowConfidenceCount ?? -1) | \(c.lowConfidenceCount) |
+        | unresolved | \(a?.unresolvedCount ?? -1) | \(c.unresolvedCount) |
+        | outsideCapturedRange | \(a?.outsideCapturedRangeCount ?? -1) | \(c.outsideCapturedRangeCount) |
+        | coverageRatio | \(a.map { fmt($0.coverageRatio) } ?? "n/a") | \(fmt(c.coverageRatio)) |
+        | overallConfidence | \(a.map { fmt($0.overallConfidence) } ?? "n/a") | \(fmt(c.overallConfidence)) |
+        | acceptedAnchors | 0 (n/a) | \(report.acceptedAnchors.count) |
+        | rejectedAnchors | 0 (n/a) | \(report.rejectedAnchors.count) |
+
+        ## Held-out errors (S3B primary)
+
         - compared: \(h.comparedLineCount)
         - medianAbsErr: \(h.medianAbsoluteError.map(fmt) ?? "n/a")
         - p90: \(h.p90AbsoluteError.map(fmt) ?? "n/a")
         - p95: \(h.p95AbsoluteError.map(fmt) ?? "n/a")
         - mean: \(h.meanAbsoluteError.map(fmt) ?? "n/a")
+        - ≤0.5s: \(h.withinHalfSecondCount)
+        - ≤1s: \(h.withinOneSecondCount)
+        - ≤2s: \(h.withinTwoSecondCount)
         - obviousMismatch(>3s): \(h.obviousMismatchCount)
         - note: \(h.note)
+        """
+        if let ah {
+            md += """
 
-        ## Lines (first 40)
+
+        ## Held-out errors (S3A baseline)
+
+        - compared: \(ah.comparedLineCount)
+        - medianAbsErr: \(ah.medianAbsoluteError.map(fmt) ?? "n/a")
+        - p90: \(ah.p90AbsoluteError.map(fmt) ?? "n/a")
+        - p95: \(ah.p95AbsoluteError.map(fmt) ?? "n/a")
+        - mean: \(ah.meanAbsoluteError.map(fmt) ?? "n/a")
+        - ≤0.5s: \(ah.withinHalfSecondCount)
+        - ≤1s: \(ah.withinOneSecondCount)
+        - ≤2s: \(ah.withinTwoSecondCount)
+        - obviousMismatch(>3s): \(ah.obviousMismatchCount)
+        - note: \(ah.note)
+        """
+        }
+        md += """
+
+
+        ## Accepted anchors
+        """
+        if report.acceptedAnchors.isEmpty {
+            md += "\n- (none)"
+        } else {
+            for anc in report.acceptedAnchors {
+                md += "\n- line=\(anc.lyricLineIndex) t=\(fmt(anc.absoluteStartTime))-\(fmt(anc.absoluteEndTime)) conf=\(fmt(anc.overallConfidence)) textSim=\(fmt(anc.textConfidence)) lyric=\(anc.lyricText.prefix(28)) speech=\(anc.transcriptText.prefix(28)) evidence=\(anc.evidence)"
+            }
+        }
+        md += """
+
+
+        ## Rejected anchors (first 30)
+        """
+        let rej = report.rejectedAnchors.prefix(30)
+        if rej.isEmpty {
+            md += "\n- (none)"
+        } else {
+            for anc in rej {
+                md += "\n- line=\(anc.lyricLineIndex) reason=\(anc.rejectionReason ?? "?") conf=\(fmt(anc.overallConfidence)) textSim=\(fmt(anc.textConfidence)) lyric=\(anc.lyricText.prefix(24)) speech=\(anc.transcriptText.prefix(24))"
+            }
+        }
+        md += """
+
+
+        ## S3B lines (first 40)
         """
         for line in c.lines.prefix(40) {
             let t = line.startTime.map(fmt) ?? "-"
-            md += "\n- [\(line.sourceLineIndex)] \(line.status.rawValue) t=\(t) conf=\(fmt(line.confidence)) \(line.text.prefix(40))"
+            md += "\n- [\(line.sourceLineIndex)] \(line.status.rawValue) t=\(t) conf=\(fmt(line.confidence)) kind=\(line.evidenceKind) \(line.text.prefix(36))"
+        }
+        if let a {
+            md += """
+
+
+        ## S3A lines (first 40)
+        """
+            for line in a.lines.prefix(40) {
+                let t = line.startTime.map(fmt) ?? "-"
+                md += "\n- [\(line.sourceLineIndex)] \(line.status.rawValue) t=\(t) conf=\(fmt(line.confidence)) kind=\(line.evidenceKind) \(line.text.prefix(36))"
+            }
         }
         try md.write(to: mdURL, atomically: true, encoding: .utf8)
-        SCKSpikeLog.log("S3A report json=\(jsonURL.path)")
-        SCKSpikeLog.log("S3A report md=\(mdURL.path)")
+        SCKSpikeLog.log("S3B report json=\(jsonURL.path)")
+        SCKSpikeLog.log("S3B report md=\(mdURL.path)")
     }
 
     private static func fmt(_ value: TimeInterval) -> String {
