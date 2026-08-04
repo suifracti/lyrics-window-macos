@@ -1,0 +1,6 @@
+versions 2
+id=09F092A5 source=qqExperimental synced=0 parent= timed=0/32
+id=4633DE7E source=manualEdit synced=0 parent=09F092A5 timed=9/32
+timed_count 9 sample [(0, 76.73), (1, 76.73), (2, 76.73), (3, 76.73), (4, 76.73), (13, 76.78), (14, 79.42), (16, 85.33), (18, 90.7)]
+PARTIAL_SAVE_OK 09F092A5-48C9-4B5D-8D5F-D0C0C89076D8
+TEMP_A=/tmp/spotifylyrics-assist-final-A-20260804223216.sqlite3

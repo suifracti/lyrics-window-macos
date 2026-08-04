@@ -1,0 +1,5 @@
+CDHash=0385018210a523b242e7d71c179113d91b5f0b9a
+Authority=Apple Development: 3881920884@qq.com (XJDV53A9C8)
+Authority=Apple Worldwide Developer Relations Certification Authority
+Authority=Apple Root CA
+TeamIdentifier=5RGL84U3V2

@@ -786,41 +786,57 @@ public final class PlaybackState: ObservableObject {
             acceptanceAssistMark(count: assistMarkCount)
         }
         if wantsAssistSave {
-            lyricsEditorSession.confirmPartialSave = { timed, untimed in
-                LyricsE2ELog.log("ACCEPTANCE control assist_save partial timed=\(timed) untimed=\(untimed)")
+            let timed = lyricsEditorSession.draft?.timedNonBlankLineCount ?? -1
+            let untimed = lyricsEditorSession.draft?.untimedNonBlankLineCount ?? -1
+            let dirty = lyricsEditorSession.hasUnsavedChanges
+            let canSave = lyricsEditorSession.canSave
+            LyricsE2ELog.log(
+                "ACCEPTANCE control assist_save precheck timed=\(timed) untimed=\(untimed) dirty=\(dirty) canSave=\(canSave) draft=\(lyricsEditorSession.draft != nil) stale=\(lyricsEditorSession.isStale)"
+            )
+            lyricsEditorSession.confirmPartialSave = { t, u in
+                LyricsE2ELog.log("ACCEPTANCE control assist_save partial timed=\(t) untimed=\(u)")
                 return true
             }
-            lyricsEditorSession.save()
-            LyricsE2ELog.log("ACCEPTANCE control assist_save invoked")
+            // forceCopy: treat timed draft as a new child version even if
+            // projection equality edge-cases skip lyricsChanged.
+            lyricsEditorSession.save(forceCopy: true)
+            LyricsE2ELog.log(
+                "ACCEPTANCE control assist_save invoked state=\(String(describing: lyricsEditorSession.state)) msg=\(lyricsEditorSession.message ?? "")"
+            )
         }
     }
 
-    /// Acceptance harness: mark next untimed lines at advancing playback positions.
+    /// Acceptance harness: mark next untimed lines with times that stay
+    /// strictly between neighboring timed lines (keeps timeline validator happy).
     private func acceptanceAssistMark(count: Int) {
-        guard lyricsEditorSession.draft != nil else {
+        guard let lines = lyricsEditorSession.draft?.lines, !lines.isEmpty else {
             LyricsE2ELog.log("ACCEPTANCE assist_mark skipped no draft")
             return
         }
         var marked = 0
-        var focus = lyricsEditorSession.draft?.lines.first(where: {
-            $0.startTime == nil
-                && !$0.originalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        })?.id
+        var focusID = lyricsEditorSession.draft?.nextUntimedLineID(after: nil)
         for _ in 0..<count {
-            guard let lineID = focus else { break }
-            let pos = min(max(0, currentTime), max(0, currentTrack.duration))
-            if let next = lyricsEditorSession.markLineAtPlayback(lineID: lineID, position: pos, advance: true) {
-                focus = next
-            } else {
-                focus = lyricsEditorSession.draft?.nextUntimedLineID(after: lineID)
+            guard let lineID = focusID,
+                  let index = lines.firstIndex(where: { $0.id == lineID }) else { break }
+            // Bound by previous / next existing times on the draft.
+            let prevTime = lines.prefix(index).reversed().compactMap(\.startTime).first
+            let nextTime = lines.suffix(from: index + 1).compactMap(\.startTime).first
+            let lo = (prevTime ?? -0.05) + 0.05
+            let hi = (nextTime ?? (currentTrack.duration + 1)) - 0.05
+            var pos = min(max(0, currentTime), max(0, currentTrack.duration))
+            if hi > lo {
+                pos = min(max(pos, lo), hi)
+            } else if let prevTime {
+                pos = prevTime + 0.05
             }
+            _ = lyricsEditorSession.markLineAtPlayback(lineID: lineID, position: pos, advance: false)
             marked += 1
-            // Advance playback slightly so marks are distinct and monotonic.
-            let nextPos = min(currentTrack.duration, currentTime + 2.5)
-            seek(to: nextPos, source: "acceptance-assist-mark")
+            focusID = lyricsEditorSession.draft?.nextUntimedLineID(after: lineID)
+            seek(to: min(currentTrack.duration, pos + 0.5), source: "acceptance-assist-mark")
         }
+        let issues = lyricsEditorSession.validation.errors.map(\.message).joined(separator: ";")
         LyricsE2ELog.log(
-            "ACCEPTANCE assist_mark done marked=\(marked) timed=\(lyricsEditorSession.draft?.timedNonBlankLineCount ?? -1) untimed=\(lyricsEditorSession.draft?.untimedNonBlankLineCount ?? -1)"
+            "ACCEPTANCE assist_mark done marked=\(marked) timed=\(lyricsEditorSession.draft?.timedNonBlankLineCount ?? -1) untimed=\(lyricsEditorSession.draft?.untimedNonBlankLineCount ?? -1) canSave=\(lyricsEditorSession.canSave) errors=\(issues)"
         )
     }
 

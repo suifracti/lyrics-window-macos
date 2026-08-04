@@ -1,0 +1,15 @@
+/tmp/spotifylyrics-e2e.log:[2026-08-04T14:35:13Z] Playback trackChange identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171 title=夜の合図 artist=Kawasaki.Rio duration=170.72
+/tmp/spotifylyrics-e2e.log:[2026-08-04T14:35:13Z] SESSION begin rev=3 identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171 title=夜の合図 artist=Kawasaki.Rio duration=170.72 spotifyId=spotify:track:0662H3g9lGdt2ViPzYPzxm
+/tmp/spotifylyrics-e2e.log:[2026-08-04T14:35:20Z] ASSIST invalidate trackChanged prev=spotify-id:0662h3g9lgdt2 next=spotify-id:7ovucf5uhtbrz
+/tmp/spotifylyrics-e2e.log:[2026-08-04T14:35:20Z] Playback trackChange identity=spotify-id:7ovucf5uhtbrzupb6zomvt|metadata:アイドル|yoasobi|アイドル|213 title=アイドル artist=YOASOBI duration=213.233
+/tmp/spotifylyrics-e2e.log:[2026-08-04T14:35:20Z] SESSION begin rev=4 identity=spotify-id:7ovucf5uhtbrzupb6zomvt|metadata:アイドル|yoasobi|アイドル|213 title=アイドル artist=YOASOBI duration=213.233 spotifyId=spotify:track:7ovUcF5uHTBRzUpB6ZOmvt
+/tmp/spotifylyrics-e2e.log:[2026-08-04T14:35:27Z] Playback trackChange identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171 title=夜の合図 artist=Kawasaki.Rio duration=170.72
+/tmp/spotifylyrics-e2e.log:[2026-08-04T14:35:27Z] SESSION begin rev=5 identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171 title=夜の合図 artist=Kawasaki.Rio duration=170.72 spotifyId=spotify:track:0662H3g9lGdt2ViPzYPzxm
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:35:18Z] SESSION start sessionID=C33CF98E-96A6-4C91-BBEA-7B98C4FBC65C identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図| duration=170.720 source=screenCaptureKit.spotifyAudio.v1 reason=initial
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:35:20Z] S2 stop reason=trackChanged
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:35:20Z] SEGMENT end segmentID=8FBD8FDA-6E1A-4058-9F53-53657021F887 sessionID=C33CF98E-96A6-4C91-BBEA-7B98C4FBC65C identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図| reason=trackChanged posStart=1.032 posEnd=1.032 hostStart=1785854120.629 hostEnd=1785854120.653 ptsStart=-1.000 ptsEnd=-1.000 samples=0 buffers=0 duration=0.025 rate=0.0 ch=0 continuous=true pcm=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/SpotifyLyricsCapture/s2-sessions/C33CF98E-96A6-4C91-BBEA-7B98C4FBC65C/seg-8FBD8FDA.json
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:35:20Z] SESSION end sessionID=C33CF98E-96A6-4C91-BBEA-7B98C4FBC65C identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図| reason=trackChanged segments=2
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:35:20Z] SPIKE stop reason=s2-trackChanged
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:35:20Z] STREAM stopCapture ok reason=s2-trackChanged
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:35:20Z] SUMMARY_SESSION id=C33CF98E identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図| terminal=trackChanged segments=2
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:35:20Z] SUMMARY_SEG i=1 id=8FBD8FDA start=seekBackward end=trackChanged pos=1.032->1.032 dur=0.025 samples=0

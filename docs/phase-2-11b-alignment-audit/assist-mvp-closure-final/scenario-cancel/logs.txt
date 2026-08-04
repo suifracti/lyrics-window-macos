@@ -1,0 +1,7 @@
+/tmp/spotifylyrics-e2e.log:[2026-08-04T14:35:02Z] ACCEPTANCE control apply payload=assist_seconds=30 | assist_start | #t=1785854101
+/tmp/spotifylyrics-e2e.log:[2026-08-04T14:35:02Z] ACCEPTANCE control assist_start seconds=30.0
+/tmp/spotifylyrics-e2e.log:[2026-08-04T14:35:03Z] ACCEPTANCE control apply payload=assist_cancel | #t=1785854103
+/tmp/spotifylyrics-e2e.log:[2026-08-04T14:35:03Z] ASSIST cancelled by user
+/tmp/spotifylyrics-e2e.log:[2026-08-04T14:35:03Z] ACCEPTANCE control assist_cancel
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:35:02Z] STREAM started
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:35:03Z] CLEANUP sessionDir=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/SpotifyLyricsCapture/s2-sessions/D74502EC-D891-4CDB-A182-6138FA49BADA exists_after=false

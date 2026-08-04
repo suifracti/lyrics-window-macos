@@ -1,0 +1,12 @@
+[2026-08-04T14:33:15Z] ASSIST draft ready suggested=4 unresolved=28 session=04384E96
+[2026-08-04T14:33:15Z] ACCEPTANCE control apply payload=assist_mark=5 | #t=1785853995
+[2026-08-04T14:33:15Z] ACCEPTANCE assist_mark done marked=5 timed=9 untimed=23 canSave=true errors=
+[2026-08-04T14:33:18Z] ACCEPTANCE control apply payload=assist_undo | #t=1785853998
+[2026-08-04T14:33:18Z] ACCEPTANCE control assist_undo
+[2026-08-04T14:33:19Z] ACCEPTANCE control apply payload=assist_redo | #t=1785853999
+[2026-08-04T14:33:19Z] ACCEPTANCE control assist_redo
+[2026-08-04T14:33:20Z] ACCEPTANCE control apply payload=assist_save | #t=1785854000
+[2026-08-04T14:33:20Z] ACCEPTANCE control assist_save precheck timed=9 untimed=23 dirty=true canSave=true draft=true stale=false
+[2026-08-04T14:33:20Z] ACCEPTANCE control assist_save partial timed=9 untimed=23
+[2026-08-04T14:33:20Z] ACCEPTANCE control assist_save invoked state=saving msg=
+[2026-08-04T14:33:20Z] SESSION adopt persisted version=4633DE7E-69B5-45E4-957F-7A37D5736F9B source=manualEdit

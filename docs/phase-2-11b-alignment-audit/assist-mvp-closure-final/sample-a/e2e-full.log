@@ -1,0 +1,57 @@
+[2026-08-04T14:22:00Z] LOG_RESET
+[2026-08-04T14:22:00Z] PlaybackState init providers=Local LRC,LRCLIB,NetEase Experimental,QQ Music Experimental
+[2026-08-04T14:22:00Z] ACCEPTANCE control polling path=/tmp/spotifylyrics-assist-closure-final-ctrl.txt
+[2026-08-04T14:22:00Z] PERSISTENCE startup ready
+[2026-08-04T14:22:01Z] ACCEPTANCE control apply payload=experimental | retry
+[2026-08-04T14:22:01Z] Lyrics providers for mode=lyricsSourceMode.experimentalFree.v1: Local LRC,LRCLIB,NetEase Experimental,QQ Music Experimental
+[2026-08-04T14:22:01Z] MANAGER providers updated=Local LRC,LRCLIB,NetEase Experimental,QQ Music Experimental
+[2026-08-04T14:22:01Z] MANAGER providers updated=Local LRC,LRCLIB,NetEase Experimental,QQ Music Experimental
+[2026-08-04T14:22:01Z] Lyrics providers for mode=lyricsSourceMode.experimentalFree.v1: Local LRC,LRCLIB,NetEase Experimental,QQ Music Experimental
+[2026-08-04T14:22:01Z] MANAGER providers updated=Local LRC,LRCLIB,NetEase Experimental,QQ Music Experimental
+[2026-08-04T14:22:01Z] MANAGER providers updated=Local LRC,LRCLIB,NetEase Experimental,QQ Music Experimental
+[2026-08-04T14:22:01Z] ACCEPTANCE control mode=lyricsSourceMode.experimentalFree.v1
+[2026-08-04T14:22:01Z] ACCEPTANCE control retry done identity= posBefore=0.0 posAfter=0.0
+[2026-08-04T14:22:01Z] SESSION clear
+[2026-08-04T14:22:01Z] Playback trackChange identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171 title=夜の合図 artist=Kawasaki.Rio duration=170.72
+[2026-08-04T14:22:01Z] SESSION begin rev=3 identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171 title=夜の合図 artist=Kawasaki.Rio duration=170.72 spotifyId=spotify:track:0662H3g9lGdt2ViPzYPzxm
+[2026-08-04T14:22:01Z] SESSION persistence miss rev=3 identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171
+[2026-08-04T14:22:01Z] MANAGER start title=夜の合図 artist=Kawasaki.Rio variants=3 providers=["Local LRC", "LRCLIB", "NetEase Experimental", "QQ Music Experimental"] queryOverride=
+[2026-08-04T14:22:04Z] QQ best mid-candidate title=夜の合図 artist=Kawasaki.Rio conf=1.0 lines=32 sync=false
+[2026-08-04T14:22:04Z] QQ MATCH lines=32 conf=1.0 first=ねえ　忘れたいのに　また君を探す
+[2026-08-04T14:22:05Z] MANAGER AUTO_ADOPT provider=QQ Music Experimental strategy=primaryOriginal kind=exactTitleFullArtist tier=autoHigh score=0.7999999999999999 evidence=titleExact +0.30;primaryArtistExact +0.30;durationClose +0.12;albumExact +0.08 lines=32 sync=false
+[2026-08-04T14:22:05Z] SESSION search finished rev=3 result=match(qqExperimental,lines=32,sync=false) diag=4
+[2026-08-04T14:22:05Z]   DIAG Local LRC@primaryOriginal noMatch 0.03s
+[2026-08-04T14:22:05Z]   DIAG LRCLIB@primaryOriginal noMatch 1.19s
+[2026-08-04T14:22:05Z]   DIAG NetEase Experimental@primaryOriginal noMatch 0.75s
+[2026-08-04T14:22:05Z]   DIAG QQ Music Experimental@primaryOriginal match 1.12s
+[2026-08-04T14:22:05Z] SESSION apply alignmentQueued source=qqExperimental lines=32 first=ねえ　忘れたいのに　また君を探す
+[2026-08-04T14:22:05Z] SESSION persistence save rev=3 disposition=Optional(SpotifyLyrics.LyricsPersistenceSaveDisposition.inserted) lines=32
+[2026-08-04T14:22:05Z] ACCEPTANCE control apply payload=experimental | assist_seconds=55 | assist_start | #t=1785853325
+[2026-08-04T14:22:05Z] Lyrics providers for mode=lyricsSourceMode.experimentalFree.v1: Local LRC,LRCLIB,NetEase Experimental,QQ Music Experimental
+[2026-08-04T14:22:05Z] MANAGER providers updated=Local LRC,LRCLIB,NetEase Experimental,QQ Music Experimental
+[2026-08-04T14:22:05Z] MANAGER providers updated=Local LRC,LRCLIB,NetEase Experimental,QQ Music Experimental
+[2026-08-04T14:22:05Z] Lyrics providers for mode=lyricsSourceMode.experimentalFree.v1: Local LRC,LRCLIB,NetEase Experimental,QQ Music Experimental
+[2026-08-04T14:22:05Z] MANAGER providers updated=Local LRC,LRCLIB,NetEase Experimental,QQ Music Experimental
+[2026-08-04T14:22:05Z] MANAGER providers updated=Local LRC,LRCLIB,NetEase Experimental,QQ Music Experimental
+[2026-08-04T14:22:05Z] ACCEPTANCE control mode=lyricsSourceMode.experimentalFree.v1
+[2026-08-04T14:22:05Z] ACCEPTANCE control ignore token=#t=1785853325
+[2026-08-04T14:22:05Z] ACCEPTANCE control assist_start seconds=55.0
+[2026-08-04T14:24:06Z] ASSIST draft ready suggested=5 unresolved=27 session=E73D412B
+[2026-08-04T14:24:28Z] ACCEPTANCE control apply payload=assist_mark=6 | #t=1785853468
+[2026-08-04T14:24:28Z] ACCEPTANCE control ignore token=#t=1785853468
+[2026-08-04T14:24:28Z] ACCEPTANCE assist_mark done marked=6 timed=11 untimed=21
+[2026-08-04T14:24:31Z] ACCEPTANCE control apply payload=assist_undo | #t=1785853471
+[2026-08-04T14:24:31Z] ACCEPTANCE control assist_undo
+[2026-08-04T14:24:31Z] ACCEPTANCE control ignore token=#t=1785853471
+[2026-08-04T14:24:32Z] ACCEPTANCE control apply payload=assist_redo | #t=1785853472
+[2026-08-04T14:24:32Z] ACCEPTANCE control assist_redo
+[2026-08-04T14:24:32Z] ACCEPTANCE control ignore token=#t=1785853472
+[2026-08-04T14:24:33Z] ACCEPTANCE control apply payload=assist_mark=1 | #t=1785853473
+[2026-08-04T14:24:33Z] ACCEPTANCE control ignore token=#t=1785853473
+[2026-08-04T14:24:33Z] ACCEPTANCE assist_mark done marked=1 timed=12 untimed=20
+[2026-08-04T14:24:35Z] ACCEPTANCE control apply payload=assist_save | #t=1785853475
+[2026-08-04T14:24:35Z] ACCEPTANCE control ignore token=#t=1785853475
+[2026-08-04T14:24:35Z] ACCEPTANCE control assist_save partial timed=12 untimed=20
+[2026-08-04T14:24:35Z] ACCEPTANCE control assist_save invoked
+[2026-08-04T14:24:35Z] SESSION apply alignmentQueued source=manualEdit lines=32 first=ねえ　忘れたいのに　また君を探す
+[2026-08-04T14:24:35Z] SESSION adopt persisted version=4C241AA1-A1E5-48F6-8AA2-4417663B8560 source=manualEdit

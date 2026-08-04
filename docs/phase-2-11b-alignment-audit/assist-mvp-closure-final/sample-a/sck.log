@@ -1,0 +1,128 @@
+[2026-08-04T14:32:27Z] LOG_RESET
+[2026-08-04T14:32:27Z] SPIKE start formal_db_opened=NO (spike never opens SQLite)
+[2026-08-04T14:32:27Z] SPIKE policy=spotify-app-audio-only no-mic no-screen-save no-asr no-align
+[2026-08-04T14:32:27Z] DISCOVER related=1 primary=1 captureTargets=1
+[2026-08-04T14:32:27Z] DISCOVER_APP pid=18752 bundle=com.spotify.client name=Spotify captureTarget=true
+[2026-08-04T14:32:27Z] STREAM configured capturesAudio=1 screenOutput=0 mic=0 sampleRate=48000 channels=2
+[2026-08-04T14:32:27Z] TEMP dir=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/SpotifyLyricsCapture/CD57D49A-CB88-48F3-BD2F-44C77CB12D75 (marker only; no audio files)
+[2026-08-04T14:32:27Z] STREAM started
+[2026-08-04T14:32:27Z] SESSION start sessionID=04384E96-0F21-460E-921F-326EFCB463D1 identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図| duration=170.720 source=screenCaptureKit.spotifyAudio.v1 reason=initial
+[2026-08-04T14:32:27Z] SEGMENT start segmentID=414F806D-659E-41BC-97EB-689FA7209135 sessionID=04384E96-0F21-460E-921F-326EFCB463D1 identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図| reason=initial position=48.578 hostTime=1785853947.402 continuityID=8C905DD8-0D81-451C-B53C-BF1427D3F68D wav=seg-414F806D-mono.wav
+[2026-08-04T14:32:27Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=48.578 hostTime=1785853947.402 audioPTS=-1.000 playing=true
+[2026-08-04T14:32:28Z] PCM reason=tick buffers=50 samples=48000 duration_s=1.000 inRate=48000.0 ch=2 peak=0.6774 rms=0.2505 active=true videoBuffers=0
+[2026-08-04T14:32:29Z] PCM reason=tick buffers=100 samples=96000 duration_s=2.000 inRate=48000.0 ch=2 peak=0.6774 rms=0.2328 active=true videoBuffers=0
+[2026-08-04T14:32:29Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=50.772 hostTime=1785853949.471 audioPTS=437665.944 playing=true
+[2026-08-04T14:32:30Z] PCM reason=tick buffers=150 samples=144000 duration_s=3.000 inRate=48000.0 ch=2 peak=0.6774 rms=0.2080 active=true videoBuffers=0
+[2026-08-04T14:32:31Z] PCM reason=tick buffers=201 samples=192960 duration_s=4.020 inRate=48000.0 ch=2 peak=0.7922 rms=0.2481 active=true videoBuffers=0
+[2026-08-04T14:32:31Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=52.751 hostTime=1785853951.483 audioPTS=437667.944 playing=true
+[2026-08-04T14:32:32Z] PCM reason=tick buffers=250 samples=240000 duration_s=5.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2532 active=true videoBuffers=0
+[2026-08-04T14:32:33Z] PCM reason=tick buffers=300 samples=288000 duration_s=6.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2573 active=true videoBuffers=0
+[2026-08-04T14:32:33Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=54.956 hostTime=1785853953.677 audioPTS=437670.164 playing=true
+[2026-08-04T14:32:34Z] PCM reason=tick buffers=350 samples=336000 duration_s=7.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2553 active=true videoBuffers=0
+[2026-08-04T14:32:35Z] PCM reason=tick buffers=401 samples=384960 duration_s=8.020 inRate=48000.0 ch=2 peak=0.7922 rms=0.2576 active=true videoBuffers=0
+[2026-08-04T14:32:35Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=57.146 hostTime=1785853955.882 audioPTS=437672.344 playing=true
+[2026-08-04T14:32:36Z] PCM reason=tick buffers=450 samples=432000 duration_s=9.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2636 active=true videoBuffers=0
+[2026-08-04T14:32:37Z] PCM reason=tick buffers=500 samples=480000 duration_s=10.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2614 active=true videoBuffers=0
+[2026-08-04T14:32:38Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=59.355 hostTime=1785853958.076 audioPTS=437674.544 playing=true
+[2026-08-04T14:32:38Z] PCM reason=tick buffers=550 samples=528000 duration_s=11.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2628 active=true videoBuffers=0
+[2026-08-04T14:32:39Z] PCM reason=tick buffers=601 samples=576960 duration_s=12.020 inRate=48000.0 ch=2 peak=0.7922 rms=0.2639 active=true videoBuffers=0
+[2026-08-04T14:32:40Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=61.530 hostTime=1785853960.270 audioPTS=437676.764 playing=true
+[2026-08-04T14:32:40Z] PCM reason=tick buffers=650 samples=624000 duration_s=13.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2632 active=true videoBuffers=0
+[2026-08-04T14:32:41Z] PCM reason=tick buffers=700 samples=672000 duration_s=14.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2658 active=true videoBuffers=0
+[2026-08-04T14:32:42Z] PCM reason=tick buffers=750 samples=720000 duration_s=15.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2681 active=true videoBuffers=0
+[2026-08-04T14:32:42Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=63.751 hostTime=1785853962.467 audioPTS=437678.944 playing=true
+[2026-08-04T14:32:43Z] PCM reason=tick buffers=801 samples=768960 duration_s=16.020 inRate=48000.0 ch=2 peak=0.7922 rms=0.2658 active=true videoBuffers=0
+[2026-08-04T14:32:44Z] PCM reason=tick buffers=850 samples=816000 duration_s=17.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2659 active=true videoBuffers=0
+[2026-08-04T14:32:44Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=65.931 hostTime=1785853964.665 audioPTS=437681.164 playing=true
+[2026-08-04T14:32:45Z] PCM reason=tick buffers=900 samples=864000 duration_s=18.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2669 active=true videoBuffers=0
+[2026-08-04T14:32:46Z] PCM reason=tick buffers=950 samples=912000 duration_s=19.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2696 active=true videoBuffers=0
+[2026-08-04T14:32:46Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=67.953 hostTime=1785853966.667 audioPTS=437683.144 playing=true
+[2026-08-04T14:32:47Z] PCM reason=tick buffers=1001 samples=960960 duration_s=20.020 inRate=48000.0 ch=2 peak=0.7922 rms=0.2731 active=true videoBuffers=0
+[2026-08-04T14:32:48Z] PCM reason=tick buffers=1050 samples=1008000 duration_s=21.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2747 active=true videoBuffers=0
+[2026-08-04T14:32:48Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=69.964 hostTime=1785853968.679 audioPTS=437685.184 playing=true
+[2026-08-04T14:32:49Z] PCM reason=tick buffers=1100 samples=1056000 duration_s=22.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2738 active=true videoBuffers=0
+[2026-08-04T14:32:50Z] PCM reason=tick buffers=1150 samples=1104000 duration_s=23.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2721 active=true videoBuffers=0
+[2026-08-04T14:32:50Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=72.137 hostTime=1785853970.863 audioPTS=437687.344 playing=true
+[2026-08-04T14:32:51Z] PCM reason=tick buffers=1201 samples=1152960 duration_s=24.020 inRate=48000.0 ch=2 peak=0.7922 rms=0.2735 active=true videoBuffers=0
+[2026-08-04T14:32:52Z] PCM reason=tick buffers=1250 samples=1200000 duration_s=25.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2717 active=true videoBuffers=0
+[2026-08-04T14:32:52Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=74.139 hostTime=1785853972.864 audioPTS=437689.344 playing=true
+[2026-08-04T14:32:53Z] PCM reason=tick buffers=1300 samples=1248000 duration_s=26.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2678 active=true videoBuffers=0
+[2026-08-04T14:32:54Z] PCM reason=tick buffers=1350 samples=1296000 duration_s=27.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2636 active=true videoBuffers=0
+[2026-08-04T14:32:55Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=76.338 hostTime=1785853975.062 audioPTS=437691.544 playing=true
+[2026-08-04T14:32:55Z] PCM reason=tick buffers=1401 samples=1344960 duration_s=28.020 inRate=48000.0 ch=2 peak=0.7922 rms=0.2596 active=true videoBuffers=0
+[2026-08-04T14:32:56Z] PCM reason=tick buffers=1450 samples=1392000 duration_s=29.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2559 active=true videoBuffers=0
+[2026-08-04T14:32:57Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=78.549 hostTime=1785853977.259 audioPTS=437693.764 playing=true
+[2026-08-04T14:32:57Z] PCM reason=tick buffers=1500 samples=1440000 duration_s=30.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2525 active=true videoBuffers=0
+[2026-08-04T14:32:58Z] PCM reason=tick buffers=1550 samples=1488000 duration_s=31.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2489 active=true videoBuffers=0
+[2026-08-04T14:32:59Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=80.562 hostTime=1785853979.260 audioPTS=437695.764 playing=true
+[2026-08-04T14:32:59Z] PCM reason=tick buffers=1601 samples=1536960 duration_s=32.020 inRate=48000.0 ch=2 peak=0.7922 rms=0.2457 active=true videoBuffers=0
+[2026-08-04T14:33:00Z] PCM reason=tick buffers=1650 samples=1584000 duration_s=33.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2428 active=true videoBuffers=0
+[2026-08-04T14:33:01Z] PCM reason=tick buffers=1700 samples=1632000 duration_s=34.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2394 active=true videoBuffers=0
+[2026-08-04T14:33:01Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=82.714 hostTime=1785853981.459 audioPTS=437697.944 playing=true
+[2026-08-04T14:33:02Z] PCM reason=tick buffers=1750 samples=1680000 duration_s=35.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2364 active=true videoBuffers=0
+[2026-08-04T14:33:03Z] PCM reason=tick buffers=1801 samples=1728960 duration_s=36.020 inRate=48000.0 ch=2 peak=0.7922 rms=0.2336 active=true videoBuffers=0
+[2026-08-04T14:33:03Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=84.913 hostTime=1785853983.659 audioPTS=437700.164 playing=true
+[2026-08-04T14:33:04Z] PCM reason=tick buffers=1850 samples=1776000 duration_s=37.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2309 active=true videoBuffers=0
+[2026-08-04T14:33:05Z] PCM reason=tick buffers=1900 samples=1824000 duration_s=38.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2300 active=true videoBuffers=0
+[2026-08-04T14:33:05Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=87.112 hostTime=1785853985.857 audioPTS=437702.344 playing=true
+[2026-08-04T14:33:06Z] PCM reason=tick buffers=1950 samples=1872000 duration_s=39.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2281 active=true videoBuffers=0
+[2026-08-04T14:33:07Z] PCM reason=tick buffers=2001 samples=1920960 duration_s=40.020 inRate=48000.0 ch=2 peak=0.7922 rms=0.2273 active=true videoBuffers=0
+[2026-08-04T14:33:07Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=89.161 hostTime=1785853987.875 audioPTS=437704.384 playing=true
+[2026-08-04T14:33:08Z] PCM reason=tick buffers=2050 samples=1968000 duration_s=41.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2270 active=true videoBuffers=0
+[2026-08-04T14:33:09Z] PCM reason=tick buffers=2100 samples=2016000 duration_s=42.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2259 active=true videoBuffers=0
+[2026-08-04T14:33:10Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=91.331 hostTime=1785853990.052 audioPTS=437706.544 playing=true
+[2026-08-04T14:33:10Z] PCM reason=tick buffers=2150 samples=2064000 duration_s=43.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2259 active=true videoBuffers=0
+[2026-08-04T14:33:11Z] PCM reason=tick buffers=2201 samples=2112960 duration_s=44.020 inRate=48000.0 ch=2 peak=0.7922 rms=0.2254 active=true videoBuffers=0
+[2026-08-04T14:33:12Z] ANCHOR sessionID=04384E96-0F21-460E-921F-326EFCB463D1 segmentID=414F806D-659E-41BC-97EB-689FA7209135 position=93.559 hostTime=1785853992.251 audioPTS=437708.764 playing=true
+[2026-08-04T14:33:12Z] PCM reason=tick buffers=2250 samples=2160000 duration_s=45.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2248 active=true videoBuffers=0
+[2026-08-04T14:33:12Z] S2 stop reason=autoStop
+[2026-08-04T14:33:12Z] WAV ready path=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/SpotifyLyricsCapture/s2-sessions/04384E96-0F21-460E-921F-326EFCB463D1/seg-414F806D-mono.wav frames=721600
+[2026-08-04T14:33:12Z] TEMP sidecar path=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/SpotifyLyricsCapture/s2-sessions/04384E96-0F21-460E-921F-326EFCB463D1/seg-414F806D.json
+[2026-08-04T14:33:12Z] SEGMENT end segmentID=414F806D-659E-41BC-97EB-689FA7209135 sessionID=04384E96-0F21-460E-921F-326EFCB463D1 identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図| reason=autoStop posStart=48.578 posEnd=93.759 hostStart=1785853947.402 hostEnd=1785853992.479 ptsStart=437663.904 ptsEnd=437708.984 samples=2164800 buffers=2255 duration=45.100 rate=48000.0 ch=2 continuous=true pcm=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/SpotifyLyricsCapture/s2-sessions/04384E96-0F21-460E-921F-326EFCB463D1/seg-414F806D-mono.wav
+[2026-08-04T14:33:12Z] SESSION end sessionID=04384E96-0F21-460E-921F-326EFCB463D1 identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図| reason=autoStop segments=1
+[2026-08-04T14:33:12Z] TEMP session sidecar path=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/SpotifyLyricsCapture/s2-sessions/04384E96-0F21-460E-921F-326EFCB463D1/session.json
+[2026-08-04T14:33:12Z] S3A held_out=disabled plain_or_unsynced
+[2026-08-04T14:33:12Z] S3A align begin session=04384E96 segments=1
+[2026-08-04T14:33:12Z] S3A locale=ja-JP reason=debug_override fallback=false
+[2026-08-04T14:33:12Z] S3A speech begin segmentID=414F806D wav=seg-414F806D-mono.wav pos=48.578->93.759
+[2026-08-04T14:33:13Z] PCM reason=tick buffers=2300 samples=2208000 duration_s=46.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2243 active=true videoBuffers=0
+[2026-08-04T14:33:14Z] PCM reason=tick buffers=2350 samples=2256000 duration_s=47.000 inRate=48000.0 ch=2 peak=0.7922 rms=0.2230 active=true videoBuffers=0
+[2026-08-04T14:33:14Z] S3A speech ok segmentID=414F806D transcriptSegments=27 audioDuration=45.100
+[2026-08-04T14:33:14Z] S3B anchors accepted=4 rejected=17
+[2026-08-04T14:33:14Z] S3B ANCHOR_OK line=13 conf=0.959 t=76.778 lyric=時計の針を戻してる speech=時計の針を戻してる
+[2026-08-04T14:33:14Z] S3B ANCHOR_OK line=14 conf=0.826 t=79.418 lyric=愛してた　それだけじゃ speech=愛してたそれだけじゃ
+[2026-08-04T14:33:14Z] S3B ANCHOR_OK line=16 conf=0.835 t=85.328 lyric=すれ違った言葉たちが speech=違った言葉たちが
+[2026-08-04T14:33:14Z] S3B ANCHOR_OK line=18 conf=0.786 t=90.698 lyric=君の癖　君の声 speech=君の君の声
+[2026-08-04T14:33:14Z] S3B ANCHOR_REJ line=14 reason=text_similarity_below_threshold conf=0.721
+[2026-08-04T14:33:14Z] S3B ANCHOR_REJ line=14 reason=text_similarity_below_threshold conf=0.688
+[2026-08-04T14:33:14Z] S3B ANCHOR_REJ line=14 reason=text_similarity_below_threshold conf=0.699
+[2026-08-04T14:33:14Z] S3B ANCHOR_REJ line=14 reason=text_similarity_below_threshold conf=0.619
+[2026-08-04T14:33:14Z] S3B ANCHOR_REJ line=15 reason=text_similarity_below_threshold conf=0.669
+[2026-08-04T14:33:14Z] S3B ANCHOR_REJ line=16 reason=text_similarity_below_threshold conf=0.741
+[2026-08-04T14:33:14Z] S3B ANCHOR_REJ line=13 reason=duplicate_lyric_line conf=0.855
+[2026-08-04T14:33:14Z] S3B ANCHOR_REJ line=13 reason=duplicate_lyric_line conf=0.852
+[2026-08-04T14:33:14Z] S3B ANCHOR_REJ line=14 reason=duplicate_lyric_line conf=0.794
+[2026-08-04T14:33:14Z] S3B ANCHOR_REJ line=13 reason=duplicate_lyric_line conf=0.792
+[2026-08-04T14:33:14Z] S3B ANCHOR_REJ line=13 reason=duplicate_lyric_line conf=0.785
+[2026-08-04T14:33:14Z] S3B ANCHOR_REJ line=14 reason=duplicate_lyric_line conf=0.775
+[2026-08-04T14:33:14Z] S3B ANCHOR_REJ line=16 reason=duplicate_lyric_line conf=0.768
+[2026-08-04T14:33:14Z] S3B ANCHOR_REJ line=16 reason=duplicate_lyric_line conf=0.766
+[2026-08-04T14:33:14Z] S3B ANCHOR_REJ line=14 reason=duplicate_lyric_line conf=0.750
+[2026-08-04T14:33:14Z] S3B report json=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/spotifylyrics-s3a-reports/partial-04384E96.json
+[2026-08-04T14:33:14Z] S3B report md=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/spotifylyrics-s3a-reports/partial-04384E96.md
+[2026-08-04T14:33:14Z] S3A coverage=0.094 resolved=0 low=3 unresolved=29
+[2026-08-04T14:33:14Z] S3B coverage=0.156 resolved=4 low=1 unresolved=27 anchors=4 constrained=true judgment=B_coverage_up_but_errors_remain
+[2026-08-04T14:33:14Z] S3B judgment=B_coverage_up_but_errors_remain constrained=true anchors=4/rej=17 fallback=none
+[2026-08-04T14:33:14Z] S3B AB s3a_cov=0.094 s3b_cov=0.156 s3a_res=0 s3b_res=4
+[2026-08-04T14:33:14Z] SPIKE stop reason=s2-autoStop
+[2026-08-04T14:33:14Z] PCM reason=final buffers=2378 samples=2282880 duration_s=47.560 inRate=48000.0 ch=2 peak=0.7922 rms=0.2223 active=true videoBuffers=0
+[2026-08-04T14:33:14Z] STREAM stopCapture ok reason=s2-autoStop
+[2026-08-04T14:33:14Z] TEMP cleanup path=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/SpotifyLyricsCapture/CD57D49A-CB88-48F3-BD2F-44C77CB12D75 exists_after=false
+[2026-08-04T14:33:14Z] TEMP scavenge removed=s2-sessions
+[2026-08-04T14:33:14Z] SPIKE stopped idle
+[2026-08-04T14:33:14Z] CLEANUP sessionDir=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/SpotifyLyricsCapture/s2-sessions/04384E96-0F21-460E-921F-326EFCB463D1 exists_after=false
+[2026-08-04T14:33:14Z] S2 stopped idle sessions=1
+[2026-08-04T14:33:14Z] SUMMARY sessions=1
+[2026-08-04T14:33:14Z] SUMMARY_SESSION id=04384E96 identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図| terminal=autoStop segments=1
+[2026-08-04T14:33:14Z] SUMMARY_SEG i=0 id=414F806D start=initial end=autoStop pos=48.578->93.759 dur=45.100 samples=2164800
+[2026-08-04T14:33:29Z] S2 bind playback ok

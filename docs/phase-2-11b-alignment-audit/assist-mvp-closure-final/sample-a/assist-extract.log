@@ -1,0 +1,33 @@
+/tmp/spotifylyrics-e2e.log:[2026-08-04T14:22:05Z] ACCEPTANCE control assist_start seconds=55.0
+/tmp/spotifylyrics-e2e.log:[2026-08-04T14:24:06Z] ASSIST draft ready suggested=5 unresolved=27 session=E73D412B
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:22:05Z] DISCOVER related=1 primary=1 captureTargets=1
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:22:05Z] DISCOVER_APP pid=18752 bundle=com.spotify.client name=Spotify captureTarget=true
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:22:05Z] STREAM configured capturesAudio=1 screenOutput=0 mic=0 sampleRate=48000 channels=2
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:22:06Z] STREAM started
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B anchors accepted=5 rejected=33
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B ANCHOR_OK line=13 conf=0.962 t=76.735 lyric=時計の針を戻してる speech=時計の針を戻してる
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B ANCHOR_OK line=14 conf=0.915 t=79.435 lyric=愛してた　それだけじゃ speech=愛してたそれだけじゃ
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B ANCHOR_OK line=15 conf=0.804 t=82.615 lyric=ダメだったんだね speech=だめだたんだね
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B ANCHOR_OK line=16 conf=0.866 t=84.985 lyric=すれ違った言葉たちが speech=それ違った言葉たちが
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B ANCHOR_OK line=18 conf=0.755 t=90.685 lyric=君の癖　君の声 speech=君の君の声
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B ANCHOR_REJ line=14 reason=text_similarity_below_threshold conf=0.734
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B ANCHOR_REJ line=14 reason=text_similarity_below_threshold conf=0.719
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B ANCHOR_REJ line=14 reason=text_similarity_below_threshold conf=0.711
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B ANCHOR_REJ line=15 reason=text_similarity_below_threshold conf=0.716
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B ANCHOR_REJ line=15 reason=text_similarity_below_threshold conf=0.720
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B ANCHOR_REJ line=16 reason=text_similarity_below_threshold conf=0.758
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B ANCHOR_REJ line=18 reason=text_similarity_below_threshold conf=0.708
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B ANCHOR_REJ line=19 reason=text_similarity_below_threshold conf=0.676
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B ANCHOR_REJ line=19 reason=text_similarity_below_threshold conf=0.687
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B ANCHOR_REJ line=19 reason=text_similarity_below_threshold conf=0.670
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B ANCHOR_REJ line=19 reason=overall_confidence_below_threshold conf=0.706
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B ANCHOR_REJ line=19 reason=text_similarity_below_threshold conf=0.690
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B ANCHOR_REJ line=16 reason=duplicate_lyric_line conf=0.865
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B ANCHOR_REJ line=13 reason=duplicate_lyric_line conf=0.858
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B ANCHOR_REJ line=13 reason=duplicate_lyric_line conf=0.854
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B report json=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/spotifylyrics-s3a-reports/partial-E73D412B.json
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B report md=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/spotifylyrics-s3a-reports/partial-E73D412B.md
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B coverage=0.156 resolved=5 low=0 unresolved=27 anchors=5 constrained=true judgment=B_coverage_up_but_errors_remain
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B judgment=B_coverage_up_but_errors_remain constrained=true anchors=5/rej=33 fallback=none
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] S3B AB s3a_cov=0.094 s3b_cov=0.156 s3a_res=2 s3b_res=5
+/tmp/spotifylyrics-sck-spike.log:[2026-08-04T14:24:05Z] STREAM stopCapture ok reason=s2-autoStop

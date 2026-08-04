@@ -1044,7 +1044,8 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
                 isSynchronized: timeline.isSynchronized,
                 source: request.document.source,
                 confidence: request.document.confidence,
-                providerSourceID: request.document.providerSourceID
+                providerSourceID: request.document.providerSourceID,
+                explicitlyTimedLineIndices: request.document.explicitlyTimedLineIndices
             )
         // Translation versions are the canonical home for translations after
         // v2. Keep lyric_lines.translation_text as a read-only compatibility
@@ -1234,7 +1235,10 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
             isSynchronized: document.isSynchronized,
             source: document.source,
             confidence: document.confidence,
-            providerSourceID: document.providerSourceID
+            providerSourceID: document.providerSourceID,
+            // Preserve Assist partial-timeline mask; dropping it zeroed all
+            // start_time values on manual save of partially timed drafts.
+            explicitlyTimedLineIndices: document.explicitlyTimedLineIndices
         )
     }
 
