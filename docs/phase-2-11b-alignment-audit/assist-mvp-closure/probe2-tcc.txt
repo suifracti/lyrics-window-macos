@@ -1,0 +1,6 @@
+kTCCServiceScreenCapture|com.spotifylyrics.app|2
+kTCCServiceAppleEvents|/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics|0
+kTCCServiceAppleEvents|com.spotifylyrics.phase23d|2
+kTCCServiceAppleEvents|com.spotifylyrics.phase25.lab|2
+kTCCServiceAppleEvents|com.spotifylyrics.app|2
+kTCCServiceSpeechRecognition|com.spotifylyrics.app|2

@@ -7,6 +7,45 @@
 | 分支 | `codex/phase-2-11b-assist-mvp` |
 | 功能基线链 | `393adcd` → `5da57b6` → `4e06519` → `8023f65` → docs |
 | **结论** | **代码闭环完成，真实验收仍未完成** |
+| 最新探针 | **2026-08-04 用户再次授权后仍失败**（见 §2.3） |
+
+---
+
+## 0. 最新探针（用户再次开权限后）
+
+**规则遵守：** 无 xcodebuild、无重签名、无改 bundle、无改产品代码；固定 App 路径；先最小探针。
+
+| 项 | 值 |
+|---|---|
+| App path | `/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app` |
+| Bundle ID | `com.spotifylyrics.app` |
+| CDHash (app) | `b545ddd10672d47fcbe4e38e78c09f8a4a8ccde9` |
+| Signature | adhoc · TeamIdentifier=**not set** |
+| Debug dylib ID | `SpotifyLyrics.debug` · CDHash `b9b39fe6…`（与主程序 **不同**） |
+| 探针结果 | **FAILED — 无 `STREAM started`** |
+| 错误 | `用户拒绝了应用程序、窗口、显示器捕捉的TCC` |
+| 失败点 | `SCShareableContent.excludingDesktopWindows`（DISCOVER 日志都未打出） |
+
+### TCC 检查（授权已在库中，但运行时仍拒）
+
+| 服务 | 客户端 | auth_value | 含义 |
+|---|---|---:|---|
+| `kTCCServiceScreenCapture` | `com.spotifylyrics.app` | **2** | 系统库：已允许 |
+| `kTCCServiceAudioCapture` | `com.spotifylyrics.app` | **2** | 用户库：已允许（本次用户操作后出现） |
+| Speech / AppleEvents (bundle) | `com.spotifylyrics.app` | 2 | 已有 |
+| AppleEvents (path) | 主程序绝对路径 | **0** | 路径级 AppleEvents 仍为拒绝（与捕获次相关） |
+
+**关键矛盾：** 设置界面 + TCC.db 均显示已允许，但 `SCShareableContent` 仍抛「用户拒绝」。  
+**不**再跑完整 A/B 验收（规则：探针失败立即暂停）。
+
+### 解释（给人类）
+
+1. 你已经把 **ScreenCapture + AudioCapture** 都打开了（库里能查到）。  
+2. 仍失败，说明问题多半不是「开关没点上」，而是 **ad-hoc Debug 包的代码身份与 TCC 绑定不稳定**（主程序 `com.spotifylyrics.app` vs 实际逻辑在 `SpotifyLyrics.debug.dylib`；无 Team ID；CDHash 曾多次因 rebuild 变化）。  
+3. 今天同一代码路径在 **旧 CDHash `df9c7dac…`** 上曾出现 `STREAM started`，证明捕获实现本身可用；**当前二进制身份**下运行时仍被拒。  
+4. 按收口规则：**禁止 rebuild 尝试解决** → 本轮无法继续完整清单。
+
+证据文件：`probe-final-fail.txt`、`probe3-sck.log`、`probe3-identity.txt`。
 
 ---
 

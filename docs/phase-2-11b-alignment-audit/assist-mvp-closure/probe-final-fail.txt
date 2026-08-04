@@ -1,0 +1,33 @@
+PROBE_RESULT=FAILED (no STREAM started)
+time=2026-08-04T13:37:54Z
+
+=== App identity ===
+path=/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app
+Executable=/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics
+Identifier=com.spotifylyrics.app
+Format=app bundle with Mach-O thin (arm64)
+CDHash=b545ddd10672d47fcbe4e38e78c09f8a4a8ccde9
+Signature=adhoc
+TeamIdentifier=not set
+main_exe_id=Identifier=com.spotifylyrics.app
+TeamIdentifier=not set
+debug_dylib_id=Identifier=SpotifyLyrics.debug
+TeamIdentifier=not set
+debug_dylib_cdhash=CDHash=b9b39fe6a16de9c5c29f5d3f94d7cfb5779c33f3
+
+=== TCC system ===
+kTCCServiceScreenCapture|com.spotifylyrics.app|2|4
+=== TCC user ===
+kTCCServiceAppleEvents|/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics|0|9
+kTCCServiceAppleEvents|com.spotifylyrics.phase23d|2|3
+kTCCServiceAppleEvents|com.spotifylyrics.phase25.lab|2|3
+kTCCServiceAppleEvents|com.spotifylyrics.app|2|3
+kTCCServiceSpeechRecognition|com.spotifylyrics.app|2|2
+kTCCServiceAudioCapture|com.spotifylyrics.app|2|4
+
+=== last log ===
+[2026-08-04T13:37:28Z] LOG_RESET
+[2026-08-04T13:37:28Z] SPIKE start formal_db_opened=NO (spike never opens SQLite)
+[2026-08-04T13:37:28Z] SPIKE policy=spotify-app-audio-only no-mic no-screen-save no-asr no-align
+[2026-08-04T13:37:28Z] SPIKE failed error=用户拒绝了应用程序、窗口、显示器捕捉的TCC
+[2026-08-04T13:37:28Z] S2 failed to start underlying spike error=用户拒绝了应用程序、窗口、显示器捕捉的TCC
