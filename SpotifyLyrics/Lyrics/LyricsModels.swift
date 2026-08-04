@@ -48,6 +48,10 @@ public struct LyricsDocument: Equatable, Sendable {
     /// Provider/database language metadata used only to gate Japanese reading
     /// projections. It does not alter the original lyric text.
     public let language: String?
+    /// When `isSynchronized` is false, these line indices still carry real
+    /// start times that must be persisted (Assist partial timeline).
+    /// Nil means legacy behavior: no times stored for unsynced documents.
+    public let explicitlyTimedLineIndices: Set<Int>?
 
     public init(
         identity: TrackIdentity,
@@ -62,7 +66,8 @@ public struct LyricsDocument: Equatable, Sendable {
         providerSourceID: String? = nil,
         spotifyTrackID: String? = nil,
         isrc: String? = nil,
-        language: String? = nil
+        language: String? = nil,
+        explicitlyTimedLineIndices: Set<Int>? = nil
     ) {
         self.identity = identity
         self.title = title
@@ -77,6 +82,13 @@ public struct LyricsDocument: Equatable, Sendable {
         self.spotifyTrackID = spotifyTrackID
         self.isrc = isrc
         self.language = language
+        self.explicitlyTimedLineIndices = explicitlyTimedLineIndices
+    }
+
+    /// Whether line `index` has a meaningful start time for editor / playback.
+    public func lineHasExplicitTiming(_ index: Int) -> Bool {
+        if isSynchronized { return true }
+        return explicitlyTimedLineIndices?.contains(index) == true
     }
 }
 

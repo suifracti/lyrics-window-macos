@@ -1016,10 +1016,10 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
             }
         }
 
-        let draftLines = request.document.lines.map {
+        let draftLines = request.document.lines.enumerated().map { index, line in
             LyricsEditorLineDraft(
-                line: $0,
-                startTimeIsMeaningful: request.document.isSynchronized
+                line: line,
+                startTimeIsMeaningful: request.document.lineHasExplicitTiming(index)
             )
         }
         let timeline = LyricsTimelineValidator.validate(lines: draftLines, duration: request.document.duration)

@@ -132,10 +132,10 @@ public struct LyricsEditorDraft: Equatable, Sendable {
             artist: document.artist,
             album: document.album,
             duration: document.duration,
-            lines: document.lines.map {
+            lines: document.lines.enumerated().map { index, line in
                 LyricsEditorLineDraft(
-                    line: $0,
-                    startTimeIsMeaningful: document.isSynchronized
+                    line: line,
+                    startTimeIsMeaningful: document.lineHasExplicitTiming(index)
                 )
             },
             sourceVersionID: sourceVersionID,
@@ -155,18 +155,56 @@ public struct LyricsEditorDraft: Equatable, Sendable {
     }
 
     public func document(source: LyricsSource = .manualEdit, isSynchronized: Bool? = nil) -> LyricsDocument {
-        LyricsDocument(
+        let validation = LyricsTimelineValidator.validate(lines: lines, duration: duration)
+        let synced = isSynchronized ?? validation.isSynchronized
+        let timedIndices: Set<Int>? = {
+            if synced { return nil }
+            let set = Set(lines.indices.filter { lines[$0].startTime != nil })
+            return set.isEmpty ? nil : set
+        }()
+        return LyricsDocument(
             identity: identity,
             title: title,
             artist: artist,
             album: album,
             duration: duration,
             lines: lines.map { $0.asLyricLine() },
-            isSynchronized: isSynchronized ?? LyricsTimelineValidator.validate(lines: lines, duration: duration).isSynchronized,
+            isSynchronized: synced,
             source: source,
             confidence: 1,
-            providerSourceID: "manualEdit"
+            providerSourceID: "manualEdit",
+            explicitlyTimedLineIndices: timedIndices
         )
+    }
+
+    /// Counts for Assist partial-save UX.
+    public var timedNonBlankLineCount: Int {
+        lines.filter {
+            !$0.originalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.startTime != nil
+        }.count
+    }
+
+    public var untimedNonBlankLineCount: Int {
+        lines.filter {
+            !$0.originalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.startTime == nil
+        }.count
+    }
+
+    public func nextUntimedLineID(after currentID: UUID?) -> UUID? {
+        let nonBlank = lines.filter {
+            !$0.originalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+        guard !nonBlank.isEmpty else { return nil }
+        if let currentID, let idx = nonBlank.firstIndex(where: { $0.id == currentID }) {
+            for candidate in nonBlank.suffix(from: nonBlank.index(after: idx)) where candidate.startTime == nil {
+                return candidate.id
+            }
+            for candidate in nonBlank where candidate.startTime == nil {
+                return candidate.id
+            }
+            return nil
+        }
+        return nonBlank.first(where: { $0.startTime == nil })?.id
     }
 
     public mutating func update(_ lineID: UUID, _ change: (inout LyricsEditorLineDraft) -> Void) throws {

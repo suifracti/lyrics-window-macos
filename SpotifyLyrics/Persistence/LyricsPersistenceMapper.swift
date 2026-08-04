@@ -165,9 +165,10 @@ public enum LyricsPersistenceMapper {
         versionID: UUID
     ) -> [DatabaseLyricLineRecord] {
         document.lines.enumerated().map { index, line in
-            let start: TimeInterval? = document.isSynchronized ? line.timestamp : nil
+            let hasTiming = document.lineHasExplicitTiming(index)
+            let start: TimeInterval? = hasTiming ? line.timestamp : nil
             let end: TimeInterval?
-            if document.isSynchronized, let explicitEnd = line.endTime {
+            if hasTiming, let explicitEnd = line.endTime {
                 end = explicitEnd
             } else if document.isSynchronized, index + 1 < document.lines.count {
                 let next = document.lines[index + 1].timestamp
@@ -202,7 +203,8 @@ public enum LyricsPersistenceMapper {
         version: DatabaseLyricsVersionRecord,
         lines: [DatabaseLyricLineRecord]
     ) -> LyricsDocument {
-        let lyricLines = lines.sorted { $0.lineIndex < $1.lineIndex }.map { line in
+        let sorted = lines.sorted { $0.lineIndex < $1.lineIndex }
+        let lyricLines = sorted.map { line in
             LyricLine(
                 timestamp: line.startTime ?? 0,
                 originalText: line.originalText,
@@ -212,6 +214,12 @@ public enum LyricsPersistenceMapper {
                 kanaText: line.kanaText
             )
         }
+        // Partial Assist timelines: is_synced=0 but some start_time values present.
+        let timedIndices: Set<Int>? = {
+            guard !version.isSynced else { return nil }
+            let set = Set(sorted.compactMap { $0.startTime != nil ? $0.lineIndex : nil })
+            return set.isEmpty ? nil : set
+        }()
         return LyricsDocument(
             identity: identity,
             title: track.title,
@@ -223,7 +231,8 @@ public enum LyricsPersistenceMapper {
             source: DatabaseSourceIdentifier.source(for: version.source),
             confidence: version.confidence,
             providerSourceID: version.providerSourceID,
-            language: version.language
+            language: version.language,
+            explicitlyTimedLineIndices: timedIndices
         )
     }
 
