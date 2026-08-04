@@ -32,6 +32,7 @@ public final class PlaybackState: ObservableObject {
     private let lyricsSession: LyricsSessionController
     private let searchPreviewSession: LyricsSessionController
     private let translationSession: TranslationSessionController
+    public let readingSession: ReadingSessionController
     public let lyricsEditorSession: LyricsEditorSessionController
     private let lyricsRepository: (any LyricsRepository)
     private let settingsStore: AppSettingsStore
@@ -42,6 +43,7 @@ public final class PlaybackState: ObservableObject {
     private var lyricsSessionCancellable: AnyCancellable?
     private var searchPreviewSessionCancellable: AnyCancellable?
     private var translationSessionCancellable: AnyCancellable?
+    private var readingSessionCancellable: AnyCancellable?
     private var lyricsEditorSessionCancellable: AnyCancellable?
     private var spotifyAuthorizationCancellable: AnyCancellable?
     private var settingsCancellables: Set<AnyCancellable> = []
@@ -68,6 +70,7 @@ public final class PlaybackState: ObservableObject {
         let lyricsVersionID: UUID?
         let sourceContentHash: String?
         let lineCount: Int
+        let readingRevision: UInt64
     }
     private var liveLyricsProjectionCache: (key: LyricsProjectionCacheKey, lines: [LyricLine])?
     private var previewLyricsProjectionCache: (key: LyricsProjectionCacheKey, lines: [LyricLine])?
@@ -117,12 +120,16 @@ public final class PlaybackState: ObservableObject {
         let translation = TranslationSessionController(
             repository: translationRepository
         )
+        let readingRepository = (resolvedRepository as? any ReadingRepository)
+            ?? UnavailableReadingRepository()
+        let reading = ReadingSessionController(repository: readingRepository, settings: resolvedSettings)
         let editor = LyricsEditorSessionController(
             repository: resolvedRepository as? any LyricsEditingRepository
         )
         self.lyricsSession = session
         self.searchPreviewSession = previewSession
         self.translationSession = translation
+        self.readingSession = reading
         self.lyricsEditorSession = editor
         // Track search is metadata-only: local index + current Spotify track.
         // LRCLIB stays isolated inside the lyrics session path.
@@ -134,6 +141,7 @@ public final class PlaybackState: ObservableObject {
         self.lyricsSessionCancellable = nil
         self.searchPreviewSessionCancellable = nil
         self.translationSessionCancellable = nil
+        self.readingSessionCancellable = nil
         self.lyricsEditorSessionCancellable = nil
         self.spotifyAuthorizationCancellable = nil
         self.lyricsSessionCancellable = session.objectWillChange.sink { [weak self] _ in
@@ -155,6 +163,9 @@ public final class PlaybackState: ObservableObject {
             }
         }
         self.translationSessionCancellable = translation.objectWillChange.sink { [weak self] _ in
+            self?.objectWillChange.send()
+        }
+        self.readingSessionCancellable = reading.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
         }
         self.lyricsEditorSessionCancellable = editor.objectWillChange.sink { [weak self] _ in
@@ -207,6 +218,14 @@ public final class PlaybackState: ObservableObject {
             .sink { [weak self] _ in
                 guard let self else { return }
                 self.syncTranslationSession()
+            }
+            .store(in: &self.settingsCancellables)
+        resolvedSettings.$readingPreferences
+            .dropFirst()
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.readingSession.reload()
+                self.objectWillChange.send()
             }
             .store(in: &self.settingsCancellables)
         resolvedSettings.$connectSpotifyOnLaunch
@@ -266,6 +285,7 @@ public final class PlaybackState: ObservableObject {
         lyricsSessionCancellable?.cancel()
         searchPreviewSessionCancellable?.cancel()
         translationSessionCancellable?.cancel()
+        readingSessionCancellable?.cancel()
         lyricsEditorSessionCancellable?.cancel()
         spotifyAuthorizationCancellable?.cancel()
         searchPreviewTask?.cancel()
@@ -330,6 +350,11 @@ public final class PlaybackState: ObservableObject {
     public var selectedTranslation: StoredTranslationVersion? { translationSession.selectedVersion }
     public var translationSessionPendingCandidate: StoredTranslationVersion? { translationSession.pendingCandidate }
     public var isTranslationSelectionEmpty: Bool { translationSession.isNoSelection }
+    public var readingProjection: ReadingProjection { readingSession.projection }
+    public var readingVersions: [StoredReadingVersion] { readingSession.availableVersions }
+    public var selectedReadingVersion: StoredReadingVersion? { readingSession.selectedVersion }
+    public var isReadingGenerating: Bool { readingSession.isGenerating }
+    public var readingMessage: String { readingSession.message }
 
     public var canOpenLyricsEditor: Bool {
         hasLiveTrack && !isMockPreviewMode && lyricsSession.activeIdentity != nil &&
@@ -510,6 +535,16 @@ public final class PlaybackState: ObservableObject {
         lyricsSession.selectNoVersion(identity: identity)
     }
 
+    public func selectNoReadingVersion() { readingSession.selectNone() }
+    public func selectReadingVersion(versionID: UUID) { readingSession.select(versionID: versionID) }
+    public func generateCurrentReading(representationID: ReadingRepresentationID? = nil) {
+        readingSession.generateCurrentReading(representationID: representationID)
+    }
+    public func lockSelectedReading() { readingSession.lockSelected() }
+    public func archiveReading(versionID: UUID) { readingSession.archive(versionID: versionID) }
+    public func deleteReading(versionID: UUID) { readingSession.delete(versionID: versionID) }
+    public func restoreRecommendedReading() { readingSession.restoreRecommended() }
+
     private func syncTranslationSession() {
         translationSession.setEngine(
             TranslationEngineRegistry.make(stableID: settingsStore.aiTranslationConfiguration.engineID)
@@ -519,6 +554,24 @@ public final class PlaybackState: ObservableObject {
             lyricsVersionID: lyricsSession.activeLyricsVersionID,
             sourceContentHash: lyricsSession.activeSourceContentHash,
             configuration: settingsStore.aiTranslationConfiguration
+        )
+        syncReadingSession()
+    }
+
+    private func syncReadingSession() {
+        guard let document = lyricsSession.activeDocument,
+              let versionID = lyricsSession.activeLyricsVersionID,
+              let sourceHash = lyricsSession.activeSourceContentHash else {
+            readingSession.clear()
+            return
+        }
+        readingSession.synchronize(
+            lyricsVersionID: versionID,
+            sourceContentHash: sourceHash,
+            lines: document.lines,
+            language: document.language,
+            trackStableKey: lyricsSession.activeIdentity?.stableKey,
+            artistDisplay: document.artist
         )
     }
 
@@ -1124,7 +1177,8 @@ public final class PlaybackState: ObservableObject {
             translationSelectionIsEmpty: translationSession.isNoSelection,
             lyricsVersionID: session.activeLyricsVersionID,
             sourceContentHash: session.activeSourceContentHash,
-            lineCount: base.count
+            lineCount: base.count,
+            readingRevision: session === lyricsSession ? readingSession.currentRevision : 0
         )
         if let cache, cache.key == key {
             return cache.lines
@@ -1132,12 +1186,13 @@ public final class PlaybackState: ObservableObject {
 
         let projected: [LyricLine]
         if let identity = session.activeIdentity {
-            projected = translationSession.project(
+            let translated = translationSession.project(
                 onto: base,
                 identity: identity,
                 lyricsVersionID: session.activeLyricsVersionID,
                 sourceContentHash: session.activeSourceContentHash
             )
+            projected = session === lyricsSession ? readingSession.project(onto: translated) : translated
         } else {
             projected = base
         }

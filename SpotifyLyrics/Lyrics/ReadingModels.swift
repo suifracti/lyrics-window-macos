@@ -291,6 +291,8 @@ public struct ReadingGenerationRequest: Sendable, Equatable {
     public let sourceContentHash: String
     public let lines: [ReadingInputLine]
     public let languageHint: String?
+    public let trackStableKey: String?
+    public let artistDisplay: String?
     public let nearbyContext: [String]
     public let representationID: ReadingRepresentationID
 
@@ -299,6 +301,8 @@ public struct ReadingGenerationRequest: Sendable, Equatable {
         sourceContentHash: String,
         lines: [ReadingInputLine],
         languageHint: String?,
+        trackStableKey: String? = nil,
+        artistDisplay: String? = nil,
         nearbyContext: [String] = [],
         representationID: ReadingRepresentationID
     ) {
@@ -306,6 +310,8 @@ public struct ReadingGenerationRequest: Sendable, Equatable {
         self.sourceContentHash = sourceContentHash
         self.lines = lines
         self.languageHint = languageHint
+        self.trackStableKey = trackStableKey
+        self.artistDisplay = artistDisplay
         self.nearbyContext = nearbyContext
         self.representationID = representationID
     }

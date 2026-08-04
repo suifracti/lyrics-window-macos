@@ -5,7 +5,7 @@ import CryptoKit
 /// the app. It never invents a reading for unresolved Han characters.
 public struct JapaneseDictionaryReadingEngine: ReadingEngine, Sendable {
     public let stableID: ReadingEngineID = .japaneseDictionary
-    private let userEntries: [ReadingDictionaryEntry]
+    fileprivate let userEntries: [ReadingDictionaryEntry]
 
     public init(userEntries: [ReadingDictionaryEntry] = []) {
         self.userEntries = userEntries
@@ -13,8 +13,14 @@ public struct JapaneseDictionaryReadingEngine: ReadingEngine, Sendable {
 
     public func generate(_ request: ReadingGenerationRequest) async throws -> ReadingGenerationResult {
         let contextHash = ReadingEngineSupport.hashContext(request.nearbyContext)
+        let scopedEntries = ReadingEngineSupport.applicableUserEntries(
+            userEntries,
+            trackStableKey: request.trackStableKey,
+            artistDisplay: request.artistDisplay
+        )
+        let dictionary = JapaneseDictionaryReadingEngine(userEntries: scopedEntries)
         let lines = request.lines.map { line in
-            makeLine(line, languageHint: request.languageHint, contextHash: contextHash, representation: request.representationID)
+            dictionary.makeLine(line, languageHint: request.languageHint, contextHash: contextHash, representation: request.representationID)
         }
         let language = ReadingEngineSupport.aggregateLanguage(lines)
         let warnings = Array(Set(lines.flatMap(\.warnings))).sorted { $0.rawValue < $1.rawValue }
@@ -114,6 +120,12 @@ public struct JapaneseContextualReadingEngine: ReadingEngine, Sendable {
 
     public func generate(_ request: ReadingGenerationRequest) async throws -> ReadingGenerationResult {
         let contextHash = ReadingEngineSupport.hashContext(request.nearbyContext + request.lines.map(\.originalText))
+        let scopedEntries = ReadingEngineSupport.applicableUserEntries(
+            dictionary.userEntries,
+            trackStableKey: request.trackStableKey,
+            artistDisplay: request.artistDisplay
+        )
+        let dictionary = JapaneseDictionaryReadingEngine(userEntries: scopedEntries)
         let lines = request.lines.map { line in
             dictionary.makeLine(
                 line,
@@ -144,8 +156,15 @@ public struct ReadingDictionaryEntry: Codable, Hashable, Sendable, Equatable, Id
     public let reading: String
     public let language: ReadingLanguage
     public let trackStableKey: String?
+    public let artistScope: String?
     public let priority: Int
     public let isEnabled: Bool
+    public let isArchived: Bool
+    public let notes: String
+
+    private enum CodingKeys: String, CodingKey {
+        case id, surface, reading, language, trackStableKey, artistScope, priority, isEnabled, isArchived, notes
+    }
 
     public init(
         id: UUID = UUID(),
@@ -153,16 +172,36 @@ public struct ReadingDictionaryEntry: Codable, Hashable, Sendable, Equatable, Id
         reading: String,
         language: ReadingLanguage,
         trackStableKey: String? = nil,
+        artistScope: String? = nil,
         priority: Int = 0,
-        isEnabled: Bool = true
+        isEnabled: Bool = true,
+        isArchived: Bool = false,
+        notes: String = ""
     ) {
         self.id = id
         self.surface = surface
         self.reading = reading
         self.language = language
         self.trackStableKey = trackStableKey
+        self.artistScope = artistScope
         self.priority = priority
         self.isEnabled = isEnabled
+        self.isArchived = isArchived
+        self.notes = notes
+    }
+
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(UUID.self, forKey: .id)
+        surface = try values.decode(String.self, forKey: .surface)
+        reading = try values.decode(String.self, forKey: .reading)
+        language = try values.decode(ReadingLanguage.self, forKey: .language)
+        trackStableKey = try values.decodeIfPresent(String.self, forKey: .trackStableKey)
+        artistScope = try values.decodeIfPresent(String.self, forKey: .artistScope)
+        priority = try values.decodeIfPresent(Int.self, forKey: .priority) ?? 0
+        isEnabled = try values.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? true
+        isArchived = try values.decodeIfPresent(Bool.self, forKey: .isArchived) ?? false
+        notes = try values.decodeIfPresent(String.self, forKey: .notes) ?? ""
     }
 }
 
@@ -174,8 +213,11 @@ private enum JapaneseReadingSupport {
         contextHash: String
     ) -> JapaneseReadingResult {
         let normalizedEntries = userEntries
-            .filter { $0.isEnabled && $0.language == .japanese && !$0.surface.isEmpty && !$0.reading.isEmpty }
-            .sorted { $0.surface.count > $1.surface.count }
+            .filter { !$0.isArchived && $0.isEnabled && $0.language == .japanese && !$0.surface.isEmpty && !$0.reading.isEmpty }
+            .sorted {
+                if $0.priority != $1.priority { return $0.priority > $1.priority }
+                return $0.surface.count > $1.surface.count
+            }
         if let entry = normalizedEntries.first(where: { text.contains($0.surface) }),
            let replaced = replacingSurface(text, entry: entry) {
             let kana = JapaneseRomanizer.toHiraganaPreservingLatin(replaced)
@@ -250,6 +292,33 @@ private enum JapaneseReadingSupport {
 }
 
 public enum ReadingEngineSupport {
+    public static func applicableUserEntries(
+        _ entries: [ReadingDictionaryEntry],
+        trackStableKey: String?,
+        artistDisplay: String?
+    ) -> [ReadingDictionaryEntry] {
+        let normalizedArtist = artistDisplay?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return entries.filter { entry in
+            guard !entry.isArchived, entry.isEnabled else { return false }
+            if let scope = entry.trackStableKey,
+               !scope.isEmpty,
+               scope != trackStableKey {
+                return false
+            }
+            if let artistScope = entry.artistScope,
+               !artistScope.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                guard let normalizedArtist,
+                      normalizedArtist.localizedCaseInsensitiveContains(artistScope.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()) else {
+                    return false
+                }
+            }
+            return true
+        }.sorted {
+            if $0.priority != $1.priority { return $0.priority > $1.priority }
+            return $0.surface.count > $1.surface.count
+        }
+    }
+
     public static func hashContext(_ values: [String]) -> String {
         let data = values.joined(separator: "\u{001F}").data(using: .utf8) ?? Data()
         return SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()

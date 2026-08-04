@@ -155,6 +155,12 @@ public struct LyricLine: Identifiable, Equatable, Hashable, Sendable {
     public var romajiText: String?
     public var kanaText: String?
     public var rubyTokens: [LyricRubyToken]?
+    /// Runtime-only reading projection fields. They are never written back
+    /// into the source lyric version; the shared ReadingSessionController
+    /// uses them to distinguish pinyin/script-converted display from legacy
+    /// Japanese columns.
+    public var readingRepresentationID: String?
+    public var readingSurfaceText: String?
     
     public init(
         id: UUID = UUID(),
@@ -164,7 +170,9 @@ public struct LyricLine: Identifiable, Equatable, Hashable, Sendable {
         translationText: String? = nil,
         romajiText: String? = nil,
         kanaText: String? = nil,
-        rubyTokens: [LyricRubyToken]? = nil
+        rubyTokens: [LyricRubyToken]? = nil,
+        readingRepresentationID: String? = nil,
+        readingSurfaceText: String? = nil
     ) {
         self.id = id
         self.timestamp = timestamp
@@ -174,6 +182,8 @@ public struct LyricLine: Identifiable, Equatable, Hashable, Sendable {
         self.romajiText = romajiText
         self.kanaText = kanaText
         self.rubyTokens = rubyTokens
+        self.readingRepresentationID = readingRepresentationID
+        self.readingSurfaceText = readingSurfaceText
     }
 }
 
@@ -222,6 +232,7 @@ public struct DisplayPreferences: Equatable {
     public var showOriginal: Bool = true
     public var showTranslation: Bool = true
     public var showRomaji: Bool = true
+    public var showPinyin: Bool = true
     private var storedKanaDisplayMode: KanaDisplayMode
     private var lastVisibleKanaDisplayMode: KanaDisplayMode
     public var fontSize: CGFloat = 18
@@ -263,6 +274,7 @@ public struct DisplayPreferences: Equatable {
         showOriginal: Bool = true,
         showTranslation: Bool = true,
         showRomaji: Bool = true,
+        showPinyin: Bool = true,
         showKana: Bool = false,
         kanaDisplayMode: KanaDisplayMode? = nil,
         fontSize: CGFloat = 18,
@@ -275,6 +287,7 @@ public struct DisplayPreferences: Equatable {
         self.showOriginal = showOriginal
         self.showTranslation = showTranslation
         self.showRomaji = showRomaji
+        self.showPinyin = showPinyin
         let selectedMode = kanaDisplayMode ?? (showKana ? .independentLine : .hidden)
         self.storedKanaDisplayMode = selectedMode
         self.lastVisibleKanaDisplayMode = selectedMode == .hidden

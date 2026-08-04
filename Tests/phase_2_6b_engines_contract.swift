@@ -54,6 +54,17 @@ struct ReadingEnginesContract {
         precondition(pinyin.lines[2].warnings.contains(.ambiguousReading) == false)
         precondition(pinyin.lines[3].readingText?.contains("Hello") == true)
 
+        let traditional = try await ChinesePinyinReadingEngine().generate(
+            ReadingGenerationRequest(
+                lyricsVersionID: UUID(),
+                sourceContentHash: "fixture-traditional",
+                lines: [ReadingInputLine(lineIndex: 0, originalText: "銀行行長")],
+                languageHint: "zh-Hant",
+                representationID: .pinyinToneMarks
+            )
+        )
+        precondition(traditional.lines[0].readingText == "yīn háng háng zhǎng")
+
         let numbers = try await ChinesePinyinReadingEngine().generate(
             ReadingGenerationRequest(lyricsVersionID: UUID(), sourceContentHash: "fixture", lines: chineseLines, languageHint: "zh-Hans", representationID: .pinyinToneNumbers)
         )

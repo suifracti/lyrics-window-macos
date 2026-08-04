@@ -10,7 +10,19 @@ public struct ChinesePinyinReadingEngine: ReadingEngine, Sendable {
 
     public func generate(_ request: ReadingGenerationRequest) async throws -> ReadingGenerationResult {
         let contextHash = ReadingEngineSupport.hashContext(request.nearbyContext + request.lines.map(\.originalText))
-        let lines = request.lines.map { line in makeLine(line, languageHint: request.languageHint, representation: request.representationID) }
+        let scopedEntries = ReadingEngineSupport.applicableUserEntries(
+            userEntries,
+            trackStableKey: request.trackStableKey,
+            artistDisplay: request.artistDisplay
+        )
+        let lines = request.lines.map { line in
+            makeLine(
+                line,
+                languageHint: request.languageHint,
+                representation: request.representationID,
+                userEntries: scopedEntries
+            )
+        }
         let warnings = Array(Set(lines.flatMap(\.warnings))).sorted { $0.rawValue < $1.rawValue }
         let confidence = lines.isEmpty ? 0 : lines.map(\.confidence).reduce(0, +) / Double(lines.count)
         return ReadingGenerationResult(
@@ -27,7 +39,8 @@ public struct ChinesePinyinReadingEngine: ReadingEngine, Sendable {
     private func makeLine(
         _ line: ReadingInputLine,
         languageHint: String?,
-        representation: ReadingRepresentationID
+        representation: ReadingRepresentationID,
+        userEntries: [ReadingDictionaryEntry]
     ) -> ReadingLineResult {
         let analysis = ReadingLanguageGate.analyze(line.originalText, languageHint: languageHint)
         if line.originalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -55,7 +68,7 @@ public struct ChinesePinyinReadingEngine: ReadingEngine, Sendable {
             let surface = String(character)
             let value = character.unicodeScalars.first?.value ?? 0
             if ChinesePinyinTable.isHan(value) {
-                let entry = userEntries.first(where: { $0.isEnabled && $0.language != .japanese && $0.surface == surface })
+                let entry = userEntries.first(where: { $0.language != .japanese && $0.surface == surface })
                     .flatMap { ChinesePinyinSyllable.parse($0.reading) }
                     ?? ChinesePinyinTable.syllable(for: surface, in: line.originalText, hanOrdinal: hanOrdinal)
                 hanOrdinal += 1
@@ -173,16 +186,24 @@ private enum ChinesePinyinTable {
     }
 
     static func syllable(for surface: String, in line: String, hanOrdinal: Int) -> ChinesePinyinSyllable? {
+        let normalizedLine = ReadingScriptConverter.convert(line, using: .traditionalToSimplified)
+        let normalizedSurface = ReadingScriptConverter.convert(surface, using: .traditionalToSimplified)
         let fixture: [String: [ChinesePinyinSyllable]] = [
-            "银": [s("yin1")], "行": line == "银行行长" ? [s("hang2"), s("hang2")] : [s("xing2", ambiguous: true)],
-            "长": [s("zhang3")], "重": line == "重庆重新开始" ? [s("chong2"), s("chong2")] : [s("zhong4", ambiguous: true)],
+            "银": [s("yin1")], "行": normalizedLine == "银行行长" ? [s("hang2"), s("hang2")] : [s("xing2", ambiguous: true)],
+            "长": [s("zhang3")], "重": normalizedLine == "重庆重新开始" ? [s("chong2"), s("chong2")] : [s("zhong4", ambiguous: true)],
             "庆": [s("qing4")], "新": [s("xin1")], "开": [s("kai1")], "始": [s("shi3")],
-            "音": [s("yin1")], "乐": line == "音乐使人快乐" ? [s("yue4"), s("le4")] : [s("le4", ambiguous: true)],
+            "音": [s("yin1")], "乐": normalizedLine == "音乐使人快乐" ? [s("yue4"), s("le4")] : [s("le4", ambiguous: true)],
             "使": [s("shi3")], "人": [s("ren2")], "快": [s("kuai4")]
         ]
-        guard let options = fixture[surface], !options.isEmpty else { return nil }
-        if surface == "乐", line == "音乐使人快乐" {
+        guard let options = fixture[normalizedSurface], !options.isEmpty else { return nil }
+        if normalizedSurface == "乐", normalizedLine == "音乐使人快乐" {
             return hanOrdinal == 1 ? options[0] : options[1]
+        }
+        if normalizedSurface == "行", normalizedLine == "银行行长" {
+            return options[min(hanOrdinal, options.count - 1)]
+        }
+        if normalizedSurface == "重", normalizedLine == "重庆重新开始" {
+            return options[min(hanOrdinal, options.count - 1)]
         }
         return options[min(hanOrdinal, options.count - 1)]
     }

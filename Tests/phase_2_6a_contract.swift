@@ -18,6 +18,8 @@ struct ReadingFoundationContract {
         precondition(chinese.language == .simplifiedChinese)
         precondition(ReadingLanguageGate.shouldRunPinyin(on: chinese))
         precondition(!ReadingLanguageGate.shouldRunJapanese(on: chinese))
+        precondition(!ReadingLanguageGate.allowsJapaneseReadings(language: "zh-Hans", text: "银行行长"))
+        precondition(!ReadingLanguageGate.allowsJapaneseReadings(language: "en", text: "Bank"))
 
         let mixed = ReadingLanguageGate.analyze("君と Love", languageHint: "ja")
         precondition(mixed.language == .mixed)

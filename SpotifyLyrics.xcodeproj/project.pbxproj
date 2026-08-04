@@ -81,6 +81,12 @@
 		110000A32D83400100000001 /* ReadingScriptConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000A32D83400100000000 /* ReadingScriptConversion.swift */; };
 		110000A42D83400100000001 /* ReadingUserDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000A42D83400100000000 /* ReadingUserDictionary.swift */; };
 		110000A52D83400100000001 /* ReadingEngineRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000A52D83400100000000 /* ReadingEngineRegistry.swift */; };
+		110000A62D83400100000001 /* ReadingSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000A62D83400100000000 /* ReadingSettings.swift */; };
+		110000A72D83400100000001 /* ReadingSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000A72D83400100000000 /* ReadingSessionController.swift */; };
+		110000A82D83400100000001 /* ReadingSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000A82D83400100000000 /* ReadingSettingsView.swift */; };
+		110000A92D83400100000001 /* ReadingVersionEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000A92D83400100000000 /* ReadingVersionEditorView.swift */; };
+		110000AA2D83400100000001 /* ReadingLanguageGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000AA2D83400100000000 /* ReadingLanguageGate.swift */; };
+		110000AB2D83400100000001 /* AIReadingCandidateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000AB2D83400100000000 /* AIReadingCandidateService.swift */; };
 		110000502D83400100000001 /* AppleMusicImmersiveV3WindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000502D83400100000000 /* AppleMusicImmersiveV3WindowView.swift */; };
 		110000512D83400100000001 /* AppleMusicImmersiveV3BackdropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000512D83400100000000 /* AppleMusicImmersiveV3BackdropView.swift */; };
 		110000522D83400100000001 /* DatabaseModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000522D83400100000000 /* DatabaseModels.swift */; };
@@ -225,6 +231,12 @@
 		110000A32D83400100000000 /* ReadingScriptConversion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingScriptConversion.swift; sourceTree = "<group>"; };
 		110000A42D83400100000000 /* ReadingUserDictionary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingUserDictionary.swift; sourceTree = "<group>"; };
 		110000A52D83400100000000 /* ReadingEngineRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingEngineRegistry.swift; sourceTree = "<group>"; };
+		110000A62D83400100000000 /* ReadingSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingSettings.swift; sourceTree = "<group>"; };
+		110000A72D83400100000000 /* ReadingSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingSessionController.swift; sourceTree = "<group>"; };
+		110000A82D83400100000000 /* ReadingSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingSettingsView.swift; sourceTree = "<group>"; };
+		110000A92D83400100000000 /* ReadingVersionEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingVersionEditorView.swift; sourceTree = "<group>"; };
+		110000AA2D83400100000000 /* ReadingLanguageGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingLanguageGate.swift; sourceTree = "<group>"; };
+		110000AB2D83400100000000 /* AIReadingCandidateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIReadingCandidateService.swift; sourceTree = "<group>"; };
 		110000502D83400100000000 /* AppleMusicImmersiveV3WindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicImmersiveV3WindowView.swift; sourceTree = "<group>"; };
 		110000512D83400100000000 /* AppleMusicImmersiveV3BackdropView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicImmersiveV3BackdropView.swift; sourceTree = "<group>"; };
 		110000522D83400100000000 /* DatabaseModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseModels.swift; sourceTree = "<group>"; };
@@ -387,6 +399,7 @@
 			children = (
 				110000612D83400100000000 /* SettingsRootView.swift */,
 				110000F82D83400100000000 /* ExperienceLibrarySettingsView.swift */,
+				110000A82D83400100000000 /* ReadingSettingsView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -419,6 +432,7 @@
 				110000292D83400100000000 /* SongSearchPopover.swift */,
 				110000722D83400100000000 /* ManualLyricsActionsView.swift */,
 				110000FB2D83400100000000 /* CurrentSongOperationsView.swift */,
+				110000A92D83400100000000 /* ReadingVersionEditorView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -486,6 +500,10 @@
 				110000A32D83400100000000 /* ReadingScriptConversion.swift */,
 				110000A42D83400100000000 /* ReadingUserDictionary.swift */,
 				110000A52D83400100000000 /* ReadingEngineRegistry.swift */,
+				110000A62D83400100000000 /* ReadingSettings.swift */,
+				110000A72D83400100000000 /* ReadingSessionController.swift */,
+				110000AA2D83400100000000 /* ReadingLanguageGate.swift */,
+				110000AB2D83400100000000 /* AIReadingCandidateService.swift */,
 				110000342D83400100000000 /* JapaneseKanaGenerator.swift */,
 				110000862D83400100000000 /* FullScreenLyricsPresentation.swift */,
 				110000352D83400100000000 /* LyricsQueryPlanner.swift */,
@@ -663,6 +681,7 @@
 				110000F92D83400100000001 /* SettingsCenterPresentation.swift in Sources */,
 				110000FA2D83400100000001 /* CurrentSongOperationState.swift in Sources */,
 				110000FB2D83400100000001 /* CurrentSongOperationsView.swift in Sources */,
+				110000A92D83400100000001 /* ReadingVersionEditorView.swift in Sources */,
 				1100000D2D83400100000001 /* PlaybackProvider.swift in Sources */,
 				1100000E2D83400100000001 /* SpotifyDesktopProvider.swift in Sources */,
 				1100000F2D83400100000001 /* MockPlaybackProvider.swift in Sources */,
@@ -722,6 +741,10 @@
 				110000A32D83400100000001 /* ReadingScriptConversion.swift in Sources */,
 				110000A42D83400100000001 /* ReadingUserDictionary.swift in Sources */,
 				110000A52D83400100000001 /* ReadingEngineRegistry.swift in Sources */,
+				110000A62D83400100000001 /* ReadingSettings.swift in Sources */,
+				110000A72D83400100000001 /* ReadingSessionController.swift in Sources */,
+				110000AA2D83400100000001 /* ReadingLanguageGate.swift in Sources */,
+				110000AB2D83400100000001 /* AIReadingCandidateService.swift in Sources */,
 				110000342D83400100000001 /* JapaneseKanaGenerator.swift in Sources */,
 				110000352D83400100000001 /* LyricsQueryPlanner.swift in Sources */,
 				110000362D83400100000001 /* LyricsSafeMatcher.swift in Sources */,
@@ -742,6 +765,7 @@
 				1100005F2D83400100000001 /* WindowStatePersistence.swift in Sources */,
 				110000602D83400100000001 /* SettingsDataController.swift in Sources */,
 				110000612D83400100000001 /* SettingsRootView.swift in Sources */,
+				110000A82D83400100000001 /* ReadingSettingsView.swift in Sources */,
 				110000622D83400100000001 /* AITranslationModels.swift in Sources */,
 				110000632D83400100000001 /* AITranslationConfiguration.swift in Sources */,
 				110000642D83400100000001 /* AITranslationKeychain.swift in Sources */,

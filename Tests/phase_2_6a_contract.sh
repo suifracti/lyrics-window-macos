@@ -1,6 +1,6 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 set -euo pipefail
-ROOT="${0:A:h}/.."
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD="${TMPDIR:-/tmp}/spotifylyrics-phase-2-6a-contract"
 rm -rf "$BUILD"
 mkdir -p "$BUILD"

@@ -1057,14 +1057,16 @@ private struct AppleMusicImmersiveV3LyricRow: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var layerCount: Int {
-        1 + (preferences.showRomaji ? 1 : 0) + (preferences.showTranslation && line.translationText != nil ? 1 : 0)
+        let hasPinyin = isPinyinProjection && preferences.showPinyin
+        let hasReading = hasPinyin ? true : preferences.showRomaji
+        return 1 + (hasReading ? 1 : 0) + (preferences.showTranslation && line.translationText != nil ? 1 : 0)
     }
 
     private var activeBaseSize: CGFloat {
         let sizeScale = max(0.7, preferences.fontSize / 18)
         let upperBound = (compact ? 34 : 42) * sizeScale
         let lowerBound: CGFloat = compact ? 22 : 28
-        let characterCount = max(1, line.originalText.count)
+        let characterCount = max(1, effectiveOriginalText.count)
         let fitWidth = max(220, availableWidth - 24)
         let estimatedWidth = CGFloat(characterCount) * CGFloat(upperBound) * 0.82
         // Prefer a large display face and allow a long lyric to wrap rather
@@ -1102,10 +1104,19 @@ private struct AppleMusicImmersiveV3LyricRow: View {
     }
 
     private var displayKanaText: String? {
-        guard LyricsLanguageGate.allowsJapaneseReadings(language: language, text: line.originalText) else {
+        guard LyricsLanguageGate.allowsJapaneseReadings(language: language, text: effectiveOriginalText) else {
             return nil
         }
         return line.kanaText.map(JapaneseRomanizer.displayKana)
+    }
+
+    private var effectiveOriginalText: String {
+        line.readingSurfaceText ?? line.originalText
+    }
+
+    private var isPinyinProjection: Bool {
+        guard let representation = line.readingRepresentationID else { return false }
+        return representation.hasPrefix("readingRepresentation.pinyin")
     }
 
     /// Keep a confirmed token mapping when one exists. For older lyric data
@@ -1129,7 +1140,7 @@ private struct AppleMusicImmersiveV3LyricRow: View {
 
         // Do not create a redundant ruby block for an already-hiragana line.
         // Kanji and katakana surfaces both benefit from a confirmed reading.
-        return line.originalText.unicodeScalars.contains { scalar in
+        return effectiveOriginalText.unicodeScalars.contains { scalar in
             (0x3400...0x4DBF).contains(scalar.value)
                 || (0x4E00...0x9FFF).contains(scalar.value)
                 || (0xF900...0xFAFF).contains(scalar.value)
@@ -1138,8 +1149,15 @@ private struct AppleMusicImmersiveV3LyricRow: View {
     }
 
     private var distinctRomaji: String? {
+        if isPinyinProjection {
+            guard preferences.showPinyin,
+                  let pinyin = line.romajiText?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !pinyin.isEmpty else { return nil }
+            return pinyin
+        }
+
         guard preferences.showRomaji,
-              LyricsLanguageGate.allowsJapaneseReadings(language: language, text: line.originalText),
+              LyricsLanguageGate.allowsJapaneseReadings(language: language, text: effectiveOriginalText),
               let romaji = line.romajiText?.trimmingCharacters(in: .whitespacesAndNewlines),
               !romaji.isEmpty else { return nil }
         // A malformed provider payload sometimes repeats the kana layer in
@@ -1159,7 +1177,7 @@ private struct AppleMusicImmersiveV3LyricRow: View {
     }
 
     private var shouldShowRomaji: Bool {
-        guard preferences.showRomaji else { return false }
+        guard isPinyinProjection ? preferences.showPinyin : preferences.showRomaji else { return false }
         guard isSynchronized else { return true }
         return !preferences.hideDistantAuxiliary || distance <= 1
     }
@@ -1223,7 +1241,7 @@ private struct AppleMusicImmersiveV3LyricRow: View {
             if shouldRenderInlineRuby,
                let kana = displayKanaText {
                 RubyLineView(
-                    originalText: line.originalText,
+                    originalText: effectiveOriginalText,
                     kanaText: kana,
                     tokens: inlineRubyTokens,
                     baseFont: .system(size: baseSize, weight: rowWeight, design: .rounded),
@@ -1236,7 +1254,7 @@ private struct AppleMusicImmersiveV3LyricRow: View {
             } else if preferences.showOriginal, preferences.kanaDisplayMode == .kanaReplacement, shouldShowKana,
                       let kana = displayKanaText {
                 KanaReplacementLineView(
-                    originalText: line.originalText,
+                    originalText: effectiveOriginalText,
                     kanaText: kana,
                     tokens: line.rubyTokens,
                     showsOriginalAnnotation: true,
@@ -1246,7 +1264,7 @@ private struct AppleMusicImmersiveV3LyricRow: View {
                     annotationColor: .white.opacity(rubyOpacity)
                 )
             } else if preferences.showOriginal {
-                Text(line.originalText)
+                Text(effectiveOriginalText)
                     .font(.system(size: baseSize, weight: rowWeight, design: .rounded))
                     .foregroundStyle(.white)
                     .fixedSize(horizontal: false, vertical: true)

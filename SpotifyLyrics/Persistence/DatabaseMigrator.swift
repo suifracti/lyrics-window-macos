@@ -57,11 +57,15 @@ public enum DatabaseMigrator {
             // v5 and v6 are additive local schemas. A formal v4 database is
             // intentionally left untouched when the caller has not opted in
             // to a disposable copy.
-            if version >= 4, version < 5, allowV4Migration {
+            if version >= 4, version < 5, allowV4Migration,
+               try hasTable(database, name: "translation_versions"),
+               try hasTable(database, name: "lyrics_versions") {
                 try migrateV5(database)
                 version = 5
             }
-            if version >= 5, version < 6, allowV6Migration {
+            if version >= 5, version < 6, allowV6Migration,
+               try hasTable(database, name: "lyrics_versions"),
+               try hasTable(database, name: "lyric_lines") {
                 try migrateV6(database)
                 version = 6
             }

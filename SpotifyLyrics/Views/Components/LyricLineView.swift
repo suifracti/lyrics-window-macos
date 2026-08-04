@@ -105,11 +105,25 @@ struct LyricLineView: View {
         return line.kanaText.map(JapaneseRomanizer.displayKana)
     }
 
+    private var effectiveOriginalText: String {
+        line.readingSurfaceText ?? line.originalText
+    }
+
+    private var isPinyinProjection: Bool {
+        guard let representation = line.readingRepresentationID else { return false }
+        return representation.hasPrefix("readingRepresentation.pinyin")
+    }
+
     /// A few older/provider payloads accidentally put the confirmed kana in
     /// `romajiText` as well.  Rendering both layers makes the independent-line
     /// mode look duplicated, so fail closed when the two display strings are
     /// the same after katakana-to-hiragana normalization.
     private var distinctRomaji: String? {
+        if isPinyinProjection {
+            guard settingsShowPinyin, let pinyin = line.romajiText,
+                  !pinyin.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+            return pinyin
+        }
         guard preferences.showRomaji,
               LyricsLanguageGate.allowsJapaneseReadings(language: language, text: line.originalText),
               let romaji = line.romajiText?.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -130,7 +144,7 @@ struct LyricLineView: View {
     }
 
     private var hasVisibleContent: Bool {
-        (preferences.showOriginal && !line.originalText.isEmpty)
+        (preferences.showOriginal && !effectiveOriginalText.isEmpty)
             || (preferences.showTranslation && !(line.translationText ?? "").isEmpty)
             || distinctRomaji != nil
             || (preferences.showKana && displayKanaText != nil)
@@ -166,7 +180,7 @@ struct LyricLineView: View {
                     )
                 } else if preferences.showOriginal, !line.originalText.isEmpty {
                     if preferences.kanaDisplayMode == .independentLine {
-                        Text(line.originalText)
+                        Text(effectiveOriginalText)
                             .font(.system(size: primaryFontSize, weight: fontWeight, design: .rounded))
                             .foregroundStyle(LyricsDesignTokens.primaryText.opacity(effectiveOpacity))
                             .lineSpacing(isActive ? 3 : 2)
@@ -202,7 +216,7 @@ struct LyricLineView: View {
                             rubyColor: LyricsDesignTokens.secondaryText.opacity(rubyOpacity)
                         )
                     } else {
-                        Text(line.originalText)
+                        Text(effectiveOriginalText)
                                 .font(.system(size: primaryFontSize, weight: fontWeight, design: .rounded))
                             .foregroundStyle(LyricsDesignTokens.primaryText.opacity(effectiveOpacity))
                             .lineSpacing(isActive ? 3 : 2)
@@ -253,6 +267,13 @@ struct LyricLineView: View {
         JapaneseRomanizer.displayKana(text)
             .split(whereSeparator: { $0.isWhitespace })
             .joined()
+    }
+
+    private var settingsShowPinyin: Bool {
+        // Pinyin is a separate language layer, but the row remains reusable in
+        // the existing display pipeline. The shared display preference is
+        // intentionally optional for older fixtures.
+        preferences.showPinyin
     }
 }
 

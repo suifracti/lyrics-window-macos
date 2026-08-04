@@ -56,6 +56,7 @@ public final class AppSettingsStore: ObservableObject {
         public static let showOriginal = "display.showOriginal"
         public static let showTranslation = "display.showTranslation"
         public static let showRomaji = "display.showRomaji"
+        public static let showPinyin = "display.showPinyin"
         public static let kanaDisplayMode = "display.kanaDisplayMode"
         public static let fontSize = "display.fontSize"
         public static let assistantFontSize = "display.assistantFontSize"
@@ -82,6 +83,7 @@ public final class AppSettingsStore: ObservableObject {
         public static let aiFallbackStrategy = "ai.fallbackStrategy"
         public static let aiWorkflowID = "ai.workflowID"
         public static let settingsCenterPresentation = "settings.centerPresentation"
+        public static let readingPreferences = "reading.preferences.v1"
     }
 
     public static let currentSettingsVersion = 1
@@ -93,6 +95,7 @@ public final class AppSettingsStore: ObservableObject {
     /// only; it never owns a playback or lyrics runtime.
     public let presentationSelections: PresentationSelectionStore
     public let translationProfiles: TranslationProfileStore
+    public let readingUserDictionary: ReadingUserDictionaryStore
 
     @Published public var settingsCenterPresentationRawValue: String {
         didSet { defaults.set(settingsCenterPresentationRawValue, forKey: Key.settingsCenterPresentation) }
@@ -171,6 +174,10 @@ public final class AppSettingsStore: ObservableObject {
         didSet { persistDisplayPreferences(displayPreferences) }
     }
 
+    @Published public var readingPreferences: ReadingPreferences {
+        didSet { persistReadingPreferences(readingPreferences) }
+    }
+
     @Published public var lyricsProviderConfiguration: LyricsProviderConfiguration {
         didSet { persistProviderConfiguration(lyricsProviderConfiguration) }
     }
@@ -194,6 +201,7 @@ public final class AppSettingsStore: ObservableObject {
         self.defaults = defaults
         self.presentationSelections = PresentationSelectionStore(defaults: defaults)
         self.translationProfiles = TranslationProfileStore(defaults: defaults)
+        self.readingUserDictionary = ReadingUserDictionaryStore(defaults: defaults)
         settingsCenterPresentationRawValue = defaults.string(forKey: Key.settingsCenterPresentation)
             ?? SettingsCenterPresentationID.recommended.rawValue
         let layout = defaults.string(forKey: Key.mainWindowLayoutStyle)
@@ -221,6 +229,7 @@ public final class AppSettingsStore: ObservableObject {
         capsuleWindowScreenID = defaults.string(forKey: Key.capsuleWindowScreenID)
         capsuleWindowWasVisible = defaults.object(forKey: Key.capsuleWindowWasVisible) as? Bool ?? false
         displayPreferences = Self.loadDisplayPreferences(defaults: defaults, keepOnTop: keepOnTop)
+        readingPreferences = Self.loadReadingPreferences(defaults: defaults)
         lyricsProviderConfiguration = Self.loadProviderConfiguration(defaults: defaults)
         aiTranslationConfiguration = Self.loadAITranslationConfiguration(defaults: defaults)
         aiTranslationAPIKeyConfigured = defaults.object(forKey: Key.aiAPIKeyConfigured) as? Bool ?? false
@@ -498,6 +507,7 @@ public final class AppSettingsStore: ObservableObject {
         defaults.set(preferences.showOriginal, forKey: Key.showOriginal)
         defaults.set(preferences.showTranslation, forKey: Key.showTranslation)
         defaults.set(preferences.showRomaji, forKey: Key.showRomaji)
+        defaults.set(preferences.showPinyin, forKey: Key.showPinyin)
         defaults.set(preferences.kanaDisplayMode.rawValue, forKey: Key.kanaDisplayMode)
         defaults.set(Double(preferences.fontSize), forKey: Key.fontSize)
         defaults.set(Double(preferences.assistantFontSize), forKey: Key.assistantFontSize)
@@ -513,6 +523,7 @@ public final class AppSettingsStore: ObservableObject {
             showOriginal: defaults.object(forKey: Key.showOriginal) as? Bool ?? true,
             showTranslation: defaults.object(forKey: Key.showTranslation) as? Bool ?? true,
             showRomaji: defaults.object(forKey: Key.showRomaji) as? Bool ?? true,
+            showPinyin: defaults.object(forKey: Key.showPinyin) as? Bool ?? true,
             kanaDisplayMode: mode,
             fontSize: CGFloat(defaults.object(forKey: Key.fontSize) as? Double ?? 18),
             opacity: defaults.object(forKey: Key.inactiveOpacity) as? Double ?? 0.85,
@@ -521,6 +532,20 @@ public final class AppSettingsStore: ObservableObject {
             rubyFontSize: CGFloat(defaults.object(forKey: Key.rubyFontSize) as? Double ?? 10),
             hideDistantAuxiliary: defaults.object(forKey: Key.hideDistantAuxiliary) as? Bool ?? true
         )
+    }
+
+    private static func loadReadingPreferences(defaults: UserDefaults) -> ReadingPreferences {
+        guard let data = defaults.data(forKey: Key.readingPreferences),
+              let value = try? JSONDecoder().decode(ReadingPreferences.self, from: data) else {
+            return ReadingPreferences()
+        }
+        return value
+    }
+
+    private func persistReadingPreferences(_ preferences: ReadingPreferences) {
+        if let data = try? JSONEncoder().encode(preferences) {
+            defaults.set(data, forKey: Key.readingPreferences)
+        }
     }
 
     private static func loadProviderConfiguration(defaults: UserDefaults) -> LyricsProviderConfiguration {

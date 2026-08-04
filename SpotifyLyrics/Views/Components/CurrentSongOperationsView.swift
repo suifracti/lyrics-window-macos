@@ -11,6 +11,7 @@ struct CurrentSongOperationsView: View {
     @State private var notice = ""
     @State private var showDeleteTranslationConfirmation = false
     @State private var showCandidatePreview = false
+    @State private var showReadingEditor = false
 
     private var snapshot: CurrentSongOperationSnapshot {
         CurrentSongOperationSnapshot(
@@ -34,6 +35,8 @@ struct CurrentSongOperationsView: View {
             versionStatusSection
             Divider()
             languageSection
+            Divider()
+            readingSection
             if !state.liveLyrics.isEmpty {
                 Divider()
                 translationSection
@@ -65,6 +68,11 @@ struct CurrentSongOperationsView: View {
         .sheet(isPresented: $showCandidatePreview) {
             if let candidate = state.translationSessionPendingCandidate {
                 TranslationCandidatePreviewView(candidate: candidate)
+            }
+        }
+        .sheet(isPresented: $showReadingEditor) {
+            if let version = state.selectedReadingVersion {
+                ReadingVersionEditorView(state: state, version: version)
             }
         }
     }
@@ -312,6 +320,96 @@ struct CurrentSongOperationsView: View {
         }
     }
 
+    private var readingSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Label("读音版本", systemImage: "character.book.closed")
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                Spacer()
+                if state.selectedReadingVersion?.record.isLocked == true {
+                    Text("锁定")
+                        .foregroundStyle(.green)
+                } else if state.selectedReadingVersion != nil {
+                    Text("当前使用")
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("无")
+                        .foregroundStyle(.orange)
+                }
+            }
+            if let version = state.selectedReadingVersion {
+                Text("\(version.record.representationID) · \(version.record.engineID)")
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                HStack(spacing: 8) {
+                    Menu("选择版本", systemImage: "chevron.up.chevron.down") {
+                        Button("无读音版本") { state.selectNoReadingVersion() }
+                        Divider()
+                        ForEach(state.readingVersions, id: \.record.id) { candidate in
+                            Button(readingVersionTitle(candidate)) {
+                                state.selectReadingVersion(versionID: candidate.record.id)
+                            }
+                        }
+                    }
+                    .menuStyle(.borderlessButton)
+                    Button("编辑") { showReadingEditor = true }
+                        .buttonStyle(.borderless)
+                    if !version.record.isLocked {
+                        Button("锁定") { state.lockSelectedReading() }
+                            .buttonStyle(.borderless)
+                    }
+                    Menu {
+                        Button("无读音版本") { state.selectNoReadingVersion() }
+                            .disabled(state.selectedReadingVersion == nil)
+                        Button("恢复推荐") { state.restoreRecommendedReading() }
+                        Divider()
+                        Button("重新生成假名") { state.generateCurrentReading(representationID: .kana) }
+                        Button("重新生成罗马音") { state.generateCurrentReading(representationID: .romaji) }
+                        Button("生成拼音") { state.generateCurrentReading(representationID: .pinyinToneMarks) }
+                        if !version.record.isLocked {
+                            Divider()
+                            Button("归档") { state.archiveReading(versionID: version.record.id) }
+                            Button("删除", role: .destructive) { state.deleteReading(versionID: version.record.id) }
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                    }
+                    .menuStyle(.borderlessButton)
+                }
+            } else {
+                HStack(spacing: 8) {
+                    Button("选择无") { state.selectNoReadingVersion() }
+                        .buttonStyle(.borderless)
+                    if !state.readingVersions.isEmpty {
+                        Menu("选择版本") {
+                            ForEach(state.readingVersions, id: \.record.id) { candidate in
+                                Button(readingVersionTitle(candidate)) {
+                                    state.selectReadingVersion(versionID: candidate.record.id)
+                                }
+                            }
+                        }
+                        .menuStyle(.borderlessButton)
+                    }
+                    Button("生成假名") { state.generateCurrentReading(representationID: .kana) }
+                        .buttonStyle(.borderless)
+                    Button("生成拼音") { state.generateCurrentReading(representationID: .pinyinToneMarks) }
+                        .buttonStyle(.borderless)
+                }
+            }
+            if state.isReadingGenerating {
+                ProgressView("生成读音…")
+                    .controlSize(.small)
+            } else if !state.readingMessage.isEmpty {
+                Text(state.readingMessage)
+                    .font(.system(size: 10, design: .rounded))
+                    .foregroundStyle(.secondary)
+            }
+            Text("读音版本独立保存；不修改原文、时间轴或翻译。")
+                .font(.system(size: 10, design: .rounded))
+                .foregroundStyle(.secondary)
+        }
+    }
+
     private var hasAlignmentAction: Bool {
         switch state.liveLyricsState {
         case .alignmentQueued, .alignmentRunning, .alignmentPreview:
@@ -319,6 +417,16 @@ struct CurrentSongOperationsView: View {
         default:
             return false
         }
+    }
+
+    private func readingVersionTitle(_ version: StoredReadingVersion) -> String {
+        var labels: [String] = []
+        if version.record.isLocked { labels.append("锁定") }
+        if version.record.isCurrent { labels.append("当前") }
+        if version.record.isArchived { labels.append("已归档") }
+        if version.record.isManuallyEdited { labels.append("人工") }
+        let suffix = labels.isEmpty ? "" : " · " + labels.joined(separator: "/")
+        return "\(version.record.representationID)\(suffix)"
     }
 
     @ViewBuilder
