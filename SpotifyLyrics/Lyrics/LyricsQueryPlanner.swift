@@ -8,10 +8,13 @@ public enum LyricsQueryStrategy: String, Codable, Sendable, CaseIterable {
     case primaryArtist
     case normalizedPrimary
     case normalizedArtist
+    case normalizedVersionFullArtist
+    case normalizedVersionPrimaryArtist
     case kanaTitleArtist
     case romajiTitleArtist
     case officialEnglish
     case knownAliases
+    case manualOverride
     case titleOnlyLoose
 }
 
@@ -22,11 +25,31 @@ public enum LyricsQueryKind: String, Codable, Sendable, CaseIterable {
     case exactTitlePrimaryArtist
     case normalizedTitleFullArtist
     case normalizedTitlePrimaryArtist
+    case normalizedVersionTitleFullArtist
+    case normalizedVersionTitlePrimaryArtist
     case kanaAlias
     case romajiAlias
     case officialEnglishAlias
     case confirmedAlias
+    case manualOverride
     case titleOnlyLoose
+
+    public var displayName: String {
+        switch self {
+        case .exactTitleFullArtist: return "精确标题 + 完整艺人"
+        case .exactTitlePrimaryArtist: return "精确标题 + 主艺人"
+        case .normalizedTitleFullArtist: return "规范化标题 + 完整艺人"
+        case .normalizedTitlePrimaryArtist: return "规范化标题 + 主艺人"
+        case .normalizedVersionTitleFullArtist: return "去版本标记标题 + 完整艺人"
+        case .normalizedVersionTitlePrimaryArtist: return "去版本标记标题 + 主艺人"
+        case .kanaAlias: return "假名别名"
+        case .romajiAlias: return "罗马音别名"
+        case .officialEnglishAlias: return "官方英文别名"
+        case .confirmedAlias: return "已确认别名"
+        case .manualOverride: return "手动搜索词"
+        case .titleOnlyLoose: return "宽松标题查询"
+        }
+    }
 
     public var isLoose: Bool {
         self == .titleOnlyLoose
@@ -38,6 +61,8 @@ public enum LyricsQueryKind: String, Codable, Sendable, CaseIterable {
             return true
         case .exactTitleFullArtist, .exactTitlePrimaryArtist,
              .normalizedTitleFullArtist, .normalizedTitlePrimaryArtist,
+             .normalizedVersionTitleFullArtist, .normalizedVersionTitlePrimaryArtist,
+             .manualOverride,
              .titleOnlyLoose:
             return false
         }
@@ -93,17 +118,23 @@ public struct LyricsQueryVariant: Equatable, Identifiable, Sendable {
         case .primaryArtist: return .exactTitlePrimaryArtist
         case .normalizedPrimary: return .normalizedTitleFullArtist
         case .normalizedArtist: return .normalizedTitlePrimaryArtist
+        case .normalizedVersionFullArtist: return .normalizedVersionTitleFullArtist
+        case .normalizedVersionPrimaryArtist: return .normalizedVersionTitlePrimaryArtist
         case .kanaTitleArtist: return .kanaAlias
         case .romajiTitleArtist: return .romajiAlias
         case .officialEnglish: return .officialEnglishAlias
         case .knownAliases: return .confirmedAlias
+        case .manualOverride: return .manualOverride
         case .titleOnlyLoose: return .titleOnlyLoose
         }
     }
 }
 
 public enum LyricsQueryPlanner {
-    public static func plan(for metadata: TrackMetadata) -> [LyricsQueryVariant] {
+    public static func plan(
+        for metadata: TrackMetadata,
+        manualQuery: String? = nil
+    ) -> [LyricsQueryVariant] {
         var built: [LyricsQueryVariant] = []
         var seenMaterial = Set<String>()
 
@@ -121,7 +152,8 @@ public enum LyricsQueryPlanner {
             // width, or punctuation-folded variant is intentionally retained
             // as a separate query kind so the matcher can see how it was
             // obtained and apply the appropriate evidence penalty.
-            let materialKey = trimmedTitle.precomposedStringWithCanonicalMapping
+            let materialKey = (kind == .manualOverride ? kind.rawValue + "|" : "")
+                + trimmedTitle.precomposedStringWithCanonicalMapping
                 + "|"
                 + (trimmedArtist ?? "").precomposedStringWithCanonicalMapping
             guard !materialKey.isEmpty, seenMaterial.insert(materialKey).inserted else { return }
@@ -144,6 +176,19 @@ public enum LyricsQueryPlanner {
         let normalizedTitle = TrackTextNormalizer.normalize(originalTitle)
         let normalizedFullArtist = TrackTextNormalizer.normalize(fullArtist)
         let normalizedPrimaryArtist = TrackTextNormalizer.normalize(primaryArtist)
+        let versionStrippedTitle = TrackTextNormalizer.stripVersionMarkers(fromTitle: originalTitle)
+        let normalizedVersionTitle = TrackTextNormalizer.normalize(versionStrippedTitle)
+
+        // A user-provided search term is a controlled first probe. It never
+        // changes TrackIdentity and remains subject to SafeMatcher evidence.
+        if let manualQuery {
+            add(
+                .manualOverride,
+                kind: .manualOverride,
+                title: manualQuery,
+                artist: fullArtist
+            )
+        }
 
         func differsBeyondCaseAndWidth(_ original: String, _ normalized: String) -> Bool {
             let options: String.CompareOptions = [.caseInsensitive, .diacriticInsensitive, .widthInsensitive]
@@ -180,6 +225,25 @@ public enum LyricsQueryPlanner {
                 .normalizedArtist,
                 kind: .normalizedTitlePrimaryArtist,
                 title: normalizedTitle,
+                artist: normalizedPrimaryArtist
+            )
+        }
+
+        // Remove version markers only for a controlled fallback query. The
+        // original version traits remain in metadata, so SafeMatcher still
+        // blocks Live/Remix/Cover/Instrumental conflicts.
+        if !normalizedVersionTitle.isEmpty,
+           normalizedVersionTitle != normalizedTitle {
+            add(
+                .normalizedVersionFullArtist,
+                kind: .normalizedVersionTitleFullArtist,
+                title: normalizedVersionTitle,
+                artist: normalizedFullArtist
+            )
+            add(
+                .normalizedVersionPrimaryArtist,
+                kind: .normalizedVersionTitlePrimaryArtist,
+                title: normalizedVersionTitle,
                 artist: normalizedPrimaryArtist
             )
         }

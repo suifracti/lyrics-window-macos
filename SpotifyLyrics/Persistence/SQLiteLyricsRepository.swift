@@ -149,6 +149,29 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
         )
     }
 
+    public func loadAliases(stableKey: String) async throws -> [TrackAlias] {
+        try loadTrackAliases(stableKey: stableKey).compactMap { record in
+            guard let field = TrackAliasField(rawValue: record.field),
+                  let kind = TrackAliasKind(rawValue: record.kind),
+                  let script = TrackAliasScript(rawValue: record.script),
+                  let source = TrackAliasSource(rawValue: record.source) else {
+                return nil
+            }
+            let id = "db-alias:\(record.trackStableKey):\(record.field):\(record.kind):\(record.value)"
+            return TrackAlias(
+                id: id,
+                field: field,
+                kind: kind,
+                value: record.value,
+                language: record.language,
+                script: script,
+                source: source,
+                confidence: record.confidence,
+                isOfficial: record.isOfficial
+            )
+        }
+    }
+
     public func alignmentProvenanceAvailability(versionID: UUID) async -> AlignmentProvenanceAvailability {
         alignmentProvenanceStore.availability(for: versionID)
     }

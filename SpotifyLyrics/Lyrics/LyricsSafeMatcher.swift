@@ -255,6 +255,10 @@ public enum LyricsSafeMatcher {
                 add("looseQuery", -0.15)
             case .normalizedTitleFullArtist, .normalizedTitlePrimaryArtist:
                 add("normalizedQuery", -0.01)
+            case .normalizedVersionTitleFullArtist, .normalizedVersionTitlePrimaryArtist:
+                add("versionStrippedQuery", -0.06)
+            case .manualOverride:
+                add("manualQuery", -0.03)
             case .exactTitleFullArtist, .exactTitlePrimaryArtist,
                  .kanaAlias, .romajiAlias, .officialEnglishAlias, .confirmedAlias:
                 break

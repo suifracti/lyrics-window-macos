@@ -100,6 +100,15 @@ public struct LyricsCandidate: Identifiable, Equatable, Sendable {
     /// Provider-declared source language, when available. It is used only by
     /// the projection gate and never replaces the original lyric text.
     public let language: String?
+    /// Runtime retrieval evidence. These fields are intentionally not part of
+    /// persistence and are filled by LyricsSearchManager after SafeMatcher
+    /// evaluates a Provider result.
+    public let providerName: String?
+    public let queryKind: String?
+    public let queryTitle: String?
+    public let queryArtist: String?
+    public let matchScore: Double?
+    public let matchExplanation: [String]
 
     public init(
         id: String,
@@ -115,7 +124,13 @@ public struct LyricsCandidate: Identifiable, Equatable, Sendable {
         providerSourceID: String? = nil,
         spotifyTrackID: String? = nil,
         isrc: String? = nil,
-        language: String? = nil
+        language: String? = nil,
+        providerName: String? = nil,
+        queryKind: String? = nil,
+        queryTitle: String? = nil,
+        queryArtist: String? = nil,
+        matchScore: Double? = nil,
+        matchExplanation: [String] = []
     ) {
         self.id = id
         self.identity = identity
@@ -131,6 +146,36 @@ public struct LyricsCandidate: Identifiable, Equatable, Sendable {
         self.spotifyTrackID = spotifyTrackID
         self.isrc = isrc
         self.language = language
+        self.providerName = providerName
+        self.queryKind = queryKind
+        self.queryTitle = queryTitle
+        self.queryArtist = queryArtist
+        self.matchScore = matchScore
+        self.matchExplanation = matchExplanation
+    }
+
+    public var displayedConfidence: Double { matchScore ?? confidence }
+
+    public var queryMethodLabel: String {
+        switch queryKind {
+        case "exactTitleFullArtist": return "精确标题 + 完整艺人"
+        case "exactTitlePrimaryArtist": return "精确标题 + 主艺人"
+        case "normalizedTitleFullArtist": return "规范化标题 + 完整艺人"
+        case "normalizedTitlePrimaryArtist": return "规范化标题 + 主艺人"
+        case "normalizedVersionTitleFullArtist": return "去版本标记标题 + 完整艺人"
+        case "normalizedVersionTitlePrimaryArtist": return "去版本标记标题 + 主艺人"
+        case "kanaAlias": return "假名别名"
+        case "romajiAlias": return "罗马音别名"
+        case "officialEnglishAlias": return "官方英文别名"
+        case "confirmedAlias": return "已确认别名"
+        case "manualOverride": return "手动搜索词"
+        case "titleOnlyLoose": return "宽松标题查询"
+        default: return "标准查询"
+        }
+    }
+
+    public var timelineLabel: String {
+        isSynchronized ? "含逐行时间轴" : "纯文本 / 无时间轴"
     }
 }
 

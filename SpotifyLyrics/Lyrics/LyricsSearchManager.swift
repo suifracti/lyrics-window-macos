@@ -5,11 +5,36 @@ import Foundation
 public final class LyricsSearchManager: @unchecked Sendable {
     public let name: String
     private let providersLock = NSLock()
+    private let negativeCacheLock = NSLock()
     private var providers: [LyricsProvider]
+    private var negativeCache: [String: NegativeCacheEntry] = [:]
+    private let negativeCacheLifetime: TimeInterval
 
-    public init(providers: [LyricsProvider], name: String = "Lyrics Search") {
+    private struct NegativeCacheEntry {
+        let result: NegativeResult
+        let expiresAt: Date
+    }
+
+    private enum NegativeResult {
+        case noLyrics
+        case noMatch
+
+        var lookupResult: LyricsLookupResult {
+            switch self {
+            case .noLyrics: return .noLyrics
+            case .noMatch: return .noMatch
+            }
+        }
+    }
+
+    public init(
+        providers: [LyricsProvider],
+        name: String = "Lyrics Search",
+        negativeCacheLifetime: TimeInterval = 45
+    ) {
         self.providers = providers
         self.name = name
+        self.negativeCacheLifetime = max(1, negativeCacheLifetime)
     }
 
     /// Replaces the runtime provider order without exposing provider objects
@@ -19,6 +44,7 @@ public final class LyricsSearchManager: @unchecked Sendable {
         providersLock.lock()
         self.providers = providers
         providersLock.unlock()
+        clearNegativeCache()
         LyricsE2ELog.log("MANAGER providers updated=" + providers.map { $0.name }.joined(separator: ","))
     }
 
@@ -32,29 +58,58 @@ public final class LyricsSearchManager: @unchecked Sendable {
         return providers
     }
 
-    public func lookup(track: Track, identity: TrackIdentity) async -> LyricsLookupResult {
-        let outcome = await search(track: track, identity: identity)
+    public func lookup(
+        track: Track,
+        identity: TrackIdentity,
+        queryOverride: String? = nil,
+        forceRefresh: Bool = false,
+        aliases: [TrackAlias] = []
+    ) async -> LyricsLookupResult {
+        let outcome = await search(
+            track: track,
+            identity: identity,
+            queryOverride: queryOverride,
+            forceRefresh: forceRefresh,
+            aliases: aliases
+        )
         return outcome.result
     }
 
-    public func search(track: Track, identity: TrackIdentity) async -> SearchOutcome {
+    public func search(
+        track: Track,
+        identity: TrackIdentity,
+        queryOverride: String? = nil,
+        forceRefresh: Bool = false,
+        aliases: [TrackAlias] = []
+    ) async -> SearchOutcome {
         if Task.isCancelled {
             return SearchOutcome(result: .failed(.cancelled), diagnostics: [])
         }
 
         let metadata = TrackMetadata.bootstrap(from: track)
+        let mergedAliases = Self.mergeAliases(metadata.aliases, aliases)
         // Keep identity stable with caller-supplied identity (playback).
         let meta = TrackMetadata(
             identity: identity,
             track: track,
-            aliases: metadata.aliases,
+            aliases: mergedAliases,
             versionTags: metadata.versionTags
         )
-        let variants = LyricsQueryPlanner.plan(for: meta)
+        let variants = LyricsQueryPlanner.plan(for: meta, manualQuery: queryOverride)
+        let cacheKey = Self.negativeCacheKey(
+            identity: identity,
+            queryOverride: queryOverride
+        )
+        if forceRefresh {
+            removeNegativeCache(for: cacheKey)
+        } else if let cached = cachedNegativeResult(for: cacheKey) {
+            LyricsE2ELog.log("MANAGER negative-cache hit identity=\(identity.stableKey) result=\(cached)")
+            return SearchOutcome(result: cached.lookupResult, diagnostics: [])
+        }
         let configuredProviders = providerSnapshot()
-        LyricsE2ELog.log("MANAGER start title=\(track.title) artist=\(track.artist) variants=\(variants.count) providers=\(configuredProviders.map { $0.name })")
+        LyricsE2ELog.log("MANAGER start title=\(track.title) artist=\(track.artist) variants=\(variants.count) providers=\(configuredProviders.map { $0.name }) queryOverride=\(queryOverride ?? "")")
         var diagnostics: [LyricsProviderDiagnostic] = []
-        var acceptedCandidates: [LyricsCandidate] = []
+        var acceptedCandidates: [String: LyricsCandidate] = [:]
         var sawNoLyrics = false
         var sawNoMatch = false
         var firstFailure: LyricsFailure?
@@ -144,7 +199,13 @@ public final class LyricsSearchManager: @unchecked Sendable {
                         return SearchOutcome(result: .match(enriched), diagnostics: diagnostics)
                     }
                     if decision.tier == .candidates {
-                        acceptedCandidates.append(candidate)
+                        Self.acceptCandidate(
+                            candidate,
+                            provider: provider.name,
+                            variant: variant,
+                            decision: decision,
+                            into: &acceptedCandidates
+                        )
                     }
                     // reject → ignore
 
@@ -164,7 +225,13 @@ public final class LyricsSearchManager: @unchecked Sendable {
                             break
                         }
                         if decision.tier == .candidates {
-                            acceptedCandidates.append(item)
+                            Self.acceptCandidate(
+                                item,
+                                provider: provider.name,
+                                variant: variant,
+                                decision: decision,
+                                into: &acceptedCandidates
+                            )
                         }
                     }
                     diagnostics.append(
@@ -236,24 +303,93 @@ public final class LyricsSearchManager: @unchecked Sendable {
         }
 
         if !acceptedCandidates.isEmpty {
-            var seen = Set<String>()
-            let sorted = acceptedCandidates
-                .filter { seen.insert($0.id).inserted }
-                .sorted { $0.confidence > $1.confidence }
-                .map { Self.enrichCandidate($0) }
+            let sorted = acceptedCandidates.values
+                .sorted { $0.displayedConfidence > $1.displayedConfidence }
             return SearchOutcome(result: .candidates(sorted), diagnostics: diagnostics)
         }
 
-        if sawNoLyrics {
+        if firstFailure == nil, sawNoLyrics {
+            storeNegativeResult(.noLyrics, for: cacheKey)
             return SearchOutcome(result: .noLyrics, diagnostics: diagnostics)
         }
-        if sawNoMatch {
+        if firstFailure == nil, sawNoMatch {
+            storeNegativeResult(.noMatch, for: cacheKey)
             return SearchOutcome(result: .noMatch, diagnostics: diagnostics)
         }
         if let firstFailure {
             return SearchOutcome(result: .failed(firstFailure), diagnostics: diagnostics)
         }
         return SearchOutcome(result: .noMatch, diagnostics: diagnostics)
+    }
+
+    public func clearNegativeCache() {
+        negativeCacheLock.lock()
+        negativeCache.removeAll()
+        negativeCacheLock.unlock()
+    }
+
+    private static func mergeAliases(_ generated: [TrackAlias], _ stored: [TrackAlias]) -> [TrackAlias] {
+        var result: [TrackAlias] = []
+        var seen = Set<String>()
+        for alias in generated + stored {
+            let key = [alias.field.rawValue, alias.kind.rawValue, TrackTextNormalizer.normalize(alias.value)].joined(separator: "\u{1f}")
+            guard seen.insert(key).inserted else { continue }
+            result.append(alias)
+        }
+        return result
+    }
+
+    private static func negativeCacheKey(identity: TrackIdentity, queryOverride: String?) -> String {
+        let query = TrackTextNormalizer.normalize(queryOverride ?? "")
+        return identity.stableKey + "|query:" + query
+    }
+
+    private func cachedNegativeResult(for key: String) -> NegativeResult? {
+        negativeCacheLock.lock()
+        defer { negativeCacheLock.unlock() }
+        guard let entry = negativeCache[key] else { return nil }
+        if entry.expiresAt <= Date() {
+            negativeCache.removeValue(forKey: key)
+            return nil
+        }
+        return entry.result
+    }
+
+    private func removeNegativeCache(for key: String) {
+        negativeCacheLock.lock()
+        negativeCache.removeValue(forKey: key)
+        negativeCacheLock.unlock()
+    }
+
+    private func storeNegativeResult(_ result: NegativeResult, for key: String) {
+        negativeCacheLock.lock()
+        negativeCache[key] = NegativeCacheEntry(
+            result: result,
+            expiresAt: Date().addingTimeInterval(negativeCacheLifetime)
+        )
+        negativeCacheLock.unlock()
+    }
+
+    private static func acceptCandidate(
+        _ candidate: LyricsCandidate,
+        provider: String,
+        variant: LyricsQueryVariant,
+        decision: LyricsMatchDecision,
+        into storage: inout [String: LyricsCandidate]
+    ) {
+        let enriched = enrichCandidate(
+            candidate,
+            providerName: provider,
+            variant: variant,
+            decision: decision
+        )
+        guard let existing = storage[enriched.id] else {
+            storage[enriched.id] = enriched
+            return
+        }
+        if enriched.displayedConfidence > existing.displayedConfidence {
+            storage[enriched.id] = enriched
+        }
     }
 
     /// Enrich layers; preserve originalText; mark unsynced documents clearly.
@@ -276,7 +412,12 @@ public final class LyricsSearchManager: @unchecked Sendable {
         )
     }
 
-    private static func enrichCandidate(_ candidate: LyricsCandidate) -> LyricsCandidate {
+    private static func enrichCandidate(
+        _ candidate: LyricsCandidate,
+        providerName: String? = nil,
+        variant: LyricsQueryVariant? = nil,
+        decision: LyricsMatchDecision? = nil
+    ) -> LyricsCandidate {
         LyricsCandidate(
             id: candidate.id,
             identity: candidate.identity,
@@ -291,7 +432,13 @@ public final class LyricsSearchManager: @unchecked Sendable {
             providerSourceID: candidate.providerSourceID,
             spotifyTrackID: candidate.spotifyTrackID,
             isrc: candidate.isrc,
-            language: candidate.language
+            language: candidate.language,
+            providerName: providerName ?? candidate.providerName,
+            queryKind: variant?.queryKind.rawValue ?? candidate.queryKind,
+            queryTitle: variant?.titleQuery ?? candidate.queryTitle,
+            queryArtist: variant?.artistQuery ?? candidate.queryArtist,
+            matchScore: decision?.score ?? candidate.matchScore,
+            matchExplanation: decision?.explanation ?? candidate.matchExplanation
         )
     }
 }

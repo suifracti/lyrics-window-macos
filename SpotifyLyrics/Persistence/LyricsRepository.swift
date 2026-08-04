@@ -130,6 +130,9 @@ public struct LyricsDatabaseStats: Equatable, Sendable {
 /// Sendable and perform blocking storage work away from MainActor.
 public protocol LyricsRepository: Sendable {
     func prepare() async throws
+    /// Returns persisted aliases for query planning. This is read-only and
+    /// never creates a Track or LyricsVersion.
+    func loadAliases(stableKey: String) async throws -> [TrackAlias]
     /// Stores non-lyrics catalog metadata/aliases without creating an empty
     /// LyricsVersion. Implementations may use the default no-op for tests or
     /// repositories that do not persist track metadata yet.
@@ -151,6 +154,11 @@ public protocol LyricsRepository: Sendable {
 }
 
 public extension LyricsRepository {
+    func loadAliases(stableKey: String) async throws -> [TrackAlias] {
+        _ = stableKey
+        return []
+    }
+
     func saveAlignedVersion(_ request: AlignmentPersistenceRequest) async throws -> LyricsPersistenceSaveResult {
         _ = request
         throw LyricsRepositoryError.unavailable("当前歌词仓库不支持自动排轴版本")
