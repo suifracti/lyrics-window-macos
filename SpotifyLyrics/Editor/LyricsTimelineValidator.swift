@@ -77,7 +77,11 @@ public enum LyricsTimelineValidator {
             if !line.originalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                line.startTime == nil,
                timedNonBlank.count > 0 {
-                issues.append(LyricsTimelineIssue(lineIndex: index, severity: .warning, message: "歌词行没有时间，将按纯文本保存"))
+                issues.append(LyricsTimelineIssue(
+                    lineIndex: index,
+                    severity: .warning,
+                    message: "歌词行未排时间；保存将作为部分时间轴（未排行不写伪时间）"
+                ))
             }
         }
 

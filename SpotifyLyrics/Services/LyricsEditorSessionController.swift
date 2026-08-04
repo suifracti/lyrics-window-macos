@@ -57,6 +57,12 @@ public final class LyricsEditorSessionController: ObservableObject {
     @Published public private(set) var pendingTextImport: TextLyricsImportResult?
     @Published public private(set) var message: String?
     @Published public private(set) var isStale = false
+    /// Assist: line IDs that currently hold unconfirmed auto-suggestions.
+    @Published public private(set) var assistSuggestedLineIDs: Set<UUID> = []
+    /// Assist: auto-advance to next untimed line after mark (user-toggleable).
+    @Published public var assistAutoAdvance = true
+    /// Callback for partial-save confirmation. Return true to proceed.
+    public var confirmPartialSave: ((Int, Int) -> Bool)?
 
     public var onSaved: ((LyricsEditSaveResult, TrackIdentity) -> Void)?
     public var isStillCurrent: (() -> Bool)?
@@ -145,6 +151,7 @@ public final class LyricsEditorSessionController: ObservableObject {
         self.pendingTextImportSource = .manualCreate
         self.message = nil
         self.isStale = false
+        self.assistSuggestedLineIDs = []
 
         let displayDocument = Self.documentByProjecting(
             selectedTranslation,
@@ -254,6 +261,7 @@ public final class LyricsEditorSessionController: ObservableObject {
         self.baseTranslationLines = newDraft.lines.map(Self.translationText)
         self.lockedReadingIDs = []
         self.baseLockedReadingIDs = []
+        self.assistSuggestedLineIDs = []
         self.validation = LyricsTimelineValidator.validate(lines: newDraft.lines, duration: newDraft.duration)
         self.state = .editing
     }
@@ -277,6 +285,7 @@ public final class LyricsEditorSessionController: ObservableObject {
         pendingTextImportSource = .manualCreate
         lockedReadingIDs = []
         baseLockedReadingIDs = []
+        assistSuggestedLineIDs = []
         state = .idle
         message = nil
         isStale = false
@@ -292,6 +301,57 @@ public final class LyricsEditorSessionController: ObservableObject {
             state = .stale
         }
     }
+
+#if DEBUG
+    /// Apply Assist candidate times into the open draft (suggested, not confirmed).
+    /// Does not write SQLite. Each timed suggestion is one undo frame (last undo
+    /// restores the pre-apply draft after undoing each apply step, or user may
+    /// use multiple undos).
+    public func applyAssistedDraft(_ assist: AssistedAlignmentDraft) {
+        guard !isStale, draft != nil else {
+            message = "请先打开可编辑的纯文本歌词版本"
+            return
+        }
+        guard let lineCount = draft?.lines.count,
+              assist.plainLineCount == lineCount || assist.lines.count == lineCount else {
+            message = "建议行数与当前歌词不一致，已忽略"
+            return
+        }
+        var suggested = Set<UUID>()
+        for suggestion in assist.lines {
+            guard suggestion.status == .suggested, let start = suggestion.suggestedStartTime else { continue }
+            guard let id = draft?.lines.indices.contains(suggestion.lyricLineIndex) == true
+                    ? draft?.lines[suggestion.lyricLineIndex].id
+                    : nil else { continue }
+            updateLine(id) { line in
+                line.startTime = start
+                line.endTime = suggestion.suggestedEndTime
+            }
+            suggested.insert(id)
+        }
+        assistSuggestedLineIDs = suggested
+        let timed = draft?.timedNonBlankLineCount ?? 0
+        let untimed = draft?.untimedNonBlankLineCount ?? 0
+        message = "已载入 \(timed) 条建议时间，\(untimed) 行仍未排。确认前不会写入正式版本。"
+        state = .editing
+    }
+
+    public func clearAssistSuggestions() {
+        assistSuggestedLineIDs = []
+    }
+
+    /// Mark line at playback position; returns next focus line id if auto-advance.
+    public func markLineAtPlayback(lineID: UUID, position: TimeInterval, advance: Bool) -> UUID? {
+        guard !isStale else { return nil }
+        updateLine(lineID) { line in
+            line.startTime = position
+            if let end = line.endTime, end < position { line.endTime = nil }
+        }
+        assistSuggestedLineIDs.remove(lineID)
+        guard advance || assistAutoAdvance else { return nil }
+        return draft?.nextUntimedLineID(after: lineID)
+    }
+#endif
 
     public func updateLine(_ lineID: UUID, _ change: (inout LyricsEditorLineDraft) -> Void) {
         guard !isStale, var draft else { return }
@@ -606,6 +666,16 @@ public final class LyricsEditorSessionController: ObservableObject {
             return
         }
         guard validation.isSaveAllowed else { return }
+
+        let timedCount = draft.timedNonBlankLineCount
+        let untimedCount = draft.untimedNonBlankLineCount
+        if untimedCount > 0, timedCount > 0 {
+            let allowed = confirmPartialSave?(timedCount, untimedCount) ?? true
+            guard allowed else {
+                message = "已取消保存"
+                return
+            }
+        }
 
         let document = draft.document(
             source: isNewSourceSession ? newSourceKind : .manualEdit,

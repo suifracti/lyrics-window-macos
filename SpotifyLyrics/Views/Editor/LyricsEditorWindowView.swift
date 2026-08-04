@@ -29,6 +29,44 @@ struct LyricsEditorWindowView: View {
         .preferredColorScheme(.dark)
         .onAppear {
             if editor.draft == nil { state.prepareLyricsEditor() }
+            // Partial-save confirmation (AppKit alert; no second session).
+            editor.confirmPartialSave = { timed, untimed in
+                let alert = NSAlert()
+                alert.messageText = "保存部分时间轴？"
+                alert.informativeText = "已排 \(timed) 行，仍有 \(untimed) 行未排。不会把未排行伪装成完整同步歌词。"
+                alert.alertStyle = .warning
+                alert.addButton(withTitle: "保存部分时间轴")
+                alert.addButton(withTitle: "取消")
+                return alert.runModal() == .alertFirstButtonReturn
+            }
+        }
+        .focusable()
+        .onKeyPress(.space) {
+            markFocusedLineAtCurrentTime(advance: editor.assistAutoAdvance)
+            return .handled
+        }
+        .onKeyPress(characters: CharacterSet(charactersIn: "nN")) { _ in
+            jumpToNextUntimed()
+            return .handled
+        }
+        .onKeyPress(.upArrow) {
+            moveFocus(delta: -1)
+            return .handled
+        }
+        .onKeyPress(.downArrow) {
+            moveFocus(delta: 1)
+            return .handled
+        }
+        .onKeyPress(keys: [.init("z")]) { press in
+            if press.modifiers.contains(.command) && press.modifiers.contains(.shift) {
+                editor.redo()
+                return .handled
+            }
+            if press.modifiers.contains(.command) {
+                editor.undo()
+                return .handled
+            }
+            return .ignored
         }
     }
 
@@ -123,7 +161,9 @@ struct LyricsEditorWindowView: View {
     private var toolbar: some View {
         HStack(spacing: 8) {
             Button("撤销", systemImage: "arrow.uturn.backward") { editor.undo() }
+                .keyboardShortcut("z", modifiers: [.command])
             Button("重做", systemImage: "arrow.uturn.forward") { editor.redo() }
+                .keyboardShortcut("z", modifiers: [.command, .shift])
             Divider().frame(height: 18)
             Button("插入空行", systemImage: "plus") { editor.insertBlank(after: nil) }
             Button("重新生成整首读音", systemImage: "textformat.abc") { editor.regenerateAllReadings() }
@@ -146,7 +186,21 @@ struct LyricsEditorWindowView: View {
             Button("记当前并下一行", systemImage: "arrow.down.to.line") {
                 markFocusedLineAtCurrentTime(advance: true)
             }
+            Button("下一条未排", systemImage: "arrow.down.circle") {
+                jumpToNextUntimed()
+            }
+            Toggle("标记后自动前进", isOn: Binding(
+                get: { editor.assistAutoAdvance },
+                set: { editor.assistAutoAdvance = $0 }
+            ))
+            .toggleStyle(.checkbox)
+            .font(.caption)
             Spacer()
+            if let draft = editor.draft {
+                Text("已排 \(draft.timedNonBlankLineCount) · 未排 \(draft.untimedNonBlankLineCount)")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
             Button("保存人工版本") { editor.save() }
             Button("保存并锁定", systemImage: "lock.fill") { editor.save(lockLyrics: true, lockTranslation: true) }
         }
@@ -156,14 +210,35 @@ struct LyricsEditorWindowView: View {
     }
 
     private func lineRow(index: Int, line: LyricsEditorLineDraft, total: Int) -> some View {
-        HStack(alignment: .top, spacing: 10) {
+        let isSuggested = editor.assistSuggestedLineIDs.contains(line.id)
+        let isUntimed = line.startTime == nil
+            && !line.originalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let isFocused = focusedLineID == line.id
+        return HStack(alignment: .top, spacing: 10) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("\(index + 1)")
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
-                    .frame(width: 28, alignment: .trailing)
                 HStack(spacing: 4) {
-                    timeField(lineID: line.id, placeholder: "开始")
+                    Text("\(index + 1)")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                        .frame(width: 28, alignment: .trailing)
+                    if isSuggested {
+                        Text("建议")
+                            .font(.caption2.weight(.semibold))
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1)
+                            .background(Color.orange.opacity(0.25))
+                            .clipShape(Capsule())
+                    } else if isUntimed {
+                        Text("未排")
+                            .font(.caption2.weight(.semibold))
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1)
+                            .background(Color.secondary.opacity(0.2))
+                            .clipShape(Capsule())
+                    }
+                }
+                HStack(spacing: 4) {
+                    timeField(lineID: line.id, placeholder: isUntimed ? "未排" : "开始")
                     Text("→").foregroundStyle(.secondary)
                     timeField(lineID: line.id, placeholder: "结束", isEnd: true)
                 }
@@ -172,6 +247,7 @@ struct LyricsEditorWindowView: View {
             TextField("原文", text: textBinding(lineID: line.id, key: .original))
                 .textFieldStyle(.roundedBorder)
                 .frame(maxWidth: .infinity)
+                .onTapGesture { focusedLineID = line.id }
             VStack(alignment: .leading, spacing: 4) {
                 TextField("翻译", text: textBinding(lineID: line.id, key: .translation))
                     .textFieldStyle(.roundedBorder)
@@ -211,12 +287,14 @@ struct LyricsEditorWindowView: View {
                     }
                     Button("删除") { editor.delete(lineID: line.id) }
                 } label: { Image(systemName: "ellipsis") }
-                .menuStyle(.borderlessButton)
             }
-            .frame(width: 44)
         }
-        .padding(8)
-        .background(index.isMultiple(of: 2) ? Color.white.opacity(0.035) : .clear)
+        .padding(6)
+        .background(
+            isFocused
+                ? Color.accentColor.opacity(0.08)
+                : (index.isMultiple(of: 2) ? Color.white.opacity(0.035) : .clear)
+        )
         .clipShape(RoundedRectangle(cornerRadius: 6))
         .contentShape(Rectangle())
         .onTapGesture { focusedLineID = line.id }
@@ -257,16 +335,44 @@ struct LyricsEditorWindowView: View {
     }
 
     private func markFocusedLineAtCurrentTime(advance: Bool) {
-        guard let focusedLineID else { return }
+        let targetID = focusedLineID
+            ?? editor.draft?.lines.first(where: {
+                $0.startTime == nil
+                    && !$0.originalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            })?.id
+            ?? editor.draft?.lines.first?.id
+        guard let targetID else { return }
+        focusedLineID = targetID
         let now = min(max(0, state.currentTime), max(0, state.currentTrack.duration))
-        editor.updateLine(focusedLineID) { line in
+#if DEBUG
+        if let next = editor.markLineAtPlayback(lineID: targetID, position: now, advance: advance) {
+            focusedLineID = next
+            return
+        }
+#endif
+        editor.updateLine(targetID) { line in
             line.startTime = now
             if let end = line.endTime, end < now { line.endTime = nil }
         }
-        guard advance, let lines = editor.draft?.lines,
-              let index = lines.firstIndex(where: { $0.id == focusedLineID }),
-              index + 1 < lines.count else { return }
-        self.focusedLineID = lines[index + 1].id
+        guard advance || editor.assistAutoAdvance,
+              let next = editor.draft?.nextUntimedLineID(after: targetID) else { return }
+        focusedLineID = next
+    }
+
+    private func jumpToNextUntimed() {
+        if let next = editor.draft?.nextUntimedLineID(after: focusedLineID) {
+            focusedLineID = next
+        }
+    }
+
+    private func moveFocus(delta: Int) {
+        guard let lines = editor.draft?.lines, !lines.isEmpty else { return }
+        if let focusedLineID, let index = lines.firstIndex(where: { $0.id == focusedLineID }) {
+            let next = min(max(0, index + delta), lines.count - 1)
+            self.focusedLineID = lines[next].id
+        } else {
+            focusedLineID = delta >= 0 ? lines.first?.id : lines.last?.id
+        }
     }
 
     private static func formatTime(_ value: TimeInterval) -> String {
