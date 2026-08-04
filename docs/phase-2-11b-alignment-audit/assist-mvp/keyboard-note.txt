@@ -1,0 +1,3 @@
+Editor mark key: Space (onKeyPress .space) marks current line to playback position.
+Play/pause remains toolbar button (not Space). P is not required.
+N: next untimed; Cmd-Z / Shift-Cmd-Z: undo/redo; arrows: focus move.

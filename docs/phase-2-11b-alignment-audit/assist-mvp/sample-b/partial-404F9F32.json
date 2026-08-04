@@ -1,0 +1,3438 @@
+{
+  "acceptedAnchors" : [
+    {
+      "absoluteEndTime" : 11.551476302146552,
+      "absoluteStartTime" : 10.111476302146553,
+      "accepted" : true,
+      "evidence" : "textSim=0.789;speech=0.636;window=0-3",
+      "lyricLineIndex" : 7,
+      "lyricText" : "完璧で嘘つきな君は",
+      "overallConfidence" : 0.7585846168628106,
+      "relativeEndTime" : 1.44,
+      "relativeStartTime" : 0,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0.636000007390976,
+      "textConfidence" : 0.7892307692307692,
+      "transcriptEndIndex" : 3,
+      "transcriptStartIndex" : 0,
+      "transcriptText" : "嘘つきな君は"
+    },
+    {
+      "absoluteEndTime" : 17.401476302146552,
+      "absoluteStartTime" : 13.231476302146554,
+      "accepted" : true,
+      "evidence" : "textSim=1.000;speech=0.000;window=8-10",
+      "lyricLineIndex" : 13,
+      "lyricText" : "今日何食べた？",
+      "overallConfidence" : 0.8,
+      "relativeEndTime" : 7.29,
+      "relativeStartTime" : 3.12,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 1,
+      "transcriptEndIndex" : 10,
+      "transcriptStartIndex" : 8,
+      "transcriptText" : "今日何食べた"
+    },
+    {
+      "absoluteEndTime" : 18.061476302146552,
+      "absoluteStartTime" : 17.401476302146552,
+      "accepted" : true,
+      "evidence" : "textSim=1.000;speech=0.000;window=11-13",
+      "lyricLineIndex" : 14,
+      "lyricText" : "好きな本は？",
+      "overallConfidence" : 0.8,
+      "relativeEndTime" : 7.95,
+      "relativeStartTime" : 7.29,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 1,
+      "transcriptEndIndex" : 13,
+      "transcriptStartIndex" : 11,
+      "transcriptText" : "好きな本は"
+    },
+    {
+      "absoluteEndTime" : 20.341476302146553,
+      "absoluteStartTime" : 19.561476302146552,
+      "accepted" : true,
+      "evidence" : "textSim=1.000;speech=0.000;window=21-23",
+      "lyricLineIndex" : 19,
+      "lyricText" : "何も食べてない",
+      "overallConfidence" : 0.8,
+      "relativeEndTime" : 10.23,
+      "relativeStartTime" : 9.450000000000001,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 1,
+      "transcriptEndIndex" : 23,
+      "transcriptStartIndex" : 21,
+      "transcriptText" : "何も食べてない"
+    },
+    {
+      "absoluteEndTime" : 20.821476302146554,
+      "absoluteStartTime" : 20.341476302146553,
+      "accepted" : true,
+      "evidence" : "textSim=1.000;speech=0.000;window=24-25",
+      "lyricLineIndex" : 21,
+      "lyricText" : "それは内緒",
+      "overallConfidence" : 0.8,
+      "relativeEndTime" : 10.71,
+      "relativeStartTime" : 10.23,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 1,
+      "transcriptEndIndex" : 25,
+      "transcriptStartIndex" : 24,
+      "transcriptText" : "それは内緒"
+    },
+    {
+      "absoluteEndTime" : 21.901476302146555,
+      "absoluteStartTime" : 20.821476302146554,
+      "accepted" : true,
+      "evidence" : "textSim=1.000;speech=0.000;window=26-29",
+      "lyricLineIndex" : 22,
+      "lyricText" : "何を聞かれても",
+      "overallConfidence" : 0.8,
+      "relativeEndTime" : 11.790000000000001,
+      "relativeStartTime" : 10.71,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 1,
+      "transcriptEndIndex" : 29,
+      "transcriptStartIndex" : 26,
+      "transcriptText" : "何を聞かれても"
+    },
+    {
+      "absoluteEndTime" : 22.471476302146552,
+      "absoluteStartTime" : 21.901476302146555,
+      "accepted" : true,
+      "evidence" : "textSim=1.000;speech=0.000;window=30-30",
+      "lyricLineIndex" : 24,
+      "lyricText" : "のらりくらり",
+      "overallConfidence" : 0.8,
+      "relativeEndTime" : 12.36,
+      "relativeStartTime" : 11.790000000000001,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 1,
+      "transcriptEndIndex" : 30,
+      "transcriptStartIndex" : 30,
+      "transcriptText" : "のらりくらり"
+    },
+    {
+      "absoluteEndTime" : 57.27147630214655,
+      "absoluteStartTime" : 54.63147630214655,
+      "accepted" : true,
+      "evidence" : "textSim=0.794;speech=0.594;window=55-59",
+      "lyricLineIndex" : 50,
+      "lyricText" : "誰もが目を奪われていく",
+      "overallConfidence" : 0.7542617954558264,
+      "relativeEndTime" : 47.160000000000004,
+      "relativeStartTime" : 44.52,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0.5935999989509583,
+      "textConfidence" : 0.7944272445820434,
+      "transcriptEndIndex" : 59,
+      "transcriptStartIndex" : 55,
+      "transcriptText" : "誰も目を奪われて"
+    }
+  ],
+  "candidate" : {
+    "captureSessionID" : "404F9F32-7C7A-4B2C-B43E-E254CFEBD2FE",
+    "capturedDuration" : 75.39591038227164,
+    "capturedRanges" : [
+      {
+        "end" : 85.5073866844182,
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "start" : 10.111476302146553
+      }
+    ],
+    "coverageRatio" : 0.13245033112582782,
+    "createdAt" : "2026-08-04T12:37:00Z",
+    "lines" : [
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 0,
+        "status" : "outsideCapturedRange",
+        "text" : "無敵の笑顔で荒らすメディア"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 1,
+        "status" : "outsideCapturedRange",
+        "text" : "Muteki no egao de arasu media"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 2,
+        "status" : "outsideCapturedRange",
+        "text" : "Shiritai sono himitsu misuteriasu"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 3,
+        "status" : "outsideCapturedRange",
+        "text" : "知りたいその秘密ミステリアス"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 4,
+        "status" : "outsideCapturedRange",
+        "text" : "Nuketeru toko sae kanojo no eria"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 5,
+        "status" : "outsideCapturedRange",
+        "text" : "抜けてるとこさえ彼女のエリア"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 6,
+        "status" : "outsideCapturedRange",
+        "text" : "Kanpeki de usotsuki na kimi wa"
+      },
+      {
+        "confidence" : 0.7585846168628106,
+        "endTime" : 11.551476302146552,
+        "evidenceKind" : "anchor",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 7,
+        "speechRelativeEnd" : 1.44,
+        "speechRelativeStart" : 0,
+        "startTime" : 10.111476302146553,
+        "status" : "resolved",
+        "text" : "完璧で嘘つきな君は"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 8,
+        "status" : "unresolved",
+        "text" : "Tensaitekina aidoru sama"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 9,
+        "status" : "unresolved",
+        "text" : "天才的なアイドル様"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 10,
+        "status" : "unresolved",
+        "text" : "(You're my savior, you're my saving grace)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 11,
+        "status" : "unresolved",
+        "text" : "(You're my savior, you're my saving grace)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 12,
+        "status" : "unresolved",
+        "text" : "Kyou nani tabeta?"
+      },
+      {
+        "confidence" : 0.8,
+        "endTime" : 17.401476302146552,
+        "evidenceKind" : "anchor",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 13,
+        "speechRelativeEnd" : 7.29,
+        "speechRelativeStart" : 3.12,
+        "startTime" : 13.231476302146554,
+        "status" : "resolved",
+        "text" : "今日何食べた？"
+      },
+      {
+        "confidence" : 0.8,
+        "endTime" : 18.061476302146552,
+        "evidenceKind" : "anchor",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 14,
+        "speechRelativeEnd" : 7.95,
+        "speechRelativeStart" : 7.29,
+        "startTime" : 17.401476302146552,
+        "status" : "resolved",
+        "text" : "好きな本は？"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 15,
+        "status" : "unresolved",
+        "text" : "Suki na hon wa?"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 16,
+        "status" : "unresolved",
+        "text" : "Asobi ni iku nara doko ni iku no?"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 17,
+        "status" : "unresolved",
+        "text" : "遊びに行くならどこに行くの？"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 18,
+        "status" : "unresolved",
+        "text" : "Nanimo tabetenai,"
+      },
+      {
+        "confidence" : 0.8,
+        "endTime" : 20.341476302146553,
+        "evidenceKind" : "anchor",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 19,
+        "speechRelativeEnd" : 10.23,
+        "speechRelativeStart" : 9.450000000000001,
+        "startTime" : 19.561476302146552,
+        "status" : "resolved",
+        "text" : "何も食べてない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-noEvidence",
+        "sourceLineIndex" : 20,
+        "status" : "unresolved",
+        "text" : "sore wa naisho"
+      },
+      {
+        "confidence" : 0.8,
+        "endTime" : 20.821476302146554,
+        "evidenceKind" : "anchor",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 21,
+        "speechRelativeEnd" : 10.71,
+        "speechRelativeStart" : 10.23,
+        "startTime" : 20.341476302146553,
+        "status" : "resolved",
+        "text" : "それは内緒"
+      },
+      {
+        "confidence" : 0.8,
+        "endTime" : 21.901476302146555,
+        "evidenceKind" : "anchor",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 22,
+        "speechRelativeEnd" : 11.790000000000001,
+        "speechRelativeStart" : 10.71,
+        "startTime" : 20.821476302146554,
+        "status" : "resolved",
+        "text" : "何を聞かれても"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-noEvidence",
+        "sourceLineIndex" : 23,
+        "status" : "unresolved",
+        "text" : "Nani wo kikaretemo"
+      },
+      {
+        "confidence" : 0.8,
+        "endTime" : 22.471476302146552,
+        "evidenceKind" : "anchor",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 24,
+        "speechRelativeEnd" : 12.36,
+        "speechRelativeStart" : 11.790000000000001,
+        "startTime" : 21.901476302146555,
+        "status" : "resolved",
+        "text" : "のらりくらり"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 25,
+        "status" : "unresolved",
+        "text" : "norari kurari"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 26,
+        "status" : "unresolved",
+        "text" : "Sou tantan to"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 27,
+        "status" : "unresolved",
+        "text" : "そう淡々と"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 28,
+        "status" : "unresolved",
+        "text" : "だけど燦々と"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 29,
+        "status" : "unresolved",
+        "text" : "dakedo sansan to"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 30,
+        "status" : "unresolved",
+        "text" : "Miesou de mienai himitsu wa mitsu no aji"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 31,
+        "status" : "unresolved",
+        "text" : "見えそうで見えない秘密は蜜の味"
+      },
+      {
+        "confidence" : 0.5633800003081559,
+        "endTime" : 35.611476302146556,
+        "evidenceKind" : "s3b-region-directSpeech",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 32,
+        "speechRelativeEnd" : 13.140000000000004,
+        "speechRelativeStart" : 9.929999999999996,
+        "startTime" : 32.40147630214655,
+        "status" : "lowConfidence",
+        "text" : "あれもないないない"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 34.00647630214655,
+        "evidenceKind" : "s3b-region-boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 33,
+        "speechRelativeEnd" : 11.535,
+        "speechRelativeStart" : 11.535,
+        "startTime" : 34.00647630214655,
+        "status" : "interpolated",
+        "text" : "Are mo nai, nai, nai"
+      },
+      {
+        "confidence" : 0.46426761818215967,
+        "endTime" : 40.74147630214655,
+        "evidenceKind" : "s3b-region-directSpeech",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 34,
+        "speechRelativeEnd" : 18.27,
+        "speechRelativeStart" : 13.140000000000004,
+        "startTime" : 35.611476302146556,
+        "status" : "lowConfidence",
+        "text" : "これもないないない"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 36.252726302146556,
+        "evidenceKind" : "s3b-region-boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 35,
+        "speechRelativeEnd" : 13.781250000000004,
+        "speechRelativeStart" : 13.781250000000004,
+        "startTime" : 36.252726302146556,
+        "status" : "interpolated",
+        "text" : "kore mo nai, nai, nai"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 36.893976302146555,
+        "evidenceKind" : "s3b-region-boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 36,
+        "speechRelativeEnd" : 14.422500000000003,
+        "speechRelativeStart" : 14.422500000000003,
+        "startTime" : 36.893976302146555,
+        "status" : "interpolated",
+        "text" : "好きなタイプは？"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 37.535226302146555,
+        "evidenceKind" : "s3b-region-boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 37,
+        "speechRelativeEnd" : 15.063750000000002,
+        "speechRelativeStart" : 15.063750000000002,
+        "startTime" : 37.535226302146555,
+        "status" : "interpolated",
+        "text" : "Suki na taipu wa?"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 38.176476302146554,
+        "evidenceKind" : "s3b-region-boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 38,
+        "speechRelativeEnd" : 15.705000000000002,
+        "speechRelativeStart" : 15.705000000000002,
+        "startTime" : 38.176476302146554,
+        "status" : "interpolated",
+        "text" : "Aite wa?"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 38.81772630214655,
+        "evidenceKind" : "s3b-region-boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 39,
+        "speechRelativeEnd" : 16.34625,
+        "speechRelativeStart" : 16.34625,
+        "startTime" : 38.81772630214655,
+        "status" : "interpolated",
+        "text" : "相手は？"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 39.45897630214655,
+        "evidenceKind" : "s3b-region-boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 40,
+        "speechRelativeEnd" : 16.9875,
+        "speechRelativeStart" : 16.9875,
+        "startTime" : 39.45897630214655,
+        "status" : "interpolated",
+        "text" : "さあ答えて"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 40.10022630214655,
+        "evidenceKind" : "s3b-region-boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 41,
+        "speechRelativeEnd" : 17.62875,
+        "speechRelativeStart" : 17.62875,
+        "startTime" : 40.10022630214655,
+        "status" : "interpolated",
+        "text" : "Saa kotaete"
+      },
+      {
+        "confidence" : 0.5611052620924617,
+        "endTime" : 46.68147630214655,
+        "evidenceKind" : "s3b-region-directSpeech",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 42,
+        "speechRelativeEnd" : 24.209999999999997,
+        "speechRelativeStart" : 18.27,
+        "startTime" : 40.74147630214655,
+        "status" : "lowConfidence",
+        "text" : "「誰かを好きになることなんて私分からなくてさ」"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 43,
+        "status" : "unresolved",
+        "text" : "\"Dareka wo suki ni naru koto (Hey! Hey!) Nante watashi wakaranakute sa\" (Hey! Hey!)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 44,
+        "status" : "unresolved",
+        "text" : "嘘か本当か知り得ない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 45,
+        "status" : "unresolved",
+        "text" : "Uso ka hontou ka shirienai (Hey! Hey! Hey! Hеy!)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 46,
+        "status" : "unresolved",
+        "text" : "Sonna kotoba ni mata hitori ochiru (Hey! Hey! Hey! Hеy!)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 47,
+        "status" : "unresolved",
+        "text" : "そんな言葉にまた一人堕ちる"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 48,
+        "status" : "unresolved",
+        "text" : "また好きにさせる"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 49,
+        "status" : "unresolved",
+        "text" : "Mata suki ni saseru"
+      },
+      {
+        "confidence" : 0.7542617954558264,
+        "endTime" : 57.27147630214655,
+        "evidenceKind" : "anchor",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 50,
+        "speechRelativeEnd" : 47.160000000000004,
+        "speechRelativeStart" : 44.52,
+        "startTime" : 54.63147630214655,
+        "status" : "resolved",
+        "text" : "誰もが目を奪われていく"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 51,
+        "status" : "unresolved",
+        "text" : "Daremo ga me wo ubawareteiku"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 52,
+        "status" : "unresolved",
+        "text" : "君は完璧で究極のアイドル"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 53,
+        "status" : "unresolved",
+        "text" : "Kimi wa kanpeki de kyuukyoku no aidoru"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 54,
+        "status" : "unresolved",
+        "text" : "Konrinzai arawarenai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 55,
+        "status" : "unresolved",
+        "text" : "金輪際現れない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 56,
+        "status" : "unresolved",
+        "text" : "Ichiban boshi no umarekawari"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 57,
+        "status" : "unresolved",
+        "text" : "一番星の生まれ変わり"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 58,
+        "status" : "unresolved",
+        "text" : "ああ その笑顔で愛してるで"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 59,
+        "status" : "unresolved",
+        "text" : "Aa, sono egao de aishiteru de"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 60,
+        "status" : "unresolved",
+        "text" : "Daremo kare mo toriko ni shite iku"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 61,
+        "status" : "unresolved",
+        "text" : "誰も彼も虜にしていく"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 62,
+        "status" : "unresolved",
+        "text" : "Sono hitomi ga sono kotoba ga"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 63,
+        "status" : "unresolved",
+        "text" : "その瞳がその言葉が"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 64,
+        "status" : "unresolved",
+        "text" : "Uso demo sore wa kanzen na ai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 65,
+        "status" : "unresolved",
+        "text" : "嘘でもそれは完全なアイ"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 66,
+        "status" : "unresolved",
+        "text" : "はいはいあの子は特別です"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 67,
+        "status" : "unresolved",
+        "text" : "Wareware wa hana kara omake desu"
+      },
+      {
+        "confidence" : 0.5288174980133772,
+        "endTime" : 83.94147630214655,
+        "evidenceKind" : "s3b-region-directSpeech",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 68,
+        "speechRelativeEnd" : 26.67,
+        "speechRelativeStart" : 22.74000000000001,
+        "startTime" : 80.01147630214656,
+        "status" : "lowConfidence",
+        "text" : "我々はハナからおまけです"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 69,
+        "status" : "unresolved",
+        "text" : "お星様の引き立て役Bです"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 70,
+        "status" : "unresolved",
+        "text" : "Ohoshi sama no hikitateyaku B desu"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 71,
+        "status" : "outsideCapturedRange",
+        "text" : "Subete ga ano ko no okagena"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 72,
+        "status" : "outsideCapturedRange",
+        "text" : "全てがあの子のお陰なわけない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 73,
+        "status" : "outsideCapturedRange",
+        "text" : "洒落臭い"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 74,
+        "status" : "outsideCapturedRange",
+        "text" : "wake nai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 75,
+        "status" : "outsideCapturedRange",
+        "text" : "妬み嫉妬なんてないわけがない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 76,
+        "status" : "outsideCapturedRange",
+        "text" : "Sharakusai netami shitto nante nai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 77,
+        "status" : "outsideCapturedRange",
+        "text" : "これはネタじゃない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 78,
+        "status" : "outsideCapturedRange",
+        "text" : "Wake ga nai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 79,
+        "status" : "outsideCapturedRange",
+        "text" : "kore wa neta janai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 80,
+        "status" : "outsideCapturedRange",
+        "text" : "からこそ許せない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 81,
+        "status" : "outsideCapturedRange",
+        "text" : "kara koso yurusenai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 82,
+        "status" : "outsideCapturedRange",
+        "text" : "完璧じゃない君じゃ許せない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 83,
+        "status" : "outsideCapturedRange",
+        "text" : "自分を許せない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 84,
+        "status" : "outsideCapturedRange",
+        "text" : "Kanpeki janai kimi ja yurusenai jibun wo yurusenai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 85,
+        "status" : "outsideCapturedRange",
+        "text" : "Dare yori mo tsuyoi kimi igai wa mitomenai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 86,
+        "status" : "outsideCapturedRange",
+        "text" : "誰よりも強い君以外は認めない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 87,
+        "status" : "outsideCapturedRange",
+        "text" : "誰もが信じ崇めてる"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 88,
+        "status" : "outsideCapturedRange",
+        "text" : "Daremo ga shinji agameteru"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 89,
+        "status" : "outsideCapturedRange",
+        "text" : "まさに最強で無敵のアイドル"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 90,
+        "status" : "outsideCapturedRange",
+        "text" : "Masani saikyou de muteki no aidoru"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 91,
+        "status" : "outsideCapturedRange",
+        "text" : "弱点なんて見当たらない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 92,
+        "status" : "outsideCapturedRange",
+        "text" : "Jakuten nante miataranai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 93,
+        "status" : "outsideCapturedRange",
+        "text" : "一番星を宿している"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 94,
+        "status" : "outsideCapturedRange",
+        "text" : "Ichiban boshi wo yado shiteiru"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 95,
+        "status" : "outsideCapturedRange",
+        "text" : "Yowai to konante misecha dame, dame (Hey! Hey! Hey! Hey!)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 96,
+        "status" : "outsideCapturedRange",
+        "text" : "弱いとこなんて見せちゃダメダメ"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 97,
+        "status" : "outsideCapturedRange",
+        "text" : "知りたくないとこは見せずに"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 98,
+        "status" : "outsideCapturedRange",
+        "text" : "Shiritakunai toko wa misezu ni (Hey! Hey! Hey! Hey!)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 99,
+        "status" : "outsideCapturedRange",
+        "text" : "Yuiitsumu ni janakucha iya, iya (Hey! Hey! Hey! Hey!)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 100,
+        "status" : "outsideCapturedRange",
+        "text" : "唯一無二じゃなくちゃイヤイヤ"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 101,
+        "status" : "outsideCapturedRange",
+        "text" : "Sorekoso honmono no ai (Hey! Hey! Hey! Hey!)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 102,
+        "status" : "outsideCapturedRange",
+        "text" : "それこそ本物のアイ"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 103,
+        "status" : "outsideCapturedRange",
+        "text" : "Tokui no egao de wakasu media"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 104,
+        "status" : "outsideCapturedRange",
+        "text" : "得意の笑顔で沸かすメディア"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 105,
+        "status" : "outsideCapturedRange",
+        "text" : "Kakushikiru kono himitsu dake wa"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 106,
+        "status" : "outsideCapturedRange",
+        "text" : "隠しきるこの秘密だけは"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 107,
+        "status" : "outsideCapturedRange",
+        "text" : "愛してるって嘘で積むキャリア"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 108,
+        "status" : "outsideCapturedRange",
+        "text" : "Aishiteru tte uso de tsumu kyaria"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 109,
+        "status" : "outsideCapturedRange",
+        "text" : "これこそ私なりの愛だ"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 110,
+        "status" : "outsideCapturedRange",
+        "text" : "Korekoso watashi nari no ai da"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 111,
+        "status" : "outsideCapturedRange",
+        "text" : "Nagareru ase mo kireina Aqua"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 112,
+        "status" : "outsideCapturedRange",
+        "text" : "流れる汗も綺麗なアクア"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 113,
+        "status" : "outsideCapturedRange",
+        "text" : "Rubii wo kakushita kono mabuta"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 114,
+        "status" : "outsideCapturedRange",
+        "text" : "ルビーを隠したこの瞼"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 115,
+        "status" : "outsideCapturedRange",
+        "text" : "Utai odori mau watashi wa maria"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 116,
+        "status" : "outsideCapturedRange",
+        "text" : "歌い踊り舞う私はマリア"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 117,
+        "status" : "outsideCapturedRange",
+        "text" : "そう嘘はとびきりの愛だ"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 118,
+        "status" : "outsideCapturedRange",
+        "text" : "Sou uso wa tobikiri no ai da"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 119,
+        "status" : "outsideCapturedRange",
+        "text" : "Dareka ni aisareta koto mo"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 120,
+        "status" : "outsideCapturedRange",
+        "text" : "誰かに愛されたことも"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 121,
+        "status" : "outsideCapturedRange",
+        "text" : "誰かのこと愛したこともない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 122,
+        "status" : "outsideCapturedRange",
+        "text" : "Dareka no koto aishita koto mo nai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 123,
+        "status" : "outsideCapturedRange",
+        "text" : "そんな私の嘘がいつか本当になること"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 124,
+        "status" : "outsideCapturedRange",
+        "text" : "Sonna watashi no uso ga Itsuka hontou ni naru koto"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 125,
+        "status" : "outsideCapturedRange",
+        "text" : "（信じてる）"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 126,
+        "status" : "outsideCapturedRange",
+        "text" : "(Shinjiteru)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 127,
+        "status" : "outsideCapturedRange",
+        "text" : "いつかきっと全部手に入れる"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 128,
+        "status" : "outsideCapturedRange",
+        "text" : "Itsuka kitto zenbu te ni ireru"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 129,
+        "status" : "outsideCapturedRange",
+        "text" : "Watashi wa sou yokubarina aidoru"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 130,
+        "status" : "outsideCapturedRange",
+        "text" : "私はそう欲張りなアイドル"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 131,
+        "status" : "outsideCapturedRange",
+        "text" : "Toushindai de minna no koto"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 132,
+        "status" : "outsideCapturedRange",
+        "text" : "等身大でみんなのこと"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 133,
+        "status" : "outsideCapturedRange",
+        "text" : "Chanto aishitai kara"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 134,
+        "status" : "outsideCapturedRange",
+        "text" : "ちゃんと愛したいから"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 135,
+        "status" : "outsideCapturedRange",
+        "text" : "今日も嘘をつくの"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 136,
+        "status" : "outsideCapturedRange",
+        "text" : "Kyou mo uso wo tsuku no kono kotoba ga (Hey! Hey! Hey! Hey!)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 137,
+        "status" : "outsideCapturedRange",
+        "text" : "この言葉がいつか本当になる日を願って"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 138,
+        "status" : "outsideCapturedRange",
+        "text" : "Itsuka hontou ni naru hi wo negatte (Hey! Hey! Hey! Hey!)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 139,
+        "status" : "outsideCapturedRange",
+        "text" : "それでもまだ"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 140,
+        "status" : "outsideCapturedRange",
+        "text" : "Sore demo mada"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 141,
+        "status" : "outsideCapturedRange",
+        "text" : "君と君にだけは言えずにいたけど"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 142,
+        "status" : "outsideCapturedRange",
+        "text" : "kimi to kimi ni Dake wa iezu ni ita kedo(Hey! Hey! Hey! Hey!)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 143,
+        "status" : "outsideCapturedRange",
+        "text" : "ああ やっと言えた"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 144,
+        "status" : "outsideCapturedRange",
+        "text" : "Ah, yatto ieta"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 145,
+        "status" : "outsideCapturedRange",
+        "text" : "これは絶対嘘じゃない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 146,
+        "status" : "outsideCapturedRange",
+        "text" : "Kore wa zettai uso janai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 147,
+        "status" : "outsideCapturedRange",
+        "text" : "ishiteru"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 148,
+        "status" : "outsideCapturedRange",
+        "text" : "愛してる"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 149,
+        "status" : "outsideCapturedRange",
+        "text" : "(You're my savior, my true savior, my saving grace)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 150,
+        "status" : "outsideCapturedRange",
+        "text" : "(You're my savior, my true savior, my saving grace)"
+      }
+    ],
+    "locale" : "ja-JP",
+    "lowConfidenceCount" : 4,
+    "outsideCapturedRangeCount" : 87,
+    "overallConfidence" : 0.42152083954573955,
+    "resolvedCount" : 16,
+    "trackIdentityDigest" : "spotify-id:7ovucf5uhtbrzupb6zomvt|metadata:アイドル|",
+    "transcriptSegmentCount" : 83,
+    "unresolvedCount" : 44
+  },
+  "heldOut" : {
+    "comparedLineCount" : 20,
+    "meanAbsoluteError" : 1.7490118489267226,
+    "medianAbsoluteError" : 0.7835236978534468,
+    "note" : "held_out_start_time_abs_error_seconds",
+    "obviousMismatchCount" : 5,
+    "p90AbsoluteError" : 4.4585236978534475,
+    "p95AbsoluteError" : 5.448523697853446,
+    "withinHalfSecondCount" : 5,
+    "withinOneSecondCount" : 12,
+    "withinTwoSecondCount" : 14
+  },
+  "judgment" : "C_insufficient_reliable_anchors",
+  "rejectedAnchors" : [
+    {
+      "absoluteEndTime" : 17.401476302146552,
+      "absoluteStartTime" : 12.841476302146553,
+      "accepted" : false,
+      "evidence" : "textSim=0.789;speech=0.282;window=5-10",
+      "lyricLineIndex" : 13,
+      "lyricText" : "今日何食べた？",
+      "overallConfidence" : 0.6878179503312478,
+      "rejectionReason" : "overall_confidence_below_threshold",
+      "relativeEndTime" : 7.29,
+      "relativeStartTime" : 2.73,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0.2821666747331619,
+      "textConfidence" : 0.7892307692307692,
+      "transcriptEndIndex" : 10,
+      "transcriptStartIndex" : 5,
+      "transcriptText" : "な愛様今日何食べた"
+    },
+    {
+      "absoluteEndTime" : 17.401476302146552,
+      "absoluteStartTime" : 12.961476302146552,
+      "accepted" : false,
+      "evidence" : "textSim=0.849;speech=0.189;window=6-10",
+      "lyricLineIndex" : 13,
+      "lyricText" : "今日何食べた？",
+      "overallConfidence" : 0.7168076204685938,
+      "rejectionReason" : "overall_confidence_below_threshold",
+      "relativeEndTime" : 7.29,
+      "relativeStartTime" : 2.85,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0.18880000710487366,
+      "textConfidence" : 0.8488095238095239,
+      "transcriptEndIndex" : 10,
+      "transcriptStartIndex" : 6,
+      "transcriptText" : "愛様今日何食べた"
+    },
+    {
+      "absoluteEndTime" : 17.85147630214655,
+      "absoluteStartTime" : 13.021476302146553,
+      "accepted" : false,
+      "evidence" : "textSim=0.738;speech=0.126;window=7-11",
+      "lyricLineIndex" : 13,
+      "lyricText" : "今日何食べた？",
+      "overallConfidence" : 0.6152800011634827,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 7.74,
+      "relativeStartTime" : 2.91,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0.12640000581741334,
+      "textConfidence" : 0.7375,
+      "transcriptEndIndex" : 11,
+      "transcriptStartIndex" : 7,
+      "transcriptText" : "様今日何食べた好きな"
+    },
+    {
+      "absoluteEndTime" : 17.85147630214655,
+      "absoluteStartTime" : 13.231476302146554,
+      "accepted" : false,
+      "evidence" : "textSim=0.789;speech=0.000;window=8-11",
+      "lyricLineIndex" : 13,
+      "lyricText" : "今日何食べた？",
+      "overallConfidence" : 0.6313846153846154,
+      "rejectionReason" : "overall_confidence_below_threshold",
+      "relativeEndTime" : 7.74,
+      "relativeStartTime" : 3.12,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.7892307692307692,
+      "transcriptEndIndex" : 11,
+      "transcriptStartIndex" : 8,
+      "transcriptText" : "今日何食べた好きな"
+    },
+    {
+      "absoluteEndTime" : 17.971476302146552,
+      "absoluteStartTime" : 13.231476302146554,
+      "accepted" : false,
+      "evidence" : "textSim=0.738;speech=0.000;window=8-12",
+      "lyricLineIndex" : 13,
+      "lyricText" : "今日何食べた？",
+      "overallConfidence" : 0.5900000000000001,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 7.86,
+      "relativeStartTime" : 3.12,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.7375,
+      "transcriptEndIndex" : 12,
+      "transcriptStartIndex" : 8,
+      "transcriptText" : "今日何食べた好きな本"
+    },
+    {
+      "absoluteEndTime" : 17.401476302146552,
+      "absoluteStartTime" : 16.111476302146553,
+      "accepted" : false,
+      "evidence" : "textSim=0.782;speech=0.000;window=9-10",
+      "lyricLineIndex" : 13,
+      "lyricText" : "今日何食べた？",
+      "overallConfidence" : 0.626,
+      "rejectionReason" : "overall_confidence_below_threshold",
+      "relativeEndTime" : 7.29,
+      "relativeStartTime" : 6,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.7825,
+      "transcriptEndIndex" : 10,
+      "transcriptStartIndex" : 9,
+      "transcriptText" : "何食べた"
+    },
+    {
+      "absoluteEndTime" : 18.061476302146552,
+      "absoluteStartTime" : 17.071476302146554,
+      "accepted" : false,
+      "evidence" : "textSim=0.755;speech=0.000;window=10-13",
+      "lyricLineIndex" : 14,
+      "lyricText" : "好きな本は？",
+      "overallConfidence" : 0.6036363636363636,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 7.95,
+      "relativeStartTime" : 6.96,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.7545454545454545,
+      "transcriptEndIndex" : 13,
+      "transcriptStartIndex" : 10,
+      "transcriptText" : "食べた好きな本は"
+    },
+    {
+      "absoluteEndTime" : 17.971476302146552,
+      "absoluteStartTime" : 17.401476302146552,
+      "accepted" : false,
+      "evidence" : "textSim=0.878;speech=0.000;window=11-12",
+      "lyricLineIndex" : 14,
+      "lyricText" : "好きな本は？",
+      "overallConfidence" : 0.7022222222222223,
+      "rejectionReason" : "overall_confidence_below_threshold",
+      "relativeEndTime" : 7.86,
+      "relativeStartTime" : 7.29,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.8777777777777778,
+      "transcriptEndIndex" : 12,
+      "transcriptStartIndex" : 11,
+      "transcriptText" : "好きな本"
+    },
+    {
+      "absoluteEndTime" : 18.571476302146554,
+      "absoluteStartTime" : 17.401476302146552,
+      "accepted" : false,
+      "evidence" : "textSim=0.822;speech=0.000;window=11-14",
+      "lyricLineIndex" : 14,
+      "lyricText" : "好きな本は？",
+      "overallConfidence" : 0.6573333333333334,
+      "rejectionReason" : "overall_confidence_below_threshold",
+      "relativeEndTime" : 8.46,
+      "relativeStartTime" : 7.29,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.8216666666666668,
+      "transcriptEndIndex" : 14,
+      "transcriptStartIndex" : 11,
+      "transcriptText" : "好きな本は遊び"
+    },
+    {
+      "absoluteEndTime" : 18.661476302146554,
+      "absoluteStartTime" : 17.401476302146552,
+      "accepted" : false,
+      "evidence" : "textSim=0.755;speech=0.000;window=11-15",
+      "lyricLineIndex" : 14,
+      "lyricText" : "好きな本は？",
+      "overallConfidence" : 0.6036363636363636,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 8.55,
+      "relativeStartTime" : 7.29,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.7545454545454545,
+      "transcriptEndIndex" : 15,
+      "transcriptStartIndex" : 11,
+      "transcriptText" : "好きな本は遊びに"
+    },
+    {
+      "absoluteEndTime" : 19.471476302146552,
+      "absoluteStartTime" : 18.061476302146552,
+      "accepted" : false,
+      "evidence" : "textSim=0.742;speech=0.000;window=14-19",
+      "lyricLineIndex" : 17,
+      "lyricText" : "遊びに行くならどこに行くの？",
+      "overallConfidence" : 0.5936231884057971,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 9.36,
+      "relativeStartTime" : 7.95,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.7420289855072464,
+      "transcriptEndIndex" : 19,
+      "transcriptStartIndex" : 14,
+      "transcriptText" : "遊びに行くとこに行く"
+    },
+    {
+      "absoluteEndTime" : 20.341476302146553,
+      "absoluteStartTime" : 18.901476302146555,
+      "accepted" : false,
+      "evidence" : "textSim=0.768;speech=0.000;window=18-23",
+      "lyricLineIndex" : 19,
+      "lyricText" : "何も食べてない",
+      "overallConfidence" : 0.6144444444444445,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 10.23,
+      "relativeStartTime" : 8.790000000000001,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.7680555555555555,
+      "transcriptEndIndex" : 23,
+      "transcriptStartIndex" : 18,
+      "transcriptText" : "に行くの何も食べてない"
+    },
+    {
+      "absoluteEndTime" : 20.341476302146553,
+      "absoluteStartTime" : 19.291476302146553,
+      "accepted" : false,
+      "evidence" : "textSim=0.815;speech=0.000;window=19-23",
+      "lyricLineIndex" : 19,
+      "lyricText" : "何も食べてない",
+      "overallConfidence" : 0.652235294117647,
+      "rejectionReason" : "overall_confidence_below_threshold",
+      "relativeEndTime" : 10.23,
+      "relativeStartTime" : 9.18,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.8152941176470587,
+      "transcriptEndIndex" : 23,
+      "transcriptStartIndex" : 19,
+      "transcriptText" : "行くの何も食べてない"
+    },
+    {
+      "absoluteEndTime" : 20.161476302146554,
+      "absoluteStartTime" : 19.471476302146552,
+      "accepted" : false,
+      "evidence" : "textSim=0.755;speech=0.000;window=20-22",
+      "lyricLineIndex" : 19,
+      "lyricText" : "何も食べてない",
+      "overallConfidence" : 0.6036363636363636,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 10.05,
+      "relativeStartTime" : 9.36,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.7545454545454545,
+      "transcriptEndIndex" : 22,
+      "transcriptStartIndex" : 20,
+      "transcriptText" : "の何も食べて"
+    },
+    {
+      "absoluteEndTime" : 20.701476302146553,
+      "absoluteStartTime" : 19.471476302146552,
+      "accepted" : false,
+      "evidence" : "textSim=0.768;speech=0.000;window=20-24",
+      "lyricLineIndex" : 19,
+      "lyricText" : "何も食べてない",
+      "overallConfidence" : 0.6144444444444445,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 10.59,
+      "relativeStartTime" : 9.36,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.7680555555555555,
+      "transcriptEndIndex" : 24,
+      "transcriptStartIndex" : 20,
+      "transcriptText" : "の何も食べてないそれは"
+    },
+    {
+      "absoluteEndTime" : 20.161476302146554,
+      "absoluteStartTime" : 19.561476302146552,
+      "accepted" : false,
+      "evidence" : "textSim=0.822;speech=0.000;window=21-22",
+      "lyricLineIndex" : 19,
+      "lyricText" : "何も食べてない",
+      "overallConfidence" : 0.6573333333333334,
+      "rejectionReason" : "overall_confidence_below_threshold",
+      "relativeEndTime" : 10.05,
+      "relativeStartTime" : 9.450000000000001,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.8216666666666668,
+      "transcriptEndIndex" : 22,
+      "transcriptStartIndex" : 21,
+      "transcriptText" : "何も食べて"
+    },
+    {
+      "absoluteEndTime" : 20.701476302146553,
+      "absoluteStartTime" : 19.561476302146552,
+      "accepted" : false,
+      "evidence" : "textSim=0.815;speech=0.000;window=21-24",
+      "lyricLineIndex" : 19,
+      "lyricText" : "何も食べてない",
+      "overallConfidence" : 0.652235294117647,
+      "rejectionReason" : "overall_confidence_below_threshold",
+      "relativeEndTime" : 10.59,
+      "relativeStartTime" : 9.450000000000001,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.8152941176470587,
+      "transcriptEndIndex" : 24,
+      "transcriptStartIndex" : 21,
+      "transcriptText" : "何も食べてないそれは"
+    },
+    {
+      "absoluteEndTime" : 20.341476302146553,
+      "absoluteStartTime" : 19.92147630214655,
+      "accepted" : false,
+      "evidence" : "textSim=0.822;speech=0.000;window=22-23",
+      "lyricLineIndex" : 19,
+      "lyricText" : "何も食べてない",
+      "overallConfidence" : 0.6573333333333334,
+      "rejectionReason" : "overall_confidence_below_threshold",
+      "relativeEndTime" : 10.23,
+      "relativeStartTime" : 9.81,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.8216666666666668,
+      "transcriptEndIndex" : 23,
+      "transcriptStartIndex" : 22,
+      "transcriptText" : "食べてない"
+    },
+    {
+      "absoluteEndTime" : 20.821476302146554,
+      "absoluteStartTime" : 20.161476302146554,
+      "accepted" : false,
+      "evidence" : "textSim=0.822;speech=0.000;window=23-25",
+      "lyricLineIndex" : 21,
+      "lyricText" : "それは内緒",
+      "overallConfidence" : 0.6573333333333334,
+      "rejectionReason" : "overall_confidence_below_threshold",
+      "relativeEndTime" : 10.71,
+      "relativeStartTime" : 10.05,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.8216666666666668,
+      "transcriptEndIndex" : 25,
+      "transcriptStartIndex" : 23,
+      "transcriptText" : "ないそれは内緒"
+    },
+    {
+      "absoluteEndTime" : 21.301476302146554,
+      "absoluteStartTime" : 20.161476302146554,
+      "accepted" : false,
+      "evidence" : "textSim=0.755;speech=0.000;window=23-26",
+      "lyricLineIndex" : 21,
+      "lyricText" : "それは内緒",
+      "overallConfidence" : 0.6036363636363636,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 11.19,
+      "relativeStartTime" : 10.05,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.7545454545454545,
+      "transcriptEndIndex" : 26,
+      "transcriptStartIndex" : 23,
+      "transcriptText" : "ないそれは内緒何"
+    },
+    {
+      "absoluteEndTime" : 21.451476302146553,
+      "absoluteStartTime" : 20.341476302146553,
+      "accepted" : false,
+      "evidence" : "textSim=0.822;speech=0.000;window=24-27",
+      "lyricLineIndex" : 21,
+      "lyricText" : "それは内緒",
+      "overallConfidence" : 0.6573333333333334,
+      "rejectionReason" : "overall_confidence_below_threshold",
+      "relativeEndTime" : 11.34,
+      "relativeStartTime" : 10.23,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.8216666666666668,
+      "transcriptEndIndex" : 27,
+      "transcriptStartIndex" : 24,
+      "transcriptText" : "それは内緒何を"
+    },
+    {
+      "absoluteEndTime" : 21.721476302146552,
+      "absoluteStartTime" : 20.701476302146553,
+      "accepted" : false,
+      "evidence" : "textSim=0.789;speech=0.000;window=25-28",
+      "lyricLineIndex" : 22,
+      "lyricText" : "何を聞かれても",
+      "overallConfidence" : 0.6313846153846154,
+      "rejectionReason" : "overall_confidence_below_threshold",
+      "relativeEndTime" : 11.61,
+      "relativeStartTime" : 10.59,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.7892307692307692,
+      "transcriptEndIndex" : 28,
+      "transcriptStartIndex" : 25,
+      "transcriptText" : "内緒何を聞かれて"
+    },
+    {
+      "absoluteEndTime" : 21.901476302146555,
+      "absoluteStartTime" : 20.701476302146553,
+      "accepted" : false,
+      "evidence" : "textSim=0.869;speech=0.000;window=25-29",
+      "lyricLineIndex" : 22,
+      "lyricText" : "何を聞かれても",
+      "overallConfidence" : 0.695,
+      "rejectionReason" : "overall_confidence_below_threshold",
+      "relativeEndTime" : 11.790000000000001,
+      "relativeStartTime" : 10.59,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.8687499999999999,
+      "transcriptEndIndex" : 29,
+      "transcriptStartIndex" : 25,
+      "transcriptText" : "内緒何を聞かれても"
+    },
+    {
+      "absoluteEndTime" : 21.721476302146552,
+      "absoluteStartTime" : 21.301476302146554,
+      "accepted" : false,
+      "evidence" : "textSim=0.822;speech=0.000;window=27-28",
+      "lyricLineIndex" : 22,
+      "lyricText" : "何を聞かれても",
+      "overallConfidence" : 0.6573333333333334,
+      "rejectionReason" : "overall_confidence_below_threshold",
+      "relativeEndTime" : 11.61,
+      "relativeStartTime" : 11.19,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.8216666666666668,
+      "transcriptEndIndex" : 28,
+      "transcriptStartIndex" : 27,
+      "transcriptText" : "を聞かれて"
+    },
+    {
+      "absoluteEndTime" : 21.901476302146555,
+      "absoluteStartTime" : 21.451476302146553,
+      "accepted" : false,
+      "evidence" : "textSim=0.822;speech=0.000;window=28-29",
+      "lyricLineIndex" : 22,
+      "lyricText" : "何を聞かれても",
+      "overallConfidence" : 0.6573333333333334,
+      "rejectionReason" : "overall_confidence_below_threshold",
+      "relativeEndTime" : 11.790000000000001,
+      "relativeStartTime" : 11.34,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.8216666666666668,
+      "transcriptEndIndex" : 29,
+      "transcriptStartIndex" : 28,
+      "transcriptText" : "聞かれても"
+    },
+    {
+      "absoluteEndTime" : 32.40147630214655,
+      "absoluteStartTime" : 21.901476302146555,
+      "accepted" : false,
+      "evidence" : "textSim=0.738;speech=0.169;window=30-31",
+      "lyricLineIndex" : 24,
+      "lyricText" : "のらりくらり",
+      "overallConfidence" : 0.6237999999523164,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 22.29,
+      "relativeStartTime" : 11.790000000000001,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0.16899999976158142,
+      "textConfidence" : 0.7375,
+      "transcriptEndIndex" : 31,
+      "transcriptStartIndex" : 30,
+      "transcriptText" : "のらりくらり見えない"
+    },
+    {
+      "absoluteEndTime" : 35.611476302146556,
+      "absoluteStartTime" : 34.35147630214655,
+      "accepted" : false,
+      "evidence" : "textSim=0.789;speech=0.190;window=33-35",
+      "lyricLineIndex" : 32,
+      "lyricText" : "あれもないないない",
+      "overallConfidence" : 0.6694512817095488,
+      "rejectionReason" : "overall_confidence_below_threshold",
+      "relativeEndTime" : 25.5,
+      "relativeStartTime" : 24.240000000000002,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0.19033333162466684,
+      "textConfidence" : 0.7892307692307692,
+      "transcriptEndIndex" : 35,
+      "transcriptStartIndex" : 33,
+      "transcriptText" : "ないないない"
+    },
+    {
+      "absoluteEndTime" : 36.24147630214655,
+      "absoluteStartTime" : 34.35147630214655,
+      "accepted" : false,
+      "evidence" : "textSim=0.740;speech=0.192;window=33-36",
+      "lyricLineIndex" : 34,
+      "lyricText" : "これもないないない",
+      "overallConfidence" : 0.6301666664580504,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 26.13,
+      "relativeStartTime" : 24.240000000000002,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0.19249999895691872,
+      "textConfidence" : 0.7395833333333333,
+      "transcriptEndIndex" : 36,
+      "transcriptStartIndex" : 33,
+      "transcriptText" : "ないないないこれも"
+    },
+    {
+      "absoluteEndTime" : 39.27147630214655,
+      "absoluteStartTime" : 34.53147630214656,
+      "accepted" : false,
+      "evidence" : "textSim=0.740;speech=0.170;window=34-37",
+      "lyricLineIndex" : 34,
+      "lyricText" : "これもないないない",
+      "overallConfidence" : 0.6257166663805643,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 29.16,
+      "relativeStartTime" : 24.42,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0.17024999856948853,
+      "textConfidence" : 0.7395833333333333,
+      "transcriptEndIndex" : 37,
+      "transcriptStartIndex" : 34,
+      "transcriptText" : "ないないこれもない"
+    },
+    {
+      "absoluteEndTime" : 57.48147630214655,
+      "absoluteStartTime" : 54.63147630214655,
+      "accepted" : false,
+      "evidence" : "textSim=0.778;speech=0.558;window=55-60",
+      "lyricLineIndex" : 50,
+      "lyricText" : "誰もが目を奪われていく",
+      "overallConfidence" : 0.7341563906436577,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 47.37,
+      "relativeStartTime" : 44.52,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0.55799999833107,
+      "textConfidence" : 0.7781954887218046,
+      "transcriptEndIndex" : 60,
+      "transcriptStartIndex" : 55,
+      "transcriptText" : "誰も目を奪われてくる"
+    },
+    {
+      "absoluteEndTime" : 81.15147630214656,
+      "absoluteStartTime" : 79.32147630214656,
+      "accepted" : false,
+      "evidence" : "textSim=0.792;speech=0.410;window=71-74",
+      "lyricLineIndex" : 66,
+      "lyricText" : "はいはいあの子は特別です",
+      "overallConfidence" : 0.7157293764611499,
+      "rejectionReason" : "overall_confidence_below_threshold",
+      "relativeEndTime" : 71.04,
+      "relativeStartTime" : 69.21000000000001,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0.4097579934168607,
+      "textConfidence" : 0.7922222222222222,
+      "transcriptEndIndex" : 74,
+      "transcriptStartIndex" : 71,
+      "transcriptText" : "あの子は特別です"
+    },
+    {
+      "absoluteEndTime" : 82.23147630214656,
+      "absoluteStartTime" : 79.32147630214656,
+      "accepted" : false,
+      "evidence" : "textSim=0.753;speech=0.419;window=71-75",
+      "lyricLineIndex" : 66,
+      "lyricText" : "はいはいあの子は特別です",
+      "overallConfidence" : 0.6862275444582703,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 72.12,
+      "relativeStartTime" : 69.21000000000001,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0.4186063939705491,
+      "textConfidence" : 0.7531328320802004,
+      "transcriptEndIndex" : 75,
+      "transcriptStartIndex" : 71,
+      "transcriptText" : "あの子は特別です我"
+    },
+    {
+      "absoluteEndTime" : 83.94147630214655,
+      "absoluteStartTime" : 81.15147630214656,
+      "accepted" : false,
+      "evidence" : "textSim=0.742;speech=0.454;window=75-80",
+      "lyricLineIndex" : 68,
+      "lyricText" : "我々はハナからおまけです",
+      "overallConfidence" : 0.6842212107940153,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 73.83,
+      "relativeStartTime" : 71.04,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0.45383332669734955,
+      "textConfidence" : 0.7418181818181818,
+      "transcriptEndIndex" : 80,
+      "transcriptStartIndex" : 75,
+      "transcriptText" : "我は花からおまけです"
+    },
+    {
+      "absoluteEndTime" : 17.401476302146552,
+      "absoluteStartTime" : 13.021476302146553,
+      "accepted" : false,
+      "evidence" : "textSim=0.918;speech=0.158;window=7-10",
+      "lyricLineIndex" : 13,
+      "lyricText" : "今日何食べた？",
+      "overallConfidence" : 0.766145455999808,
+      "rejectionReason" : "duplicate_lyric_line",
+      "relativeEndTime" : 7.29,
+      "relativeStartTime" : 2.91,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0.15800000727176666,
+      "textConfidence" : 0.9181818181818182,
+      "transcriptEndIndex" : 10,
+      "transcriptStartIndex" : 7,
+      "transcriptText" : "様今日何食べた"
+    },
+    {
+      "absoluteEndTime" : 20.341476302146553,
+      "absoluteStartTime" : 19.471476302146552,
+      "accepted" : false,
+      "evidence" : "textSim=0.930;speech=0.000;window=20-23",
+      "lyricLineIndex" : 19,
+      "lyricText" : "何も食べてない",
+      "overallConfidence" : 0.7437948717948718,
+      "rejectionReason" : "duplicate_lyric_line",
+      "relativeEndTime" : 10.23,
+      "relativeStartTime" : 9.36,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.9297435897435897,
+      "transcriptEndIndex" : 23,
+      "transcriptStartIndex" : 20,
+      "transcriptText" : "の何も食べてない"
+    },
+    {
+      "absoluteEndTime" : 21.721476302146552,
+      "absoluteStartTime" : 20.821476302146554,
+      "accepted" : false,
+      "evidence" : "textSim=0.918;speech=0.000;window=26-28",
+      "lyricLineIndex" : 22,
+      "lyricText" : "何を聞かれても",
+      "overallConfidence" : 0.7345454545454546,
+      "rejectionReason" : "duplicate_lyric_line",
+      "relativeEndTime" : 11.61,
+      "relativeStartTime" : 10.71,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.9181818181818182,
+      "transcriptEndIndex" : 28,
+      "transcriptStartIndex" : 26,
+      "transcriptText" : "何を聞かれて"
+    },
+    {
+      "absoluteEndTime" : 21.901476302146555,
+      "absoluteStartTime" : 21.301476302146554,
+      "accepted" : false,
+      "evidence" : "textSim=0.918;speech=0.000;window=27-29",
+      "lyricLineIndex" : 22,
+      "lyricText" : "何を聞かれても",
+      "overallConfidence" : 0.7345454545454546,
+      "rejectionReason" : "duplicate_lyric_line",
+      "relativeEndTime" : 11.790000000000001,
+      "relativeStartTime" : 11.19,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.9181818181818182,
+      "transcriptEndIndex" : 29,
+      "transcriptStartIndex" : 27,
+      "transcriptText" : "を聞かれても"
+    },
+    {
+      "absoluteEndTime" : 22.471476302146552,
+      "absoluteStartTime" : 21.721476302146552,
+      "accepted" : false,
+      "evidence" : "textSim=0.918;speech=0.000;window=29-30",
+      "lyricLineIndex" : 24,
+      "lyricText" : "のらりくらり",
+      "overallConfidence" : 0.7345454545454546,
+      "rejectionReason" : "duplicate_lyric_line",
+      "relativeEndTime" : 12.36,
+      "relativeStartTime" : 11.61,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.9181818181818182,
+      "transcriptEndIndex" : 30,
+      "transcriptStartIndex" : 29,
+      "transcriptText" : "ものらりくらり"
+    },
+    {
+      "absoluteEndTime" : 21.301476302146554,
+      "absoluteStartTime" : 20.341476302146553,
+      "accepted" : false,
+      "evidence" : "textSim=0.902;speech=0.000;window=24-26",
+      "lyricLineIndex" : 21,
+      "lyricText" : "それは内緒",
+      "overallConfidence" : 0.7216161616161616,
+      "rejectionReason" : "duplicate_lyric_line",
+      "relativeEndTime" : 11.19,
+      "relativeStartTime" : 10.23,
+      "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+      "temporalConfidence" : 0,
+      "textConfidence" : 0.9020202020202019,
+      "transcriptEndIndex" : 26,
+      "transcriptStartIndex" : 24,
+      "transcriptText" : "それは内緒何"
+    }
+  ],
+  "s3aCandidate" : {
+    "captureSessionID" : "404F9F32-7C7A-4B2C-B43E-E254CFEBD2FE",
+    "capturedDuration" : 75.39591038227164,
+    "capturedRanges" : [
+      {
+        "end" : 85.5073866844182,
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "start" : 10.111476302146553
+      }
+    ],
+    "coverageRatio" : 0.33112582781456956,
+    "createdAt" : "2026-08-04T12:36:56Z",
+    "lines" : [
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 0,
+        "status" : "outsideCapturedRange",
+        "text" : "無敵の笑顔で荒らすメディア"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 1,
+        "status" : "outsideCapturedRange",
+        "text" : "Muteki no egao de arasu media"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 2,
+        "status" : "outsideCapturedRange",
+        "text" : "Shiritai sono himitsu misuteriasu"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 3,
+        "status" : "outsideCapturedRange",
+        "text" : "知りたいその秘密ミステリアス"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 4,
+        "status" : "outsideCapturedRange",
+        "text" : "Nuketeru toko sae kanojo no eria"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 5,
+        "status" : "outsideCapturedRange",
+        "text" : "抜けてるとこさえ彼女のエリア"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 6,
+        "status" : "outsideCapturedRange",
+        "text" : "Kanpeki de usotsuki na kimi wa"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 7,
+        "status" : "outsideCapturedRange",
+        "text" : "完璧で嘘つきな君は"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 8,
+        "status" : "unresolved",
+        "text" : "Tensaitekina aidoru sama"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 9,
+        "status" : "unresolved",
+        "text" : "天才的なアイドル様"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 10,
+        "status" : "unresolved",
+        "text" : "(You're my savior, you're my saving grace)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 11,
+        "status" : "unresolved",
+        "text" : "(You're my savior, you're my saving grace)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 12,
+        "status" : "unresolved",
+        "text" : "Kyou nani tabeta?"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 13,
+        "status" : "unresolved",
+        "text" : "今日何食べた？"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 14,
+        "status" : "unresolved",
+        "text" : "好きな本は？"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 15,
+        "status" : "unresolved",
+        "text" : "Suki na hon wa?"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 16,
+        "status" : "unresolved",
+        "text" : "Asobi ni iku nara doko ni iku no?"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 17,
+        "status" : "unresolved",
+        "text" : "遊びに行くならどこに行くの？"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 18,
+        "status" : "unresolved",
+        "text" : "Nanimo tabetenai,"
+      },
+      {
+        "confidence" : 0.4415357142857143,
+        "endTime" : 20.341476302146553,
+        "evidenceKind" : "directSpeech",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 19,
+        "speechRelativeEnd" : 10.23,
+        "speechRelativeStart" : 9.36,
+        "startTime" : 19.471476302146552,
+        "status" : "lowConfidence",
+        "text" : "何も食べてない"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 19.957476302146553,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 20,
+        "speechRelativeEnd" : 9.846,
+        "speechRelativeStart" : 9.846,
+        "startTime" : 19.957476302146553,
+        "status" : "interpolated",
+        "text" : "sore wa naisho"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 20.443476302146554,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 21,
+        "speechRelativeEnd" : 10.332,
+        "speechRelativeStart" : 10.332,
+        "startTime" : 20.443476302146554,
+        "status" : "interpolated",
+        "text" : "それは内緒"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 20.929476302146554,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 22,
+        "speechRelativeEnd" : 10.818,
+        "speechRelativeStart" : 10.818,
+        "startTime" : 20.929476302146554,
+        "status" : "interpolated",
+        "text" : "何を聞かれても"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 21.41547630214655,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 23,
+        "speechRelativeEnd" : 11.304,
+        "speechRelativeStart" : 11.304,
+        "startTime" : 21.41547630214655,
+        "status" : "interpolated",
+        "text" : "Nani wo kikaretemo"
+      },
+      {
+        "confidence" : 0.78,
+        "endTime" : 22.471476302146552,
+        "evidenceKind" : "directSpeech",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 24,
+        "speechRelativeEnd" : 12.36,
+        "speechRelativeStart" : 11.790000000000001,
+        "startTime" : 21.901476302146555,
+        "status" : "resolved",
+        "text" : "のらりくらり"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 23.213976302146555,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 25,
+        "speechRelativeEnd" : 13.102500000000001,
+        "speechRelativeStart" : 13.102500000000001,
+        "startTime" : 23.213976302146555,
+        "status" : "interpolated",
+        "text" : "norari kurari"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 24.526476302146555,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 26,
+        "speechRelativeEnd" : 14.415000000000001,
+        "speechRelativeStart" : 14.415000000000001,
+        "startTime" : 24.526476302146555,
+        "status" : "interpolated",
+        "text" : "Sou tantan to"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 25.838976302146552,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 27,
+        "speechRelativeEnd" : 15.7275,
+        "speechRelativeStart" : 15.7275,
+        "startTime" : 25.838976302146552,
+        "status" : "interpolated",
+        "text" : "そう淡々と"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 27.151476302146552,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 28,
+        "speechRelativeEnd" : 17.04,
+        "speechRelativeStart" : 17.04,
+        "startTime" : 27.151476302146552,
+        "status" : "interpolated",
+        "text" : "だけど燦々と"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 28.463976302146552,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 29,
+        "speechRelativeEnd" : 18.3525,
+        "speechRelativeStart" : 18.3525,
+        "startTime" : 28.463976302146552,
+        "status" : "interpolated",
+        "text" : "dakedo sansan to"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 29.776476302146552,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 30,
+        "speechRelativeEnd" : 19.665,
+        "speechRelativeStart" : 19.665,
+        "startTime" : 29.776476302146552,
+        "status" : "interpolated",
+        "text" : "Miesou de mienai himitsu wa mitsu no aji"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 31.088976302146552,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 31,
+        "speechRelativeEnd" : 20.9775,
+        "speechRelativeStart" : 20.9775,
+        "startTime" : 31.088976302146552,
+        "status" : "interpolated",
+        "text" : "見えそうで見えない秘密は蜜の味"
+      },
+      {
+        "confidence" : 0.5633800003081559,
+        "endTime" : 35.611476302146556,
+        "evidenceKind" : "directSpeech",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 32,
+        "speechRelativeEnd" : 25.5,
+        "speechRelativeStart" : 22.29,
+        "startTime" : 32.40147630214655,
+        "status" : "lowConfidence",
+        "text" : "あれもないないない"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 34.00647630214655,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 33,
+        "speechRelativeEnd" : 23.895,
+        "speechRelativeStart" : 23.895,
+        "startTime" : 34.00647630214655,
+        "status" : "interpolated",
+        "text" : "Are mo nai, nai, nai"
+      },
+      {
+        "confidence" : 0.46426761818215967,
+        "endTime" : 40.74147630214655,
+        "evidenceKind" : "directSpeech",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 34,
+        "speechRelativeEnd" : 30.63,
+        "speechRelativeStart" : 25.5,
+        "startTime" : 35.611476302146556,
+        "status" : "lowConfidence",
+        "text" : "これもないないない"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 36.252726302146556,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 35,
+        "speechRelativeEnd" : 26.14125,
+        "speechRelativeStart" : 26.14125,
+        "startTime" : 36.252726302146556,
+        "status" : "interpolated",
+        "text" : "kore mo nai, nai, nai"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 36.893976302146555,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 36,
+        "speechRelativeEnd" : 26.7825,
+        "speechRelativeStart" : 26.7825,
+        "startTime" : 36.893976302146555,
+        "status" : "interpolated",
+        "text" : "好きなタイプは？"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 37.535226302146555,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 37,
+        "speechRelativeEnd" : 27.42375,
+        "speechRelativeStart" : 27.42375,
+        "startTime" : 37.535226302146555,
+        "status" : "interpolated",
+        "text" : "Suki na taipu wa?"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 38.176476302146554,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 38,
+        "speechRelativeEnd" : 28.064999999999998,
+        "speechRelativeStart" : 28.064999999999998,
+        "startTime" : 38.176476302146554,
+        "status" : "interpolated",
+        "text" : "Aite wa?"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 38.81772630214655,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 39,
+        "speechRelativeEnd" : 28.70625,
+        "speechRelativeStart" : 28.70625,
+        "startTime" : 38.81772630214655,
+        "status" : "interpolated",
+        "text" : "相手は？"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 39.45897630214655,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 40,
+        "speechRelativeEnd" : 29.3475,
+        "speechRelativeStart" : 29.3475,
+        "startTime" : 39.45897630214655,
+        "status" : "interpolated",
+        "text" : "さあ答えて"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 40.10022630214655,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 41,
+        "speechRelativeEnd" : 29.98875,
+        "speechRelativeStart" : 29.98875,
+        "startTime" : 40.10022630214655,
+        "status" : "interpolated",
+        "text" : "Saa kotaete"
+      },
+      {
+        "confidence" : 0.5611052620924617,
+        "endTime" : 46.68147630214655,
+        "evidenceKind" : "directSpeech",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 42,
+        "speechRelativeEnd" : 36.57,
+        "speechRelativeStart" : 30.63,
+        "startTime" : 40.74147630214655,
+        "status" : "lowConfidence",
+        "text" : "「誰かを好きになることなんて私分からなくてさ」"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 42.25186091753116,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 43,
+        "speechRelativeEnd" : 32.14038461538461,
+        "speechRelativeStart" : 32.14038461538461,
+        "startTime" : 42.25186091753116,
+        "status" : "interpolated",
+        "text" : "\"Dareka wo suki ni naru koto (Hey! Hey!) Nante watashi wakaranakute sa\" (Hey! Hey!)"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 43.762245532915784,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 44,
+        "speechRelativeEnd" : 33.65076923076923,
+        "speechRelativeStart" : 33.65076923076923,
+        "startTime" : 43.762245532915784,
+        "status" : "interpolated",
+        "text" : "嘘か本当か知り得ない"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 45.272630148300394,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 45,
+        "speechRelativeEnd" : 35.161153846153844,
+        "speechRelativeStart" : 35.161153846153844,
+        "startTime" : 45.272630148300394,
+        "status" : "interpolated",
+        "text" : "Uso ka hontou ka shirienai (Hey! Hey! Hey! Hеy!)"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 46.78301476368502,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 46,
+        "speechRelativeEnd" : 36.67153846153846,
+        "speechRelativeStart" : 36.67153846153846,
+        "startTime" : 46.78301476368502,
+        "status" : "interpolated",
+        "text" : "Sonna kotoba ni mata hitori ochiru (Hey! Hey! Hey! Hеy!)"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 48.293399379069626,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 47,
+        "speechRelativeEnd" : 38.18192307692308,
+        "speechRelativeStart" : 38.18192307692308,
+        "startTime" : 48.293399379069626,
+        "status" : "interpolated",
+        "text" : "そんな言葉にまた一人堕ちる"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 49.80378399445425,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 48,
+        "speechRelativeEnd" : 39.69230769230769,
+        "speechRelativeStart" : 39.69230769230769,
+        "startTime" : 49.80378399445425,
+        "status" : "interpolated",
+        "text" : "また好きにさせる"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 51.31416860983886,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 49,
+        "speechRelativeEnd" : 41.20269230769231,
+        "speechRelativeStart" : 41.20269230769231,
+        "startTime" : 51.31416860983886,
+        "status" : "interpolated",
+        "text" : "Mata suki ni saseru"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 52.82455322522348,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 50,
+        "speechRelativeEnd" : 42.713076923076926,
+        "speechRelativeStart" : 42.713076923076926,
+        "startTime" : 52.82455322522348,
+        "status" : "interpolated",
+        "text" : "誰もが目を奪われていく"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 54.33493784060809,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 51,
+        "speechRelativeEnd" : 44.22346153846154,
+        "speechRelativeStart" : 44.22346153846154,
+        "startTime" : 54.33493784060809,
+        "status" : "interpolated",
+        "text" : "Daremo ga me wo ubawareteiku"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 55.845322455992715,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 52,
+        "speechRelativeEnd" : 45.73384615384616,
+        "speechRelativeStart" : 45.73384615384616,
+        "startTime" : 55.845322455992715,
+        "status" : "interpolated",
+        "text" : "君は完璧で究極のアイドル"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 57.355707071377324,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 53,
+        "speechRelativeEnd" : 47.24423076923077,
+        "speechRelativeStart" : 47.24423076923077,
+        "startTime" : 57.355707071377324,
+        "status" : "interpolated",
+        "text" : "Kimi wa kanpeki de kyuukyoku no aidoru"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 58.86609168676195,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 54,
+        "speechRelativeEnd" : 48.75461538461539,
+        "speechRelativeStart" : 48.75461538461539,
+        "startTime" : 58.86609168676195,
+        "status" : "interpolated",
+        "text" : "Konrinzai arawarenai"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 60.37647630214656,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 55,
+        "speechRelativeEnd" : 50.265,
+        "speechRelativeStart" : 50.265,
+        "startTime" : 60.37647630214656,
+        "status" : "interpolated",
+        "text" : "金輪際現れない"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 61.88686091753118,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 56,
+        "speechRelativeEnd" : 51.775384615384624,
+        "speechRelativeStart" : 51.775384615384624,
+        "startTime" : 61.88686091753118,
+        "status" : "interpolated",
+        "text" : "Ichiban boshi no umarekawari"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 63.39724553291579,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 57,
+        "speechRelativeEnd" : 53.28576923076923,
+        "speechRelativeStart" : 53.28576923076923,
+        "startTime" : 63.39724553291579,
+        "status" : "interpolated",
+        "text" : "一番星の生まれ変わり"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 64.90763014830041,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 58,
+        "speechRelativeEnd" : 54.79615384615386,
+        "speechRelativeStart" : 54.79615384615386,
+        "startTime" : 64.90763014830041,
+        "status" : "interpolated",
+        "text" : "ああ その笑顔で愛してるで"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 66.41801476368502,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 59,
+        "speechRelativeEnd" : 56.306538461538466,
+        "speechRelativeStart" : 56.306538461538466,
+        "startTime" : 66.41801476368502,
+        "status" : "interpolated",
+        "text" : "Aa, sono egao de aishiteru de"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 67.92839937906963,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 60,
+        "speechRelativeEnd" : 57.81692307692308,
+        "speechRelativeStart" : 57.81692307692308,
+        "startTime" : 67.92839937906963,
+        "status" : "interpolated",
+        "text" : "Daremo kare mo toriko ni shite iku"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 69.43878399445425,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 61,
+        "speechRelativeEnd" : 59.3273076923077,
+        "speechRelativeStart" : 59.3273076923077,
+        "startTime" : 69.43878399445425,
+        "status" : "interpolated",
+        "text" : "誰も彼も虜にしていく"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 70.94916860983886,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 62,
+        "speechRelativeEnd" : 60.837692307692315,
+        "speechRelativeStart" : 60.837692307692315,
+        "startTime" : 70.94916860983886,
+        "status" : "interpolated",
+        "text" : "Sono hitomi ga sono kotoba ga"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 72.45955322522349,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 63,
+        "speechRelativeEnd" : 62.34807692307693,
+        "speechRelativeStart" : 62.34807692307693,
+        "startTime" : 72.45955322522349,
+        "status" : "interpolated",
+        "text" : "その瞳がその言葉が"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 73.9699378406081,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 64,
+        "speechRelativeEnd" : 63.85846153846154,
+        "speechRelativeStart" : 63.85846153846154,
+        "startTime" : 73.9699378406081,
+        "status" : "interpolated",
+        "text" : "Uso demo sore wa kanzen na ai"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 75.48032245599272,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 65,
+        "speechRelativeEnd" : 65.36884615384616,
+        "speechRelativeStart" : 65.36884615384616,
+        "startTime" : 75.48032245599272,
+        "status" : "interpolated",
+        "text" : "嘘でもそれは完全なアイ"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 76.99070707137733,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 66,
+        "speechRelativeEnd" : 66.87923076923077,
+        "speechRelativeStart" : 66.87923076923077,
+        "startTime" : 76.99070707137733,
+        "status" : "interpolated",
+        "text" : "はいはいあの子は特別です"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 78.50109168676195,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 67,
+        "speechRelativeEnd" : 68.3896153846154,
+        "speechRelativeStart" : 68.3896153846154,
+        "startTime" : 78.50109168676195,
+        "status" : "interpolated",
+        "text" : "Wareware wa hana kara omake desu"
+      },
+      {
+        "confidence" : 0.5288174980133772,
+        "endTime" : 83.94147630214655,
+        "evidenceKind" : "directSpeech",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 68,
+        "speechRelativeEnd" : 73.83,
+        "speechRelativeStart" : 69.9,
+        "startTime" : 80.01147630214656,
+        "status" : "lowConfidence",
+        "text" : "我々はハナからおまけです"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 69,
+        "status" : "unresolved",
+        "text" : "お星様の引き立て役Bです"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "0BB427BC-ED6E-46D6-9C57-9EA11C73202A",
+        "sourceLineIndex" : 70,
+        "status" : "unresolved",
+        "text" : "Ohoshi sama no hikitateyaku B desu"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 71,
+        "status" : "outsideCapturedRange",
+        "text" : "Subete ga ano ko no okagena"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 72,
+        "status" : "outsideCapturedRange",
+        "text" : "全てがあの子のお陰なわけない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 73,
+        "status" : "outsideCapturedRange",
+        "text" : "洒落臭い"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 74,
+        "status" : "outsideCapturedRange",
+        "text" : "wake nai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 75,
+        "status" : "outsideCapturedRange",
+        "text" : "妬み嫉妬なんてないわけがない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 76,
+        "status" : "outsideCapturedRange",
+        "text" : "Sharakusai netami shitto nante nai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 77,
+        "status" : "outsideCapturedRange",
+        "text" : "これはネタじゃない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 78,
+        "status" : "outsideCapturedRange",
+        "text" : "Wake ga nai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 79,
+        "status" : "outsideCapturedRange",
+        "text" : "kore wa neta janai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 80,
+        "status" : "outsideCapturedRange",
+        "text" : "からこそ許せない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 81,
+        "status" : "outsideCapturedRange",
+        "text" : "kara koso yurusenai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 82,
+        "status" : "outsideCapturedRange",
+        "text" : "完璧じゃない君じゃ許せない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 83,
+        "status" : "outsideCapturedRange",
+        "text" : "自分を許せない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 84,
+        "status" : "outsideCapturedRange",
+        "text" : "Kanpeki janai kimi ja yurusenai jibun wo yurusenai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 85,
+        "status" : "outsideCapturedRange",
+        "text" : "Dare yori mo tsuyoi kimi igai wa mitomenai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 86,
+        "status" : "outsideCapturedRange",
+        "text" : "誰よりも強い君以外は認めない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 87,
+        "status" : "outsideCapturedRange",
+        "text" : "誰もが信じ崇めてる"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 88,
+        "status" : "outsideCapturedRange",
+        "text" : "Daremo ga shinji agameteru"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 89,
+        "status" : "outsideCapturedRange",
+        "text" : "まさに最強で無敵のアイドル"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 90,
+        "status" : "outsideCapturedRange",
+        "text" : "Masani saikyou de muteki no aidoru"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 91,
+        "status" : "outsideCapturedRange",
+        "text" : "弱点なんて見当たらない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 92,
+        "status" : "outsideCapturedRange",
+        "text" : "Jakuten nante miataranai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 93,
+        "status" : "outsideCapturedRange",
+        "text" : "一番星を宿している"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 94,
+        "status" : "outsideCapturedRange",
+        "text" : "Ichiban boshi wo yado shiteiru"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 95,
+        "status" : "outsideCapturedRange",
+        "text" : "Yowai to konante misecha dame, dame (Hey! Hey! Hey! Hey!)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 96,
+        "status" : "outsideCapturedRange",
+        "text" : "弱いとこなんて見せちゃダメダメ"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 97,
+        "status" : "outsideCapturedRange",
+        "text" : "知りたくないとこは見せずに"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 98,
+        "status" : "outsideCapturedRange",
+        "text" : "Shiritakunai toko wa misezu ni (Hey! Hey! Hey! Hey!)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 99,
+        "status" : "outsideCapturedRange",
+        "text" : "Yuiitsumu ni janakucha iya, iya (Hey! Hey! Hey! Hey!)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 100,
+        "status" : "outsideCapturedRange",
+        "text" : "唯一無二じゃなくちゃイヤイヤ"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 101,
+        "status" : "outsideCapturedRange",
+        "text" : "Sorekoso honmono no ai (Hey! Hey! Hey! Hey!)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 102,
+        "status" : "outsideCapturedRange",
+        "text" : "それこそ本物のアイ"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 103,
+        "status" : "outsideCapturedRange",
+        "text" : "Tokui no egao de wakasu media"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 104,
+        "status" : "outsideCapturedRange",
+        "text" : "得意の笑顔で沸かすメディア"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 105,
+        "status" : "outsideCapturedRange",
+        "text" : "Kakushikiru kono himitsu dake wa"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 106,
+        "status" : "outsideCapturedRange",
+        "text" : "隠しきるこの秘密だけは"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 107,
+        "status" : "outsideCapturedRange",
+        "text" : "愛してるって嘘で積むキャリア"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 108,
+        "status" : "outsideCapturedRange",
+        "text" : "Aishiteru tte uso de tsumu kyaria"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 109,
+        "status" : "outsideCapturedRange",
+        "text" : "これこそ私なりの愛だ"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 110,
+        "status" : "outsideCapturedRange",
+        "text" : "Korekoso watashi nari no ai da"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 111,
+        "status" : "outsideCapturedRange",
+        "text" : "Nagareru ase mo kireina Aqua"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 112,
+        "status" : "outsideCapturedRange",
+        "text" : "流れる汗も綺麗なアクア"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 113,
+        "status" : "outsideCapturedRange",
+        "text" : "Rubii wo kakushita kono mabuta"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 114,
+        "status" : "outsideCapturedRange",
+        "text" : "ルビーを隠したこの瞼"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 115,
+        "status" : "outsideCapturedRange",
+        "text" : "Utai odori mau watashi wa maria"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 116,
+        "status" : "outsideCapturedRange",
+        "text" : "歌い踊り舞う私はマリア"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 117,
+        "status" : "outsideCapturedRange",
+        "text" : "そう嘘はとびきりの愛だ"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 118,
+        "status" : "outsideCapturedRange",
+        "text" : "Sou uso wa tobikiri no ai da"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 119,
+        "status" : "outsideCapturedRange",
+        "text" : "Dareka ni aisareta koto mo"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 120,
+        "status" : "outsideCapturedRange",
+        "text" : "誰かに愛されたことも"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 121,
+        "status" : "outsideCapturedRange",
+        "text" : "誰かのこと愛したこともない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 122,
+        "status" : "outsideCapturedRange",
+        "text" : "Dareka no koto aishita koto mo nai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 123,
+        "status" : "outsideCapturedRange",
+        "text" : "そんな私の嘘がいつか本当になること"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 124,
+        "status" : "outsideCapturedRange",
+        "text" : "Sonna watashi no uso ga Itsuka hontou ni naru koto"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 125,
+        "status" : "outsideCapturedRange",
+        "text" : "（信じてる）"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 126,
+        "status" : "outsideCapturedRange",
+        "text" : "(Shinjiteru)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 127,
+        "status" : "outsideCapturedRange",
+        "text" : "いつかきっと全部手に入れる"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 128,
+        "status" : "outsideCapturedRange",
+        "text" : "Itsuka kitto zenbu te ni ireru"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 129,
+        "status" : "outsideCapturedRange",
+        "text" : "Watashi wa sou yokubarina aidoru"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 130,
+        "status" : "outsideCapturedRange",
+        "text" : "私はそう欲張りなアイドル"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 131,
+        "status" : "outsideCapturedRange",
+        "text" : "Toushindai de minna no koto"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 132,
+        "status" : "outsideCapturedRange",
+        "text" : "等身大でみんなのこと"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 133,
+        "status" : "outsideCapturedRange",
+        "text" : "Chanto aishitai kara"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 134,
+        "status" : "outsideCapturedRange",
+        "text" : "ちゃんと愛したいから"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 135,
+        "status" : "outsideCapturedRange",
+        "text" : "今日も嘘をつくの"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 136,
+        "status" : "outsideCapturedRange",
+        "text" : "Kyou mo uso wo tsuku no kono kotoba ga (Hey! Hey! Hey! Hey!)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 137,
+        "status" : "outsideCapturedRange",
+        "text" : "この言葉がいつか本当になる日を願って"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 138,
+        "status" : "outsideCapturedRange",
+        "text" : "Itsuka hontou ni naru hi wo negatte (Hey! Hey! Hey! Hey!)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 139,
+        "status" : "outsideCapturedRange",
+        "text" : "それでもまだ"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 140,
+        "status" : "outsideCapturedRange",
+        "text" : "Sore demo mada"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 141,
+        "status" : "outsideCapturedRange",
+        "text" : "君と君にだけは言えずにいたけど"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 142,
+        "status" : "outsideCapturedRange",
+        "text" : "kimi to kimi ni Dake wa iezu ni ita kedo(Hey! Hey! Hey! Hey!)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 143,
+        "status" : "outsideCapturedRange",
+        "text" : "ああ やっと言えた"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 144,
+        "status" : "outsideCapturedRange",
+        "text" : "Ah, yatto ieta"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 145,
+        "status" : "outsideCapturedRange",
+        "text" : "これは絶対嘘じゃない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 146,
+        "status" : "outsideCapturedRange",
+        "text" : "Kore wa zettai uso janai"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 147,
+        "status" : "outsideCapturedRange",
+        "text" : "ishiteru"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 148,
+        "status" : "outsideCapturedRange",
+        "text" : "愛してる"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 149,
+        "status" : "outsideCapturedRange",
+        "text" : "(You're my savior, my true savior, my saving grace)"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "outsideCapturedRange",
+        "sourceLineIndex" : 150,
+        "status" : "outsideCapturedRange",
+        "text" : "(You're my savior, my true savior, my saving grace)"
+      }
+    ],
+    "locale" : "ja-JP",
+    "lowConfidenceCount" : 5,
+    "outsideCapturedRangeCount" : 88,
+    "overallConfidence" : 0.06678212185763739,
+    "resolvedCount" : 45,
+    "trackIdentityDigest" : "spotify-id:7ovucf5uhtbrzupb6zomvt|metadata:アイドル|",
+    "transcriptSegmentCount" : 83,
+    "unresolvedCount" : 13
+  },
+  "s3aHeldOut" : {
+    "comparedLineCount" : 50,
+    "meanAbsoluteError" : 1.9036343428981395,
+    "medianAbsoluteError" : 1.6223698516995881,
+    "note" : "held_out_start_time_abs_error_seconds",
+    "obviousMismatchCount" : 11,
+    "p90AbsoluteError" : 4.516023697853445,
+    "p95AbsoluteError" : 4.854523697853448,
+    "withinHalfSecondCount" : 8,
+    "withinOneSecondCount" : 20,
+    "withinTwoSecondCount" : 30
+  },
+  "usedConstrainedAlignment" : true,
+  "wavPaths" : [
+    "\/var\/folders\/kq\/dz44fm994nz94zw2dfqnz_g00000gn\/T\/SpotifyLyricsCapture\/s2-sessions\/404F9F32-7C7A-4B2C-B43E-E254CFEBD2FE\/seg-0BB427BC-mono.wav"
+  ]
+}

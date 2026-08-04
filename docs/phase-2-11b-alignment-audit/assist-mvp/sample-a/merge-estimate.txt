@@ -1,0 +1,6 @@
+partial-FCE4FF7E.json
+ lines 32 anchors 4 assist_suggested_est 4 unresolved_est 28
+ s3a_cov 0.125 s3b_cov 0.15625
+partial-404F9F32.json
+ lines 151 anchors 8 assist_suggested_est 8 unresolved_est 143
+ s3a_cov 0.33112582781456956 s3b_cov 0.13245033112582782
