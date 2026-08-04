@@ -914,6 +914,190 @@ public final class PlaybackState: ObservableObject {
 
     private var alignmentTask: Task<Void, Never>?
 
+#if DEBUG
+    public enum AssistCapturePhase: String, Equatable, Sendable {
+        case idle
+        case explaining
+        case capturing
+        case merging
+        case ready
+        case failed
+        case cancelled
+    }
+
+    @Published public private(set) var assistPhase: AssistCapturePhase = .idle
+    @Published public private(set) var assistStatusMessage = ""
+    @Published public private(set) var assistDraft: AssistedAlignmentDraft?
+    @Published public var isAssistExplainSheetPresented = false
+    private var assistTask: Task<Void, Never>?
+    private var assistSessionGuard: AlignmentSessionGuard?
+    private var assistIdentityKey: String?
+
+    /// Whether product UI may show「边听边排轴」.
+    public var canStartListeningAssist: Bool {
+        guard hasLiveTrack, !isMockPreviewMode else { return false }
+        guard let plain = lyricsSession.state.plainDocument ?? lyricsSession.state.document else { return false }
+        guard !plain.isSynchronized else { return false }
+        guard plain.lines.contains(where: {
+            !$0.originalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }) else { return false }
+        guard lyricsSession.activeLyricsVersionID != nil else { return false }
+        guard currentTrackIdentity != nil else { return false }
+        return assistPhase == .idle || assistPhase == .failed || assistPhase == .cancelled || assistPhase == .ready
+    }
+
+    /// Step 1: show explain sheet (no capture yet).
+    public func presentListeningAssistExplanation() {
+        guard canStartListeningAssist else {
+            songSearchSelectionMessage = "边听边排轴需要：当前歌曲、纯文本歌词、已保存版本"
+            return
+        }
+        isAssistExplainSheetPresented = true
+        assistPhase = .explaining
+        assistStatusMessage = ""
+    }
+
+    /// Step 2: user confirmed sheet → capture Spotify audio and build Assist draft.
+    public func confirmListeningAssistAndCapture(seconds: TimeInterval = 55) {
+        isAssistExplainSheetPresented = false
+        guard hasLiveTrack, let identity = currentTrackIdentity else { return }
+        guard let plain = lyricsSession.state.plainDocument ?? lyricsSession.state.document,
+              !plain.isSynchronized,
+              let sourceVersionID = lyricsSession.activeLyricsVersionID else {
+            songSearchSelectionMessage = "无法开始边听边排轴"
+            return
+        }
+        let sourceHash = lyricsSession.activeSourceContentHash
+            ?? LyricsPersistenceMapper.sourceContentHash(document: plain)
+        let guardToken = AlignmentSessionGuard(
+            identity: identity,
+            sourceVersionID: sourceVersionID,
+            sourceContentHash: sourceHash,
+            revision: lyricsSession.revision
+        )
+        assistSessionGuard = guardToken
+        assistIdentityKey = identity.stableKey
+        assistDraft = nil
+        assistPhase = .capturing
+        assistStatusMessage = "正在临时分析当前歌曲音频…"
+        songSearchSelectionMessage = "边听边排轴：捕获中（确认前不会保存时间轴）"
+
+        LiveCaptureCoordinator.shared.bind(playback: self)
+        assistTask?.cancel()
+        assistTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            await LiveCaptureCoordinator.shared.start(
+                autoStopAfter: max(25, seconds),
+                runPartialAlignment: true
+            )
+            // Wait until coordinator returns to idle after auto-stop + partial.
+            for _ in 0..<600 {
+                if Task.isCancelled {
+                    self.assistPhase = .cancelled
+                    return
+                }
+                let st = LiveCaptureCoordinator.shared.state
+                if st == .idle || st == .failed {
+                    break
+                }
+                try? await Task.sleep(nanoseconds: 200_000_000)
+            }
+            guard let token = self.assistSessionGuard,
+                  token.accepts(
+                    identity: self.currentTrackIdentity ?? identity,
+                    sourceVersionID: self.lyricsSession.activeLyricsVersionID ?? sourceVersionID,
+                    sourceContentHash: self.lyricsSession.activeSourceContentHash ?? sourceHash,
+                    revision: self.lyricsSession.revision
+                  ),
+                  self.currentTrackIdentity?.stableKey == self.assistIdentityKey else {
+                self.assistPhase = .cancelled
+                self.assistStatusMessage = "歌曲已切换，草稿已丢弃"
+                self.songSearchSelectionMessage = "边听边排轴已取消（切歌）"
+                self.assistDraft = nil
+                LyricsE2ELog.log("ASSIST drop stale identity")
+                return
+            }
+            guard let report = LiveCaptureCoordinator.shared.lastPartialReport else {
+                self.assistPhase = .failed
+                self.assistStatusMessage = LiveCaptureCoordinator.shared.lastError
+                    ?? "未能生成建议时间"
+                self.songSearchSelectionMessage = self.assistStatusMessage
+                return
+            }
+            self.assistPhase = .merging
+            let plainLines = plain.lines
+            let draft = AssistedCandidateMerger.merge(report: report, plainLines: plainLines)
+            guard self.currentTrackIdentity?.stableKey == self.assistIdentityKey else {
+                self.assistPhase = .cancelled
+                self.assistDraft = nil
+                return
+            }
+            self.assistDraft = draft
+            self.assistPhase = .ready
+            self.assistStatusMessage =
+                "建议 \(draft.suggestedCount) 行 · 未排 \(draft.unresolvedCount) 行（确认前不写库）"
+            self.songSearchSelectionMessage = self.assistStatusMessage
+            LyricsE2ELog.log(
+                "ASSIST draft ready suggested=\(draft.suggestedCount) unresolved=\(draft.unresolvedCount) session=\(report.candidate.captureSessionID.uuidString.prefix(8))"
+            )
+            // Open editor and apply suggestions (still draft only).
+            self.prepareLyricsEditor()
+            self.lyricsEditorSession.applyAssistedDraft(draft)
+            if let url = URL(string: "spotifylyrics://open-editor") {
+                _ = url
+            }
+            // Focus editor window if registered.
+            if let editor = NSApp.windows.first(where: { $0.identifier?.rawValue == "lyrics-editor" || $0.title.contains("歌词编辑") }) {
+                editor.makeKeyAndOrderFront(nil)
+            } else {
+                // SwiftUI Window group open via notification-less fallback: user can open editor.
+                self.songSearchSelectionMessage += " · 请打开「歌词编辑」窗口继续标记"
+            }
+        }
+    }
+
+    public func cancelListeningAssist() {
+        assistTask?.cancel()
+        assistTask = nil
+        isAssistExplainSheetPresented = false
+        Task { @MainActor in
+            if LiveCaptureCoordinator.shared.state == .running
+                || LiveCaptureCoordinator.shared.state == .stopping {
+                await LiveCaptureCoordinator.shared.stop(reason: .userStop)
+            }
+        }
+        assistPhase = .cancelled
+        assistDraft = nil
+        assistSessionGuard = nil
+        assistIdentityKey = nil
+        assistStatusMessage = "已取消边听边排轴"
+        songSearchSelectionMessage = assistStatusMessage
+        lyricsEditorSession.clearAssistSuggestions()
+        LyricsE2ELog.log("ASSIST cancelled by user")
+    }
+
+    /// Drop unconfirmed Assist draft when track changes (no auto-save).
+    public func invalidateAssistOnTrackChange(previousKey: String?, nextKey: String?) {
+        guard let prev = previousKey, let next = nextKey, prev != next else { return }
+        guard assistPhase == .capturing || assistPhase == .merging || assistPhase == .ready
+                || assistPhase == .explaining else { return }
+        assistTask?.cancel()
+        assistTask = nil
+        Task { @MainActor in
+            if LiveCaptureCoordinator.shared.state == .running {
+                await LiveCaptureCoordinator.shared.stop(reason: .trackChanged)
+            }
+        }
+        assistPhase = .cancelled
+        assistDraft = nil
+        assistSessionGuard = nil
+        assistIdentityKey = nil
+        assistStatusMessage = "切歌：未确认的建议已丢弃"
+        lyricsEditorSession.clearAssistSuggestions()
+        LyricsE2ELog.log("ASSIST invalidate trackChanged prev=\(prev.prefix(24)) next=\(next.prefix(24))")
+    }
+#endif
+
     /// Known plain lyrics + local audio -> line-level forced alignment preview.
     public func alignCurrentLyricsWithLocalAudio() {
         guard hasLiveTrack, let identity = currentTrackIdentity, !isMockPreviewMode else {
@@ -1374,6 +1558,10 @@ public final class PlaybackState: ObservableObject {
         if identityChanged {
             alignmentTask?.cancel()
             clearSearchPreview()
+            let previousKey = lyricsSession.activeIdentity?.stableKey
+#if DEBUG
+            invalidateAssistOnTrackChange(previousKey: previousKey, nextKey: nextIdentity.stableKey)
+#endif
             hasLiveTrack = true
             isMockPreviewMode = false
             currentTrack = nextTrack

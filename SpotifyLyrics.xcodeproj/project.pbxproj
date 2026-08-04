@@ -86,6 +86,7 @@
 		110001062D83400100000001 /* AnchorConstrainedAligner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001062D83400100000000 /* AnchorConstrainedAligner.swift */; };
 		110001072D83400100000001 /* AssistedAlignmentDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001072D83400100000000 /* AssistedAlignmentDraft.swift */; };
 		110001082D83400100000001 /* AssistedCandidateMerger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001082D83400100000000 /* AssistedCandidateMerger.swift */; };
+		110001092D83400100000001 /* AssistExplainSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001092D83400100000000 /* AssistExplainSheet.swift */; };
 		1100004C2D83400100000001 /* LocalAlignedLyricsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */; };
 		1100004D2D83400100000001 /* JapaneseReadingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */; };
 		110000A02D83400100000001 /* ReadingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000A02D83400100000000 /* ReadingModels.swift */; };
@@ -249,6 +250,7 @@
 		110001062D83400100000000 /* AnchorConstrainedAligner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/AnchorConstrainedAligner.swift; sourceTree = "<group>"; };
 		110001072D83400100000000 /* AssistedAlignmentDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/AssistedAlignmentDraft.swift; sourceTree = "<group>"; };
 		110001082D83400100000000 /* AssistedCandidateMerger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/AssistedCandidateMerger.swift; sourceTree = "<group>"; };
+		110001092D83400100000000 /* AssistExplainSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistExplainSheet.swift; sourceTree = "<group>"; };
 		1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAlignedLyricsStore.swift; sourceTree = "<group>"; };
 		1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JapaneseReadingPipeline.swift; sourceTree = "<group>"; };
 		110000A02D83400100000000 /* ReadingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingModels.swift; sourceTree = "<group>"; };
@@ -458,6 +460,7 @@
 			children = (
 				110000E42D83400100000000 /* AlignmentPreviewView.swift */,
 				110000082D83400100000000 /* LyricsCanvasView.swift */,
+				110001092D83400100000000 /* AssistExplainSheet.swift */,
 				110000092D83400100000000 /* LyricLineView.swift */,
 				1100000A2D83400100000000 /* TrackHeaderView.swift */,
 				1100000B2D83400100000000 /* LyricsPreferencesPopover.swift */,
@@ -706,6 +709,7 @@
 				110000062D83400100000001 /* LyricsViews.swift in Sources */,
 				110000072D83400100000001 /* MainLyricsWindowView.swift in Sources */,
 				110000082D83400100000001 /* LyricsCanvasView.swift in Sources */,
+				110001092D83400100000001 /* AssistExplainSheet.swift in Sources */,
 				110000092D83400100000001 /* LyricLineView.swift in Sources */,
 				1100000A2D83400100000001 /* TrackHeaderView.swift in Sources */,
 				1100000B2D83400100000001 /* LyricsPreferencesPopover.swift in Sources */,

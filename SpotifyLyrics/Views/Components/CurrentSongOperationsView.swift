@@ -468,10 +468,21 @@ struct CurrentSongOperationsView: View {
     private var alignmentSection: some View {
         switch state.liveLyricsState {
         case .alignmentQueued:
-            HStack {
-                Label("待排轴", systemImage: "waveform")
-                Spacer()
-                Button("选择本地音频") { state.alignCurrentLyricsWithLocalAudio() }
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Label("待排轴", systemImage: "waveform")
+                    Spacer()
+                    Button("选择本地音频") { state.alignCurrentLyricsWithLocalAudio() }
+                }
+#if DEBUG
+                if state.canStartListeningAssist {
+                    Button("边听边排轴") { state.presentListeningAssistExplanation() }
+                }
+                if state.assistPhase == .capturing || state.assistPhase == .merging {
+                    Text(state.assistStatusMessage).font(.caption).foregroundStyle(.secondary)
+                    Button("取消边听边排") { state.cancelListeningAssist() }
+                }
+#endif
             }
         case .alignmentRunning:
             HStack {

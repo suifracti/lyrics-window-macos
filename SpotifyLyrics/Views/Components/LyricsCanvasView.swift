@@ -4,6 +4,7 @@ struct LyricsCanvasView: View {
     @ObservedObject var state: PlaybackState
     var onSearch: (() -> Void)? = nil
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.openWindow) private var openWindow
     @State private var lastScrolledLineIndex: Int?
     @State private var isAlignmentDetailsPresented = false
     @State private var manualLyricsSearchQuery = ""
@@ -24,6 +25,19 @@ struct LyricsCanvasView: View {
                 AlignmentPreviewView(report: report)
             }
         }
+#if DEBUG
+        .sheet(isPresented: Binding(
+            get: { state.isAssistExplainSheetPresented },
+            set: { state.isAssistExplainSheetPresented = $0 }
+        )) {
+            AssistExplainSheet(state: state)
+        }
+        .onChange(of: state.assistPhase) { _, phase in
+            if phase == .ready {
+                openWindow(id: "lyrics-editor")
+            }
+        }
+#endif
     }
 
     /// The archived renderer remains available as a rollback target. It uses
@@ -48,10 +62,23 @@ struct LyricsCanvasView: View {
                         Button("自动排轴") { state.alignCurrentLyricsWithLocalAudio() }
                             .buttonStyle(.borderedProminent)
                             .tint(LyricsDesignTokens.accent)
+#if DEBUG
+                        if state.canStartListeningAssist {
+                            Button("边听边排轴") { state.presentListeningAssistExplanation() }
+                                .buttonStyle(.bordered)
+                        }
+                        if state.assistPhase == .capturing || state.assistPhase == .merging {
+                            Text(state.assistStatusMessage)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Button("取消边听边排") { state.cancelListeningAssist() }
+                                .buttonStyle(.bordered)
+                        }
+#endif
                         retryButton
                     }
                 }
-                .frame(maxHeight: 160)
+                .frame(maxHeight: 180)
             }
         case .alignmentRunning(_, _, let progress):
             VStack(spacing: 10) {
