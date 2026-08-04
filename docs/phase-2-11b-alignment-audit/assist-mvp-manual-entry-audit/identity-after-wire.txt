@@ -1,0 +1,22 @@
+APP=/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app
+Identifier=com.spotifylyrics.app
+Format=app bundle with Mach-O thin (arm64)
+CDHash=9b32bab10a51d3181d9dd509121b7e2774d9d78f
+Signature size=4778
+Authority=Apple Development: 3881920884@qq.com (XJDV53A9C8)
+Authority=Apple Worldwide Developer Relations Certification Authority
+Authority=Apple Root CA
+Signed Time=Aug 4, 2026 at 23:42:45
+TeamIdentifier=5RGL84U3V2
+---
+Executable=/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics
+designated => identifier "com.spotifylyrics.app" and anchor apple generic and certificate leaf[subject.CN] = "Apple Development: 3881920884@qq.com (XJDV53A9C8)" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */
+---
+/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app: valid on disk
+/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app: satisfies its Designated Requirement
+---
+SpotifyLyrics
+边听边排轴 FOUND
+打开编辑草稿 FOUND
+打开说明 FOUND
+重试边听边排轴 FOUND

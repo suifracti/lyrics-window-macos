@@ -458,6 +458,11 @@ struct AppleMusicImmersiveV3WindowView: View {
             Divider()
             Text("歌词：待对齐时间轴")
             Button("自动排轴") { state.alignCurrentLyricsWithLocalAudio() }
+#if DEBUG
+            if state.canStartListeningAssist {
+                Button("边听边排轴") { state.presentListeningAssistExplanation() }
+            }
+#endif
         case .alignmentRunning:
             Divider()
             Text("歌词：正在排轴")

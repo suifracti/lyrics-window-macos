@@ -39,6 +39,26 @@ struct MainLyricsWindowView: View {
         .preferredColorScheme(.dark)
         .background(Color.clear)
         .background(WindowStateAccessor(settings: settings))
+#if DEBUG
+        // Single Assist explain-sheet host for V3 + classic + lyrics-focus.
+        // Do not also attach AssistExplainSheet under LyricsCanvasView.
+        .sheet(isPresented: Binding(
+            get: { state.isAssistExplainSheetPresented },
+            set: { presented in
+                if presented {
+                    state.isAssistExplainSheetPresented = true
+                } else {
+                    // Esc / click-outside / swipe: leave explaining without capture.
+                    state.dismissListeningAssistExplanation()
+                }
+            }
+        )) {
+            AssistExplainSheet(state: state)
+        }
+        .onChange(of: state.assistEditorOpenToken) { _, _ in
+            openWindow(id: "lyrics-editor")
+        }
+#endif
         .task {
             state.startProvider(connectSpotify: settings.connectSpotifyOnLaunch)
             WindowManager.shared.restoreFloatingWindowIfConfigured(state: state)

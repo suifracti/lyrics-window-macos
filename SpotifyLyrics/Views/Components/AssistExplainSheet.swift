@@ -3,8 +3,10 @@ import SwiftUI
 
 /// Minimal product-facing explanation before Assist capture starts.
 /// No ScreenCaptureKit / Speech / DP jargon.
+/// Hosted once from `MainLyricsWindowView` (V3 + classic layouts).
 struct AssistExplainSheet: View {
     @ObservedObject var state: PlaybackState
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -31,18 +33,23 @@ struct AssistExplainSheet: View {
             HStack {
                 Button("取消") {
                     state.cancelListeningAssist()
+                    dismiss()
                 }
                 .keyboardShortcut(.cancelAction)
+                .accessibilityIdentifier("assist.sheet.cancel")
                 Spacer()
                 Button("开始") {
                     state.confirmListeningAssistAndCapture(seconds: 55)
+                    dismiss()
                 }
                 .buttonStyle(.borderedProminent)
                 .keyboardShortcut(.defaultAction)
+                .accessibilityIdentifier("assist.sheet.start")
             }
         }
         .padding(28)
         .frame(width: 440, height: 360)
+        .interactiveDismissDisabled(false)
     }
 }
 #endif

@@ -1056,13 +1056,17 @@ public final class PlaybackState: ObservableObject {
     @Published public private(set) var assistPhase: AssistCapturePhase = .idle
     @Published public private(set) var assistStatusMessage = ""
     @Published public private(set) var assistDraft: AssistedAlignmentDraft?
+    /// Single source of truth for the explain sheet. Hosted once on
+    /// `MainLyricsWindowView` (shared by V3 and classic layouts).
     @Published public var isAssistExplainSheetPresented = false
+    /// Pulsed when Assist draft is ready so the main window can open the editor.
+    @Published public private(set) var assistEditorOpenToken: UInt64 = 0
     private var assistTask: Task<Void, Never>?
     private var assistSessionGuard: AlignmentSessionGuard?
     private var assistIdentityKey: String?
 
-    /// Whether product UI may show「边听边排轴」.
-    public var canStartListeningAssist: Bool {
+    /// Preconditions for starting Assist (track + plain saved lyrics), independent of phase.
+    public var listeningAssistBaseEligibility: Bool {
         guard hasLiveTrack, !isMockPreviewMode else { return false }
         guard let plain = lyricsSession.state.plainDocument ?? lyricsSession.state.document else { return false }
         guard !plain.isSynchronized else { return false }
@@ -1071,7 +1075,24 @@ public final class PlaybackState: ObservableObject {
         }) else { return false }
         guard lyricsSession.activeLyricsVersionID != nil else { return false }
         guard currentTrackIdentity != nil else { return false }
+        return true
+    }
+
+    /// Whether product UI may show the primary「边听边排轴」start control.
+    public var canStartListeningAssist: Bool {
+        guard listeningAssistBaseEligibility else { return false }
+        // explaining: sheet is up (do not offer a second start); capturing/merging use cancel UI.
         return assistPhase == .idle || assistPhase == .failed || assistPhase == .cancelled || assistPhase == .ready
+    }
+
+    /// Whether the current-song panel should keep the Assist block visible.
+    public var showsListeningAssistControls: Bool {
+        listeningAssistBaseEligibility
+            || assistPhase == .explaining
+            || assistPhase == .capturing
+            || assistPhase == .merging
+            || assistPhase == .ready
+            || assistPhase == .failed
     }
 
     /// Step 1: show explain sheet (no capture yet).
@@ -1082,17 +1103,32 @@ public final class PlaybackState: ObservableObject {
         }
         isAssistExplainSheetPresented = true
         assistPhase = .explaining
+        assistStatusMessage = "请阅读说明后选择开始或取消"
+        LyricsE2ELog.log("ASSIST present explanation sheet")
+    }
+
+    /// Sheet dismissed without starting (Esc, click-outside, or binding set false).
+    /// Must leave a re-startable idle state — never stick in `explaining`.
+    public func dismissListeningAssistExplanation() {
+        isAssistExplainSheetPresented = false
+        guard assistPhase == .explaining else { return }
+        assistPhase = .idle
         assistStatusMessage = ""
+        songSearchSelectionMessage = ""
+        LyricsE2ELog.log("ASSIST explanation dismissed -> idle")
     }
 
     /// Step 2: user confirmed sheet → capture Spotify audio and build Assist draft.
     public func confirmListeningAssistAndCapture(seconds: TimeInterval = 55) {
         isAssistExplainSheetPresented = false
-        guard hasLiveTrack, let identity = currentTrackIdentity else { return }
+        guard hasLiveTrack, let identity = currentTrackIdentity else {
+            resetAssistToFailed(message: "需要当前 Spotify 歌曲")
+            return
+        }
         guard let plain = lyricsSession.state.plainDocument ?? lyricsSession.state.document,
               !plain.isSynchronized,
               let sourceVersionID = lyricsSession.activeLyricsVersionID else {
-            songSearchSelectionMessage = "无法开始边听边排轴"
+            resetAssistToFailed(message: "无法开始边听边排轴")
             return
         }
         let sourceHash = lyricsSession.activeSourceContentHash
@@ -1109,6 +1145,7 @@ public final class PlaybackState: ObservableObject {
         assistPhase = .capturing
         assistStatusMessage = "正在临时分析当前歌曲音频…"
         songSearchSelectionMessage = "边听边排轴：捕获中（确认前不会保存时间轴）"
+        LyricsE2ELog.log("ASSIST confirm capture seconds=\(seconds)")
 
         LiveCaptureCoordinator.shared.bind(playback: self)
         assistTask?.cancel()
@@ -1121,7 +1158,10 @@ public final class PlaybackState: ObservableObject {
             // Wait until coordinator returns to idle after auto-stop + partial.
             for _ in 0..<600 {
                 if Task.isCancelled {
-                    self.assistPhase = .cancelled
+                    // cancelListeningAssist already set phase; do not overwrite.
+                    if self.assistPhase == .capturing || self.assistPhase == .merging {
+                        self.assistPhase = .cancelled
+                    }
                     return
                 }
                 let st = LiveCaptureCoordinator.shared.state
@@ -1129,6 +1169,10 @@ public final class PlaybackState: ObservableObject {
                     break
                 }
                 try? await Task.sleep(nanoseconds: 200_000_000)
+            }
+            // Cancelled while waiting.
+            if Task.isCancelled || self.assistPhase == .cancelled {
+                return
             }
             guard let token = self.assistSessionGuard,
                   token.accepts(
@@ -1145,14 +1189,20 @@ public final class PlaybackState: ObservableObject {
                 LyricsE2ELog.log("ASSIST drop stale identity")
                 return
             }
+            if LiveCaptureCoordinator.shared.state == .failed {
+                self.resetAssistToFailed(
+                    message: LiveCaptureCoordinator.shared.lastError ?? "音频捕获失败"
+                )
+                return
+            }
             guard let report = LiveCaptureCoordinator.shared.lastPartialReport else {
-                self.assistPhase = .failed
-                self.assistStatusMessage = LiveCaptureCoordinator.shared.lastError
-                    ?? "未能生成建议时间"
-                self.songSearchSelectionMessage = self.assistStatusMessage
+                self.resetAssistToFailed(
+                    message: LiveCaptureCoordinator.shared.lastError ?? "未能生成建议时间"
+                )
                 return
             }
             self.assistPhase = .merging
+            self.assistStatusMessage = "正在整理时间建议…"
             let plainLines = plain.lines
             let draft = AssistedCandidateMerger.merge(report: report, plainLines: plainLines)
             guard self.currentTrackIdentity?.stableKey == self.assistIdentityKey else {
@@ -1168,20 +1218,28 @@ public final class PlaybackState: ObservableObject {
             LyricsE2ELog.log(
                 "ASSIST draft ready suggested=\(draft.suggestedCount) unresolved=\(draft.unresolvedCount) session=\(report.candidate.captureSessionID.uuidString.prefix(8))"
             )
-            // Open editor and apply suggestions (still draft only).
-            self.prepareLyricsEditor()
-            self.lyricsEditorSession.applyAssistedDraft(draft)
-            if let url = URL(string: "spotifylyrics://open-editor") {
-                _ = url
-            }
-            // Focus editor window if registered.
-            if let editor = NSApp.windows.first(where: { $0.identifier?.rawValue == "lyrics-editor" || $0.title.contains("歌词编辑") }) {
-                editor.makeKeyAndOrderFront(nil)
-            } else {
-                // SwiftUI Window group open via notification-less fallback: user can open editor.
-                self.songSearchSelectionMessage += " · 请打开「歌词编辑」窗口继续标记"
-            }
+            // Open existing editor and apply suggestions (still draft only — no auto-save).
+            self.openListeningAssistEditorWithDraft(draft)
         }
+    }
+
+    /// Apply draft into the existing lyrics editor and request its window.
+    public func openListeningAssistEditorWithDraft(_ draft: AssistedAlignmentDraft? = nil) {
+        let draft = draft ?? assistDraft
+        guard let draft else {
+            songSearchSelectionMessage = "还没有可编辑的时间建议"
+            return
+        }
+        prepareLyricsEditor()
+        lyricsEditorSession.applyAssistedDraft(draft)
+        assistEditorOpenToken &+= 1
+        // Best-effort focus if the window is already open.
+        if let editor = NSApp.windows.first(where: {
+            $0.identifier?.rawValue == "lyrics-editor" || $0.title.contains("歌词编辑")
+        }) {
+            editor.makeKeyAndOrderFront(nil)
+        }
+        LyricsE2ELog.log("ASSIST open editor token=\(assistEditorOpenToken)")
     }
 
     public func cancelListeningAssist() {
@@ -1211,6 +1269,7 @@ public final class PlaybackState: ObservableObject {
                 || assistPhase == .explaining else { return }
         assistTask?.cancel()
         assistTask = nil
+        isAssistExplainSheetPresented = false
         Task { @MainActor in
             if LiveCaptureCoordinator.shared.state == .running {
                 await LiveCaptureCoordinator.shared.stop(reason: .trackChanged)
@@ -1221,8 +1280,18 @@ public final class PlaybackState: ObservableObject {
         assistSessionGuard = nil
         assistIdentityKey = nil
         assistStatusMessage = "切歌：未确认的建议已丢弃"
+        songSearchSelectionMessage = assistStatusMessage
         lyricsEditorSession.clearAssistSuggestions()
         LyricsE2ELog.log("ASSIST invalidate trackChanged prev=\(prev.prefix(24)) next=\(next.prefix(24))")
+    }
+
+    private func resetAssistToFailed(message: String) {
+        isAssistExplainSheetPresented = false
+        assistPhase = .failed
+        assistStatusMessage = message
+        songSearchSelectionMessage = message
+        assistDraft = nil
+        LyricsE2ELog.log("ASSIST failed message=\(message)")
     }
 #endif
 

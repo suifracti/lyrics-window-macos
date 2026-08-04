@@ -450,8 +450,12 @@ struct CurrentSongOperationsView: View {
         case .alignmentQueued, .alignmentRunning, .alignmentPreview:
             return true
         default:
-            return false
+            break
         }
+#if DEBUG
+        if state.showsListeningAssistControls { return true }
+#endif
+        return false
     }
 
     private func readingVersionTitle(_ version: StoredReadingVersion) -> String {
@@ -475,13 +479,7 @@ struct CurrentSongOperationsView: View {
                     Button("选择本地音频") { state.alignCurrentLyricsWithLocalAudio() }
                 }
 #if DEBUG
-                if state.canStartListeningAssist {
-                    Button("边听边排轴") { state.presentListeningAssistExplanation() }
-                }
-                if state.assistPhase == .capturing || state.assistPhase == .merging {
-                    Text(state.assistStatusMessage).font(.caption).foregroundStyle(.secondary)
-                    Button("取消边听边排") { state.cancelListeningAssist() }
-                }
+                listeningAssistControls
 #endif
             }
         case .alignmentRunning:
@@ -498,9 +496,101 @@ struct CurrentSongOperationsView: View {
                 Button("放弃") { state.cancelAlignmentPreview() }
             }
         default:
+#if DEBUG
+            if state.showsListeningAssistControls {
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("边听边排轴", systemImage: "ear")
+                    listeningAssistControls
+                }
+            } else {
+                EmptyView()
+            }
+#else
             EmptyView()
+#endif
         }
     }
+
+#if DEBUG
+    /// Product-facing Assist controls (no S1/S2/S3A / DP / confidence jargon).
+    @ViewBuilder
+    private var listeningAssistControls: some View {
+        switch state.assistPhase {
+        case .idle, .cancelled:
+            if state.canStartListeningAssist {
+                Button("边听边排轴") {
+                    state.presentListeningAssistExplanation()
+                }
+                .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier("assist.listening.start")
+            }
+        case .explaining:
+            Text(state.assistStatusMessage.isEmpty
+                 ? "请在说明中选择开始或取消"
+                 : state.assistStatusMessage)
+                .font(.system(size: 11, design: .rounded))
+                .foregroundStyle(.secondary)
+            HStack(spacing: 8) {
+                Button("打开说明") {
+                    state.isAssistExplainSheetPresented = true
+                }
+                .buttonStyle(.bordered)
+                Button("取消") {
+                    state.cancelListeningAssist()
+                }
+                .buttonStyle(.bordered)
+            }
+            .accessibilityIdentifier("assist.listening.explaining")
+        case .capturing, .merging:
+            Text(state.assistStatusMessage.isEmpty
+                 ? "正在分析当前歌曲…"
+                 : state.assistStatusMessage)
+                .font(.system(size: 11, design: .rounded))
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Button("取消边听边排") {
+                state.cancelListeningAssist()
+            }
+            .buttonStyle(.bordered)
+            .accessibilityIdentifier("assist.listening.cancel")
+        case .ready:
+            Text(state.assistStatusMessage.isEmpty
+                 ? "已生成时间建议（尚未保存）"
+                 : state.assistStatusMessage)
+                .font(.system(size: 11, design: .rounded))
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: 8) {
+                Button("打开编辑草稿") {
+                    state.openListeningAssistEditorWithDraft()
+                    openEditor()
+                }
+                .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier("assist.listening.openEditor")
+                if state.canStartListeningAssist {
+                    Button("重新开始") {
+                        state.presentListeningAssistExplanation()
+                    }
+                    .buttonStyle(.bordered)
+                }
+            }
+        case .failed:
+            Text(state.assistStatusMessage.isEmpty
+                 ? "未能完成边听边排轴"
+                 : state.assistStatusMessage)
+                .font(.system(size: 11, design: .rounded))
+                .foregroundStyle(.orange)
+                .fixedSize(horizontal: false, vertical: true)
+            if state.canStartListeningAssist {
+                Button("重试边听边排轴") {
+                    state.presentListeningAssistExplanation()
+                }
+                .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier("assist.listening.retry")
+            }
+        }
+    }
+#endif
 
     private func openEditor() {
         state.prepareLyricsEditor()

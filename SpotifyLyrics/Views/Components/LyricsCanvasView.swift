@@ -25,19 +25,8 @@ struct LyricsCanvasView: View {
                 AlignmentPreviewView(report: report)
             }
         }
-#if DEBUG
-        .sheet(isPresented: Binding(
-            get: { state.isAssistExplainSheetPresented },
-            set: { state.isAssistExplainSheetPresented = $0 }
-        )) {
-            AssistExplainSheet(state: state)
-        }
-        .onChange(of: state.assistPhase) { _, phase in
-            if phase == .ready {
-                openWindow(id: "lyrics-editor")
-            }
-        }
-#endif
+        // AssistExplainSheet is hosted once on MainLyricsWindowView so default
+        // appleMusicImmersiveV3 (which does not embed LyricsCanvasView) can present it.
     }
 
     /// The archived renderer remains available as a rollback target. It uses
@@ -63,15 +52,29 @@ struct LyricsCanvasView: View {
                             .buttonStyle(.borderedProminent)
                             .tint(LyricsDesignTokens.accent)
 #if DEBUG
+                        // Entry still available on classic LyricsCanvas layouts;
+                        // explain sheet is hosted on MainLyricsWindowView only.
                         if state.canStartListeningAssist {
                             Button("边听边排轴") { state.presentListeningAssistExplanation() }
                                 .buttonStyle(.bordered)
+                                .accessibilityIdentifier("assist.listening.start.canvas")
                         }
                         if state.assistPhase == .capturing || state.assistPhase == .merging {
                             Text(state.assistStatusMessage)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             Button("取消边听边排") { state.cancelListeningAssist() }
+                                .buttonStyle(.bordered)
+                        }
+                        if state.assistPhase == .ready {
+                            Button("打开编辑草稿") {
+                                state.openListeningAssistEditorWithDraft()
+                                openWindow(id: "lyrics-editor")
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                        if state.assistPhase == .explaining {
+                            Button("取消") { state.cancelListeningAssist() }
                                 .buttonStyle(.bordered)
                         }
 #endif
