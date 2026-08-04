@@ -1,0 +1,4 @@
+[2026-08-04T15:50:54Z] QQ MATCH lines=32 conf=1.0 first=ねえ　忘れたいのに　また君を探す
+[2026-08-04T15:50:54Z] MANAGER AUTO_ADOPT provider=QQ Music Experimental strategy=primaryOriginal kind=exactTitleFullArtist tier=autoHigh score=0.7999999999999999 evidence=titleExact +0.30;primaryArtistExact +0.30;durationClose +0.12;albumExact +0.08 lines=32 sync=false
+[2026-08-04T15:50:54Z] SESSION apply alignmentQueued source=qqExperimental lines=32 first=ねえ　忘れたいのに　また君を探す
+[2026-08-04T15:50:54Z] SESSION persistence save rev=3 disposition=Optional(SpotifyLyrics.LyricsPersistenceSaveDisposition.inserted) lines=32

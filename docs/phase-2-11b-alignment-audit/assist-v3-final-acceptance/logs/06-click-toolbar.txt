@@ -1,0 +1,23 @@
+windows=1
+WINDOW1:SpotifyLyrics
+HIT:纯文本 · 未排轴
+windows=1
+WINDOW1:SpotifyLyrics
+HIT:纯文本 · 未排轴
+windows=1
+WINDOW1:SpotifyLyrics
+HIT:纯文本 · 未排轴
+popups=0
+menus=0
+menu_buttons=0
+g1_kids=9
+static text/AXStaticText
+UI element/AXUnknown
+static text/AXStaticText
+slider/AXSlider
+button/AXButton
+button/AXButton
+button/AXButton
+static text/AXStaticText
+scroll area/AXScrollArea
+

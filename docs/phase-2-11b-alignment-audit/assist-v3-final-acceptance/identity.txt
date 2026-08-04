@@ -1,0 +1,7 @@
+HEAD=abee438ce10c736f083d4b13ab32f5a3b0fdac3a
+CDHash=9b32bab10a51d3181d9dd509121b7e2774d9d78f
+Authority=Apple Development: 3881920884@qq.com (XJDV53A9C8)
+Authority=Apple Worldwide Developer Relations Certification Authority
+Authority=Apple Root CA
+Signed Time=Aug 4, 2026 at 23:42:45
+TeamIdentifier=5RGL84U3V2

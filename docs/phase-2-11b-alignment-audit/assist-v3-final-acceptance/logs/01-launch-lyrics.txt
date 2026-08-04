@@ -1,0 +1,16 @@
+[2026-08-04T15:50:45Z] LOG_RESET
+[2026-08-04T15:50:45Z] PlaybackState init providers=Local LRC,LRCLIB,NetEase Experimental,QQ Music Experimental
+[2026-08-04T15:50:46Z] PERSISTENCE startup ready
+[2026-08-04T15:50:46Z] SESSION clear
+[2026-08-04T15:50:46Z] Playback trackChange identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171 title=夜の合図 artist=Kawasaki.Rio duration=170.72
+[2026-08-04T15:50:46Z] SESSION begin rev=1 identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171 title=夜の合図 artist=Kawasaki.Rio duration=170.72 spotifyId=spotify:track:0662H3g9lGdt2ViPzYPzxm
+[2026-08-04T15:50:46Z] SESSION persistence miss rev=1 identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171
+[2026-08-04T15:50:46Z] MANAGER start title=夜の合図 artist=Kawasaki.Rio variants=3 providers=["Local LRC", "LRCLIB", "NetEase Experimental", "QQ Music Experimental"] queryOverride=
+[2026-08-04T15:50:48Z] SESSION clear
+[2026-08-04T15:50:48Z] SESSION clear
+[2026-08-04T15:50:49Z] SESSION cancelled before apply rev=1
+[2026-08-04T15:50:51Z] SESSION clear
+[2026-08-04T15:50:51Z] Playback trackChange identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171 title=夜の合図 artist=Kawasaki.Rio duration=170.72
+[2026-08-04T15:50:51Z] SESSION begin rev=3 identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171 title=夜の合図 artist=Kawasaki.Rio duration=170.72 spotifyId=spotify:track:0662H3g9lGdt2ViPzYPzxm
+[2026-08-04T15:50:51Z] SESSION persistence miss rev=3 identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171
+[2026-08-04T15:50:51Z] MANAGER start title=夜の合図 artist=Kawasaki.Rio variants=3 providers=["Local LRC", "LRCLIB", "NetEase Experimental", "QQ Music Experimental"] queryOverride=
