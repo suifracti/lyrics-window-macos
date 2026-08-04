@@ -155,9 +155,13 @@ struct SpotifyLyricsApp: App {
                 Divider()
                 Button("开始 Live Capture (S2)") {
                     LiveCaptureCoordinator.shared.bind(playback: playbackState)
-                    Task { await LiveCaptureCoordinator.shared.start(autoStopAfter: 90) }
+                    Task { await LiveCaptureCoordinator.shared.start(autoStopAfter: 90, runPartialAlignment: false) }
                 }
-                Button("停止 Live Capture (S2)") {
+                Button("开始 Partial 对齐 (S3A)") {
+                    LiveCaptureCoordinator.shared.bind(playback: playbackState)
+                    Task { await LiveCaptureCoordinator.shared.start(autoStopAfter: 75, runPartialAlignment: true) }
+                }
+                Button("停止 Live Capture / S3A") {
                     Task { await LiveCaptureCoordinator.shared.stop(reason: .userStop) }
                 }
             }

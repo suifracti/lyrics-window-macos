@@ -1,0 +1,308 @@
+{
+  "candidate" : {
+    "captureSessionID" : "9817ABB2-859F-4F88-B5F2-FF6F30099CE8",
+    "capturedDuration" : 45.693600535392484,
+    "capturedRanges" : [
+      {
+        "end" : 71.91362869739527,
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "start" : 44.91505646705587
+      },
+      {
+        "end" : 89.92503166198709,
+        "segmentID" : "209CFDF5-4A0F-4F27-A19D-E950F2298C2A",
+        "start" : 71.230003356934
+      }
+    ],
+    "coverageRatio" : 0.09375,
+    "createdAt" : "2026-08-04T11:59:59Z",
+    "lines" : [
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 0,
+        "status" : "unresolved",
+        "text" : "ねえ　忘れたいのに　また君を探す"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 1,
+        "status" : "unresolved",
+        "text" : "深夜0時の通知にまだ　期待してる"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 2,
+        "status" : "unresolved",
+        "text" : "「平気だよ」って言葉の裏"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 3,
+        "status" : "unresolved",
+        "text" : "崩れそうな強がりで塗った夜"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 4,
+        "status" : "unresolved",
+        "text" : "歩道橋から見下ろす街"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 5,
+        "status" : "unresolved",
+        "text" : "終わらせたのは私だったのに"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 6,
+        "status" : "unresolved",
+        "text" : "流れるラジオ　雨音混じり"
+      },
+      {
+        "confidence" : 0.46560729303526804,
+        "endTime" : 52.41505646705587,
+        "evidenceKind" : "directSpeech",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 7,
+        "speechRelativeEnd" : 7.5,
+        "speechRelativeStart" : 0.51,
+        "startTime" : 45.42505646705587,
+        "status" : "lowConfidence",
+        "text" : "まだあの時に縛られてるみたい"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 8,
+        "status" : "unresolved",
+        "text" : "心に走る夜の合図"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 9,
+        "status" : "unresolved",
+        "text" : "君の名前がまだ痛い"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 10,
+        "status" : "unresolved",
+        "text" : "通り過ぎたはずの未来が"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 11,
+        "status" : "unresolved",
+        "text" : "まだ私を呼び止める"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 12,
+        "status" : "unresolved",
+        "text" : "何度でも踏み出すふりして"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 13,
+        "status" : "unresolved",
+        "text" : "時計の針を戻してる"
+      },
+      {
+        "confidence" : 0.6706772392232451,
+        "endTime" : 81.85000335693401,
+        "evidenceKind" : "directSpeech",
+        "segmentID" : "209CFDF5-4A0F-4F27-A19D-E950F2298C2A",
+        "sourceLineIndex" : 14,
+        "speechRelativeEnd" : 10.620000000000001,
+        "speechRelativeStart" : 8.16,
+        "startTime" : 79.390003356934,
+        "status" : "lowConfidence",
+        "text" : "愛してた　それだけじゃ"
+      },
+      {
+        "confidence" : 0.7357165687275784,
+        "endTime" : 84.370003356934,
+        "evidenceKind" : "directSpeech",
+        "segmentID" : "209CFDF5-4A0F-4F27-A19D-E950F2298C2A",
+        "sourceLineIndex" : 15,
+        "speechRelativeEnd" : 13.14,
+        "speechRelativeStart" : 11.34,
+        "startTime" : 82.57000335693401,
+        "status" : "resolved",
+        "text" : "ダメだったんだね"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 16,
+        "status" : "unresolved",
+        "text" : "すれ違った言葉たちが"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 17,
+        "status" : "unresolved",
+        "text" : "今さら意味を持ち始めてる"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 18,
+        "status" : "unresolved",
+        "text" : "君の癖　君の声"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 19,
+        "status" : "unresolved",
+        "text" : "消えないまま今日も続いてる"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 20,
+        "status" : "unresolved",
+        "text" : "記憶の奥で鳴るアラーム"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 21,
+        "status" : "unresolved",
+        "text" : "止めたはずの感情がまだ"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 22,
+        "status" : "unresolved",
+        "text" : "夜に混ざってしまいそうで"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 23,
+        "status" : "unresolved",
+        "text" : "また逃げ出してしまいそうで"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 24,
+        "status" : "unresolved",
+        "text" : "心に響く　夜の合図"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 25,
+        "status" : "unresolved",
+        "text" : "君を知らない私になりたい"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 26,
+        "status" : "unresolved",
+        "text" : "なのにふとした仕草ひとつ"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 27,
+        "status" : "unresolved",
+        "text" : "思い出が勝手に疼く"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 28,
+        "status" : "unresolved",
+        "text" : "何度でも上書きしようとして"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 29,
+        "status" : "unresolved",
+        "text" : "あの日のまま動けない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 30,
+        "status" : "unresolved",
+        "text" : "さよならは　きっとそう"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "C58808B7-DFF4-4C1B-93D8-421278E0908E",
+        "sourceLineIndex" : 31,
+        "status" : "unresolved",
+        "text" : "優しさじゃなかった"
+      }
+    ],
+    "locale" : "ja-JP",
+    "lowConfidenceCount" : 2,
+    "outsideCapturedRangeCount" : 0,
+    "overallConfidence" : 0.6240003669953639,
+    "resolvedCount" : 1,
+    "trackIdentityDigest" : "spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|",
+    "transcriptSegmentCount" : 22,
+    "unresolvedCount" : 29
+  },
+  "heldOut" : {
+    "comparedLineCount" : 0,
+    "note" : "no_held_out_synced_lyrics",
+    "obviousMismatchCount" : 0
+  },
+  "judgment" : "C_speech_weak_on_singing",
+  "wavPaths" : [
+    "\/var\/folders\/kq\/dz44fm994nz94zw2dfqnz_g00000gn\/T\/SpotifyLyricsCapture\/s2-sessions\/9817ABB2-859F-4F88-B5F2-FF6F30099CE8\/seg-C58808B7-mono.wav",
+    "\/var\/folders\/kq\/dz44fm994nz94zw2dfqnz_g00000gn\/T\/SpotifyLyricsCapture\/s2-sessions\/9817ABB2-859F-4F88-B5F2-FF6F30099CE8\/seg-209CFDF5-mono.wav"
+  ]
+}

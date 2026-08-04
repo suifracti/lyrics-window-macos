@@ -1,0 +1,6 @@
+[2026-08-04T12:00:31Z] SESSION start sessionID=EE45B8E5-B72C-4026-A758-526A0326B74D identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図| duration=170.720 source=screenCaptureKit.spotifyAudio.v1 reason=initial
+[2026-08-04T12:00:42Z] S2 DROP late buffer identity mismatch
+[2026-08-04T12:00:42Z] S2 IDENTITY previous=spotify-id:0662h3g9lgdt2vipzypzxm|metada next=spotify-id:0fipkwb6qkwtjwtsyaiklh|metada
+[2026-08-04T12:00:42Z] S3A cancel gen=2 reason=trackChanged
+[2026-08-04T12:00:42Z] SESSION end sessionID=EE45B8E5-B72C-4026-A758-526A0326B74D identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図| reason=trackChanged segments=2
+[2026-08-04T12:00:42Z] SESSION start sessionID=3C8A99FF-ABDD-4812-B8D0-46B40DB9B0A7 identity=spotify-id:0fipkwb6qkwtjwtsyaiklh|metadata:bitte duration=262.500 source=screenCaptureKit.spotifyAudio.v1 reason=trackChanged

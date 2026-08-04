@@ -77,6 +77,10 @@
 		110000FD2D83400100000001 /* CaptureContinuityPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000FD2D83400100000000 /* CaptureContinuityPolicy.swift */; };
 		110000FE2D83400100000001 /* CapturedAudioModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000FE2D83400100000000 /* CapturedAudioModels.swift */; };
 		110000FF2D83400100000001 /* LiveCaptureCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000FF2D83400100000000 /* LiveCaptureCoordinator.swift */; };
+		110001002D83400100000001 /* SegmentWAVWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001002D83400100000000 /* SegmentWAVWriter.swift */; };
+		110001012D83400100000001 /* PartialAlignmentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001012D83400100000000 /* PartialAlignmentModels.swift */; };
+		110001022D83400100000001 /* AlignmentLocaleRecommender.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001022D83400100000000 /* AlignmentLocaleRecommender.swift */; };
+		110001032D83400100000001 /* SegmentPartialAlignmentPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001032D83400100000000 /* SegmentPartialAlignmentPipeline.swift */; };
 		1100004C2D83400100000001 /* LocalAlignedLyricsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */; };
 		1100004D2D83400100000001 /* JapaneseReadingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */; };
 		110000A02D83400100000001 /* ReadingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000A02D83400100000000 /* ReadingModels.swift */; };
@@ -231,6 +235,10 @@
 		110000FD2D83400100000000 /* CaptureContinuityPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/CaptureContinuityPolicy.swift; sourceTree = "<group>"; };
 		110000FE2D83400100000000 /* CapturedAudioModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/CapturedAudioModels.swift; sourceTree = "<group>"; };
 		110000FF2D83400100000000 /* LiveCaptureCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/LiveCaptureCoordinator.swift; sourceTree = "<group>"; };
+		110001002D83400100000000 /* SegmentWAVWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/SegmentWAVWriter.swift; sourceTree = "<group>"; };
+		110001012D83400100000000 /* PartialAlignmentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/PartialAlignmentModels.swift; sourceTree = "<group>"; };
+		110001022D83400100000000 /* AlignmentLocaleRecommender.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/AlignmentLocaleRecommender.swift; sourceTree = "<group>"; };
+		110001032D83400100000000 /* SegmentPartialAlignmentPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/SegmentPartialAlignmentPipeline.swift; sourceTree = "<group>"; };
 		1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAlignedLyricsStore.swift; sourceTree = "<group>"; };
 		1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JapaneseReadingPipeline.swift; sourceTree = "<group>"; };
 		110000A02D83400100000000 /* ReadingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingModels.swift; sourceTree = "<group>"; };
@@ -363,6 +371,10 @@
 				110000FD2D83400100000000 /* CaptureContinuityPolicy.swift */,
 				110000FE2D83400100000000 /* CapturedAudioModels.swift */,
 				110000FF2D83400100000000 /* LiveCaptureCoordinator.swift */,
+				110001002D83400100000000 /* SegmentWAVWriter.swift */,
+				110001012D83400100000000 /* PartialAlignmentModels.swift */,
+				110001022D83400100000000 /* AlignmentLocaleRecommender.swift */,
+				110001032D83400100000000 /* SegmentPartialAlignmentPipeline.swift */,
 			);
 			path = SpotifyLyrics;
 			sourceTree = "<group>";
@@ -738,6 +750,10 @@
 				110000FD2D83400100000001 /* CaptureContinuityPolicy.swift in Sources */,
 				110000FE2D83400100000001 /* CapturedAudioModels.swift in Sources */,
 				110000FF2D83400100000001 /* LiveCaptureCoordinator.swift in Sources */,
+				110001002D83400100000001 /* SegmentWAVWriter.swift in Sources */,
+				110001012D83400100000001 /* PartialAlignmentModels.swift in Sources */,
+				110001022D83400100000001 /* AlignmentLocaleRecommender.swift in Sources */,
+				110001032D83400100000001 /* SegmentPartialAlignmentPipeline.swift in Sources */,
 				110000492D83400100000001 /* AudioPCMConverter.swift in Sources */,
 				110000482D83400100000001 /* AlignmentService.swift in Sources */,
 				110000472D83400100000001 /* AlignmentModels.swift in Sources */,

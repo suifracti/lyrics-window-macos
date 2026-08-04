@@ -38,15 +38,23 @@ public final class LiveCaptureCoordinator: ObservableObject {
     private var sessionWorkDirectory: URL?
     private var autoStopTask: Task<Void, Never>?
     private var gapWatchTask: Task<Void, Never>?
+    private var alignmentGeneration: UInt64 = 0
+    private let generationFlag = GenerationFlag()
+    private var alignmentTask: Task<Void, Never>?
+    @Published public private(set) var lastPartialReport: PartialAlignmentReport?
 
     private init() {
         LiveCaptureCoordinator.scavengeOrphanTemp()
-        if ProcessInfo.processInfo.environment["SPOTIFYLYRICS_SCK_S2"] == "1" {
-            let seconds = Double(ProcessInfo.processInfo.environment["SPOTIFYLYRICS_SCK_S2_SECONDS"] ?? "55") ?? 55
+        let s3a = ProcessInfo.processInfo.environment["SPOTIFYLYRICS_SCK_S3A"] == "1"
+        let s2 = ProcessInfo.processInfo.environment["SPOTIFYLYRICS_SCK_S2"] == "1" || s3a
+        if s2 {
+            let defaultSeconds = s3a ? "75" : "55"
+            let seconds = Double(ProcessInfo.processInfo.environment["SPOTIFYLYRICS_SCK_S2_SECONDS"]
+                ?? ProcessInfo.processInfo.environment["SPOTIFYLYRICS_SCK_S3A_SECONDS"]
+                ?? defaultSeconds) ?? 75
             Task { @MainActor in
                 try? await Task.sleep(nanoseconds: 2_000_000_000)
-                // PlaybackState must be bound from Main.onAppear first.
-                await self.start(autoStopAfter: max(20, seconds))
+                await self.start(autoStopAfter: max(20, seconds), runPartialAlignment: s3a)
             }
         }
     }
@@ -80,19 +88,31 @@ public final class LiveCaptureCoordinator: ObservableObject {
 
     // MARK: - Start / stop
 
-    public func start(autoStopAfter seconds: TimeInterval? = nil) async {
+    private var shouldRunPartialAlignment = false
+
+    public func start(autoStopAfter seconds: TimeInterval? = nil, runPartialAlignment: Bool = false) async {
         guard state == .idle || state == .failed else {
             SCKSpikeLog.log("S2 start ignored state=\(state.rawValue)")
             return
         }
         lastError = nil
+        lastPartialReport = nil
         completedSessions = []
         activeSession = nil
         openSegment = nil
-        SCKSpikeLog.log("S2 SESSION_BOOT formal_db_opened=NO no-asr no-align")
+        shouldRunPartialAlignment = runPartialAlignment
+            || ProcessInfo.processInfo.environment["SPOTIFYLYRICS_SCK_S3A"] == "1"
+        alignmentGeneration &+= 1
+        generationFlag.value = alignmentGeneration
+        alignmentTask?.cancel()
+        SCKSpikeLog.log(
+            "S2 SESSION_BOOT formal_db_opened=NO partial=\(shouldRunPartialAlignment) gen=\(alignmentGeneration)"
+        )
 
         // Ensure low-level capture is running and samples are forwarded here.
         SpotifyScreenCaptureAudioSpike.shared.audioSampleHandler = { [weak self] buffer in
+            // Append PCM on the capture queue path first (writer is thread-safe).
+            self?.appendPCM(buffer)
             self?.handleAudioSample(buffer)
         }
 
@@ -120,7 +140,11 @@ public final class LiveCaptureCoordinator: ObservableObject {
             autoStopTask = Task { @MainActor in
                 try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
                 guard !Task.isCancelled else { return }
-                await self.stop(reason: .autoStop)
+                // Spawn a fresh task so cancelling `autoStopTask` inside stop()
+                // cannot cancel Speech/alignment work.
+                Task { @MainActor in
+                    await self.stop(reason: .autoStop)
+                }
             }
         }
 
@@ -151,12 +175,29 @@ public final class LiveCaptureCoordinator: ObservableObject {
         activeSession = nil
 
         SpotifyScreenCaptureAudioSpike.shared.audioSampleHandler = nil
+
+        // Align while WAVs still exist; S1 spike stop scavenges capture temp.
+        if shouldRunPartialAlignment {
+            await runPartialAlignmentIfNeeded(stopReason: reason)
+        }
+
         await SpotifyScreenCaptureAudioSpike.shared.stop(reason: "s2-\(reason.rawValue)")
+
+        // Delete capture WAVs / session sidecars after alignment; keep s3a reports.
         cleanupSessionDirectory()
         LiveCaptureCoordinator.scavengeOrphanTemp()
         state = .idle
         SCKSpikeLog.log("S2 stopped idle sessions=\(completedSessions.count)")
         logSummaryTable()
+    }
+
+    private func appendPCM(_ sampleBuffer: CMSampleBuffer) {
+        // Called from capture queue via handler; writer is thread-safe.
+        // openSegment is MainActor-isolated — use a lock-free snapshot of the writer.
+        // We hop: writers are only swapped on MainActor, so we take a local ref under MainActor.
+        Task { @MainActor in
+            self.openSegment?.wavWriter?.append(sampleBuffer)
+        }
     }
 
     // MARK: - Playback observation (no second Spotify poller)
@@ -273,6 +314,12 @@ public final class LiveCaptureCoordinator: ObservableObject {
         lastIdentityKey = key
         SCKSpikeLog.log("S2 IDENTITY previous=\(short(previous)) next=\(short(key))")
 
+        // Invalidate any in-flight S3A work for the previous song.
+        alignmentGeneration &+= 1
+        generationFlag.value = alignmentGeneration
+        alignmentTask?.cancel()
+        SCKSpikeLog.log("S3A cancel gen=\(alignmentGeneration) reason=trackChanged")
+
         endOpenSegment(reason: .trackChanged, position: lastPosition)
         if var session = activeSession {
             session.terminalReason = .trackChanged
@@ -331,18 +378,24 @@ public final class LiveCaptureCoordinator: ObservableObject {
             endOpenSegment(reason: .sessionReplaced, position: position)
         }
         let continuity = UUID()
+        let segmentID = UUID()
+        var writer: SegmentWAVWriter?
+        if let dir = sessionWorkDirectory {
+            writer = try? SegmentWAVWriter(directory: dir, segmentID: segmentID)
+        }
         let segment = MutableSegment(
-            segmentID: UUID(),
+            segmentID: segmentID,
             sessionID: session.sessionID,
             trackIdentity: session.trackIdentity,
             spotifyPositionStart: position,
             hostTimeStart: host,
             continuityID: continuity,
-            startReason: reason
+            startReason: reason,
+            wavWriter: writer
         )
         openSegment = segment
         SCKSpikeLog.log(
-            "SEGMENT start segmentID=\(segment.segmentID.uuidString) sessionID=\(session.sessionID.uuidString) identity=\(segment.identityDigest) reason=\(reason.rawValue) position=\(fmt(position)) hostTime=\(fmt(host)) continuityID=\(continuity.uuidString)"
+            "SEGMENT start segmentID=\(segment.segmentID.uuidString) sessionID=\(session.sessionID.uuidString) identity=\(segment.identityDigest) reason=\(reason.rawValue) position=\(fmt(position)) hostTime=\(fmt(host)) continuityID=\(continuity.uuidString) wav=\(writer?.fileURL.lastPathComponent ?? "none")"
         )
     }
 
@@ -359,7 +412,18 @@ public final class LiveCaptureCoordinator: ObservableObject {
             segment.duration = max(0, host - segment.hostTimeStart)
         }
         segment.isContinuous = (reason == .pause || reason == .userStop || reason == .autoStop || reason == .trackChanged)
-        segment.temporaryPCMReference = writeSegmentSidecar(segment.frozen())
+
+        // Finalize WAV first so temporaryPCMReference points at audio for S3A.
+        if let wavURL = try? segment.wavWriter?.finish() {
+            segment.temporaryPCMReference = wavURL.path
+            SCKSpikeLog.log("WAV ready path=\(wavURL.path) frames=\(segment.wavWriter?.framesWritten ?? 0)")
+        } else {
+            segment.wavWriter?.abandon()
+            // Fall back to JSON sidecar metadata only.
+            segment.temporaryPCMReference = writeSegmentSidecar(segment.frozen())
+        }
+        // Always write metadata sidecar alongside (when dir exists).
+        _ = writeSegmentSidecar(segment.frozen())
 
         let frozen = segment.frozen()
         if var session = activeSession {
@@ -369,6 +433,90 @@ public final class LiveCaptureCoordinator: ObservableObject {
         SCKSpikeLog.log(
             "SEGMENT end segmentID=\(frozen.segmentID.uuidString) sessionID=\(frozen.sessionID.uuidString) identity=\(frozen.identityDigest) reason=\(reason.rawValue) posStart=\(fmt(frozen.spotifyPositionStart)) posEnd=\(fmt(frozen.spotifyPositionEnd ?? -1)) hostStart=\(fmt(frozen.hostTimeStart)) hostEnd=\(fmt(frozen.hostTimeEnd ?? -1)) ptsStart=\(fmt(frozen.audioPTSStart ?? -1)) ptsEnd=\(fmt(frozen.audioPTSEnd ?? -1)) samples=\(frozen.sampleCount) buffers=\(frozen.bufferCount) duration=\(fmt(frozen.duration)) rate=\(frozen.sampleRate) ch=\(frozen.channelCount) continuous=\(frozen.isContinuous) pcm=\(frozen.temporaryPCMReference ?? "none")"
         )
+    }
+
+    private func runPartialAlignmentIfNeeded(stopReason: CaptureTerminalReason) async {
+        let gen = alignmentGeneration
+        guard isGenerationCurrent(gen) else {
+            SCKSpikeLog.log("S3A skip stale generation")
+            return
+        }
+        // Prefer the longest completed session with WAV-backed segments.
+        let sessions = completedSessions
+        guard let session = sessions.max(by: { lhs, rhs in
+            lhs.segments.map(\.duration).reduce(0, +) < rhs.segments.map(\.duration).reduce(0, +)
+        }) else {
+            SCKSpikeLog.log("S3A no completed sessions")
+            return
+        }
+        let wavSegments = session.segments.filter { ($0.temporaryPCMReference ?? "").hasSuffix(".wav") }
+        guard !wavSegments.isEmpty else {
+            SCKSpikeLog.log("S3A no wav segments session=\(session.sessionID.uuidString.prefix(8))")
+            return
+        }
+
+        guard let playback else {
+            SCKSpikeLog.log("S3A no playback for lyrics")
+            return
+        }
+        // Held-out: use current synced lyrics times only for evaluation AFTER
+        // alignment. Algorithm input always uses plain lines (timestamps zeroed).
+        let liveLines = playback.liveLyrics
+        guard !liveLines.isEmpty else {
+            SCKSpikeLog.log("S3A no lyrics lines")
+            return
+        }
+        let plain = liveLines.map {
+            LyricLine(
+                id: $0.id,
+                timestamp: 0,
+                originalText: $0.originalText,
+                endTime: nil,
+                translationText: $0.translationText,
+                romajiText: $0.romajiText,
+                kanaText: $0.kanaText,
+                rubyTokens: $0.rubyTokens
+            )
+        }
+        let groundTruth: [LyricLine]? = playback.liveLyricsAreSynchronized ? liveLines : nil
+        if playback.liveLyricsAreSynchronized {
+            SCKSpikeLog.log("S3A held_out=enabled lines=\(liveLines.count) (timestamps hidden from aligner)")
+        } else {
+            SCKSpikeLog.log("S3A held_out=disabled plain_or_unsynced")
+        }
+
+        let localeOverride = ProcessInfo.processInfo.environment["SPOTIFYLYRICS_S3A_LOCALE"]
+        do {
+            SCKSpikeLog.log("S3A align begin session=\(session.sessionID.uuidString.prefix(8)) segments=\(wavSegments.count)")
+            let flag = generationFlag
+            let report = try await SegmentPartialAlignmentPipeline.align(
+                session: session,
+                segments: wavSegments,
+                plainLines: plain,
+                languageHint: playback.liveLyricsLanguage,
+                localeOverride: localeOverride,
+                groundTruthSyncedLines: groundTruth,
+                identity: session.trackIdentity,
+                generation: gen,
+                isGenerationCurrent: { flag.matches(gen) }
+            )
+            guard isGenerationCurrent(gen) else {
+                SCKSpikeLog.log("S3A drop stale report gen=\(gen)")
+                return
+            }
+            lastPartialReport = report
+            SCKSpikeLog.log("S3A judgment=\(report.judgment)")
+        } catch {
+            if !isGenerationCurrent(gen) {
+                SCKSpikeLog.log("S3A cancelled gen=\(gen)")
+            } else {
+                SCKSpikeLog.log("S3A failed error=\(error.localizedDescription)")
+            }
+        }
+    }
+
+    private func isGenerationCurrent(_ gen: UInt64) -> Bool {
+        alignmentGeneration == gen
     }
 
     private func finalizeSession(_ session: CapturedAudioSession, reason: CaptureTerminalReason) {
@@ -578,6 +726,21 @@ public final class LiveCaptureCoordinator: ObservableObject {
     }
 }
 
+// MARK: - Generation flag (Sendable)
+
+private final class GenerationFlag: @unchecked Sendable {
+    private let lock = NSLock()
+    private var _value: UInt64 = 0
+    var value: UInt64 {
+        get { lock.lock(); defer { lock.unlock() }; return _value }
+        set { lock.lock(); _value = newValue; lock.unlock() }
+    }
+    func matches(_ expected: UInt64) -> Bool {
+        lock.lock(); defer { lock.unlock() }
+        return _value == expected
+    }
+}
+
 // MARK: - Mutable open segment
 
 private final class MutableSegment {
@@ -600,6 +763,7 @@ private final class MutableSegment {
     var endReason: SegmentBoundaryReason?
     var temporaryPCMReference: String?
     var isContinuous: Bool = true
+    let wavWriter: SegmentWAVWriter?
 
     var identityDigest: String { String(trackIdentity.stableKey.prefix(48)) }
 
@@ -610,7 +774,8 @@ private final class MutableSegment {
         spotifyPositionStart: TimeInterval,
         hostTimeStart: TimeInterval,
         continuityID: UUID,
-        startReason: SegmentBoundaryReason
+        startReason: SegmentBoundaryReason,
+        wavWriter: SegmentWAVWriter? = nil
     ) {
         self.segmentID = segmentID
         self.sessionID = sessionID
@@ -619,6 +784,7 @@ private final class MutableSegment {
         self.hostTimeStart = hostTimeStart
         self.continuityID = continuityID
         self.startReason = startReason
+        self.wavWriter = wavWriter
     }
 
     func frozen() -> CapturedAudioSegment {

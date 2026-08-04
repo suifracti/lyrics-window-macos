@@ -354,17 +354,9 @@ lyricLineAbsoluteTime ≈ spotifyPositionStart
 
 ---
 
-### S3A — 现有 Speech + Partial 行级对齐
+### S3A — 现有 Speech + Partial 行级对齐 — **DONE 2026-08-04**
 
-| 项 | 内容 |
-|---|---|
-| 修改文件 | `SpeechForcedAlignmentService` 取消 complete-or-fail；preview 覆盖率；确认保存候选规则 |
-| 数据库 | 无 schema migration |
-| 测试 | unresolved 保留；无平均铺轴；0 证据失败 |
-| 风险 | 歌唱/伴奏下 Speech 不稳定（**预期，不阻塞路线**） |
-| 回退 | 本地文件路径仍可用 |
-
-**说明：** SCK 只解决音频从哪来；**准确率**要到 S3A/S3B 用真实曲验证。不引入 Whisper/付费服务。
+见 `s3a-partial-speech/ACCEPTANCE.md`。闭环：Segment WAV → SpeechTimedTranscriptProvider → LineForcedAligner（Partial）→ JSON/MD 报告。真实日语曲 **coverage≈9%**，judgment **`C_speech_weak_on_singing`**。held-out 因纯文本歌词 n/a。不写正式库。
 
 ---
 

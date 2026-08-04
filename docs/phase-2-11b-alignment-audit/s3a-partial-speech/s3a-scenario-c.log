@@ -1,0 +1,45 @@
+[2026-08-04T12:00:31Z] LOG_RESET
+[2026-08-04T12:00:31Z] SPIKE start formal_db_opened=NO (spike never opens SQLite)
+[2026-08-04T12:00:31Z] SPIKE policy=spotify-app-audio-only no-mic no-screen-save no-asr no-align
+[2026-08-04T12:00:31Z] DISCOVER related=1 primary=1 captureTargets=1
+[2026-08-04T12:00:31Z] DISCOVER_APP pid=18752 bundle=com.spotify.client name=Spotify captureTarget=true
+[2026-08-04T12:00:31Z] STREAM configured capturesAudio=1 screenOutput=0 mic=0 sampleRate=48000 channels=2
+[2026-08-04T12:00:31Z] TEMP dir=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/SpotifyLyricsCapture/50F82D5C-27F2-457E-A986-B50A518AC392 (marker only; no audio files)
+[2026-08-04T12:00:31Z] STREAM started
+[2026-08-04T12:00:31Z] SESSION start sessionID=EE45B8E5-B72C-4026-A758-526A0326B74D identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図| duration=170.720 source=screenCaptureKit.spotifyAudio.v1 reason=initial
+[2026-08-04T12:00:31Z] SEGMENT start segmentID=D78F88E6-8E98-476E-B57D-317DE3F89E55 sessionID=EE45B8E5-B72C-4026-A758-526A0326B74D identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図| reason=initial position=128.708 hostTime=1785844831.861 continuityID=1EBEC267-D399-49C4-A493-7FE170E01550 wav=seg-D78F88E6-mono.wav
+[2026-08-04T12:00:31Z] ANCHOR sessionID=EE45B8E5-B72C-4026-A758-526A0326B74D segmentID=D78F88E6-8E98-476E-B57D-317DE3F89E55 position=128.708 hostTime=1785844831.863 audioPTS=-1.000 playing=true
+[2026-08-04T12:00:32Z] PCM reason=tick buffers=53 samples=50880 duration_s=1.060 inRate=48000.0 ch=2 peak=0.7508 rms=0.2947 active=true videoBuffers=0
+[2026-08-04T12:00:33Z] PCM reason=tick buffers=101 samples=96960 duration_s=2.020 inRate=48000.0 ch=2 peak=0.7508 rms=0.2912 active=true videoBuffers=0
+[2026-08-04T12:00:33Z] ANCHOR sessionID=EE45B8E5-B72C-4026-A758-526A0326B74D segmentID=D78F88E6-8E98-476E-B57D-317DE3F89E55 position=130.906 hostTime=1785844833.939 audioPTS=428550.190 playing=true
+[2026-08-04T12:00:34Z] PCM reason=tick buffers=151 samples=144960 duration_s=3.020 inRate=48000.0 ch=2 peak=0.7508 rms=0.2924 active=true videoBuffers=0
+[2026-08-04T12:00:35Z] PCM reason=tick buffers=201 samples=192960 duration_s=4.020 inRate=48000.0 ch=2 peak=0.7508 rms=0.2847 active=true videoBuffers=0
+[2026-08-04T12:00:36Z] ANCHOR sessionID=EE45B8E5-B72C-4026-A758-526A0326B74D segmentID=D78F88E6-8E98-476E-B57D-317DE3F89E55 position=133.106 hostTime=1785844836.136 audioPTS=428552.390 playing=true
+[2026-08-04T12:00:36Z] PCM reason=tick buffers=251 samples=240960 duration_s=5.020 inRate=48000.0 ch=2 peak=0.7850 rms=0.2760 active=true videoBuffers=0
+[2026-08-04T12:00:37Z] PCM reason=tick buffers=301 samples=288960 duration_s=6.020 inRate=48000.0 ch=2 peak=0.8182 rms=0.2736 active=true videoBuffers=0
+[2026-08-04T12:00:38Z] ANCHOR sessionID=EE45B8E5-B72C-4026-A758-526A0326B74D segmentID=D78F88E6-8E98-476E-B57D-317DE3F89E55 position=135.118 hostTime=1785844838.142 audioPTS=428554.390 playing=true
+[2026-08-04T12:00:38Z] PCM reason=tick buffers=351 samples=336960 duration_s=7.020 inRate=48000.0 ch=2 peak=0.8182 rms=0.2735 active=true videoBuffers=0
+[2026-08-04T12:00:39Z] PCM reason=tick buffers=401 samples=384960 duration_s=8.020 inRate=48000.0 ch=2 peak=0.8182 rms=0.2797 active=true videoBuffers=0
+[2026-08-04T12:00:40Z] ANCHOR sessionID=EE45B8E5-B72C-4026-A758-526A0326B74D segmentID=D78F88E6-8E98-476E-B57D-317DE3F89E55 position=137.121 hostTime=1785844840.142 audioPTS=428556.390 playing=true
+[2026-08-04T12:00:40Z] PCM reason=tick buffers=451 samples=432960 duration_s=9.020 inRate=48000.0 ch=2 peak=0.8182 rms=0.2793 active=true videoBuffers=0
+[2026-08-04T12:00:41Z] PCM reason=tick buffers=501 samples=480960 duration_s=10.020 inRate=48000.0 ch=2 peak=0.8182 rms=0.2657 active=true videoBuffers=0
+[2026-08-04T12:00:42Z] WAV ready path=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/SpotifyLyricsCapture/s2-sessions/EE45B8E5-B72C-4026-A758-526A0326B74D/seg-D78F88E6-mono.wav frames=163840
+[2026-08-04T12:00:42Z] TEMP sidecar path=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/SpotifyLyricsCapture/s2-sessions/EE45B8E5-B72C-4026-A758-526A0326B74D/seg-D78F88E6.json
+[2026-08-04T12:00:42Z] SEGMENT end segmentID=D78F88E6-8E98-476E-B57D-317DE3F89E55 sessionID=EE45B8E5-B72C-4026-A758-526A0326B74D identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図| reason=seekBackward posStart=128.708 posEnd=138.921 hostStart=1785844831.861 hostEnd=1785844842.068 ptsStart=428548.130 ptsEnd=428558.350 samples=491520 buffers=512 duration=10.240 rate=48000.0 ch=2 continuous=false pcm=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/SpotifyLyricsCapture/s2-sessions/EE45B8E5-B72C-4026-A758-526A0326B74D/seg-D78F88E6-mono.wav
+[2026-08-04T12:00:42Z] SEGMENT start segmentID=1B5A0189-BB66-4273-8D82-D292F578F711 sessionID=EE45B8E5-B72C-4026-A758-526A0326B74D identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図| reason=seekBackward position=1.457 hostTime=1785844842.068 continuityID=D150BCA7-05E1-46F3-993F-4507DE8AAD0C wav=seg-1B5A0189-mono.wav
+[2026-08-04T12:00:42Z] S2 SEEK reason=seekBackward from=138.921 to=1.457 source=playbackNotify
+[2026-08-04T12:00:42Z] S2 DROP late buffer identity mismatch
+[2026-08-04T12:00:42Z] S2 IDENTITY previous=spotify-id:0662h3g9lgdt2vipzypzxm|metada next=spotify-id:0fipkwb6qkwtjwtsyaiklh|metada
+[2026-08-04T12:00:42Z] S3A cancel gen=2 reason=trackChanged
+[2026-08-04T12:00:42Z] WAV ready path=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/SpotifyLyricsCapture/s2-sessions/EE45B8E5-B72C-4026-A758-526A0326B74D/seg-1B5A0189-mono.wav frames=320
+[2026-08-04T12:00:42Z] TEMP sidecar path=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/SpotifyLyricsCapture/s2-sessions/EE45B8E5-B72C-4026-A758-526A0326B74D/seg-1B5A0189.json
+[2026-08-04T12:00:42Z] SEGMENT end segmentID=1B5A0189-BB66-4273-8D82-D292F578F711 sessionID=EE45B8E5-B72C-4026-A758-526A0326B74D identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図| reason=trackChanged posStart=1.457 posEnd=1.457 hostStart=1785844842.068 hostEnd=1785844842.125 ptsStart=-1.000 ptsEnd=-1.000 samples=0 buffers=0 duration=0.057 rate=0.0 ch=0 continuous=true pcm=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/SpotifyLyricsCapture/s2-sessions/EE45B8E5-B72C-4026-A758-526A0326B74D/seg-1B5A0189-mono.wav
+[2026-08-04T12:00:42Z] SESSION end sessionID=EE45B8E5-B72C-4026-A758-526A0326B74D identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図| reason=trackChanged segments=2
+[2026-08-04T12:00:42Z] TEMP session sidecar path=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/SpotifyLyricsCapture/s2-sessions/EE45B8E5-B72C-4026-A758-526A0326B74D/session.json
+[2026-08-04T12:00:42Z] SESSION start sessionID=3C8A99FF-ABDD-4812-B8D0-46B40DB9B0A7 identity=spotify-id:0fipkwb6qkwtjwtsyaiklh|metadata:bitte duration=262.500 source=screenCaptureKit.spotifyAudio.v1 reason=trackChanged
+[2026-08-04T12:00:42Z] SEGMENT start segmentID=59F0881D-8663-4720-9AD3-62E9778B463F sessionID=3C8A99FF-ABDD-4812-B8D0-46B40DB9B0A7 identity=spotify-id:0fipkwb6qkwtjwtsyaiklh|metadata:bitte reason=initial position=1.457 hostTime=1785844842.128 continuityID=6C5C9654-E267-4364-8711-D17C6B048462 wav=seg-59F0881D-mono.wav
+[2026-08-04T12:00:42Z] ANCHOR sessionID=3C8A99FF-ABDD-4812-B8D0-46B40DB9B0A7 segmentID=59F0881D-8663-4720-9AD3-62E9778B463F position=1.495 hostTime=1785844842.169 audioPTS=428558.410 playing=true
+[2026-08-04T12:00:42Z] PCM reason=tick buffers=551 samples=528960 duration_s=11.020 inRate=48000.0 ch=2 peak=0.8182 rms=0.2601 active=true videoBuffers=0
+[2026-08-04T12:00:43Z] PCM reason=tick buffers=601 samples=576960 duration_s=12.020 inRate=48000.0 ch=2 peak=0.8182 rms=0.2563 active=true videoBuffers=0
+[2026-08-04T12:00:44Z] ANCHOR sessionID=3C8A99FF-ABDD-4812-B8D0-46B40DB9B0A7 segmentID=59F0881D-8663-4720-9AD3-62E9778B463F position=3.684 hostTime=1785844844.331 audioPTS=428560.590 playing=true
+[2026-08-04T12:00:44Z] PCM reason=tick buffers=651 samples=624960 duration_s=13.020 inRate=48000.0 ch=2 peak=0.8182 rms=0.2533 active=true videoBuffers=0
