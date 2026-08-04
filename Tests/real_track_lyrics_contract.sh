@@ -139,6 +139,7 @@ SESSION_SOURCES=(
   "$ROOT_DIR/SpotifyLyrics/Lyrics/CompositeLyricsProvider.swift"
   "$ROOT_DIR/SpotifyLyrics/AI/AITranslationModels.swift"
   "$ROOT_DIR/SpotifyLyrics/Persistence/DatabaseModels.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/ReadingModels.swift"
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsLanguageGate.swift" \
   "$ROOT_DIR/SpotifyLyrics/Persistence/LyricsPersistenceMapper.swift" \
   "$ROOT_DIR/SpotifyLyrics/Services/LyricsSessionController.swift"
@@ -175,6 +176,7 @@ CORRECTNESS_SOURCES=(
   "$ROOT_DIR/SpotifyLyrics/Lyrics/CompositeLyricsProvider.swift"
   "$ROOT_DIR/SpotifyLyrics/AI/AITranslationModels.swift"
   "$ROOT_DIR/SpotifyLyrics/Persistence/DatabaseModels.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/ReadingModels.swift"
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsLanguageGate.swift" \
   "$ROOT_DIR/SpotifyLyrics/Persistence/LyricsPersistenceMapper.swift" \
   "$ROOT_DIR/SpotifyLyrics/Services/LyricsSessionController.swift"
@@ -242,6 +244,7 @@ PLAYBACK_SOURCES=(
   "$ROOT_DIR/SpotifyLyrics/Editor/LyricsTimelineValidator.swift"
   "$ROOT_DIR/SpotifyLyrics/Editor/LRCImportExport.swift"
   "$ROOT_DIR/SpotifyLyrics/Persistence/DatabaseModels.swift"
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/ReadingModels.swift"
   "$ROOT_DIR/SpotifyLyrics/Persistence/DatabaseMigrator.swift"
   "$ROOT_DIR/SpotifyLyrics/Persistence/LyricsRepository.swift"
   "$ROOT_DIR/SpotifyLyrics/Persistence/AlignmentProvenanceStore.swift"

@@ -4,7 +4,7 @@ import SQLite3
 /// SQLite-backed lyrics cache. The actor is deliberately not MainActor:
 /// sqlite3 calls, migrations, and transactions are serialized here without
 /// blocking SwiftUI or Spotify playback state.
-public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, LyricsEditingRepository {
+public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, LyricsEditingRepository, ReadingRepository {
     public nonisolated let databaseURL: URL
 
     private var database: OpaquePointer?
@@ -76,6 +76,7 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
             }
             let existingVersion = try scalarInt("PRAGMA user_version;")
             let allowV4Migration = permitsV4Migration(databaseAlreadyExisted: databaseAlreadyExisted)
+            let allowV6Migration = allowV4Migration && permitsReadingSchemaMigration()
             if databaseAlreadyExisted, existingVersion > 0, existingVersion < 3 {
                 try createMigrationBackup(label: "pre-v3")
             }
@@ -85,7 +86,11 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
                allowV4Migration {
                 try createMigrationBackup(label: "pre-v4")
             }
-            try DatabaseMigrator.migrate(handle, allowV4Migration: allowV4Migration)
+            try DatabaseMigrator.migrate(
+                handle,
+                allowV4Migration: allowV4Migration,
+                allowV6Migration: allowV6Migration
+            )
             try reloadRedirectResolver()
             prepared = true
         } catch let error as LyricsRepositoryError {
@@ -744,6 +749,168 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
         guard sqlite3_changes(database) > 0 else { throw TranslationRepositoryError.versionNotFound }
     }
 
+    // MARK: - ReadingRepository
+
+    public func loadReadingVersions(
+        lyricsVersionID: UUID,
+        representationID: String?,
+        sourceContentHash: String
+    ) async throws -> [StoredReadingVersion] {
+        try ensurePrepared()
+        guard let source = try fetchSourceLyrics(versionID: lyricsVersionID) else {
+            throw ReadingRepositoryError.sourceLyricsNotFound
+        }
+        guard source.hash == sourceContentHash else {
+            throw ReadingRepositoryError.sourceContentMismatch
+        }
+
+        let statement = try prepare("""
+            SELECT id, lyrics_version_id, source_content_hash, engine_id,
+                   representation_id, source_kind, language, created_at, updated_at,
+                   is_machine_generated, is_manually_edited, is_current, is_locked,
+                   is_archived, parent_version_id, confidence, warning_metadata,
+                   context_hash
+            FROM reading_versions
+            WHERE lyrics_version_id = ? AND source_content_hash = ?
+              AND (? IS NULL OR representation_id = ?)
+            ORDER BY is_locked DESC, is_current DESC, updated_at DESC;
+            """)
+        defer { sqlite3_finalize(statement) }
+        try bindText(lyricsVersionID.uuidString, at: 1, to: statement)
+        try bindText(sourceContentHash, at: 2, to: statement)
+        try bindText(representationID, at: 3, to: statement)
+        try bindText(representationID, at: 4, to: statement)
+
+        var result: [StoredReadingVersion] = []
+        while sqlite3_step(statement) == SQLITE_ROW {
+            let record = try readingVersionRecord(from: statement)
+            let lines = try fetchReadingLines(versionID: record.id)
+            guard validateStoredReading(record: record, lines: lines, sourceLines: source.lines) else { continue }
+            result.append(StoredReadingVersion(record: record, lines: lines))
+        }
+        return result
+    }
+
+    public func saveReadingVersion(_ request: ReadingVersionSaveRequest) async throws -> StoredReadingVersion {
+        try ensurePrepared()
+        guard let source = try fetchSourceLyrics(versionID: request.record.lyricsVersionID) else {
+            throw ReadingRepositoryError.sourceLyricsNotFound
+        }
+        guard source.hash == request.record.sourceContentHash else {
+            throw ReadingRepositoryError.sourceContentMismatch
+        }
+        guard request.record.sourceContentHash == source.hash,
+              request.lines.count == source.lines.count,
+              request.lines.map(\.lineIndex) == Array(source.lines.indices) else {
+            throw ReadingRepositoryError.invalidLines("行数或 index 不匹配")
+        }
+        for line in request.lines {
+            let sourceLine = source.lines[line.lineIndex]
+            let originalMatches = line.originalText == sourceLine.originalText
+            let sourceBlank = sourceLine.originalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            let readingBlank = line.readingText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
+            guard originalMatches,
+                  sourceBlank == readingBlank,
+                  !(line.readingText ?? "").contains("\n"),
+                  !(line.readingText ?? "").contains("\r") else {
+                throw ReadingRepositoryError.invalidLines("原文映射或空白行规则不匹配")
+            }
+        }
+        if let existing = try fetchReadingVersion(versionID: request.record.id) {
+            if existing.isLocked { throw ReadingRepositoryError.lockedVersion }
+            throw ReadingRepositoryError.database("读音版本 ID 已存在；显式保存必须创建新版本")
+        }
+
+        let record = request.record
+        try withTransaction {
+            try insertReadingVersion(record)
+            for line in request.lines {
+                try insertReadingLine(line, versionID: record.id)
+            }
+        }
+        return StoredReadingVersion(record: record, lines: request.lines)
+    }
+
+    public func adoptReadingVersion(versionID: UUID) async throws {
+        try ensurePrepared()
+        guard let record = try fetchReadingVersion(versionID: versionID),
+              let source = try fetchSourceLyrics(versionID: record.lyricsVersionID) else {
+            throw ReadingRepositoryError.versionNotFound
+        }
+        guard source.hash == record.sourceContentHash else { throw ReadingRepositoryError.sourceContentMismatch }
+        guard !record.isArchived else { throw ReadingRepositoryError.versionNotFound }
+        try withTransaction {
+            let clear = try prepare("""
+                UPDATE reading_versions SET is_current = 0, updated_at = ?
+                WHERE lyrics_version_id = ? AND representation_id = ?;
+                """)
+            defer { sqlite3_finalize(clear) }
+            try bindDouble(Date().timeIntervalSince1970, at: 1, to: clear)
+            try bindText(record.lyricsVersionID.uuidString, at: 2, to: clear)
+            try bindText(record.representationID, at: 3, to: clear)
+            try stepDone(clear)
+
+            let adopt = try prepare("""
+                UPDATE reading_versions SET is_current = 1, is_archived = 0, updated_at = ?
+                WHERE id = ?;
+                """)
+            defer { sqlite3_finalize(adopt) }
+            try bindDouble(Date().timeIntervalSince1970, at: 1, to: adopt)
+            try bindText(versionID.uuidString, at: 2, to: adopt)
+            try stepDone(adopt)
+        }
+    }
+
+    public func markReadingLocked(versionID: UUID, locked: Bool) async throws {
+        try ensurePrepared()
+        guard let record = try fetchReadingVersion(versionID: versionID) else {
+            throw ReadingRepositoryError.versionNotFound
+        }
+        if !locked && record.sourceKind == .legacyImported {
+            // Legacy imports may be unlocked for an explicit replacement, but
+            // they remain immutable rows; the replacement gets a new ID.
+        }
+        let statement = try prepare("UPDATE reading_versions SET is_locked = ?, updated_at = ? WHERE id = ?;")
+        defer { sqlite3_finalize(statement) }
+        try bindInt(locked ? 1 : 0, at: 1, to: statement)
+        try bindDouble(Date().timeIntervalSince1970, at: 2, to: statement)
+        try bindText(versionID.uuidString, at: 3, to: statement)
+        try stepDone(statement)
+        guard sqlite3_changes(database) > 0 else { throw ReadingRepositoryError.versionNotFound }
+    }
+
+    public func archiveReadingVersion(versionID: UUID, archived: Bool) async throws {
+        try ensurePrepared()
+        guard let record = try fetchReadingVersion(versionID: versionID) else {
+            throw ReadingRepositoryError.versionNotFound
+        }
+        guard !record.isLocked else { throw ReadingRepositoryError.lockedVersion }
+        let statement = try prepare("""
+            UPDATE reading_versions SET is_archived = ?, is_current = CASE WHEN ? = 1 THEN 0 ELSE is_current END,
+                   updated_at = ? WHERE id = ?;
+            """)
+        defer { sqlite3_finalize(statement) }
+        try bindInt(archived ? 1 : 0, at: 1, to: statement)
+        try bindInt(archived ? 1 : 0, at: 2, to: statement)
+        try bindDouble(Date().timeIntervalSince1970, at: 3, to: statement)
+        try bindText(versionID.uuidString, at: 4, to: statement)
+        try stepDone(statement)
+        guard sqlite3_changes(database) > 0 else { throw ReadingRepositoryError.versionNotFound }
+    }
+
+    public func deleteReadingVersion(versionID: UUID) async throws {
+        try ensurePrepared()
+        guard let record = try fetchReadingVersion(versionID: versionID) else {
+            throw ReadingRepositoryError.versionNotFound
+        }
+        guard !record.isLocked else { throw ReadingRepositoryError.lockedVersion }
+        let statement = try prepare("DELETE FROM reading_versions WHERE id = ?;")
+        defer { sqlite3_finalize(statement) }
+        try bindText(versionID.uuidString, at: 1, to: statement)
+        try stepDone(statement)
+        guard sqlite3_changes(database) > 0 else { throw ReadingRepositoryError.versionNotFound }
+    }
+
     // MARK: - LyricsEditingRepository
 
     public func loadEditableVersions(track: Track, identity: TrackIdentity) throws -> [StoredEditableLyricsVersion] {
@@ -1066,6 +1233,166 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
             result.append(try lyricsVersionRecord(from: statement))
         }
         return result
+    }
+
+    private func fetchReadingVersion(versionID: UUID) throws -> ReadingVersionRecord? {
+        let statement = try prepare("""
+            SELECT id, lyrics_version_id, source_content_hash, engine_id,
+                   representation_id, source_kind, language, created_at, updated_at,
+                   is_machine_generated, is_manually_edited, is_current, is_locked,
+                   is_archived, parent_version_id, confidence, warning_metadata,
+                   context_hash
+            FROM reading_versions WHERE id = ? LIMIT 1;
+            """)
+        defer { sqlite3_finalize(statement) }
+        try bindText(versionID.uuidString, at: 1, to: statement)
+        guard sqlite3_step(statement) == SQLITE_ROW else { return nil }
+        return try readingVersionRecord(from: statement)
+    }
+
+    private func readingVersionRecord(from statement: OpaquePointer) throws -> ReadingVersionRecord {
+        guard let id = columnText(statement, index: 0).flatMap(UUID.init(uuidString:)),
+              let lyricsVersionID = columnText(statement, index: 1).flatMap(UUID.init(uuidString:)),
+              let sourceHash = columnText(statement, index: 2),
+              let engineID = columnText(statement, index: 3),
+              let representationID = columnText(statement, index: 4),
+              let languageRaw = columnText(statement, index: 6) else {
+            throw LyricsRepositoryError.invalidData("ReadingVersionRecord 字段缺失")
+        }
+        return ReadingVersionRecord(
+            id: id,
+            lyricsVersionID: lyricsVersionID,
+            sourceContentHash: sourceHash,
+            engineID: engineID,
+            representationID: representationID,
+            sourceKind: ReadingVersionSourceKind(rawValue: columnText(statement, index: 5) ?? "generated") ?? .generated,
+            language: ReadingLanguage(rawValue: languageRaw) ?? .unknown,
+            createdAt: Date(timeIntervalSince1970: sqlite3_column_double(statement, 7)),
+            updatedAt: Date(timeIntervalSince1970: sqlite3_column_double(statement, 8)),
+            isMachineGenerated: sqlite3_column_int(statement, 9) != 0,
+            isManuallyEdited: sqlite3_column_int(statement, 10) != 0,
+            isCurrent: sqlite3_column_int(statement, 11) != 0,
+            isLocked: sqlite3_column_int(statement, 12) != 0,
+            isArchived: sqlite3_column_int(statement, 13) != 0,
+            parentVersionID: columnText(statement, index: 14).flatMap(UUID.init(uuidString:)),
+            confidence: sqlite3_column_double(statement, 15),
+            warningMetadata: decodeWarnings(columnText(statement, index: 16)),
+            contextHash: columnText(statement, index: 17) ?? ""
+        )
+    }
+
+    private func fetchReadingLines(versionID: UUID) throws -> [ReadingLineResult] {
+        let statement = try prepare("""
+            SELECT line_index, original_text, reading_text, tokens_json, language,
+                   source, confidence, warning_metadata
+            FROM reading_lines WHERE reading_version_id = ? ORDER BY line_index ASC;
+            """)
+        defer { sqlite3_finalize(statement) }
+        try bindText(versionID.uuidString, at: 1, to: statement)
+        var result: [ReadingLineResult] = []
+        while sqlite3_step(statement) == SQLITE_ROW {
+            guard let original = columnText(statement, index: 1) else {
+                throw LyricsRepositoryError.invalidData("ReadingLineRecord 原文缺失")
+            }
+            result.append(ReadingLineResult(
+                lineIndex: Int(sqlite3_column_int(statement, 0)),
+                originalText: original,
+                readingText: columnText(statement, index: 2),
+                language: ReadingLanguage(rawValue: columnText(statement, index: 4) ?? "unknown") ?? .unknown,
+                tokens: decodeTokens(columnText(statement, index: 3)),
+                warnings: decodeWarnings(columnText(statement, index: 7)),
+                confidence: sqlite3_column_double(statement, 6)
+            ))
+        }
+        return result
+    }
+
+    private func validateStoredReading(
+        record: ReadingVersionRecord,
+        lines: [ReadingLineResult],
+        sourceLines: [DatabaseLyricLineRecord]
+    ) -> Bool {
+        guard lines.count == sourceLines.count,
+              lines.map(\.lineIndex) == Array(sourceLines.indices) else { return false }
+        return lines.enumerated().allSatisfy { index, line in
+            let source = sourceLines[index].originalText
+            let sourceBlank = source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            let readingBlank = line.readingText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
+            return line.originalText == source && sourceBlank == readingBlank
+        }
+    }
+
+    private func insertReadingVersion(_ record: ReadingVersionRecord) throws {
+        let statement = try prepare("""
+            INSERT INTO reading_versions(
+                id, lyrics_version_id, source_content_hash, engine_id,
+                representation_id, source_kind, language, created_at, updated_at,
+                is_machine_generated, is_manually_edited, is_current, is_locked,
+                is_archived, parent_version_id, confidence, warning_metadata, context_hash
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            """)
+        defer { sqlite3_finalize(statement) }
+        try bindText(record.id.uuidString, at: 1, to: statement)
+        try bindText(record.lyricsVersionID.uuidString, at: 2, to: statement)
+        try bindText(record.sourceContentHash, at: 3, to: statement)
+        try bindText(record.engineID, at: 4, to: statement)
+        try bindText(record.representationID, at: 5, to: statement)
+        try bindText(record.sourceKind.rawValue, at: 6, to: statement)
+        try bindText(record.language.rawValue, at: 7, to: statement)
+        try bindDouble(record.createdAt.timeIntervalSince1970, at: 8, to: statement)
+        try bindDouble(record.updatedAt.timeIntervalSince1970, at: 9, to: statement)
+        try bindInt(record.isMachineGenerated ? 1 : 0, at: 10, to: statement)
+        try bindInt(record.isManuallyEdited ? 1 : 0, at: 11, to: statement)
+        try bindInt(record.isCurrent ? 1 : 0, at: 12, to: statement)
+        try bindInt(record.isLocked ? 1 : 0, at: 13, to: statement)
+        try bindInt(record.isArchived ? 1 : 0, at: 14, to: statement)
+        try bindText(record.parentVersionID?.uuidString, at: 15, to: statement)
+        try bindDouble(record.confidence, at: 16, to: statement)
+        try bindText(encodeWarnings(record.warningMetadata), at: 17, to: statement)
+        try bindText(record.contextHash, at: 18, to: statement)
+        try stepDone(statement)
+    }
+
+    private func insertReadingLine(_ line: ReadingLineResult, versionID: UUID) throws {
+        let statement = try prepare("""
+            INSERT INTO reading_lines(
+                reading_version_id, line_index, original_text, reading_text,
+                tokens_json, language, source, confidence, warning_metadata
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+            """)
+        defer { sqlite3_finalize(statement) }
+        try bindText(versionID.uuidString, at: 1, to: statement)
+        try bindInt(line.lineIndex, at: 2, to: statement)
+        try bindText(line.originalText, at: 3, to: statement)
+        try bindText(line.readingText, at: 4, to: statement)
+        try bindText(encodeTokens(line.tokens), at: 5, to: statement)
+        try bindText(line.language.rawValue, at: 6, to: statement)
+        try bindText(line.tokens.first?.source.rawValue ?? "unknown", at: 7, to: statement)
+        try bindDouble(line.confidence, at: 8, to: statement)
+        try bindText(encodeWarnings(line.warnings), at: 9, to: statement)
+        try stepDone(statement)
+    }
+
+    private func encodeTokens(_ tokens: [ReadingToken]) -> String {
+        guard let data = try? JSONEncoder().encode(tokens) else { return "[]" }
+        return String(data: data, encoding: .utf8) ?? "[]"
+    }
+
+    private func decodeTokens(_ value: String?) -> [ReadingToken] {
+        guard let value, let data = value.data(using: .utf8),
+              let tokens = try? JSONDecoder().decode([ReadingToken].self, from: data) else { return [] }
+        return tokens
+    }
+
+    private func encodeWarnings(_ warnings: [ReadingWarningCode]) -> String {
+        guard let data = try? JSONEncoder().encode(warnings) else { return "[]" }
+        return String(data: data, encoding: .utf8) ?? "[]"
+    }
+
+    private func decodeWarnings(_ value: String?) -> [ReadingWarningCode] {
+        guard let value, let data = value.data(using: .utf8),
+              let warnings = try? JSONDecoder().decode([ReadingWarningCode].self, from: data) else { return [] }
+        return warnings
     }
 
     private func fetchLyricsVersion(versionID: UUID) throws -> DatabaseLyricsVersionRecord? {
@@ -1473,6 +1800,16 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
             return false
         }
         return true
+    }
+
+    private func permitsReadingSchemaMigration() -> Bool {
+        // Reading v6 is deliberately a disposable validation schema. The
+        // formal Application Support database remains on its accepted v4
+        // schema until a separately authorized migration task exists.
+        let productionURL = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/Application Support/SpotifyLyrics/SpotifyLyrics.sqlite3")
+            .standardizedFileURL
+        return databaseURL.standardizedFileURL != productionURL
     }
 
     private func resolvedCanonicalStableKey(_ stableKey: String) throws -> String {

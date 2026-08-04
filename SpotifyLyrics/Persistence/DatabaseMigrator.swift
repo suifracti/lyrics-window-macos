@@ -4,7 +4,7 @@ import SQLite3
 /// Forward-only SQLite schema migrations. The repository calls this from its
 /// actor, so no migration work runs on MainActor.
 public enum DatabaseMigrator {
-    public static let currentVersion = 5
+    public static let currentVersion = 6
     public static let v4MigrationID = "track-identity-v4-initial"
     private static let waterSourceStableKey = "spotify-id:spotify:track:5mqkkcsrujqyakvolven0w|metadata:水曜日の約束|kawasakirio|水曜日の約束|171"
     private static let waterCanonicalStableKey = "spotify-id:5mqkkcsrujqyakvolven0w|metadata:水曜日の約束|kawasakirio|水曜日の約束|171"
@@ -13,7 +13,8 @@ public enum DatabaseMigrator {
 
     public static func migrate(
         _ database: OpaquePointer,
-        allowV4Migration: Bool = true
+        allowV4Migration: Bool = true,
+        allowV6Migration: Bool = true
     ) throws {
         do {
             try execute(database, sql: """
@@ -53,9 +54,16 @@ public enum DatabaseMigrator {
             } else {
                 try validateV4(database)
             }
-            if version >= 4, version < 5 {
+            // v5 and v6 are additive local schemas. A formal v4 database is
+            // intentionally left untouched when the caller has not opted in
+            // to a disposable copy.
+            if version >= 4, version < 5, allowV4Migration {
                 try migrateV5(database)
                 version = 5
+            }
+            if version >= 5, version < 6, allowV6Migration {
+                try migrateV6(database)
+                version = 6
             }
         } catch let error as LyricsRepositoryError {
             // A corrupt/partially readable SQLite file must be reported as a
@@ -462,6 +470,234 @@ public enum DatabaseMigrator {
         }
     }
 
+    /// Reading versions are additive and intentionally live in their own
+    /// tables.  The migration imports the legacy per-line kana/romaji values
+    /// as traceable legacy versions; it never edits lyric_lines or removes
+    /// the compatibility columns.
+    private static func migrateV6(_ database: OpaquePointer) throws {
+        try execute(database, sql: "BEGIN IMMEDIATE TRANSACTION;")
+        do {
+            try execute(database, sql: """
+                CREATE TABLE IF NOT EXISTS reading_versions (
+                    id TEXT PRIMARY KEY NOT NULL,
+                    lyrics_version_id TEXT NOT NULL,
+                    source_content_hash TEXT NOT NULL,
+                    engine_id TEXT NOT NULL,
+                    representation_id TEXT NOT NULL,
+                    source_kind TEXT NOT NULL DEFAULT 'generated',
+                    language TEXT NOT NULL DEFAULT 'und',
+                    created_at REAL NOT NULL,
+                    updated_at REAL NOT NULL,
+                    is_machine_generated INTEGER NOT NULL DEFAULT 0,
+                    is_manually_edited INTEGER NOT NULL DEFAULT 0,
+                    is_current INTEGER NOT NULL DEFAULT 0,
+                    is_locked INTEGER NOT NULL DEFAULT 0,
+                    is_archived INTEGER NOT NULL DEFAULT 0,
+                    parent_version_id TEXT,
+                    confidence REAL NOT NULL DEFAULT 0,
+                    warning_metadata TEXT NOT NULL DEFAULT '[]',
+                    context_hash TEXT NOT NULL DEFAULT '',
+                    FOREIGN KEY (lyrics_version_id) REFERENCES lyrics_versions(id) ON DELETE CASCADE,
+                    FOREIGN KEY (parent_version_id) REFERENCES reading_versions(id) ON DELETE SET NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS reading_lines (
+                    reading_version_id TEXT NOT NULL,
+                    line_index INTEGER NOT NULL,
+                    original_text TEXT NOT NULL,
+                    reading_text TEXT,
+                    tokens_json TEXT NOT NULL DEFAULT '[]',
+                    language TEXT NOT NULL DEFAULT 'und',
+                    source TEXT NOT NULL DEFAULT 'unknown',
+                    confidence REAL NOT NULL DEFAULT 0,
+                    warning_metadata TEXT NOT NULL DEFAULT '[]',
+                    PRIMARY KEY (reading_version_id, line_index),
+                    FOREIGN KEY (reading_version_id) REFERENCES reading_versions(id) ON DELETE CASCADE
+                );
+
+                CREATE INDEX IF NOT EXISTS reading_versions_lookup
+                    ON reading_versions(lyrics_version_id, representation_id, source_content_hash, updated_at);
+                CREATE INDEX IF NOT EXISTS reading_versions_selection
+                    ON reading_versions(lyrics_version_id, representation_id, is_locked, is_current, is_archived, updated_at);
+                CREATE INDEX IF NOT EXISTS reading_lines_version_order
+                    ON reading_lines(reading_version_id, line_index);
+                """)
+
+            for group in try legacyReadingGroups(database) {
+                guard !group.lines.isEmpty else { continue }
+                let sourceHash = LyricsSourceContentHasher.hash(
+                    isSynchronized: group.isSynchronized,
+                    lines: group.lines.map { line in
+                        DatabaseLyricLineRecord(
+                            lyricsVersionID: UUID(uuidString: group.versionID) ?? UUID(),
+                            lineIndex: line.lineIndex,
+                            startTime: line.startTime,
+                            endTime: line.endTime,
+                            originalText: line.original,
+                            kanaText: line.kana.isEmpty ? nil : line.kana,
+                            romajiText: line.romaji.isEmpty ? nil : line.romaji,
+                            translationText: nil
+                        )
+                    }
+                )
+                let language = group.language.lowercased().hasPrefix("ja") ? "ja" : "und"
+                if group.lines.contains(where: { !$0.kana.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) {
+                    try insertLegacyReadingVersion(
+                        database,
+                        group: group,
+                        sourceHash: sourceHash,
+                        language: language,
+                        representationID: "readingRepresentation.kana.v1"
+                    )
+                }
+                if group.lines.contains(where: { !$0.romaji.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) {
+                    try insertLegacyReadingVersion(
+                        database,
+                        group: group,
+                        sourceHash: sourceHash,
+                        language: language,
+                        representationID: "readingRepresentation.romaji.v1"
+                    )
+                }
+            }
+
+            try execute(database, sql: "INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (6, strftime('%s','now'));")
+            try execute(database, sql: "PRAGMA user_version = 6;")
+            try execute(database, sql: "COMMIT;")
+        } catch {
+            _ = try? execute(database, sql: "ROLLBACK;")
+            throw error
+        }
+    }
+
+    private struct LegacyReadingGroup {
+        let versionID: String
+        let language: String
+        let isSynchronized: Bool
+        let lines: [LegacyReadingLine]
+    }
+
+    private struct LegacyReadingLine {
+        let lineIndex: Int
+        let startTime: Double?
+        let endTime: Double?
+        let original: String
+        let kana: String
+        let romaji: String
+    }
+
+    private static func legacyReadingGroups(_ database: OpaquePointer) throws -> [LegacyReadingGroup] {
+        let statement = try prepare(database, sql: """
+            SELECT lv.id, lv.language, lv.is_synced, ll.line_index,
+                   ll.start_time, ll.end_time, ll.original_text,
+                   COALESCE(ll.kana_text, ''), COALESCE(ll.romaji_text, '')
+            FROM lyrics_versions AS lv
+            JOIN lyric_lines AS ll ON ll.lyrics_version_id = lv.id
+            WHERE (ll.kana_text IS NOT NULL AND length(trim(ll.kana_text)) > 0)
+               OR (ll.romaji_text IS NOT NULL AND length(trim(ll.romaji_text)) > 0)
+            ORDER BY lv.id, ll.line_index;
+            """)
+        defer { sqlite3_finalize(statement) }
+
+        var groups: [LegacyReadingGroup] = []
+        var currentID: String?
+        var currentLanguage = "und"
+        var currentSynchronized = false
+        var currentLines: [LegacyReadingLine] = []
+        while true {
+            let step = sqlite3_step(statement)
+            if step == SQLITE_DONE { break }
+            guard step == SQLITE_ROW,
+                  let id = columnText(statement, index: 0),
+                  let original = columnText(statement, index: 6) else {
+                throw LyricsRepositoryError.invalidData("legacy reading line 字段缺失")
+            }
+            if currentID != id {
+                if let currentID, !currentLines.isEmpty {
+                    groups.append(LegacyReadingGroup(
+                        versionID: currentID,
+                        language: currentLanguage,
+                        isSynchronized: currentSynchronized,
+                        lines: currentLines
+                    ))
+                }
+                currentID = id
+                currentLanguage = columnText(statement, index: 1) ?? "und"
+                currentSynchronized = sqlite3_column_int(statement, 2) != 0
+                currentLines = []
+            }
+            currentLines.append(LegacyReadingLine(
+                lineIndex: Int(sqlite3_column_int(statement, 3)),
+                startTime: columnDouble(statement, index: 4),
+                endTime: columnDouble(statement, index: 5),
+                original: original,
+                kana: columnText(statement, index: 7) ?? "",
+                romaji: columnText(statement, index: 8) ?? ""
+            ))
+        }
+        if let currentID, !currentLines.isEmpty {
+            groups.append(LegacyReadingGroup(
+                versionID: currentID,
+                language: currentLanguage,
+                isSynchronized: currentSynchronized,
+                lines: currentLines
+            ))
+        }
+        return groups
+    }
+
+    private static func insertLegacyReadingVersion(
+        _ database: OpaquePointer,
+        group: LegacyReadingGroup,
+        sourceHash: String,
+        language: String,
+        representationID: String
+    ) throws {
+        guard try !exists(database, sql: """
+            SELECT 1 FROM reading_versions
+            WHERE lyrics_version_id = ? AND representation_id = ? AND source_content_hash = ?
+            LIMIT 1;
+            """, values: [group.versionID, representationID, sourceHash]) else { return }
+
+        let versionID = UUID().uuidString
+        let now = Date().timeIntervalSince1970
+        let insert = try prepare(database, sql: """
+            INSERT INTO reading_versions(
+                id, lyrics_version_id, source_content_hash, engine_id,
+                representation_id, source_kind, language, created_at, updated_at,
+                is_machine_generated, is_manually_edited, is_current, is_locked,
+                is_archived, confidence, warning_metadata, context_hash
+            ) VALUES (?, ?, ?, 'readingEngine.japaneseDictionary.v1', ?,
+                      'legacyImported', ?, ?, ?, 0, 0, 0, 0, 0, 0.5, '[]', '');
+            """)
+        defer { sqlite3_finalize(insert) }
+        try bindText(versionID, at: 1, to: insert)
+        try bindText(group.versionID, at: 2, to: insert)
+        try bindText(sourceHash, at: 3, to: insert)
+        try bindText(representationID, at: 4, to: insert)
+        try bindText(language, at: 5, to: insert)
+        try bindDouble(now, at: 6, to: insert)
+        try bindDouble(now, at: 7, to: insert)
+        try stepDone(database, statement: insert)
+
+        for line in group.lines {
+            let value = representationID == "readingRepresentation.kana.v1" ? line.kana : line.romaji
+            let lineInsert = try prepare(database, sql: """
+                INSERT INTO reading_lines(
+                    reading_version_id, line_index, original_text, reading_text,
+                    tokens_json, language, source, confidence, warning_metadata
+                ) VALUES (?, ?, ?, ?, '[]', ?, 'preserved', 0.5, '[]');
+                """)
+            defer { sqlite3_finalize(lineInsert) }
+            try bindText(versionID, at: 1, to: lineInsert)
+            try bindInt(line.lineIndex, at: 2, to: lineInsert)
+            try bindText(line.original, at: 3, to: lineInsert)
+            try bindText(value, at: 4, to: lineInsert)
+            try bindText(language, at: 5, to: lineInsert)
+            try stepDone(database, statement: lineInsert)
+        }
+    }
+
     private static func ensureRedirect(
         _ database: OpaquePointer,
         source: String,
@@ -571,6 +807,15 @@ public enum DatabaseMigrator {
         let statement = try prepare(database, sql: sql)
         defer { sqlite3_finalize(statement) }
         try bindText(value, at: 1, to: statement)
+        return sqlite3_step(statement) == SQLITE_ROW
+    }
+
+    private static func exists(_ database: OpaquePointer, sql: String, values: [String]) throws -> Bool {
+        let statement = try prepare(database, sql: sql)
+        defer { sqlite3_finalize(statement) }
+        for (index, value) in values.enumerated() {
+            try bindText(value, at: Int32(index + 1), to: statement)
+        }
         return sqlite3_step(statement) == SQLITE_ROW
     }
 

@@ -1,18 +1,9 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-FORMAL_DB="$HOME/Library/Application Support/SpotifyLyrics/SpotifyLyrics.sqlite3"
-TMP_DIR="$(mktemp -d)"
+TMP_DIR="$(mktemp -d /tmp/spotifylyrics-reading-persistence.XXXXXX)"
 trap 'rm -rf "$TMP_DIR"' EXIT
-
-if [[ ! -f "$FORMAL_DB" ]]; then
-  echo "formal SpotifyLyrics database is unavailable" >&2
-  exit 2
-fi
-
-TMP_DB="$TMP_DIR/SpotifyLyrics.sqlite3"
-cp "$FORMAL_DB" "$TMP_DB"
 
 swiftc -parse-as-library \
   "$ROOT_DIR/SpotifyLyrics/Models/Models.swift" \
@@ -39,7 +30,7 @@ swiftc -parse-as-library \
   "$ROOT_DIR/SpotifyLyrics/Persistence/TranslationRepository.swift" \
   "$ROOT_DIR/SpotifyLyrics/Persistence/LyricsEditingRepository.swift" \
   "$ROOT_DIR/SpotifyLyrics/Persistence/SQLiteLyricsRepository.swift" \
-  "$ROOT_DIR/Tests/track_identity_v4_water_contract.swift" \
-  -o "$TMP_DIR/track-identity-v4-water-contract"
+  "$ROOT_DIR/Tests/phase_2_6a_persistence_contract.swift" \
+  -o "$TMP_DIR/phase_2_6a_persistence_contract"
 
-"$TMP_DIR/track-identity-v4-water-contract" "$TMP_DB"
+"$TMP_DIR/phase_2_6a_persistence_contract"

@@ -21,6 +21,7 @@ swiftc -parse-as-library \
   "$ROOT_DIR/SpotifyLyrics/Editor/LyricsTimelineValidator.swift" \
   "$ROOT_DIR/SpotifyLyrics/AI/AITranslationModels.swift" \
   "$ROOT_DIR/SpotifyLyrics/Persistence/DatabaseModels.swift" \
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/ReadingModels.swift" \
   "$ROOT_DIR/SpotifyLyrics/Persistence/DatabaseMigrator.swift" \
   "$ROOT_DIR/SpotifyLyrics/Persistence/LyricsRepository.swift" \
   "$ROOT_DIR/SpotifyLyrics/Persistence/AlignmentProvenanceStore.swift" \

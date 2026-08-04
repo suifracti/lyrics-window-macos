@@ -23,6 +23,7 @@ swiftc -parse-as-library \
   SpotifyLyrics/Editor/LyricsTimelineValidator.swift \
   SpotifyLyrics/AI/AITranslationModels.swift \
   SpotifyLyrics/Persistence/DatabaseModels.swift \
+  SpotifyLyrics/Lyrics/ReadingModels.swift \
   SpotifyLyrics/Persistence/DatabaseMigrator.swift \
   SpotifyLyrics/Persistence/LyricsRepository.swift \
   SpotifyLyrics/Persistence/AlignmentProvenanceStore.swift \
