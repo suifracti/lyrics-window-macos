@@ -1,13 +1,14 @@
 # TCC Identity Fix — 用户操作步骤
 
-## 当前状态（2026-08-04）
+## 当前状态（2026-08-04 更新）
 
 | 项 | 状态 |
 |---|---|
 | 只读审计 | 完成 → `AUDIT.md` |
-| Debug 签名配置骨架 | 已写入项目（Automatic + `ENABLE_DEBUG_DYLIB=NO`） |
-| 本机 `Apple Development` 证书 | **无（0 identities）** |
-| 稳定签名构建 | **暂停** — 需要你先登录 Apple Account |
+| Debug 签名配置 | Automatic + `ENABLE_DEBUG_DYLIB=NO` |
+| 本机 `Apple Development` 证书 | **已有** |
+| 稳定签名构建 | **已完成** → 见 `BUILD_FREEZE_REPORT.md` |
+| 下一步 | **你重新授权 TCC** → 回复后做最小探针 |
 
 **禁止**用 ad-hoc（`CODE_SIGN_IDENTITY = "-"`）冒充本阶段修复。
 

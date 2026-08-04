@@ -252,6 +252,7 @@
 		110001082D83400100000000 /* AssistedCandidateMerger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/AssistedCandidateMerger.swift; sourceTree = "<group>"; };
 		110001092D83400100000000 /* AssistExplainSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistExplainSheet.swift; sourceTree = "<group>"; };
 		1100010A2D83400100000000 /* DebugSigning.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/DebugSigning.xcconfig; sourceTree = "<group>"; };
+		1100010B2D83400100000000 /* Info-Additions.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-Additions.plist"; sourceTree = "<group>"; };
 		1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAlignedLyricsStore.swift; sourceTree = "<group>"; };
 		1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JapaneseReadingPipeline.swift; sourceTree = "<group>"; };
 		110000A02D83400100000000 /* ReadingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingModels.swift; sourceTree = "<group>"; };
@@ -376,6 +377,7 @@
 				110000002D83400000000026 /* Search */,
 				110000112D83400100000000 /* SpotifyLyrics.entitlements */,
 				1100010A2D83400100000000 /* DebugSigning.xcconfig */,
+				1100010B2D83400100000000 /* Info-Additions.plist */,
 				110000002D83400000000020 /* Views */,
 				110000002D83400000000023 /* Design */,
 				110000002D83400000000027 /* Persistence */,
@@ -886,13 +888,16 @@
 				CLANG_ENABLE_MODULES = YES;
 				/* Debug signing: Automatic + Team from Config/DebugSigning*.xcconfig (not ad-hoc). */
 				CODE_SIGN_STYLE = Automatic;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				/* Empty identity: Automatic selects Apple Development / Mac Development. */
+				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_ENTITLEMENTS = SpotifyLyrics/SpotifyLyrics.entitlements;
 				/* Avoid main stub + SpotifyLyrics.debug.dylib TCC identity split. */
 				ENABLE_DEBUG_DYLIB = NO;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				/* Merge screen-capture usage string (INFOPLIST_KEY alone was dropped on generate). */
+				INFOPLIST_FILE = "SpotifyLyrics/Info-Additions.plist";
 				INFOPLIST_KEY_NSHighResolutionCapable = YES;
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "SpotifyLyrics 需要控制 Spotify 以读取当前歌曲、播放状态和封面。";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "SpotifyLyrics 使用语音识别，从你导入的本地音频生成日语歌词草稿（不会读取 Spotify 受保护音频）。";
@@ -916,6 +921,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "SpotifyLyrics/Info-Additions.plist";
 				INFOPLIST_KEY_NSHighResolutionCapable = YES;
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "SpotifyLyrics 需要控制 Spotify 以读取当前歌曲、播放状态和封面。";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "SpotifyLyrics 使用语音识别，从你导入的本地音频生成日语歌词草稿（不会读取 Spotify 受保护音频）。";

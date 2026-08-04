@@ -13,7 +13,9 @@
 // Single main executable — no SpotifyLyrics.debug.dylib split for TCC.
 ENABLE_DEBUG_DYLIB = NO
 
+// Let Xcode Automatic Signing pick Apple Development / Mac Development.
 CODE_SIGN_STYLE = Automatic
-CODE_SIGN_IDENTITY = Apple Development
+// Leave identity empty so Automatic can resolve the right cert for macOS.
+CODE_SIGN_IDENTITY =
 
 // DEVELOPMENT_TEAM must be set in DebugSigning.local.xcconfig
