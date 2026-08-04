@@ -458,10 +458,30 @@ private struct AISettingsView: View {
             )
 
             Section("服务") {
-                TextField("Base URL", text: configurationBinding(\.baseURL))
+                Picker("翻译引擎", selection: configurationBinding(\.engineID)) {
+                    ForEach(TranslationEngineCatalog.all, id: \.stableID) { engine in
+                        Text(engine.displayName).tag(engine.stableID)
+                    }
+                }
+                TextField("兼容接口地址（Base URL）", text: configurationBinding(\.baseURL))
                     .textFieldStyle(.roundedBorder)
-                TextField("Model", text: configurationBinding(\.model))
+                TextField("模型（Model）", text: configurationBinding(\.model))
                     .textFieldStyle(.roundedBorder)
+                HStack {
+                    Text("模型目录")
+                    Spacer()
+                    Text(settings.aiModelDirectoryStatus.userFacingTitle)
+                        .foregroundStyle(.secondary)
+                    Button("刷新") { settings.refreshAIModelDirectory() }
+                }
+                if !settings.aiCachedModels.isEmpty {
+                    Picker("手动选择模型", selection: configurationBinding(\.model)) {
+                        Text("保留当前输入").tag(settings.aiTranslationConfiguration.model)
+                        ForEach(settings.aiCachedModels, id: \.id) { model in
+                            Text(model.displayName).tag(model.id)
+                        }
+                    }
+                }
                 SecureField("API Key（只保存到 Keychain）", text: $apiKeyDraft)
                     .textFieldStyle(.roundedBorder)
                 HStack {
@@ -505,7 +525,17 @@ private struct AISettingsView: View {
             Section("翻译") {
                 TextField("目标语言", text: configurationBinding(\.targetLanguage))
                     .textFieldStyle(.roundedBorder)
-                TextField("风格", text: configurationBinding(\.style))
+                Picker("提示词预设", selection: configurationBinding(\.promptPresetID)) {
+                    ForEach(TranslationPromptPresetCatalog.all, id: \.id) { preset in
+                        Text(preset.displayName).tag(preset.id.rawValue)
+                    }
+                }
+                Picker("失败后的策略", selection: fallbackBinding) {
+                    ForEach(TranslationFallbackStrategy.allCases, id: \.self) { strategy in
+                        Text(strategy.title).tag(strategy)
+                    }
+                }
+                TextField("翻译风格（兼容旧设置）", text: configurationBinding(\.style))
                     .textFieldStyle(.roundedBorder)
                 VStack(alignment: .leading, spacing: 5) {
                     Text("自定义系统提示词（可选）")
@@ -578,6 +608,17 @@ private struct AISettingsView: View {
             set: { value in
                 var next = settings.aiTranslationConfiguration
                 next[keyPath: keyPath] = value
+                settings.aiTranslationConfiguration = next
+            }
+        )
+    }
+
+    private var fallbackBinding: Binding<TranslationFallbackStrategy> {
+        Binding(
+            get: { settings.aiTranslationConfiguration.fallbackStrategy },
+            set: { value in
+                var next = settings.aiTranslationConfiguration
+                next.fallbackStrategy = value
                 settings.aiTranslationConfiguration = next
             }
         )

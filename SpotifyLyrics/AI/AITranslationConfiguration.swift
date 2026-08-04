@@ -10,6 +10,12 @@ public struct AITranslationConfiguration: Equatable, Sendable {
     public var temperature: Double
     public var timeout: TimeInterval
     public var autoTranslateNewLyrics: Bool
+    public var engineID: String
+    public var promptPresetID: String
+    public var profileID: UUID?
+    public var profileSnapshot: String
+    public var fallbackStrategy: TranslationFallbackStrategy
+    public var workflowID: String
 
     public init(
         baseURL: String = "",
@@ -19,7 +25,13 @@ public struct AITranslationConfiguration: Equatable, Sendable {
         customSystemPrompt: String = "",
         temperature: Double = 0.2,
         timeout: TimeInterval = 60,
-        autoTranslateNewLyrics: Bool = false
+        autoTranslateNewLyrics: Bool = false,
+        engineID: String = TranslationEngineID.openAICompatible.rawValue,
+        promptPresetID: String = TranslationPromptPresetID.naturalSong.rawValue,
+        profileID: UUID? = nil,
+        profileSnapshot: String = "",
+        fallbackStrategy: TranslationFallbackStrategy = .none,
+        workflowID: String = TranslationWorkflowID.contextualV2.rawValue
     ) {
         self.baseURL = baseURL
         self.model = model
@@ -29,6 +41,12 @@ public struct AITranslationConfiguration: Equatable, Sendable {
         self.temperature = min(max(temperature, 0), 2)
         self.timeout = min(max(timeout, 5), 600)
         self.autoTranslateNewLyrics = autoTranslateNewLyrics
+        self.engineID = engineID
+        self.promptPresetID = promptPresetID
+        self.profileID = profileID
+        self.profileSnapshot = profileSnapshot
+        self.fallbackStrategy = fallbackStrategy
+        self.workflowID = workflowID
     }
 
     public var isConfigured: Bool {
@@ -70,6 +88,10 @@ public struct AITranslationEndpoint: Equatable, Sendable {
         return host
     }
 
+    public var modelsURL: URL {
+        normalizedModelsURL() ?? URL(string: "about:blank")!
+    }
+
     private func normalizedURL() -> URL? {
         var value = baseURL
         while value.hasSuffix("/") { value.removeLast() }
@@ -85,5 +107,21 @@ public struct AITranslationEndpoint: Equatable, Sendable {
             return URL(string: value + "/chat/completions")
         }
         return URL(string: value + "/v1/chat/completions")
+    }
+
+    private func normalizedModelsURL() -> URL? {
+        var value = baseURL
+        while value.hasSuffix("/") { value.removeLast() }
+        guard !value.isEmpty, let raw = URL(string: value), let scheme = raw.scheme,
+              (scheme == "http" || scheme == "https"), raw.host != nil,
+              raw.query == nil, raw.fragment == nil else { return nil }
+        let lower = value.lowercased()
+        if lower.hasSuffix("/chat/completions") {
+            let prefix = String(value.dropLast("/chat/completions".count))
+            return URL(string: prefix + "/models")
+        }
+        if lower.hasSuffix("/models") { return raw }
+        if lower.hasSuffix("/v1") { return URL(string: value + "/models") }
+        return URL(string: value + "/v1/models")
     }
 }

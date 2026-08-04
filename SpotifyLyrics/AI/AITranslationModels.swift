@@ -8,6 +8,165 @@ public enum AITranslationSourceKind: String, CaseIterable, Codable, Sendable {
     case legacyImported
 }
 
+/// Stable identifiers for the translation engines.  These are presentation
+/// and routing identifiers only; the translation session remains the single
+/// owner of in-flight work and selected versions.
+public enum TranslationEngineID: String, CaseIterable, Codable, Sendable {
+    case openAICompatible = "translationEngine.openAICompatible.v1"
+    case appleSystem = "translationEngine.appleSystem.v1"
+}
+
+public enum TranslationEngineAvailability: String, Codable, Sendable {
+    case available
+    case unavailable
+    case requiresConfiguration
+    case requiresSystemSupport
+}
+
+public enum TranslationFallbackStrategy: String, CaseIterable, Codable, Sendable {
+    case none
+    case ask
+    case automaticSystem
+
+    public var title: String {
+        switch self {
+        case .none: return "不自动切换"
+        case .ask: return "失败后询问"
+        case .automaticSystem: return "自动尝试系统翻译"
+        }
+    }
+}
+
+public enum TranslationWorkflowID: String, CaseIterable, Codable, Sendable {
+    case classicV1 = "translationWorkflow.classicV1"
+    case contextualV2 = "translationWorkflow.contextualV2"
+}
+
+public struct TranslationEngineMetadata: Equatable, Sendable {
+    public let stableID: String
+    public let displayName: String
+    public let availability: TranslationEngineAvailability
+    public let requiresAPIKey: Bool
+    public let supportsModelDirectory: Bool
+
+    public init(
+        stableID: String,
+        displayName: String,
+        availability: TranslationEngineAvailability,
+        requiresAPIKey: Bool,
+        supportsModelDirectory: Bool
+    ) {
+        self.stableID = stableID
+        self.displayName = displayName
+        self.availability = availability
+        self.requiresAPIKey = requiresAPIKey
+        self.supportsModelDirectory = supportsModelDirectory
+    }
+}
+
+public enum TranslationEngineCatalog {
+    public static let all: [TranslationEngineMetadata] = [
+        TranslationEngineMetadata(
+            stableID: TranslationEngineID.openAICompatible.rawValue,
+            displayName: "OpenAI-compatible API",
+            availability: .requiresConfiguration,
+            requiresAPIKey: true,
+            supportsModelDirectory: true
+        ),
+        TranslationEngineMetadata(
+            stableID: TranslationEngineID.appleSystem.rawValue,
+            displayName: "Apple 系统翻译",
+            availability: .requiresSystemSupport,
+            requiresAPIKey: false,
+            supportsModelDirectory: false
+        )
+    ]
+
+    public static func metadata(for stableID: String) -> TranslationEngineMetadata? {
+        all.first { $0.stableID == stableID }
+    }
+}
+
+public enum TranslationPromptPresetID: String, CaseIterable, Codable, Sendable {
+    case naturalSong = "translationPrompt.naturalSong.v1"
+    case literalFaithful = "translationPrompt.literalFaithful.v1"
+    case poeticFlow = "translationPrompt.poeticFlow.v1"
+    case contextAware = "translationPrompt.contextAware.v1"
+    case custom = "translationPrompt.custom.v1"
+
+    public var displayName: String {
+        switch self {
+        case .naturalSong: return "自然歌曲"
+        case .literalFaithful: return "忠实直译"
+        case .poeticFlow: return "诗意流畅"
+        case .contextAware: return "上下文优先"
+        case .custom: return "自定义"
+        }
+    }
+}
+
+public struct TranslationPromptPresetMetadata: Equatable, Sendable {
+    public let id: TranslationPromptPresetID
+    public let displayName: String
+    public let detail: String
+
+    public init(id: TranslationPromptPresetID, displayName: String, detail: String) {
+        self.id = id
+        self.displayName = displayName
+        self.detail = detail
+    }
+}
+
+public enum TranslationPromptPresetCatalog {
+    public static let all: [TranslationPromptPresetMetadata] = [
+        .init(id: .naturalSong, displayName: "自然歌曲", detail: "保留歌曲语气与意象，优先自然中文"),
+        .init(id: .literalFaithful, displayName: "忠实直译", detail: "尽量贴近原句结构，不补写未提供的信息"),
+        .init(id: .poeticFlow, displayName: "诗意流畅", detail: "在不改变含义的前提下保持诗性与节奏"),
+        .init(id: .contextAware, displayName: "上下文优先", detail: "结合整首歌词统一主语、语气和重复副歌"),
+        .init(id: .custom, displayName: "自定义", detail: "使用自定义系统提示词")
+    ]
+
+    public static var defaultPreset: TranslationPromptPresetMetadata {
+        all[0]
+    }
+}
+
+public struct TranslationModelDescriptor: Codable, Equatable, Sendable {
+    public let id: String
+    public let displayName: String
+    public let source: String
+    public let updatedAt: Date?
+
+    public init(id: String, displayName: String? = nil, source: String = "directory", updatedAt: Date? = nil) {
+        self.id = id
+        self.displayName = displayName ?? id
+        self.source = source
+        self.updatedAt = updatedAt
+    }
+}
+
+public enum TranslationModelDirectoryStatus: Equatable, Sendable {
+    case idle
+    case loading
+    case loaded([TranslationModelDescriptor])
+    case empty
+    case unauthorized
+    case unavailable(String)
+    case manualFallback
+
+    public var userFacingTitle: String {
+        switch self {
+        case .idle: return "尚未刷新"
+        case .loading: return "正在刷新模型"
+        case .loaded(let models): return "已加载 \(models.count) 个模型"
+        case .empty: return "服务未返回模型"
+        case .unauthorized: return "未授权"
+        case .unavailable: return "目录暂不可用"
+        case .manualFallback: return "使用手动模型"
+        }
+    }
+}
+
 public enum AITranslationVersionStatus: String, Codable, Sendable {
     case complete
     case incomplete
@@ -76,6 +235,15 @@ public struct AITranslationDraft: Equatable, Sendable {
     public let isMachineGenerated: Bool
     public let isManuallyEdited: Bool
     public let confidence: Double
+    public let engineID: String
+    public let promptPresetID: String
+    public let profileID: UUID?
+    public let profileSnapshot: String
+    public let temperature: Double
+    public let workflowID: String
+    public let fallbackStrategy: TranslationFallbackStrategy
+    public let isDraft: Bool
+    public let isArchived: Bool
 
     public init(
         lines: [AITranslationLine],
@@ -87,7 +255,16 @@ public struct AITranslationDraft: Equatable, Sendable {
         sourceKind: AITranslationSourceKind = .ai,
         isMachineGenerated: Bool = true,
         isManuallyEdited: Bool = false,
-        confidence: Double = 1
+        confidence: Double = 1,
+        engineID: String = TranslationEngineID.openAICompatible.rawValue,
+        promptPresetID: String = TranslationPromptPresetID.naturalSong.rawValue,
+        profileID: UUID? = nil,
+        profileSnapshot: String = "",
+        temperature: Double = 0.2,
+        workflowID: String = TranslationWorkflowID.contextualV2.rawValue,
+        fallbackStrategy: TranslationFallbackStrategy = .none,
+        isDraft: Bool = false,
+        isArchived: Bool = false
     ) {
         self.lines = lines
         self.targetLanguage = targetLanguage
@@ -99,6 +276,15 @@ public struct AITranslationDraft: Equatable, Sendable {
         self.isMachineGenerated = isMachineGenerated
         self.isManuallyEdited = isManuallyEdited
         self.confidence = confidence
+        self.engineID = engineID
+        self.promptPresetID = promptPresetID
+        self.profileID = profileID
+        self.profileSnapshot = profileSnapshot
+        self.temperature = temperature
+        self.workflowID = workflowID
+        self.fallbackStrategy = fallbackStrategy
+        self.isDraft = isDraft
+        self.isArchived = isArchived
     }
 }
 

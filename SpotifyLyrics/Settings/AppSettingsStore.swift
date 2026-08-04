@@ -73,6 +73,14 @@ public final class AppSettingsStore: ObservableObject {
         public static let aiTimeout = "ai.timeout"
         public static let aiAutoTranslateNewLyrics = "ai.autoTranslateNewLyrics"
         public static let aiAPIKeyConfigured = "ai.apiKeyConfigured"
+        public static let aiModelDirectoryCache = "ai.modelDirectory.cache"
+        public static let aiModelDirectoryRefreshedAt = "ai.modelDirectory.refreshedAt"
+        public static let aiEngineID = "ai.engineID"
+        public static let aiPromptPresetID = "ai.promptPresetID"
+        public static let aiProfileID = "ai.profileID"
+        public static let aiProfileSnapshot = "ai.profileSnapshot"
+        public static let aiFallbackStrategy = "ai.fallbackStrategy"
+        public static let aiWorkflowID = "ai.workflowID"
         public static let settingsCenterPresentation = "settings.centerPresentation"
     }
 
@@ -176,6 +184,11 @@ public final class AppSettingsStore: ObservableObject {
         didSet { defaults.set(aiTranslationAPIKeyConfigured, forKey: Key.aiAPIKeyConfigured) }
     }
 
+    /// Model names are non-secret metadata. The directory is cached so the
+    /// settings page can be browsed without touching Keychain.
+    @Published public private(set) var aiModelDirectoryStatus: TranslationModelDirectoryStatus
+    @Published public private(set) var aiCachedModels: [TranslationModelDescriptor]
+
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         self.presentationSelections = PresentationSelectionStore(defaults: defaults)
@@ -209,6 +222,9 @@ public final class AppSettingsStore: ObservableObject {
         lyricsProviderConfiguration = Self.loadProviderConfiguration(defaults: defaults)
         aiTranslationConfiguration = Self.loadAITranslationConfiguration(defaults: defaults)
         aiTranslationAPIKeyConfigured = defaults.object(forKey: Key.aiAPIKeyConfigured) as? Bool ?? false
+        let cachedModels = Self.loadCachedModels(defaults: defaults)
+        aiCachedModels = cachedModels
+        aiModelDirectoryStatus = cachedModels.isEmpty ? .idle : .loaded(cachedModels)
 
         if defaults.object(forKey: Key.settingsVersion) == nil {
             defaults.set(Self.currentSettingsVersion, forKey: Key.settingsVersion)
@@ -266,6 +282,46 @@ public final class AppSettingsStore: ObservableObject {
     }
 
     public var schemaVersion: Int { DatabaseMigrator.currentVersion }
+
+    /// Explicit user action only. Reading model names is the only operation
+    /// here that touches the API-key store; opening or browsing settings does
+    /// not call this method.
+    public func refreshAIModelDirectory() {
+        let configuration = aiTranslationConfiguration
+        guard configuration.isConfigured else {
+            aiModelDirectoryStatus = .unavailable("请先填写 Base URL 和模型")
+            return
+        }
+        aiModelDirectoryStatus = .loading
+        let client = OpenAICompatibleClient()
+        let keyStore = KeychainAITranslationAPIKeyStore()
+        Task { [weak self] in
+            do {
+                guard let key = keyStore.read(), !key.isEmpty else {
+                    throw AITranslationError.missingAPIKey
+                }
+                let models = try await client.listModels(configuration: configuration, apiKey: key)
+                await MainActor.run { [weak self] in
+                    guard let self else { return }
+                    self.aiCachedModels = models
+                    self.aiModelDirectoryStatus = models.isEmpty ? .empty : .loaded(models)
+                    if let data = try? JSONEncoder().encode(models) {
+                        self.defaults.set(data, forKey: Key.aiModelDirectoryCache)
+                    }
+                    self.defaults.set(Date(), forKey: Key.aiModelDirectoryRefreshedAt)
+                }
+            } catch let error as AITranslationError {
+                await MainActor.run { [weak self] in
+                    guard let self else { return }
+                    self.aiModelDirectoryStatus = error == .unauthorized ? .unauthorized : .unavailable(error.localizedDescription)
+                }
+            } catch {
+                await MainActor.run { [weak self] in
+                    self?.aiModelDirectoryStatus = .unavailable("模型目录暂时不可用")
+                }
+            }
+        }
+    }
 
     /// Returns whether a catalog item can be applied to a live runtime
     /// setting. Design-only entries remain browseable but do not become
@@ -467,7 +523,13 @@ public final class AppSettingsStore: ObservableObject {
             customSystemPrompt: defaults.string(forKey: Key.aiCustomSystemPrompt) ?? "",
             temperature: defaults.object(forKey: Key.aiTemperature) as? Double ?? 0.2,
             timeout: defaults.object(forKey: Key.aiTimeout) as? Double ?? 60,
-            autoTranslateNewLyrics: defaults.object(forKey: Key.aiAutoTranslateNewLyrics) as? Bool ?? false
+            autoTranslateNewLyrics: defaults.object(forKey: Key.aiAutoTranslateNewLyrics) as? Bool ?? false,
+            engineID: defaults.string(forKey: Key.aiEngineID) ?? TranslationEngineID.openAICompatible.rawValue,
+            promptPresetID: defaults.string(forKey: Key.aiPromptPresetID) ?? TranslationPromptPresetID.naturalSong.rawValue,
+            profileID: defaults.string(forKey: Key.aiProfileID).flatMap(UUID.init(uuidString:)),
+            profileSnapshot: defaults.string(forKey: Key.aiProfileSnapshot) ?? "",
+            fallbackStrategy: TranslationFallbackStrategy(rawValue: defaults.string(forKey: Key.aiFallbackStrategy) ?? "none") ?? .none,
+            workflowID: defaults.string(forKey: Key.aiWorkflowID) ?? TranslationWorkflowID.contextualV2.rawValue
         )
     }
 
@@ -480,5 +542,21 @@ public final class AppSettingsStore: ObservableObject {
         defaults.set(configuration.temperature, forKey: Key.aiTemperature)
         defaults.set(configuration.timeout, forKey: Key.aiTimeout)
         defaults.set(configuration.autoTranslateNewLyrics, forKey: Key.aiAutoTranslateNewLyrics)
+        defaults.set(configuration.engineID, forKey: Key.aiEngineID)
+        defaults.set(configuration.promptPresetID, forKey: Key.aiPromptPresetID)
+        if let profileID = configuration.profileID {
+            defaults.set(profileID.uuidString, forKey: Key.aiProfileID)
+        } else {
+            defaults.removeObject(forKey: Key.aiProfileID)
+        }
+        defaults.set(configuration.profileSnapshot, forKey: Key.aiProfileSnapshot)
+        defaults.set(configuration.fallbackStrategy.rawValue, forKey: Key.aiFallbackStrategy)
+        defaults.set(configuration.workflowID, forKey: Key.aiWorkflowID)
+    }
+
+    private static func loadCachedModels(defaults: UserDefaults) -> [TranslationModelDescriptor] {
+        guard let data = defaults.data(forKey: Key.aiModelDirectoryCache),
+              let models = try? JSONDecoder().decode([TranslationModelDescriptor].self, from: data) else { return [] }
+        return models
     }
 }

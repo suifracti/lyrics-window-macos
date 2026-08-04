@@ -64,6 +64,44 @@ public struct OpenAICompatibleClient: Sendable {
         )
     }
 
+    /// Reads only the model directory. This is deliberately separate from
+    /// translation execution so settings can cache model names and never
+    /// send the current lyric document while browsing configuration.
+    public func listModels(
+        configuration: AITranslationConfiguration,
+        apiKey: String
+    ) async throws -> [TranslationModelDescriptor] {
+        guard !apiKey.isEmpty else { throw AITranslationError.missingAPIKey }
+        let endpoint = AITranslationEndpoint(baseURL: configuration.baseURL)
+        guard endpoint.modelsURL.scheme == "http" || endpoint.modelsURL.scheme == "https" else {
+            throw AITranslationError.invalidEndpoint
+        }
+        var request = URLRequest(url: endpoint.modelsURL)
+        request.httpMethod = "GET"
+        request.timeoutInterval = configuration.timeout
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        let (data, response) = try await httpClient.data(for: request)
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard (200..<300).contains(status) else {
+            switch status {
+            case 401, 403: throw AITranslationError.unauthorized
+            case 429: throw AITranslationError.rateLimited
+            default: throw AITranslationError.server(status)
+            }
+        }
+        do {
+            let object = try JSONSerialization.jsonObject(with: data, options: [])
+            let rows = (object as? [String: Any])?["data"] as? [[String: Any]] ?? []
+            let models = rows.compactMap { row -> TranslationModelDescriptor? in
+                guard let id = row["id"] as? String, !id.isEmpty else { return nil }
+                return TranslationModelDescriptor(id: id)
+            }
+            return models.sorted { $0.id.localizedStandardCompare($1.id) == .orderedAscending }
+        } catch {
+            throw AITranslationError.invalidResponse("模型目录响应不是有效 JSON")
+        }
+    }
+
     private func send(
         system: String,
         user: String,
