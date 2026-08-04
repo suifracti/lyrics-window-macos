@@ -76,6 +76,11 @@
 		1100004C2D83400100000001 /* LocalAlignedLyricsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */; };
 		1100004D2D83400100000001 /* JapaneseReadingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */; };
 		110000A02D83400100000001 /* ReadingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000A02D83400100000000 /* ReadingModels.swift */; };
+		110000A12D83400100000001 /* JapaneseReadingEngines.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000A12D83400100000000 /* JapaneseReadingEngines.swift */; };
+		110000A22D83400100000001 /* ChinesePinyinReadingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000A22D83400100000000 /* ChinesePinyinReadingEngine.swift */; };
+		110000A32D83400100000001 /* ReadingScriptConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000A32D83400100000000 /* ReadingScriptConversion.swift */; };
+		110000A42D83400100000001 /* ReadingUserDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000A42D83400100000000 /* ReadingUserDictionary.swift */; };
+		110000A52D83400100000001 /* ReadingEngineRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000A52D83400100000000 /* ReadingEngineRegistry.swift */; };
 		110000502D83400100000001 /* AppleMusicImmersiveV3WindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000502D83400100000000 /* AppleMusicImmersiveV3WindowView.swift */; };
 		110000512D83400100000001 /* AppleMusicImmersiveV3BackdropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000512D83400100000000 /* AppleMusicImmersiveV3BackdropView.swift */; };
 		110000522D83400100000001 /* DatabaseModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000522D83400100000000 /* DatabaseModels.swift */; };
@@ -215,6 +220,11 @@
 		1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAlignedLyricsStore.swift; sourceTree = "<group>"; };
 		1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JapaneseReadingPipeline.swift; sourceTree = "<group>"; };
 		110000A02D83400100000000 /* ReadingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingModels.swift; sourceTree = "<group>"; };
+		110000A12D83400100000000 /* JapaneseReadingEngines.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JapaneseReadingEngines.swift; sourceTree = "<group>"; };
+		110000A22D83400100000000 /* ChinesePinyinReadingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChinesePinyinReadingEngine.swift; sourceTree = "<group>"; };
+		110000A32D83400100000000 /* ReadingScriptConversion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingScriptConversion.swift; sourceTree = "<group>"; };
+		110000A42D83400100000000 /* ReadingUserDictionary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingUserDictionary.swift; sourceTree = "<group>"; };
+		110000A52D83400100000000 /* ReadingEngineRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingEngineRegistry.swift; sourceTree = "<group>"; };
 		110000502D83400100000000 /* AppleMusicImmersiveV3WindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicImmersiveV3WindowView.swift; sourceTree = "<group>"; };
 		110000512D83400100000000 /* AppleMusicImmersiveV3BackdropView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicImmersiveV3BackdropView.swift; sourceTree = "<group>"; };
 		110000522D83400100000000 /* DatabaseModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseModels.swift; sourceTree = "<group>"; };
@@ -471,6 +481,11 @@
 				110000332D83400100000000 /* JapaneseRomanizer.swift */,
 				1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */,
 				110000A02D83400100000000 /* ReadingModels.swift */,
+				110000A12D83400100000000 /* JapaneseReadingEngines.swift */,
+				110000A22D83400100000000 /* ChinesePinyinReadingEngine.swift */,
+				110000A32D83400100000000 /* ReadingScriptConversion.swift */,
+				110000A42D83400100000000 /* ReadingUserDictionary.swift */,
+				110000A52D83400100000000 /* ReadingEngineRegistry.swift */,
 				110000342D83400100000000 /* JapaneseKanaGenerator.swift */,
 				110000862D83400100000000 /* FullScreenLyricsPresentation.swift */,
 				110000352D83400100000000 /* LyricsQueryPlanner.swift */,
@@ -702,6 +717,11 @@
 				110000332D83400100000001 /* JapaneseRomanizer.swift in Sources */,
 				1100004D2D83400100000001 /* JapaneseReadingPipeline.swift in Sources */,
 				110000A02D83400100000001 /* ReadingModels.swift in Sources */,
+				110000A12D83400100000001 /* JapaneseReadingEngines.swift in Sources */,
+				110000A22D83400100000001 /* ChinesePinyinReadingEngine.swift in Sources */,
+				110000A32D83400100000001 /* ReadingScriptConversion.swift in Sources */,
+				110000A42D83400100000001 /* ReadingUserDictionary.swift in Sources */,
+				110000A52D83400100000001 /* ReadingEngineRegistry.swift in Sources */,
 				110000342D83400100000001 /* JapaneseKanaGenerator.swift in Sources */,
 				110000352D83400100000001 /* LyricsQueryPlanner.swift in Sources */,
 				110000362D83400100000001 /* LyricsSafeMatcher.swift in Sources */,
