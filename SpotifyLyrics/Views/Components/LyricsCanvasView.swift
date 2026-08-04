@@ -557,8 +557,11 @@ struct LyricsStateContentFirstView: View {
     @ViewBuilder
     private var secondaryActions: some View {
         HStack(spacing: LyricsDesignTokens.Spacing.sm) {
-            if case .noMatch = state.liveLyricsState {
+            switch state.liveLyricsState {
+            case .noLyrics, .noMatch, .failed:
                 manualLyricsQueryEntry
+            default:
+                EmptyView()
             }
             if state.canCreateManualLyrics {
                 ManualLyricsActionsView(
