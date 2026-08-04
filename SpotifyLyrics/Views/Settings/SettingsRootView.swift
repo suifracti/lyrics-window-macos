@@ -444,9 +444,12 @@ private struct DataSettingsView: View {
 
 private struct AISettingsView: View {
     @EnvironmentObject private var settings: AppSettingsStore
+    @EnvironmentObject private var playback: PlaybackState
     @State private var apiKeyDraft = ""
     @State private var hasStoredKey = false
     @State private var statusMessage = ""
+    @State private var promptPreview: AITranslationPrompt?
+    @State private var showPromptPreview = false
 
     private var keyStore: KeychainAITranslationAPIKeyStore { KeychainAITranslationAPIKeyStore() }
 
@@ -530,6 +533,26 @@ private struct AISettingsView: View {
                         Text(preset.displayName).tag(preset.id.rawValue)
                     }
                 }
+                Picker("个人翻译风格", selection: profileBinding) {
+                    Text("不使用个人档案").tag("")
+                    ForEach(settings.translationProfiles.list(), id: \.id) { profile in
+                        Text(profile.name).tag(profile.id.uuidString)
+                    }
+                }
+                Button("预览当前提示词", systemImage: "doc.text.magnifyingglass") {
+                    do {
+                        let preset = TranslationPromptPresetID(rawValue: settings.aiTranslationConfiguration.promptPresetID) ?? .naturalSong
+                        promptPreview = try AITranslationPromptBuilder().preview(
+                            context: promptContext,
+                            configuration: settings.aiTranslationConfiguration,
+                            presetID: preset,
+                            profile: selectedProfile
+                        )
+                        showPromptPreview = true
+                    } catch {
+                        statusMessage = "提示词预览失败：(error.localizedDescription)"
+                    }
+                }
                 Picker("失败后的策略", selection: fallbackBinding) {
                     ForEach(TranslationFallbackStrategy.allCases, id: \.self) { strategy in
                         Text(strategy.title).tag(strategy)
@@ -586,9 +609,53 @@ private struct AISettingsView: View {
             }
         }
         .formStyle(.grouped)
+        .sheet(isPresented: $showPromptPreview) {
+            if let promptPreview {
+                TranslationPromptPreviewView(prompt: promptPreview)
+            }
+        }
         .onAppear {
             hasStoredKey = settings.aiTranslationAPIKeyConfigured
         }
+    }
+
+    private var selectedProfile: TranslationStyleProfile? {
+        guard let id = settings.aiTranslationConfiguration.profileID else { return nil }
+        return settings.translationProfiles.list(includeArchived: true).first { $0.id == id }
+    }
+
+    private var profileBinding: Binding<String> {
+        Binding(
+            get: { settings.aiTranslationConfiguration.profileID?.uuidString ?? "" },
+            set: { value in
+                var next = settings.aiTranslationConfiguration
+                next.profileID = UUID(uuidString: value)
+                if let profile = settings.translationProfiles.list(includeArchived: true).first(where: { $0.id.uuidString == value }) {
+                    next.profileSnapshot = profile.name
+                    next.promptPresetID = profile.basePresetID.rawValue
+                    next.targetLanguage = profile.targetLanguage
+                    if let temperature = profile.temperatureOverride { next.temperature = temperature }
+                } else {
+                    next.profileSnapshot = ""
+                }
+                settings.aiTranslationConfiguration = next
+            }
+        )
+    }
+
+    private var promptContext: AITranslationContext {
+        let lines = playback.liveLyrics.enumerated().map { index, line in
+            AITranslationSourceLine(index: index, original: line.originalText, kana: line.kanaText, romaji: line.romajiText)
+        }
+        return AITranslationContext(
+            title: playback.currentTrack.title,
+            artist: playback.currentTrack.artist,
+            album: playback.currentTrack.album,
+            sourceLanguage: playback.liveLyricsLanguage ?? "und",
+            targetLanguage: settings.aiTranslationConfiguration.targetLanguage,
+            style: settings.aiTranslationConfiguration.style,
+            lines: lines.isEmpty ? [AITranslationSourceLine(index: 0, original: "")] : lines
+        )
     }
 
     private func configurationBinding<Value>(_ keyPath: WritableKeyPath<AITranslationConfiguration, Value>) -> Binding<Value> {
@@ -622,6 +689,37 @@ private struct AISettingsView: View {
                 settings.aiTranslationConfiguration = next
             }
         )
+    }
+}
+
+private struct TranslationPromptPreviewView: View {
+    let prompt: AITranslationPrompt
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("提示词预览").font(.title3.weight(.semibold))
+                Spacer()
+                Button("关闭") { dismiss() }
+            }
+            Text("只读预览 · 不会请求 API、写数据库或改变播放位置")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text("Prompt Hash: \(prompt.promptHash)")
+                .font(.caption.monospaced())
+                .foregroundStyle(.secondary)
+            GroupBox("System") {
+                ScrollView { Text(prompt.system).frame(maxWidth: .infinity, alignment: .leading).textSelection(.enabled) }
+                    .frame(minHeight: 110)
+            }
+            GroupBox("Input JSON") {
+                ScrollView { Text(prompt.user).frame(maxWidth: .infinity, alignment: .leading).textSelection(.enabled) }
+                    .frame(minHeight: 110)
+            }
+        }
+        .padding(20)
+        .frame(width: 680, height: 540)
     }
 }
 

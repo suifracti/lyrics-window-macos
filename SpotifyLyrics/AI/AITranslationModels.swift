@@ -131,6 +131,119 @@ public enum TranslationPromptPresetCatalog {
     }
 }
 
+/// A personal translation style is a UserDefaults object, not a translation
+/// version and not a second secret store. Its snapshot is copied into a
+/// translation version only when an explicit request is saved.
+public struct TranslationStyleProfile: Codable, Equatable, Sendable, Identifiable {
+    public let id: UUID
+    public var name: String
+    public var basePresetID: TranslationPromptPresetID
+    public var customInstructions: String
+    public var targetLanguage: String
+    public var temperatureOverride: Double?
+    public var preserveProperNouns: Bool
+    public var preserveRepetition: Bool
+    public var keepSongTone: Bool
+    public let createdAt: Date
+    public var updatedAt: Date
+    public var isArchived: Bool
+
+    public init(
+        id: UUID = UUID(),
+        name: String,
+        basePresetID: TranslationPromptPresetID = .naturalSong,
+        customInstructions: String = "",
+        targetLanguage: String = "zh-Hans",
+        temperatureOverride: Double? = nil,
+        preserveProperNouns: Bool = true,
+        preserveRepetition: Bool = true,
+        keepSongTone: Bool = true,
+        createdAt: Date = Date(),
+        updatedAt: Date = Date(),
+        isArchived: Bool = false
+    ) {
+        self.id = id
+        self.name = name
+        self.basePresetID = basePresetID
+        self.customInstructions = customInstructions
+        self.targetLanguage = targetLanguage
+        self.temperatureOverride = temperatureOverride.map { min(max($0, 0), 2) }
+        self.preserveProperNouns = preserveProperNouns
+        self.preserveRepetition = preserveRepetition
+        self.keepSongTone = keepSongTone
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.isArchived = isArchived
+    }
+
+    public func with(name: String) -> TranslationStyleProfile {
+        var copy = self
+        copy.name = name
+        copy.updatedAt = Date()
+        return copy
+    }
+}
+
+public final class TranslationProfileStore: @unchecked Sendable {
+    private let defaults: UserDefaults
+    private let key = "ai.translationProfiles.v1"
+
+    public init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
+
+    public func list(includeArchived: Bool = false) -> [TranslationStyleProfile] {
+        guard let data = defaults.data(forKey: key),
+              let profiles = try? JSONDecoder().decode([TranslationStyleProfile].self, from: data) else { return [] }
+        return profiles
+            .filter { includeArchived || !$0.isArchived }
+            .sorted { $0.updatedAt > $1.updatedAt }
+    }
+
+    @discardableResult
+    public func create(
+        name: String,
+        basePresetID: TranslationPromptPresetID = .naturalSong,
+        customInstructions: String = "",
+        targetLanguage: String = "zh-Hans",
+        temperatureOverride: Double? = nil,
+        preserveProperNouns: Bool = true,
+        preserveRepetition: Bool = true,
+        keepSongTone: Bool = true
+    ) -> TranslationStyleProfile {
+        let profile = TranslationStyleProfile(
+            name: name,
+            basePresetID: basePresetID,
+            customInstructions: customInstructions,
+            targetLanguage: targetLanguage,
+            temperatureOverride: temperatureOverride,
+            preserveProperNouns: preserveProperNouns,
+            preserveRepetition: preserveRepetition,
+            keepSongTone: keepSongTone
+        )
+        save(profile)
+        return profile
+    }
+
+    public func update(_ profile: TranslationStyleProfile) {
+        save(profile)
+    }
+
+    public func archive(id: UUID, archived: Bool = true) {
+        guard let existing = list(includeArchived: true).first(where: { $0.id == id }) else { return }
+        var updated = existing
+        updated.isArchived = archived
+        updated.updatedAt = Date()
+        save(updated)
+    }
+
+    private func save(_ profile: TranslationStyleProfile) {
+        var all = list(includeArchived: true).filter { $0.id != profile.id }
+        all.append(profile)
+        if let data = try? JSONEncoder().encode(all) { defaults.set(data, forKey: key) }
+    }
+}
+
 public struct TranslationModelDescriptor: Codable, Equatable, Sendable {
     public let id: String
     public let displayName: String

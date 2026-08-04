@@ -92,6 +92,7 @@ public final class AppSettingsStore: ObservableObject {
     /// of the settings store. The selection object is metadata/selection
     /// only; it never owns a playback or lyrics runtime.
     public let presentationSelections: PresentationSelectionStore
+    public let translationProfiles: TranslationProfileStore
 
     @Published public var settingsCenterPresentationRawValue: String {
         didSet { defaults.set(settingsCenterPresentationRawValue, forKey: Key.settingsCenterPresentation) }
@@ -192,6 +193,7 @@ public final class AppSettingsStore: ObservableObject {
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         self.presentationSelections = PresentationSelectionStore(defaults: defaults)
+        self.translationProfiles = TranslationProfileStore(defaults: defaults)
         settingsCenterPresentationRawValue = defaults.string(forKey: Key.settingsCenterPresentation)
             ?? SettingsCenterPresentationID.recommended.rawValue
         let layout = defaults.string(forKey: Key.mainWindowLayoutStyle)

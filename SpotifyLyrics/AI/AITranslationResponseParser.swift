@@ -71,3 +71,15 @@ public enum AITranslationResponseParser {
         return lines.sorted { $0.index < $1.index }
     }
 }
+
+/// Named validation entry point used by engine adapters and contracts. It
+/// intentionally delegates to the existing strict parser so no second output
+/// format or relaxed mapping path can appear.
+public enum AITranslationResponseValidator {
+    public static func validate(
+        _ lines: [AITranslationLine],
+        against original: [String]
+    ) throws -> [AITranslationLine] {
+        try AITranslationResponseParser.validate(lines, against: original)
+    }
+}
