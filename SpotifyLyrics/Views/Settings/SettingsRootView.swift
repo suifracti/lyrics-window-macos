@@ -450,6 +450,7 @@ private struct AISettingsView: View {
     @State private var statusMessage = ""
     @State private var promptPreview: AITranslationPrompt?
     @State private var showPromptPreview = false
+    @State private var showProfileManager = false
 
     private var keyStore: KeychainAITranslationAPIKeyStore { KeychainAITranslationAPIKeyStore() }
 
@@ -466,6 +467,11 @@ private struct AISettingsView: View {
                         Text(engine.displayName).tag(engine.stableID)
                     }
                 }
+                let selectedEngine = TranslationEngineRegistry.make(stableID: settings.aiTranslationConfiguration.engineID).metadata
+                Text(engineAvailabilityText(selectedEngine))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 TextField("兼容接口地址（Base URL）", text: configurationBinding(\.baseURL))
                     .textFieldStyle(.roundedBorder)
                 TextField("模型（Model）", text: configurationBinding(\.model))
@@ -473,9 +479,16 @@ private struct AISettingsView: View {
                 HStack {
                     Text("模型目录")
                     Spacer()
-                    Text(settings.aiModelDirectoryStatus.userFacingTitle)
+                    Text(settings.aiModelDirectoryDisplayStatus.userFacingTitle)
                         .foregroundStyle(.secondary)
                     Button("刷新") { settings.refreshAIModelDirectory() }
+                }
+                if !settings.aiTranslationConfiguration.model.isEmpty,
+                   !settings.aiCachedModels.contains(where: { $0.id == settings.aiTranslationConfiguration.model }) {
+                    Text("当前模型未出现在最近目录中，仍保留手动输入的模型 ID。")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 if !settings.aiCachedModels.isEmpty {
                     Picker("手动选择模型", selection: configurationBinding(\.model)) {
@@ -539,6 +552,9 @@ private struct AISettingsView: View {
                         Text(profile.name).tag(profile.id.uuidString)
                     }
                 }
+                Button("管理个人翻译风格", systemImage: "person.crop.circle.badge.pencil") {
+                    showProfileManager = true
+                }
                 Button("预览当前提示词", systemImage: "doc.text.magnifyingglass") {
                     do {
                         let preset = TranslationPromptPresetID(rawValue: settings.aiTranslationConfiguration.promptPresetID) ?? .naturalSong
@@ -550,7 +566,7 @@ private struct AISettingsView: View {
                         )
                         showPromptPreview = true
                     } catch {
-                        statusMessage = "提示词预览失败：(error.localizedDescription)"
+                        statusMessage = "提示词预览失败：\(error.localizedDescription)"
                     }
                 }
                 Picker("失败后的策略", selection: fallbackBinding) {
@@ -591,9 +607,10 @@ private struct AISettingsView: View {
                 Button("测试连接") {
                     statusMessage = "正在发送最小测试请求…"
                     let configuration = settings.aiTranslationConfiguration
+                    let engine = TranslationEngineRegistry.make(stableID: configuration.engineID)
                     Task {
                         do {
-                            try await OpenAICompatibleTranslationService().testConnection(configuration: configuration)
+                            try await engine.testConnection(configuration: configuration)
                             await MainActor.run { statusMessage = "连接成功。测试请求未使用当前歌词。" }
                         } catch {
                             await MainActor.run { statusMessage = error.localizedDescription }
@@ -614,6 +631,10 @@ private struct AISettingsView: View {
                 TranslationPromptPreviewView(prompt: promptPreview)
             }
         }
+        .sheet(isPresented: $showProfileManager) {
+            TranslationProfilesView()
+                .environmentObject(settings)
+        }
         .onAppear {
             hasStoredKey = settings.aiTranslationAPIKeyConfigured
         }
@@ -624,6 +645,21 @@ private struct AISettingsView: View {
         return settings.translationProfiles.list(includeArchived: true).first { $0.id == id }
     }
 
+    private func engineAvailabilityText(_ engine: TranslationEngineMetadata) -> String {
+        switch engine.availability {
+        case .available:
+            return engine.stableID == TranslationEngineID.appleSystem.rawValue
+                ? "可用：系统翻译优先隐私与速度，歌词语境和文学性可能弱于 AI。"
+                : "可用：请确认 Base URL、模型和 API Key。"
+        case .requiresConfiguration:
+            return "需要配置：Base URL、模型和 API Key。"
+        case .requiresSystemSupport:
+            return "需要系统支持：当前系统或语言组合可能不可用。"
+        case .unavailable:
+            return "当前引擎不可用。"
+        }
+    }
+
     private var profileBinding: Binding<String> {
         Binding(
             get: { settings.aiTranslationConfiguration.profileID?.uuidString ?? "" },
@@ -631,7 +667,7 @@ private struct AISettingsView: View {
                 var next = settings.aiTranslationConfiguration
                 next.profileID = UUID(uuidString: value)
                 if let profile = settings.translationProfiles.list(includeArchived: true).first(where: { $0.id.uuidString == value }) {
-                    next.profileSnapshot = profile.name
+                    next.profileSnapshot = profile.snapshotString
                     next.promptPresetID = profile.basePresetID.rawValue
                     next.targetLanguage = profile.targetLanguage
                     if let temperature = profile.temperatureOverride { next.temperature = temperature }
@@ -689,6 +725,127 @@ private struct AISettingsView: View {
                 settings.aiTranslationConfiguration = next
             }
         )
+    }
+}
+
+private struct TranslationProfilesView: View {
+    @EnvironmentObject private var settings: AppSettingsStore
+    @Environment(\.dismiss) private var dismiss
+    @State private var newName = ""
+    @State private var editingID: UUID?
+    @State private var editingName = ""
+    @State private var deleteCandidate: TranslationStyleProfile?
+
+    private var profiles: [TranslationStyleProfile] {
+        settings.translationProfiles.list(includeArchived: true)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("个人翻译风格").font(.title3.weight(.semibold))
+                    Text("内置预设不会被修改；档案变更不会回写已有翻译版本。")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button("完成") { dismiss() }
+            }
+
+            HStack {
+                TextField("新风格名称", text: $newName)
+                    .textFieldStyle(.roundedBorder)
+                Button("创建", systemImage: "plus") {
+                    let name = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !name.isEmpty else { return }
+                    _ = settings.translationProfiles.create(name: name)
+                    newName = ""
+                    notifySettingsChanged()
+                }
+                .disabled(newName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+
+            List(profiles) { profile in
+                HStack(spacing: 10) {
+                    if editingID == profile.id {
+                        TextField("名称", text: $editingName)
+                            .textFieldStyle(.roundedBorder)
+                        Button("保存") {
+                            let name = editingName.trimmingCharacters(in: .whitespacesAndNewlines)
+                            guard !name.isEmpty else { return }
+                            settings.translationProfiles.update(profile.with(name: name))
+                            editingID = nil
+                            notifySettingsChanged()
+                        }
+                        Button("取消") { editingID = nil }
+                    } else {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(profile.name)
+                            Text(profile.basePresetID.displayName + (profile.isArchived ? " · 已归档" : ""))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Button("复制", systemImage: "plus.square.on.square") {
+                            _ = settings.translationProfiles.copy(profile)
+                            notifySettingsChanged()
+                        }
+                        Button("重命名", systemImage: "pencil") {
+                            editingID = profile.id
+                            editingName = profile.name
+                        }
+                        Menu {
+                            Button(profile.isArchived ? "恢复" : "归档") {
+                                settings.translationProfiles.archive(id: profile.id, archived: !profile.isArchived)
+                                notifySettingsChanged()
+                            }
+                            Divider()
+                            Button("删除", role: .destructive) { deleteCandidate = profile }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                        }
+                        .menuStyle(.borderlessButton)
+                    }
+                }
+                .padding(.vertical, 3)
+            }
+            .frame(minHeight: 220)
+        }
+        .padding(20)
+        .frame(width: 640, height: 470)
+        .confirmationDialog(
+            "删除个人翻译风格？",
+            isPresented: Binding(
+                get: { deleteCandidate != nil },
+                set: { if !$0 { deleteCandidate = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("删除", role: .destructive) {
+                guard let profile = deleteCandidate else { return }
+                settings.translationProfiles.delete(id: profile.id)
+                if settings.aiTranslationConfiguration.profileID == profile.id {
+                    var configuration = settings.aiTranslationConfiguration
+                    configuration.profileID = nil
+                    configuration.profileSnapshot = ""
+                    settings.aiTranslationConfiguration = configuration
+                }
+                deleteCandidate = nil
+                notifySettingsChanged()
+            }
+            Button("取消", role: .cancel) {}
+        } message: {
+            Text("不会删除已经生成的翻译版本。")
+        }
+    }
+
+    private func notifySettingsChanged() {
+        // ProfileStore is shared by the settings center and current-song
+        // entry. Reassigning the existing value only nudges the owning
+        // AppSettingsStore to refresh its bindings; it does not create a
+        // second settings store or alter the current playback session.
+        settings.aiTranslationConfiguration = settings.aiTranslationConfiguration
     }
 }
 

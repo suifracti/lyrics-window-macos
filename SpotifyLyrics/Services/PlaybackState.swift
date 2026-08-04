@@ -328,6 +328,7 @@ public final class PlaybackState: ObservableObject {
     public var translationState: TranslationSessionState { translationSession.state }
     public var translationVersions: [StoredTranslationVersion] { translationSession.availableVersions }
     public var selectedTranslation: StoredTranslationVersion? { translationSession.selectedVersion }
+    public var translationSessionPendingCandidate: StoredTranslationVersion? { translationSession.pendingCandidate }
     public var isTranslationSelectionEmpty: Bool { translationSession.isNoSelection }
 
     public var canOpenLyricsEditor: Bool {
@@ -497,6 +498,10 @@ public final class PlaybackState: ObservableObject {
     public func selectNoTranslationVersion() { translationSession.selectNone() }
     public func lockSelectedTranslation() { translationSession.lockSelected() }
     public func deleteSelectedTranslation() { translationSession.deleteSelected() }
+    public func adoptTranslation(versionID: UUID) { translationSession.adoptTranslation(versionID: versionID) }
+    public func archiveTranslation(versionID: UUID) { translationSession.archiveTranslation(versionID: versionID) }
+    public func cancelTranslation() { translationSession.cancel() }
+    public func restoreRecommendedTranslation() { translationSession.restoreRecommended() }
 
     /// Explicitly clears the live lyric projection for this session without
     /// deleting any stored LyricsVersion.
@@ -506,6 +511,9 @@ public final class PlaybackState: ObservableObject {
     }
 
     private func syncTranslationSession() {
+        translationSession.setEngine(
+            TranslationEngineRegistry.make(stableID: settingsStore.aiTranslationConfiguration.engineID)
+        )
         translationSession.synchronize(
             document: lyricsSession.activeDocument,
             lyricsVersionID: lyricsSession.activeLyricsVersionID,

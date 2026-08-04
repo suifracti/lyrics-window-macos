@@ -10,6 +10,7 @@ struct CurrentSongOperationsView: View {
 
     @State private var notice = ""
     @State private var showDeleteTranslationConfirmation = false
+    @State private var showCandidatePreview = false
 
     private var snapshot: CurrentSongOperationSnapshot {
         CurrentSongOperationSnapshot(
@@ -60,6 +61,11 @@ struct CurrentSongOperationsView: View {
             Button("取消", role: .cancel) {}
         } message: {
             Text("不会删除原文、读音或歌词版本。")
+        }
+        .sheet(isPresented: $showCandidatePreview) {
+            if let candidate = state.translationSessionPendingCandidate {
+                TranslationCandidatePreviewView(candidate: candidate)
+            }
         }
     }
 
@@ -240,6 +246,32 @@ struct CurrentSongOperationsView: View {
                     .font(.system(size: 11, design: .rounded))
                     .foregroundStyle(state.isTranslationSelectionEmpty ? .orange : .secondary)
             }
+            VStack(alignment: .leading, spacing: 6) {
+                Picker("引擎", selection: configurationStringBinding(\.engineID)) {
+                    ForEach(TranslationEngineCatalog.all, id: \.stableID) { engine in
+                        Text(engine.displayName).tag(engine.stableID)
+                    }
+                }
+                Picker("提示词", selection: configurationStringBinding(\.promptPresetID)) {
+                    ForEach(TranslationPromptPresetCatalog.all, id: \.id) { preset in
+                        Text(preset.displayName).tag(preset.id.rawValue)
+                    }
+                }
+                Text("模型：\(settings.aiTranslationConfiguration.model.isEmpty ? "手动输入" : settings.aiTranslationConfiguration.model)")
+                    .font(.system(size: 10, design: .rounded))
+                    .foregroundStyle(.secondary)
+            }
+            if let candidate = state.translationSessionPendingCandidate {
+                HStack(spacing: 8) {
+                    Label("新候选待采用", systemImage: "sparkles")
+                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                    Spacer()
+                    Button("预览") { showCandidatePreview = true }
+                    Button("采用") { state.adoptTranslation(versionID: candidate.record.id) }
+                }
+                .padding(8)
+                .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
+            }
             Menu {
                 Button("无翻译版本") { state.selectNoTranslationVersion() }
                     .disabled(state.isTranslationSelectionEmpty)
@@ -254,11 +286,23 @@ struct CurrentSongOperationsView: View {
                 Divider()
                 Button("翻译整首歌词") { state.translateCurrentLyrics() }
                 Button("重新翻译") { state.retranslateCurrentLyrics() }
+                if case .loading = state.translationState {
+                    Button("取消翻译") { state.cancelTranslation() }
+                }
+                Button("恢复推荐") { state.restoreRecommendedTranslation() }
+                if let candidate = state.translationSessionPendingCandidate {
+                    Button("预览候选") { showCandidatePreview = true }
+                    Button("采用候选") { state.adoptTranslation(versionID: candidate.record.id) }
+                    Button("归档候选") { state.archiveTranslation(versionID: candidate.record.id) }
+                }
                 if state.selectedTranslation?.record.isLocked == false {
                     Divider()
                     Button("锁定当前翻译") { state.lockSelectedTranslation() }
                     Button("删除当前翻译", role: .destructive) {
                         showDeleteTranslationConfirmation = true
+                    }
+                    Button("归档当前翻译") {
+                        if let id = state.selectedTranslation?.record.id { state.archiveTranslation(versionID: id) }
                     }
                 }
             } label: {
@@ -311,7 +355,20 @@ struct CurrentSongOperationsView: View {
 
     private func versionTitle(_ version: StoredTranslationVersion) -> String {
         let model = version.record.model.isEmpty ? version.record.sourceKind.rawValue : version.record.model
+        if version.record.isDraft { return "候选 · \(model)" }
+        if version.record.isArchived { return "已归档 · \(model)" }
         return version.record.isLocked ? "🔒 \(model)" : model
+    }
+
+    private func configurationStringBinding(_ keyPath: WritableKeyPath<AITranslationConfiguration, String>) -> Binding<String> {
+        Binding(
+            get: { settings.aiTranslationConfiguration[keyPath: keyPath] },
+            set: { value in
+                var next = settings.aiTranslationConfiguration
+                next[keyPath: keyPath] = value
+                settings.aiTranslationConfiguration = next
+            }
+        )
     }
 
     private func displayBinding<Value>(_ keyPath: WritableKeyPath<DisplayPreferences, Value>) -> Binding<Value> {
@@ -334,5 +391,39 @@ struct CurrentSongOperationsView: View {
                 settings.displayPreferences = next
             }
         )
+    }
+}
+
+private struct TranslationCandidatePreviewView: View {
+    let candidate: StoredTranslationVersion
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("翻译候选预览").font(.title3.weight(.semibold))
+                Spacer()
+                Button("关闭") { dismiss() }
+            }
+            Text("候选不会覆盖当前翻译，确认后再采用。")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 8) {
+                    ForEach(candidate.lines, id: \.lineIndex) { line in
+                        HStack(alignment: .top, spacing: 12) {
+                            Text("\(line.lineIndex + 1)")
+                                .font(.caption.monospacedDigit())
+                                .foregroundStyle(.secondary)
+                                .frame(width: 28, alignment: .trailing)
+                            Text(line.translatedText.isEmpty ? "（空白行）" : line.translatedText)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                }
+            }
+        }
+        .padding(20)
+        .frame(width: 520, height: 520)
     }
 }

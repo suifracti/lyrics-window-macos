@@ -108,11 +108,15 @@ private func waitForEditorSave(_ editor: LyricsEditorSessionController) async ->
 
 private func waitForTranslation(_ controller: TranslationSessionController) async -> Bool {
     for _ in 0..<100 {
-        let loaded = await MainActor.run {
-            if case .loaded = controller.state { return true }
-            return false
+        let ready = await MainActor.run {
+            switch controller.state {
+            case .loaded, .candidateReady:
+                return true
+            default:
+                return false
+            }
         }
-        if loaded { return true }
+        if ready { return true }
         let failed = await MainActor.run {
             if case .failed = controller.state { return true }
             return false
@@ -213,8 +217,16 @@ struct SyntheticTextLyricsE2EContract {
         }
         let metrics = await http.requestMetrics()
         try require(metrics.0 == 1 && metrics.1, "AI received whole-song context once")
+        let candidateID = await MainActor.run { translation.pendingCandidate?.record.id }
+        try require(candidateID != nil, "A translation remains an explicit candidate")
+        await MainActor.run { translation.adoptTranslation(versionID: candidateID!) }
+        for _ in 0..<100 {
+            let adopted = await MainActor.run { translation.selectedVersion?.record.id == candidateID }
+            if adopted { break }
+            try? await Task.sleep(nanoseconds: 20_000_000)
+        }
         let translatedA = await MainActor.run { translation.selectedVersion }
-        try require(translatedA?.isComplete == true && translatedA?.lines.count == 4, "A translation complete")
+        try require(translatedA?.isComplete == true && translatedA?.lines.count == 4, "A translation adopted and complete")
         await MainActor.run { translation.lockSelected() }
         var lockedTranslation = try await repository.loadTranslationVersions(
             lyricsVersionID: storedA.record.id,

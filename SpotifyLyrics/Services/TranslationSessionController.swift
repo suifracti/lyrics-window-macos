@@ -6,6 +6,7 @@ public enum TranslationSessionState: Equatable, Sendable {
     case unavailable
     case loading
     case loaded(UUID)
+    case candidateReady(UUID)
     case failed(String)
 
     public var userFacingMessage: String {
@@ -14,6 +15,7 @@ public enum TranslationSessionState: Equatable, Sendable {
         case .unavailable: return "未配置 AI 翻译"
         case .loading: return "正在翻译整首歌词…"
         case .loaded: return ""
+        case .candidateReady: return "有新的翻译候选待采用"
         case .failed(let message): return "翻译失败：\(message)"
         }
     }
@@ -31,9 +33,10 @@ public final class TranslationSessionController: ObservableObject {
     /// Distinguishes an explicit session-level “无翻译版本” choice from a
     /// hidden translation layer or a context that has not loaded yet.
     @Published public private(set) var isNoSelection = false
+    @Published public private(set) var pendingCandidate: StoredTranslationVersion?
 
     private let repository: any TranslationRepository
-    private let service: (any AITranslationService)?
+    private var engine: (any TranslationEngine)?
     private var requestTask: Task<Void, Never>?
     private var context: TranslationContext?
     private var inFlightKey: String?
@@ -59,7 +62,15 @@ public final class TranslationSessionController: ObservableObject {
         service: (any AITranslationService)? = OpenAICompatibleTranslationService()
     ) {
         self.repository = repository
-        self.service = service
+        self.engine = service.map { TranslationEngineRegistry.wrapping($0) }
+    }
+
+    public init(
+        repository: any TranslationRepository,
+        engine: (any TranslationEngine)?
+    ) {
+        self.repository = repository
+        self.engine = engine
     }
 
     deinit {
@@ -113,6 +124,7 @@ public final class TranslationSessionController: ObservableObject {
         context = next
         selectedVersion = nil
         availableVersions = []
+        pendingCandidate = nil
         errorMessage = nil
         isNoSelection = manualNoSelection.contains(next.key)
         state = .idle
@@ -125,6 +137,10 @@ public final class TranslationSessionController: ObservableObject {
         inFlightKey = nil
         requestGeneration &+= 1
         state = .idle
+    }
+
+    public func setEngine(_ engine: any TranslationEngine) {
+        self.engine = engine
     }
 
     /// Re-reads the selected/source-matched versions after another session
@@ -144,6 +160,7 @@ public final class TranslationSessionController: ObservableObject {
         availableVersions = []
         errorMessage = nil
         isNoSelection = false
+        pendingCandidate = nil
         state = .idle
     }
 
@@ -167,9 +184,19 @@ public final class TranslationSessionController: ObservableObject {
         requestGeneration &+= 1
         manualNoSelection.insert(context.key)
         selectedVersion = nil
+        pendingCandidate = nil
         isNoSelection = true
         errorMessage = nil
         state = .idle
+    }
+
+    public func restoreRecommended() {
+        guard let context else { return }
+        manualSelection.removeValue(forKey: context.key)
+        manualNoSelection.remove(context.key)
+        isNoSelection = false
+        pendingCandidate = nil
+        loadExistingOrAutoTranslate(context)
     }
 
     public func select(versionID: UUID) {
@@ -177,7 +204,9 @@ public final class TranslationSessionController: ObservableObject {
               let version = availableVersions.first(where: { $0.record.id == versionID }),
               version.record.sourceContentHash == context.sourceContentHash,
               version.record.targetLanguage == context.configuration.targetLanguage,
-              version.isComplete else { return }
+              version.isComplete,
+              !version.isDraft,
+              !version.isArchived else { return }
         requestTask?.cancel()
         requestTask = nil
         inFlightKey = nil
@@ -188,6 +217,61 @@ public final class TranslationSessionController: ObservableObject {
         selectedVersion = version
         state = .loaded(version.record.id)
         errorMessage = nil
+    }
+
+    /// Generated translations are candidates until the user explicitly
+    /// adopts them. This prevents a successful request from silently
+    /// replacing a locked/manual or no-selection choice.
+    public func adoptTranslation(versionID: UUID) {
+        guard let context,
+              let candidate = availableVersions.first(where: { $0.record.id == versionID }),
+              candidate.isComplete,
+              candidate.isDraft,
+              !candidate.record.isLocked,
+              candidate.record.lyricsVersionID == context.lyricsVersionID,
+              candidate.record.sourceContentHash == context.sourceContentHash else { return }
+        Task { [weak self, repository] in
+            do {
+                try await repository.adoptTranslation(versionID: versionID)
+                await MainActor.run { [weak self] in
+                    guard let self, self.context?.key == context.key else { return }
+                    let adopted = candidate.with(record: candidate.record.with(isDraft: false, isArchived: false))
+                    self.availableVersions = self.availableVersions.map { $0.record.id == versionID ? adopted : $0 }
+                    self.pendingCandidate = nil
+                    self.manualSelection[context.key] = versionID
+                    self.manualNoSelection.remove(context.key)
+                    self.isNoSelection = false
+                    self.selectedVersion = adopted
+                    self.state = .loaded(versionID)
+                    self.errorMessage = nil
+                }
+            } catch {
+                await MainActor.run { [weak self] in self?.errorMessage = error.localizedDescription }
+            }
+        }
+    }
+
+    public func archiveTranslation(versionID: UUID) {
+        guard let context,
+              let version = availableVersions.first(where: { $0.record.id == versionID }),
+              !version.record.isLocked else { return }
+        Task { [weak self, repository] in
+            do {
+                try await repository.archiveTranslation(versionID: versionID, archived: true)
+                await MainActor.run { [weak self] in
+                    guard let self, self.context?.key == context.key else { return }
+                    let archived = version.with(record: version.record.with(isArchived: true))
+                    self.availableVersions = self.availableVersions.map { $0.record.id == versionID ? archived : $0 }
+                    if self.pendingCandidate?.record.id == versionID { self.pendingCandidate = nil }
+                    if self.selectedVersion?.record.id == versionID {
+                        self.selectedVersion = nil
+                        self.state = .idle
+                    }
+                }
+            } catch {
+                await MainActor.run { [weak self] in self?.errorMessage = error.localizedDescription }
+            }
+        }
     }
 
     public func lockSelected() {
@@ -289,6 +373,7 @@ public final class TranslationSessionController: ObservableObject {
                           self.context?.key == key,
                           self.requestGeneration == loadGeneration else { return }
                     self.availableVersions = versions
+                    self.pendingCandidate = versions.first(where: { $0.isDraft && !$0.isArchived })
                     if self.manualNoSelection.contains(key) {
                         self.selectedVersion = nil
                         self.isNoSelection = true
@@ -330,6 +415,8 @@ public final class TranslationSessionController: ObservableObject {
     ) -> StoredTranslationVersion? {
         let eligible = versions.filter {
             $0.isComplete &&
+            !$0.isDraft &&
+            !$0.isArchived &&
             $0.record.targetLanguage == context.configuration.targetLanguage &&
             $0.record.sourceContentHash == context.sourceContentHash
         }
@@ -343,19 +430,27 @@ public final class TranslationSessionController: ObservableObject {
     private func startTranslation(_ context: TranslationContext, forceNewVersion: Bool) {
         let key = context.key
         if !forceNewVersion, inFlightKey == key { return }
+        if !forceNewVersion,
+           let pendingCandidate,
+           pendingCandidate.record.lyricsVersionID == context.lyricsVersionID,
+           pendingCandidate.record.sourceContentHash == context.sourceContentHash,
+           !pendingCandidate.record.isArchived {
+            // A completed candidate is already waiting for an explicit user
+            // decision. A normal retry must not create duplicate versions;
+            // the explicit “重新翻译” action uses forceNewVersion instead.
+            return
+        }
         requestTask?.cancel()
         requestGeneration &+= 1
         let translationGeneration = requestGeneration
-        manualNoSelection.remove(key)
-        isNoSelection = false
         inFlightKey = key
         state = .loading
         errorMessage = nil
         let originalLines = context.document.lines.map(\.originalText)
-        let service = self.service
+        let engine = self.engine
         requestTask = Task { [weak self, repository] in
             do {
-                guard let service else { throw AITranslationError.notConfigured }
+                guard let engine else { throw AITranslationError.notConfigured }
                 let sourceLines = context.document.lines.enumerated().map { index, line in
                     AITranslationSourceLine(
                         index: index,
@@ -373,30 +468,41 @@ public final class TranslationSessionController: ObservableObject {
                     style: context.configuration.style,
                     lines: sourceLines
                 )
-                let draft = try await service.translate(
-                    context: aiContext,
-                    sourceContentHash: context.sourceContentHash,
-                    configuration: context.configuration
-                )
+                let draft: AITranslationDraft
+                do {
+                    draft = try await engine.translate(
+                        context: aiContext,
+                        sourceContentHash: context.sourceContentHash,
+                        configuration: context.configuration
+                    )
+                } catch {
+                    guard context.configuration.fallbackStrategy == .automaticSystem,
+                          engine.metadata.stableID == TranslationEngineID.openAICompatible.rawValue else {
+                        throw error
+                    }
+                    draft = try await AppleSystemTranslationEngine().translate(
+                        context: aiContext,
+                        sourceContentHash: context.sourceContentHash,
+                        configuration: context.configuration
+                    )
+                }
                 guard !Task.isCancelled else { throw AITranslationError.cancelled }
                 let saved = try await repository.saveTranslation(
                     lyricsVersionID: context.lyricsVersionID,
                     sourceContentHash: context.sourceContentHash,
                     originalLines: originalLines,
-                    draft: draft,
+                    draft: draft.with(isDraft: true, isArchived: false),
                     forceNewVersion: forceNewVersion
                 )
                 guard !Task.isCancelled else { return }
                 await MainActor.run { [weak self] in
                     guard let self,
                           self.context?.key == key,
-                          self.requestGeneration == translationGeneration,
-                          !self.isNoSelection else { return }
+                          self.requestGeneration == translationGeneration else { return }
                     self.inFlightKey = nil
                     self.availableVersions.insert(saved, at: 0)
-                    self.selectedVersion = saved
-                    self.manualSelection[key] = saved.record.id
-                    self.state = .loaded(saved.record.id)
+                    self.pendingCandidate = saved
+                    self.state = .candidateReady(saved.record.id)
                 }
             } catch is CancellationError {
                 await MainActor.run { [weak self] in

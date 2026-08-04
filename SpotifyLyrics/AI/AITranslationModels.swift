@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 
 public enum AITranslationSourceKind: String, CaseIterable, Codable, Sendable {
@@ -182,11 +183,19 @@ public struct TranslationStyleProfile: Codable, Equatable, Sendable, Identifiabl
         copy.updatedAt = Date()
         return copy
     }
+
+    /// Immutable metadata captured with a translation version. It contains
+    /// style choices only; it never contains credentials or lyric contents.
+    public var snapshotString: String {
+        guard let data = try? JSONEncoder().encode(self) else { return name }
+        return String(data: data, encoding: .utf8) ?? name
+    }
 }
 
-public final class TranslationProfileStore: @unchecked Sendable {
+public final class TranslationProfileStore: ObservableObject, @unchecked Sendable {
     private let defaults: UserDefaults
     private let key = "ai.translationProfiles.v1"
+    @Published public private(set) var revision: Int = 0
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -229,6 +238,22 @@ public final class TranslationProfileStore: @unchecked Sendable {
         save(profile)
     }
 
+    @discardableResult
+    public func copy(_ profile: TranslationStyleProfile, name: String? = nil) -> TranslationStyleProfile {
+        let duplicate = TranslationStyleProfile(
+            name: name ?? "(profile.name) 副本",
+            basePresetID: profile.basePresetID,
+            customInstructions: profile.customInstructions,
+            targetLanguage: profile.targetLanguage,
+            temperatureOverride: profile.temperatureOverride,
+            preserveProperNouns: profile.preserveProperNouns,
+            preserveRepetition: profile.preserveRepetition,
+            keepSongTone: profile.keepSongTone
+        )
+        save(duplicate)
+        return duplicate
+    }
+
     public func archive(id: UUID, archived: Bool = true) {
         guard let existing = list(includeArchived: true).first(where: { $0.id == id }) else { return }
         var updated = existing
@@ -237,10 +262,21 @@ public final class TranslationProfileStore: @unchecked Sendable {
         save(updated)
     }
 
+    public func delete(id: UUID) {
+        let remaining = list(includeArchived: true).filter { $0.id != id }
+        if let data = try? JSONEncoder().encode(remaining) {
+            defaults.set(data, forKey: key)
+            revision &+= 1
+        }
+    }
+
     private func save(_ profile: TranslationStyleProfile) {
         var all = list(includeArchived: true).filter { $0.id != profile.id }
         all.append(profile)
-        if let data = try? JSONEncoder().encode(all) { defaults.set(data, forKey: key) }
+        if let data = try? JSONEncoder().encode(all) {
+            defaults.set(data, forKey: key)
+            revision &+= 1
+        }
     }
 }
 
@@ -264,6 +300,7 @@ public enum TranslationModelDirectoryStatus: Equatable, Sendable {
     case loaded([TranslationModelDescriptor])
     case empty
     case unauthorized
+    case endpointUnsupported
     case unavailable(String)
     case manualFallback
 
@@ -274,6 +311,7 @@ public enum TranslationModelDirectoryStatus: Equatable, Sendable {
         case .loaded(let models): return "已加载 \(models.count) 个模型"
         case .empty: return "服务未返回模型"
         case .unauthorized: return "未授权"
+        case .endpointUnsupported: return "服务不提供模型目录"
         case .unavailable: return "目录暂不可用"
         case .manualFallback: return "使用手动模型"
         }
@@ -399,6 +437,30 @@ public struct AITranslationDraft: Equatable, Sendable {
         self.isDraft = isDraft
         self.isArchived = isArchived
     }
+
+    public func with(isDraft: Bool? = nil, isArchived: Bool? = nil) -> AITranslationDraft {
+        AITranslationDraft(
+            lines: lines,
+            targetLanguage: targetLanguage,
+            model: model,
+            baseURLHost: baseURLHost,
+            promptHash: promptHash,
+            sourceContentHash: sourceContentHash,
+            sourceKind: sourceKind,
+            isMachineGenerated: isMachineGenerated,
+            isManuallyEdited: isManuallyEdited,
+            confidence: confidence,
+            engineID: engineID,
+            promptPresetID: promptPresetID,
+            profileID: profileID,
+            profileSnapshot: profileSnapshot,
+            temperature: temperature,
+            workflowID: workflowID,
+            fallbackStrategy: fallbackStrategy,
+            isDraft: isDraft ?? self.isDraft,
+            isArchived: isArchived ?? self.isArchived
+        )
+    }
 }
 
 public enum AITranslationError: Error, Equatable, Sendable, LocalizedError {
@@ -413,6 +475,7 @@ public enum AITranslationError: Error, Equatable, Sendable, LocalizedError {
     case cancelled
     case invalidResponse(String)
     case persistence(String)
+    case engineUnavailable(String)
 
     public var errorDescription: String? {
         switch self {
@@ -427,6 +490,7 @@ public enum AITranslationError: Error, Equatable, Sendable, LocalizedError {
         case .cancelled: return "AI 翻译已取消"
         case .invalidResponse: return "AI 翻译响应校验失败"
         case .persistence: return "AI 翻译保存失败"
+        case .engineUnavailable(let message): return message
         }
     }
 }

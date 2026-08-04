@@ -50,7 +50,10 @@ public struct AITranslationConfiguration: Equatable, Sendable {
     }
 
     public var isConfigured: Bool {
-        !baseURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        if TranslationEngineID(rawValue: engineID) == .appleSystem {
+            return true
+        }
+        return !baseURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
         !model.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 

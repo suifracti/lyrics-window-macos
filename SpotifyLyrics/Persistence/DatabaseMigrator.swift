@@ -4,7 +4,7 @@ import SQLite3
 /// Forward-only SQLite schema migrations. The repository calls this from its
 /// actor, so no migration work runs on MainActor.
 public enum DatabaseMigrator {
-    public static let currentVersion = 4
+    public static let currentVersion = 5
     public static let v4MigrationID = "track-identity-v4-initial"
     private static let waterSourceStableKey = "spotify-id:spotify:track:5mqkkcsrujqyakvolven0w|metadata:水曜日の約束|kawasakirio|水曜日の約束|171"
     private static let waterCanonicalStableKey = "spotify-id:5mqkkcsrujqyakvolven0w|metadata:水曜日の約束|kawasakirio|水曜日の約束|171"
@@ -52,6 +52,10 @@ public enum DatabaseMigrator {
                 }
             } else {
                 try validateV4(database)
+            }
+            if version >= 4, version < 5 {
+                try migrateV5(database)
+                version = 5
             }
         } catch let error as LyricsRepositoryError {
             // A corrupt/partially readable SQLite file must be reported as a
@@ -429,6 +433,32 @@ public enum DatabaseMigrator {
                   waterRedirect.migrationID == v4MigrationID else {
                 throw LyricsRepositoryError.invalidData("水曜日 redirect 缺失或证据不匹配")
             }
+        }
+    }
+
+    /// Translation execution metadata is additive. Existing provider and
+    /// legacy-imported versions receive neutral values; no old prompt, model,
+    /// or engine is guessed. The migration is transactional and only the
+    /// temporary database is used by Phase 2.5 validation.
+    private static func migrateV5(_ database: OpaquePointer) throws {
+        try execute(database, sql: "BEGIN IMMEDIATE TRANSACTION;")
+        do {
+            try execute(database, sql: "ALTER TABLE translation_versions ADD COLUMN engine_id TEXT NOT NULL DEFAULT '';")
+            try execute(database, sql: "ALTER TABLE translation_versions ADD COLUMN prompt_preset_id TEXT NOT NULL DEFAULT '';")
+            try execute(database, sql: "ALTER TABLE translation_versions ADD COLUMN profile_id TEXT;")
+            try execute(database, sql: "ALTER TABLE translation_versions ADD COLUMN profile_snapshot TEXT NOT NULL DEFAULT '';")
+            try execute(database, sql: "ALTER TABLE translation_versions ADD COLUMN temperature REAL NOT NULL DEFAULT 0.2;")
+            try execute(database, sql: "ALTER TABLE translation_versions ADD COLUMN workflow_id TEXT NOT NULL DEFAULT 'translationWorkflow.classicV1';")
+            try execute(database, sql: "ALTER TABLE translation_versions ADD COLUMN fallback_strategy TEXT NOT NULL DEFAULT 'none';")
+            try execute(database, sql: "ALTER TABLE translation_versions ADD COLUMN is_draft INTEGER NOT NULL DEFAULT 0;")
+            try execute(database, sql: "ALTER TABLE translation_versions ADD COLUMN is_archived INTEGER NOT NULL DEFAULT 0;")
+            try execute(database, sql: "CREATE INDEX IF NOT EXISTS translation_versions_engine_lookup ON translation_versions(lyrics_version_id, engine_id, prompt_preset_id, updated_at);")
+            try execute(database, sql: "INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (5, strftime('%s','now'));" )
+            try execute(database, sql: "PRAGMA user_version = 5;")
+            try execute(database, sql: "COMMIT;")
+        } catch {
+            _ = try? execute(database, sql: "ROLLBACK;")
+            throw error
         }
     }
 

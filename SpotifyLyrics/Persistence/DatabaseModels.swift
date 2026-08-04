@@ -219,6 +219,15 @@ public struct DatabaseTranslationVersionRecord: Equatable, Sendable {
     public let isLocked: Bool
     public let status: AITranslationVersionStatus
     public let confidence: Double
+    public let engineID: String
+    public let promptPresetID: String
+    public let profileID: UUID?
+    public let profileSnapshot: String
+    public let temperature: Double
+    public let workflowID: String
+    public let fallbackStrategy: TranslationFallbackStrategy
+    public let isDraft: Bool
+    public let isArchived: Bool
 
     public init(
         id: UUID,
@@ -236,7 +245,16 @@ public struct DatabaseTranslationVersionRecord: Equatable, Sendable {
         isManuallyEdited: Bool,
         isLocked: Bool,
         status: AITranslationVersionStatus,
-        confidence: Double
+        confidence: Double,
+        engineID: String = "",
+        promptPresetID: String = "",
+        profileID: UUID? = nil,
+        profileSnapshot: String = "",
+        temperature: Double = 0.2,
+        workflowID: String = TranslationWorkflowID.classicV1.rawValue,
+        fallbackStrategy: TranslationFallbackStrategy = .none,
+        isDraft: Bool = false,
+        isArchived: Bool = false
     ) {
         self.id = id
         self.lyricsVersionID = lyricsVersionID
@@ -254,6 +272,45 @@ public struct DatabaseTranslationVersionRecord: Equatable, Sendable {
         self.isLocked = isLocked
         self.status = status
         self.confidence = confidence
+        self.engineID = engineID
+        self.promptPresetID = promptPresetID
+        self.profileID = profileID
+        self.profileSnapshot = profileSnapshot
+        self.temperature = temperature
+        self.workflowID = workflowID
+        self.fallbackStrategy = fallbackStrategy
+        self.isDraft = isDraft
+        self.isArchived = isArchived
+    }
+
+    public func with(isDraft: Bool? = nil, isArchived: Bool? = nil) -> DatabaseTranslationVersionRecord {
+        DatabaseTranslationVersionRecord(
+            id: id,
+            lyricsVersionID: lyricsVersionID,
+            parentVersionID: parentVersionID,
+            sourceKind: sourceKind,
+            targetLanguage: targetLanguage,
+            model: model,
+            baseURLHost: baseURLHost,
+            promptHash: promptHash,
+            sourceContentHash: sourceContentHash,
+            createdAt: createdAt,
+            updatedAt: Date(),
+            isMachineGenerated: isMachineGenerated,
+            isManuallyEdited: isManuallyEdited,
+            isLocked: isLocked,
+            status: status,
+            confidence: confidence,
+            engineID: engineID,
+            promptPresetID: promptPresetID,
+            profileID: profileID,
+            profileSnapshot: profileSnapshot,
+            temperature: temperature,
+            workflowID: workflowID,
+            fallbackStrategy: fallbackStrategy,
+            isDraft: isDraft ?? self.isDraft,
+            isArchived: isArchived ?? self.isArchived
+        )
     }
 }
 

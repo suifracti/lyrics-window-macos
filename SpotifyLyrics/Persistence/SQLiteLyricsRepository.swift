@@ -600,7 +600,9 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
             SELECT id, lyrics_version_id, parent_version_id, source_kind, target_language, model,
                    base_url_host, prompt_hash, source_content_hash, created_at,
                    updated_at, is_machine_generated, is_manually_edited,
-                   is_locked, status, confidence
+                   is_locked, status, confidence, engine_id, prompt_preset_id,
+                   profile_id, profile_snapshot, temperature, workflow_id,
+                   fallback_strategy, is_draft, is_archived
             FROM translation_versions
             WHERE lyrics_version_id = ? AND target_language = ?
               AND source_content_hash = ?
@@ -675,7 +677,16 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
             isManuallyEdited: draft.isManuallyEdited,
             isLocked: false,
             status: .complete,
-            confidence: draft.confidence
+            confidence: draft.confidence,
+            engineID: draft.engineID,
+            promptPresetID: draft.promptPresetID,
+            profileID: draft.profileID,
+            profileSnapshot: draft.profileSnapshot,
+            temperature: draft.temperature,
+            workflowID: draft.workflowID,
+            fallbackStrategy: draft.fallbackStrategy,
+            isDraft: draft.isDraft,
+            isArchived: draft.isArchived
         )
         let lines = draft.lines.map {
             DatabaseTranslationLineRecord(
@@ -710,6 +721,27 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
         try bindText(versionID.uuidString, at: 1, to: statement)
         try stepDone(statement)
         guard sqlite3_changes(database) > 0 else { throw TranslationRepositoryError.lockedVersion }
+    }
+
+    public func adoptTranslation(versionID: UUID) throws {
+        try ensurePrepared()
+        let statement = try prepare("UPDATE translation_versions SET is_draft = 0, is_archived = 0, updated_at = ? WHERE id = ? AND status = 'complete' AND is_locked = 0;")
+        defer { sqlite3_finalize(statement) }
+        try bindDouble(Date().timeIntervalSince1970, at: 1, to: statement)
+        try bindText(versionID.uuidString, at: 2, to: statement)
+        try stepDone(statement)
+        guard sqlite3_changes(database) > 0 else { throw TranslationRepositoryError.versionNotFound }
+    }
+
+    public func archiveTranslation(versionID: UUID, archived: Bool) throws {
+        try ensurePrepared()
+        let statement = try prepare("UPDATE translation_versions SET is_archived = ?, updated_at = ? WHERE id = ? AND is_locked = 0;")
+        defer { sqlite3_finalize(statement) }
+        try bindInt(archived ? 1 : 0, at: 1, to: statement)
+        try bindDouble(Date().timeIntervalSince1970, at: 2, to: statement)
+        try bindText(versionID.uuidString, at: 3, to: statement)
+        try stepDone(statement)
+        guard sqlite3_changes(database) > 0 else { throw TranslationRepositoryError.versionNotFound }
     }
 
     // MARK: - LyricsEditingRepository
@@ -1248,7 +1280,16 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
             isManuallyEdited: sqlite3_column_int(statement, 12) != 0,
             isLocked: sqlite3_column_int(statement, 13) != 0,
             status: status,
-            confidence: sqlite3_column_double(statement, 15)
+            confidence: sqlite3_column_double(statement, 15),
+            engineID: columnText(statement, index: 16) ?? "",
+            promptPresetID: columnText(statement, index: 17) ?? "",
+            profileID: columnText(statement, index: 18).flatMap(UUID.init(uuidString:)),
+            profileSnapshot: columnText(statement, index: 19) ?? "",
+            temperature: sqlite3_column_double(statement, 20),
+            workflowID: columnText(statement, index: 21) ?? TranslationWorkflowID.classicV1.rawValue,
+            fallbackStrategy: TranslationFallbackStrategy(rawValue: columnText(statement, index: 22) ?? "none") ?? .none,
+            isDraft: sqlite3_column_int(statement, 23) != 0,
+            isArchived: sqlite3_column_int(statement, 24) != 0
         )
     }
 
@@ -1277,8 +1318,10 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
                 id, lyrics_version_id, parent_version_id, source_kind, target_language, model,
                 base_url_host, prompt_hash, source_content_hash, created_at,
                 updated_at, is_machine_generated, is_manually_edited,
-                is_locked, status, confidence
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                is_locked, status, confidence, engine_id, prompt_preset_id,
+                profile_id, profile_snapshot, temperature, workflow_id,
+                fallback_strategy, is_draft, is_archived
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
             """)
         defer { sqlite3_finalize(statement) }
         try bindText(record.id.uuidString, at: 1, to: statement)
@@ -1297,6 +1340,15 @@ public actor SQLiteLyricsRepository: LyricsRepository, TranslationRepository, Ly
         try bindInt(record.isLocked ? 1 : 0, at: 14, to: statement)
         try bindText(record.status.rawValue, at: 15, to: statement)
         try bindDouble(record.confidence, at: 16, to: statement)
+        try bindText(record.engineID, at: 17, to: statement)
+        try bindText(record.promptPresetID, at: 18, to: statement)
+        try bindText(record.profileID?.uuidString, at: 19, to: statement)
+        try bindText(record.profileSnapshot, at: 20, to: statement)
+        try bindDouble(record.temperature, at: 21, to: statement)
+        try bindText(record.workflowID, at: 22, to: statement)
+        try bindText(record.fallbackStrategy.rawValue, at: 23, to: statement)
+        try bindInt(record.isDraft ? 1 : 0, at: 24, to: statement)
+        try bindInt(record.isArchived ? 1 : 0, at: 25, to: statement)
         try stepDone(statement)
     }
 

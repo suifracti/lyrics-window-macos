@@ -12,6 +12,13 @@ public struct StoredTranslationVersion: Equatable, Sendable {
     public var isComplete: Bool {
         record.status == .complete
     }
+
+    public var isDraft: Bool { record.isDraft }
+    public var isArchived: Bool { record.isArchived }
+
+    public func with(record: DatabaseTranslationVersionRecord) -> StoredTranslationVersion {
+        StoredTranslationVersion(record: record, lines: lines)
+    }
 }
 
 public enum TranslationRepositoryError: Error, Equatable, Sendable, LocalizedError {
@@ -54,6 +61,15 @@ public protocol TranslationRepository: Sendable {
 
     func markTranslationLocked(versionID: UUID, locked: Bool) async throws
     func deleteTranslation(versionID: UUID) async throws
+    func adoptTranslation(versionID: UUID) async throws
+    func archiveTranslation(versionID: UUID, archived: Bool) async throws
+}
+
+public extension TranslationRepository {
+    /// Compatibility defaults keep lightweight contract repositories source
+    /// compatible; SQLite provides the real state transition.
+    func adoptTranslation(versionID: UUID) async throws { _ = versionID }
+    func archiveTranslation(versionID: UUID, archived: Bool) async throws { _ = versionID; _ = archived }
 }
 
 public actor UnavailableTranslationRepository: TranslationRepository {
@@ -86,6 +102,16 @@ public actor UnavailableTranslationRepository: TranslationRepository {
 
     public func deleteTranslation(versionID: UUID) async throws {
         _ = versionID
+        throw TranslationRepositoryError.database("当前仓库不支持翻译持久化")
+    }
+
+    public func adoptTranslation(versionID: UUID) async throws {
+        _ = versionID
+        throw TranslationRepositoryError.database("当前仓库不支持翻译持久化")
+    }
+
+    public func archiveTranslation(versionID: UUID, archived: Bool) async throws {
+        _ = versionID; _ = archived
         throw TranslationRepositoryError.database("当前仓库不支持翻译持久化")
     }
 }

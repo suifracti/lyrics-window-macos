@@ -21,7 +21,8 @@ public struct AITranslationPromptBuilder: Sendable {
         configuration: AITranslationConfiguration
     ) throws -> AITranslationPrompt {
         let presetID = TranslationPromptPresetID(rawValue: configuration.promptPresetID) ?? .naturalSong
-        return try build(context: context, configuration: configuration, presetID: presetID, profile: nil)
+        let profile = Self.decodeProfile(configuration.profileSnapshot)
+        return try build(context: context, configuration: configuration, presetID: presetID, profile: profile)
     }
 
     public func build(
@@ -96,5 +97,10 @@ public struct AITranslationPromptBuilder: Sendable {
         profile: TranslationStyleProfile? = nil
     ) throws -> AITranslationPrompt {
         try build(context: context, configuration: configuration, presetID: presetID, profile: profile)
+    }
+
+    private static func decodeProfile(_ snapshot: String) -> TranslationStyleProfile? {
+        guard let data = snapshot.data(using: .utf8) else { return nil }
+        return try? JSONDecoder().decode(TranslationStyleProfile.self, from: data)
     }
 }

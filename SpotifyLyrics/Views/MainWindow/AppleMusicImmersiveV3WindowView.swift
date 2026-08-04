@@ -424,6 +424,12 @@ struct AppleMusicImmersiveV3WindowView: View {
             case .loaded:
                 Text(state.isTranslationSelectionEmpty ? "翻译：未选择版本" : "翻译：已加载")
                 Button("重新翻译") { state.retranslateCurrentLyrics() }
+            case .candidateReady:
+                Text("翻译：有新候选待采用")
+                if let candidate = state.translationSessionPendingCandidate {
+                    Button("采用新候选") { state.adoptTranslation(versionID: candidate.record.id) }
+                    Button("归档候选") { state.archiveTranslation(versionID: candidate.record.id) }
+                }
             }
             Menu("翻译版本") {
                 Button("无翻译版本") { state.selectNoTranslationVersion() }

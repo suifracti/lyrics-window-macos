@@ -285,11 +285,30 @@ public final class AppSettingsStore: ObservableObject {
 
     public var schemaVersion: Int { DatabaseMigrator.currentVersion }
 
+    /// A manually entered model remains usable even when `/models` is empty,
+    /// unsupported, or temporarily unavailable. The raw status is retained
+    /// for diagnostics; this presentation status tells the settings UI that
+    /// the current model is intentionally being kept as a manual fallback.
+    public var aiModelDirectoryDisplayStatus: TranslationModelDirectoryStatus {
+        let model = aiTranslationConfiguration.model.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !model.isEmpty else { return aiModelDirectoryStatus }
+        switch aiModelDirectoryStatus {
+        case .idle, .empty, .unauthorized, .endpointUnsupported, .unavailable:
+            return .manualFallback
+        case .loading, .loaded, .manualFallback:
+            return aiModelDirectoryStatus
+        }
+    }
+
     /// Explicit user action only. Reading model names is the only operation
     /// here that touches the API-key store; opening or browsing settings does
     /// not call this method.
     public func refreshAIModelDirectory() {
         let configuration = aiTranslationConfiguration
+        guard configuration.engineID == TranslationEngineID.openAICompatible.rawValue else {
+            aiModelDirectoryStatus = .unavailable("当前翻译引擎不提供在线模型目录")
+            return
+        }
         guard configuration.isConfigured else {
             aiModelDirectoryStatus = .unavailable("请先填写 Base URL 和模型")
             return
@@ -315,7 +334,14 @@ public final class AppSettingsStore: ObservableObject {
             } catch let error as AITranslationError {
                 await MainActor.run { [weak self] in
                     guard let self else { return }
-                    self.aiModelDirectoryStatus = error == .unauthorized ? .unauthorized : .unavailable(error.localizedDescription)
+                    switch error {
+                    case .server(404), .server(405):
+                        self.aiModelDirectoryStatus = .endpointUnsupported
+                    case .unauthorized:
+                        self.aiModelDirectoryStatus = .unauthorized
+                    default:
+                        self.aiModelDirectoryStatus = .unavailable(error.localizedDescription)
+                    }
                 }
             } catch {
                 await MainActor.run { [weak self] in
