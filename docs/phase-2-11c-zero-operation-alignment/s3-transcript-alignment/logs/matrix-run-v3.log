@@ -1,0 +1,13 @@
+[sampleA/apple] exit=0 wall=1.2s peak=31096832 ok=True
+[sampleA/whisper_small] exit=0 wall=1.6s peak=877199360 ok=True
+[sampleA/whisper_medium] exit=0 wall=4.4s peak=2235252736 ok=True
+[sampleB/apple] exit=0 wall=2.4s peak=32571392 ok=True
+[sampleB/whisper_small] exit=0 wall=2.7s peak=891764736 ok=True
+[sampleB/whisper_medium] exit=0 wall=5.6s peak=2236153856 ok=True
+[sampleC/apple] exit=0 wall=2.6s peak=34045952 ok=True
+[sampleC/whisper_small] exit=0 wall=3.9s peak=917553152 ok=True
+[sampleC/whisper_medium] exit=0 wall=9.2s peak=2259566592 ok=True
+[sampleD/apple] exit=0 wall=0.7s peak=29294592 ok=True
+[sampleD/whisper_small] exit=0 wall=0.8s peak=857030656 ok=True
+[sampleD/whisper_medium] exit=0 wall=1.8s peak=2164293632 ok=True
+formal_unchanged= True out= /Users/apple/backup/sptifylyrics/docs/phase-2-11c-zero-operation-alignment/s3-transcript-alignment

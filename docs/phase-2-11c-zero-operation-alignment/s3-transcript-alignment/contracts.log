@@ -1,0 +1,13 @@
+transcript_normalizer_contract: PASS
+FAIL transcript_segment_splitter
+no_fabricated_timestamps_contract: PASS
+confidence_evidence_contract: PASS
+missing_asr_confidence_contract: PASS
+anchor_recovery_contract: PASS
+merger_explanation_contract: PASS
+repeated_section_disambiguation_contract: PASS
+same_fixture_before_after_contract: PASS
+wrong_suggestion_guard_contract: PASS
+speech_engine_contract: PASS
+whisper_full_pipeline_contract: PASS
+s3a_partial_alignment_contract: PASS

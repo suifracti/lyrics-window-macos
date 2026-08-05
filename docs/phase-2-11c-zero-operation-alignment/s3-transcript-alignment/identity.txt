@@ -1,0 +1,9 @@
+branch=codex/phase-2-11c-s3-transcript-alignment
+baseline=9bfaf60
+formal_db_sha=d6d5f121152057908ccd70cf4b83d8c76d86b9f4b9c9929326c45a60eb5f420b
+formal_opened=NO
+route=B
+sampleC_small_before=0
+sampleC_small_after=21
+sampleC_medium_after=23
+sampleD_whisper_after=3

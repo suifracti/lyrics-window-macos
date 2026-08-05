@@ -16,10 +16,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 S2 = ROOT / "docs/phase-2-11c-zero-operation-alignment/s2-whisper-full-pipeline"
+# S3 after-matrix writes here when SPOTIFYLYRICS_S3_OUT=1 or --s3 flag.
+S3 = ROOT / "docs/phase-2-11c-zero-operation-alignment/s3-transcript-alignment"
 MODEL_DIR = ROOT / "docs/phase-2-11c-zero-operation-alignment/s0-5-engine-viability/whisper-models"
 BIN = ROOT / "Tools/s2_full_pipeline/.build/s2_full_pipeline"
 WHISPER_CLI = os.environ.get("SPOTIFYLYRICS_WHISPER_CLI", "/opt/homebrew/bin/whisper-cli")
 FORMAL_DB = Path.home() / "Library/Application Support/SpotifyLyrics/SpotifyLyrics.sqlite3"
+OUT_ROOT = S3 if os.environ.get("SPOTIFYLYRICS_S3_OUT") == "1" else S2
 
 
 def sha256(path: Path) -> str:
@@ -54,7 +57,7 @@ def peak_rss_from_time_l(stderr: str) -> int | None:
 
 def run_one(sample: dict, engine: str, model_path: Path | None) -> dict:
     sid = sample["id"]
-    out = S2 / "runs" / sid / engine
+    out = OUT_ROOT / "runs" / sid / engine
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True, exist_ok=True)
@@ -227,7 +230,9 @@ def hallucination_stats(speech_json: Path) -> dict:
 def main() -> int:
     ensure_bin()
     formal_before = formal_sha()
-    (S2 / "formal_db_before.sha").write_text((formal_before or "MISSING") + "\n")
+    OUT_ROOT.mkdir(parents=True, exist_ok=True)
+    (OUT_ROOT / "metrics").mkdir(parents=True, exist_ok=True)
+    (OUT_ROOT / "formal_db_before.sha").write_text((formal_before or "MISSING") + "\n")
 
     samples = load_manifest()
     small = MODEL_DIR / "ggml-small.bin"
@@ -251,7 +256,7 @@ def main() -> int:
                 r = {"sample": sample["id"], "engine": engine, "ok": False, "error": str(e)}
                 print(f"ERR {sample['id']}/{engine}: {e}", flush=True)
             # enrich
-            run_dir = S2 / "runs" / sample["id"] / engine
+            run_dir = OUT_ROOT / "runs" / sample["id"] / engine
             if run_dir.exists():
                 hit = token_hit_rate(S2 / sample["lyrics"], run_dir / "speech.json")
                 wrong = heuristic_wrong_suggestions(run_dir)
@@ -262,19 +267,26 @@ def main() -> int:
                 if model and model.exists():
                     r["model_bytes"] = model.stat().st_size
                     r["model_sha256"] = sha256(model)
+                # transcript prep counts
+                prep_p = run_dir / "transcript_prep.json"
+                if prep_p.exists():
+                    prep = json.loads(prep_p.read_text())
+                    r["raw_pieces"] = prep.get("raw_pieces")
+                    r["prepared_pieces"] = prep.get("prepared_pieces")
             all_results.append(r)
 
     formal_after = formal_sha()
-    (S2 / "formal_db_after.sha").write_text((formal_after or "MISSING") + "\n")
+    (OUT_ROOT / "formal_db_after.sha").write_text((formal_after or "MISSING") + "\n")
     summary = {
         "formal_before": formal_before,
         "formal_after": formal_after,
         "formal_unchanged": formal_before == formal_after,
         "formal_opened": False,
+        "out_root": str(OUT_ROOT),
         "results": all_results,
     }
-    (S2 / "metrics/raw_results.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False))
-    print("formal_unchanged=", formal_before == formal_after, flush=True)
+    (OUT_ROOT / "metrics/raw_results.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False))
+    print("formal_unchanged=", formal_before == formal_after, "out=", OUT_ROOT, flush=True)
     return 0 if any(r.get("ok") for r in all_results) else 1
 
 

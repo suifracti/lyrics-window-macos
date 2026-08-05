@@ -107,6 +107,9 @@ public enum AssistedCandidateMergePolicy: Sendable {
     public static let s3bResolvedMinimumConfidence: Double = 0.72
     /// Minimum confidence for S3A resolved rows (stricter than S3B pin).
     public static let s3aResolvedMinimumConfidence: Double = 0.78
+    /// Lexical-dominant recovery when ASR confidence is missing (Whisper path).
+    /// Applied only to `.resolved` rows with direct speech evidence — not lowConfidence fills.
+    public static let lexicalRecoveryMinimum: Double = 0.72
     /// Reject evidence kinds that are low-evidence fills.
     public static let rejectedEvidenceSubstrings: [String] = [
         "boundedInterpolation",
@@ -116,5 +119,15 @@ public enum AssistedCandidateMergePolicy: Sendable {
         "s3b-region-unresolved",
         "s3b-region-boundedInterpolation"
     ]
+}
+
+/// Explainable accept/reject record for Assist merge diagnostics (DEBUG/eval).
+public struct AssistedMergeDecision: Equatable, Sendable, Codable {
+    public let lyricLineIndex: Int
+    public let decision: String
+    public let reason: String
+    public let source: String
+    public let confidence: Double?
+    public let startTime: TimeInterval?
 }
 #endif
