@@ -1,0 +1,15 @@
+{
+  "coveredRanges" : [
+
+  ],
+  "engineID" : "speechEngine.whisperCLI.experimental.v1",
+  "identityKey" : "spotify-id:7oumywpwj422jrcdaszb7p|metadata:knightsofcydonia|muse|blackholesandrevelations|366",
+  "lastDecision" : "deferred",
+  "lastReason" : "no_suggestions",
+  "parentVersionID" : "5349CCC9-FA36-4C78-B979-572A072D9FA5",
+  "sourceContentHash" : "92142f65b09feaa43ee5bb293f2e06824a54ee578e1f06762a34b5b34cc59374",
+  "timedLines" : [
+
+  ],
+  "updatedAt" : "2026-08-05T05:39:21Z"
+}

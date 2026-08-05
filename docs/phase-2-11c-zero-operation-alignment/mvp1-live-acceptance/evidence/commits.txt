@@ -1,0 +1,6 @@
+c2f6890 fix(alignment): throttle auto-align evaluate during playback ticks
+c180cb6 fix(alignment): log auto-align gates and re-evaluate after lyrics settle
+984ec4a test(alignment): accept automatic product path
+30bf236 feat(alignment): persist progress and gate automatic adoption
+dbb067b feat(settings): add zero-operation alignment switch
+fc9ebda feat(alignment): add automatic alignment job controller

@@ -1,0 +1,143 @@
+[2026-08-05T05:50:54Z] LOG_RESET
+[2026-08-05T05:50:54Z] PlaybackState init providers=Local LRC,LRCLIB,NetEase Experimental,QQ Music Experimental
+[2026-08-05T05:50:55Z] AUTO_ALIGN gate=false reason=no_live_track hasLive=false mock=false
+[2026-08-05T05:50:55Z] PERSISTENCE startup ready
+[2026-08-05T05:50:55Z] AUTO_ALIGN gate=false reason=no_live_track hasLive=false mock=false
+[2026-08-05T05:50:55Z] SESSION clear
+[2026-08-05T05:50:55Z] Playback trackChange identity=spotify-id:7oumywpwj422jrcdaszb7p|metadata:knightsofcydonia|muse|blackholesandrevelations|366 title=Knights of Cydonia artist=Muse duration=366.213
+[2026-08-05T05:50:55Z] SESSION begin rev=1 identity=spotify-id:7oumywpwj422jrcdaszb7p|metadata:knightsofcydonia|muse|blackholesandrevelations|366 title=Knights of Cydonia artist=Muse duration=366.213 spotifyId=spotify:track:7ouMYWpwJ422jRcDASZB7P
+[2026-08-05T05:50:55Z] SESSION persistence hit rev=1 source=manualImport provider=fixture:chorus3 lines=3 sync=false
+[2026-08-05T05:50:55Z] SESSION search finished rev=1 result=match(manualImport,lines=3,sync=false) diag=0
+[2026-08-05T05:50:55Z] SESSION apply alignmentQueued source=manualImport lines=3 first=Time has come to make things right
+[2026-08-05T05:50:55Z] SESSION persistence save rev=1 disposition=Optional(SpotifyLyrics.LyricsPersistenceSaveDisposition.skippedLocked) lines=3
+[2026-08-05T05:50:55Z] AUTO_ALIGN gate=true identity=spotify-id:7oumywpwj422jrcdaszb7 version=B42A528B lines=3 playing=true
+[2026-08-05T05:50:55Z] AUTO_ALIGN start identity=spotify-id:7oumywpwj422jrcdaszb7
+[2026-08-05T05:50:56Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:50:56Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:50:57Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:50:57Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:50:58Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:50:58Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:50:59Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:50:59Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:00Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:00Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:01Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:01Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:02Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:03Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:03Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:04Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:04Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:04Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:05Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:06Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:06Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:07Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:07Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:08Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:08Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:09Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:09Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:10Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:10Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:11Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:11Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:12Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:12Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:13Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:13Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:14Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:14Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:15Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:15Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:16Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:17Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:17Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:17Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:18Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:18Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:19Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:19Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:20Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:20Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:21Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:22Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:22Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:23Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:23Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:24Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:24Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:25Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:26Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:26Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:27Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:27Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:28Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:28Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:29Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:29Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:30Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:30Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:31Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:31Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:32Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:32Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:33Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:33Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:34Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:34Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:35Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:35Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:36Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:36Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:37Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:37Z] AUTO_ALIGN gate=skip reason=job_already_running key=spotify-id:7oumywpwj422j
+[2026-08-05T05:51:38Z] AUTO_ALIGN gate=completeAndAdopt reason=full_reliable_coverage timed=3/3
+[2026-08-05T05:51:38Z] SESSION apply loaded source=automaticAlignment lines=3 first=Time has come to make things right
+[2026-08-05T05:51:38Z] SESSION adopt persisted version=159FF9BA-93CE-4668-868C-17DB70CEC758 source=automaticAlignment
+[2026-08-05T05:51:38Z] AUTO_ALIGN completeAndAdopt version=159FF9BA
+[2026-08-05T05:51:38Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:39Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:39Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:39Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:40Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:40Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:41Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:41Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:42Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:42Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:43Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:44Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:44Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:45Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:45Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:46Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:46Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:47Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:47Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:48Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:48Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:49Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:50Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:50Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:50Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:51Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:52Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:52Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:52Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:53Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:53Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:54Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:54Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:55Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:56Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:56Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:57Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:57Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:58Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:58Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:59Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:51:59Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:52:00Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true
+[2026-08-05T05:52:01Z] AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=true sync=true sessionSync=true

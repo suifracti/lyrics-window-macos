@@ -1,0 +1,7 @@
+CandidateCDHash sha256=cd4981e02d74169b496b73daa3e16be3343deccd
+CandidateCDHashFull sha256=cd4981e02d74169b496b73daa3e16be3343deccdc4ce6415c8218a6959256d7c
+CDHash=cd4981e02d74169b496b73daa3e16be3343deccd
+Authority=Apple Development: 3881920884@qq.com (XJDV53A9C8)
+Authority=Apple Worldwide Developer Relations Certification Authority
+Authority=Apple Root CA
+TeamIdentifier=5RGL84U3V2

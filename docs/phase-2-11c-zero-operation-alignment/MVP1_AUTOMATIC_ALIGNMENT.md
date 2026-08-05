@@ -6,14 +6,18 @@
 | 日期 | 2026-08-05 |
 | 分支 | `codex/phase-2-11c-mvp1-auto-alignment` |
 | 基线 | `ecc21fa` — `codex/phase-2-11c-s4-5-real-song-gate` |
-| 阶段性质 | **产品实现**（非只读审计 / 非 S4.6 研究） |
+| 实现 HEAD | `984ec4a` |
+| Live 验收 HEAD | `c2f6890` |
+| 阶段性质 | **产品实现 + Final Live Acceptance** |
 | App | `/Users/apple/backup/sptifylyrics/DerivedDataMVP1/Build/Products/Debug/SpotifyLyrics.app` |
-| CDHash | `f3059984037e26abc6d0c673a5f5b3405e2f0382` |
+| CDHash（实现） | `f3059984037e26abc6d0c673a5f5b3405e2f0382` |
+| CDHash（Live 后） | `cd4981e02d74169b496b73daa3e16be3343deccd` |
 | 签名 | Apple Development · Team `5RGL84U3V2` · `ENABLE_DEBUG_DYLIB=NO` · **非 ad-hoc** |
 | codesign verify | valid on disk · satisfies Designated Requirement |
 | 正式库 SHA | `d6d5f121152057908ccd70cf4b83d8c76d86b9f4b9c9929326c45a60eb5f420b`（before = after） |
 | formal DB opened | **NO**（验收使用 TEMP DB） |
-| 证据目录 | `docs/phase-2-11c-zero-operation-alignment/mvp1-auto-alignment/` |
+| 证据目录 | `mvp1-auto-alignment/` · **`mvp1-live-acceptance/ACCEPTANCE.md`** |
+| **Live 验收结论** | **A + B PASS → MVP1 完全验收** |
 
 ---
 
@@ -286,84 +290,85 @@ codesign --verify: valid on disk · satisfies Designated Requirement
 
 ---
 
-## 13. 自动触发证据
+## 13. 自动触发与 Live 验收证据
 
-### 产品接线（静态 + 二进制）
+详细见 **`mvp1-live-acceptance/ACCEPTANCE.md`**。
 
-- `PlaybackState.startProvider` / `Main.onAppear` bind JobController
-- Job 日志点：`AUTO_ALIGN start` / `gate=` / `accumulate` / `completeAndAdopt`
-- Job **无** `assist_start`
-- 二进制符号含 `automaticAlignmentEnabled` · `repositoryForAutomaticAlignment`
-- 14 条 `automatic_alignment_*` 合同 PASS
-
-### TEMP 真机 smoke（2026-08-05）
+### A — 真实 Spotify 部分进度（PASS）
 
 ```
-SPOTIFYLYRICS_DATABASE_PATH=/tmp/spotifylyrics-mvp1-temp/SpotifyLyrics.sqlite3
-→ repository_open temporary_copy=YES formal_database_opened=NO
-→ PERSISTENCE startup ready
-→ UserDefaults automaticAlignment.enabled.v1 可置 true 并保持
+开关 on + 纯文本未排轴 + isPlaying
+→ AUTO_ALIGN gate=true → start
+→ STREAM started + PCM (buffers/samples/peak/rms)
+→ Whisper small → S3/S4
+→ gate=accumulate timed=4/20
+→ ProgressStore 写入 · 无 adopt · 无同步正式子版本
 ```
 
-本次 smoke 窗口内 **未** 观测到 `AUTO_ALIGN start`（环境侧 Spotify 当前曲目/AppleEvent/纯文本歌词未同时就绪）。  
-产品路径在 **有播放 + 纯文本未排轴歌词** 时由 `evaluateTrigger` 自动启动；不依赖 Assist UI。
+歌曲：Muse · Knights of Cydonia · 真实 Desktop 播放。
 
-### 离线质量门控证明
+### B — 受控短 fixture 完整采用（PASS）
 
-见 `evidence/quality-gate-offline.txt`：
+```
+同曲 3 行纯文本 fixture（仍真实 Spotify 音频）
+→ JobController + QualityGate
+→ gate=completeAndAdopt timed=3/3 full_reliable_coverage
+→ automaticAlignment 子版本 + 父 plain 保留
+→ adoptPersisted · isSynchronized=true
+```
 
-- partial 3/30 → `accumulate`
-- full 30/30 → `completeAndAdopt`
-- weak / engine off / 无建议 → 不采用
+**未**使用 `FORCE_COMPLETE`。
 
-### 完整采用与跟播
+### 产品 bug 修复（Live 中发现）
 
-- 正式保存路径复用既有 `saveAlignedVersion` + `adoptPersisted`（与 `alignment_persistence_contract` 同栈）
-- `completeAndAdopt` 仅在 gate 通过后调用
-- 采用后 `isSynchronized=true`，主歌词沿现有投影与 `currentTime` 跟播（含 pause/seek）
+| Commit | 问题 |
+|---|---|
+| `c180cb6` | 门控静默；歌词 settle 后未可靠 re-evaluate |
+| `c2f6890` | debounce + `currentTime` 5Hz → evaluate **永不执行** → 改为 throttle |
+
+### 离线门控（仍有效）
+
+`mvp1-auto-alignment/evidence/quality-gate-offline.txt`
 
 ---
 
 ## 14. 当前限制
 
-1. **Whisper small** 依赖本机 `SPOTIFYLYRICS_WHISPER_CLI` / `SPOTIFYLYRICS_WHISPER_MODEL` 或 gitignored 本地配置；缺失时 deferred + 文案「引擎尚未准备好」，可回退 Apple Speech（若 available）。
-2. **ScreenCaptureKit** 仍需系统授权；无授权时捕获失败 → deferred，不写假同步。
-3. **不控制 Spotify**：用户须自己播放；S4.5 的自动拉起失败**不阻塞**本阶段。
-4. **严格完整门槛**在真实整曲上通常需多次播放补缺；单次 25–55s 捕获多数进入 `accumulate`。
-5. **进度**为文件侧车，非 DB schema；MVP2 可评估是否并入正式版本树草稿态。
-6. 本会话 headless smoke **未能**在 16s 内复现完整「捕获→采用→跟播」闭环；路径与门控已接线并通过合同与 TEMP 隔离证明。
+1. Whisper small 仍依赖本机 CLI/模型路径；不自动下载。
+2. 整首 20 行一次达 98% 仍难；产品正确行为是多次 `accumulate` 补缺。
+3. Live B 用 3 行受控 fixture 证明 complete 路径，非整曲一次完整。
+4. `job_already_running` 日志在连续补缺时较吵（非功能阻塞）。
 
 ---
 
 ## 15. MVP2 建议
 
-1. 真实播放环境下的自动触发录像 + TEMP 曲库种子（一首短纯文本 fixture）
-2. 连续多段捕获调度（非固定 `autoStopAfter` 单段）与 seek 分段的 UI 进度
-3. 进度草稿进入版本历史（仍非自动 adopt）
-4. 引擎就绪向导（路径检测 / 非自动下载）
-5. 质量门控与 S4.5 指标对齐（wrong-occurrence / 重复副歌）作为产品可观测诊断（仍 DEBUG）
-6. 可选：完整门槛下调为「用户可见确认」的次级路径（非零操作）
+1. 多段捕获调度与 UI 进度条（非固定 autoStop 单段）
+2. 进度草稿进入版本历史（仍不自动 adopt）
+3. 引擎就绪向导
+4. 降采样 evaluate 日志
+5. 可选：用户确认式次级完整门槛（非零操作）
 
 ---
 
-## 16. 提交拆分（建议）
+## 16. 提交
 
-1. `feat(alignment): add automatic alignment job controller`
-2. `feat(settings): add zero-operation alignment switch`
-3. `feat(alignment): persist progress and gate automatic adoption`
-4. `test(alignment): accept automatic product path`
+```
+fc9ebda feat(alignment): add automatic alignment job controller
+dbb067b feat(settings): add zero-operation alignment switch
+30bf236 feat(alignment): persist progress and gate automatic adoption
+984ec4a test(alignment): accept automatic product path
+c180cb6 fix(alignment): log auto-align gates and re-evaluate after lyrics settle
+c2f6890 fix(alignment): throttle auto-align evaluate during playback ticks
+```
 
 ---
 
 ## 17. 结论
 
-Phase 2.11C-MVP1 **产品路径已落地**：
+Phase 2.11C-MVP1：
 
-- 零操作开关与 JobController 状态机
-- 复用 S2–S4 捕获与对齐链（无第二套算法/DB）
-- 严格门控：部分只积累、完整才保存并采用
-- 产品 UI 无引擎黑话
-- Capture 产品源码退出整树 DEBUG
-- Development 签名 + TEMP 隔离
+- 产品路径已落地
+- **Final Live Acceptance：A + B 均 PASS → 完全验收**
 
-**暂停。** 不创建新的前置研究阶段；不进入 S4.6。
+**暂停。** 不进入 MVP2 / S4.6。
