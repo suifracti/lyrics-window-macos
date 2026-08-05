@@ -29,7 +29,8 @@ public final class PlaybackState: ObservableObject {
     @Published public var showFullScreen = false
 
     private let provider: PlaybackProvider
-    private let lyricsSession: LyricsSessionController
+    /// Shared lyrics session (product auto-align reuses adopt/save paths).
+    public let lyricsSession: LyricsSessionController
     private let searchPreviewSession: LyricsSessionController
     private let translationSession: TranslationSessionController
     public let readingSession: ReadingSessionController
@@ -676,6 +677,8 @@ public final class PlaybackState: ObservableObject {
         } else {
             providerStatus = .unavailable("已在设置中关闭启动连接")
         }
+        // Zero-operation automatic alignment (product path; independent of Assist).
+        AutomaticAlignmentJobController.shared.bind(playback: self)
 #if DEBUG
         startAcceptanceControlPollingIfNeeded()
 #endif
@@ -993,12 +996,9 @@ public final class PlaybackState: ObservableObject {
         let previousPosition = currentTime
         #if DEBUG
         Self.seekLogger.debug("accepted source=\(source, privacy: .public) time=\(String(format: "%.3f", seekTime), privacy: .public) identity=\(self.currentTrackIdentity?.stableKey ?? "none", privacy: .public)")
-        LiveCaptureCoordinator.shared.notifyPlaybackPositionJump(
-            from: previousPosition,
-            to: seekTime,
-            isPlaying: isPlaying
-        )
         #endif
+        // Product path: capture continuity + auto-align must see seeks outside DEBUG.
+        AutomaticAlignmentJobController.shared.notifySeek(from: previousPosition, to: seekTime)
         resetPlaybackAnchor(to: seekTime)
 
         guard canControlSpotify else { return }
@@ -1823,6 +1823,10 @@ public final class PlaybackState: ObservableObject {
 #if DEBUG
             invalidateAssistOnTrackChange(previousKey: previousKey, nextKey: nextIdentity.stableKey)
 #endif
+            AutomaticAlignmentJobController.shared.notifyTrackChanged(
+                previousKey: previousKey,
+                nextKey: nextIdentity.stableKey
+            )
             hasLiveTrack = true
             isMockPreviewMode = false
             currentTrack = nextTrack
@@ -1841,20 +1845,14 @@ public final class PlaybackState: ObservableObject {
         }
 
         isPlaying = snapshot.isPlaying
-#if DEBUG
         // S2 live-capture continuity: Desktop position can jump after a user
-        // seek without going through seek(to:). Notify before we overwrite.
+        // seek without going through seek(to:). Product auto-align reuses this.
         let previousPosition = currentTime
         let incoming = snapshot.position
         if hasLiveTrack,
            abs(incoming - previousPosition) > 1.5 {
-            LiveCaptureCoordinator.shared.notifyPlaybackPositionJump(
-                from: previousPosition,
-                to: incoming,
-                isPlaying: snapshot.isPlaying
-            )
+            AutomaticAlignmentJobController.shared.notifySeek(from: previousPosition, to: incoming)
         }
-#endif
         resetPlaybackAnchor(to: snapshot.position)
     }
 

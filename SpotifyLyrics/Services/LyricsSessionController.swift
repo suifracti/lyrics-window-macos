@@ -24,6 +24,9 @@ public final class LyricsSessionController: ObservableObject {
     private var activeTrack: Track?
     private var searchQueryOverride: String?
 
+    /// Zero-operation automatic alignment reuses the session repository.
+    public var repositoryForAutomaticAlignment: (any LyricsRepository)? { repository }
+
     /// Primary production path: multi-variant LyricsSearchManager (not a dead Orchestrator).
     public init(
         providers: [LyricsProvider],

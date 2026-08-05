@@ -25,8 +25,10 @@ struct SpotifyLyricsApp: App {
             MainLyricsWindowView()
                 .environmentObject(playbackState)
                 .environmentObject(appSettings)
-#if DEBUG
                 .onAppear {
+                    // Product path: zero-operation automatic alignment observes playback.
+                    AutomaticAlignmentJobController.shared.bind(playback: playbackState)
+#if DEBUG
                     // A command-line v4 run is a controlled visual harness.
                     // Showing the existing capsule after the main scene is
                     // ready keeps the harness deterministic without adding a
@@ -37,11 +39,11 @@ struct SpotifyLyricsApp: App {
                             state: playbackState
                         )
                     }
-                    // Touch DEBUG capture singletons so env-driven spikes can start.
+                    // Diagnostic harness only — env-driven SCK spikes.
                     LiveCaptureCoordinator.shared.bind(playback: playbackState)
                     _ = SpotifyScreenCaptureAudioSpike.shared
-                }
 #endif
+                }
         }
         .defaultSize(width: 1152, height: 720)
         .windowStyle(.hiddenTitleBar)
