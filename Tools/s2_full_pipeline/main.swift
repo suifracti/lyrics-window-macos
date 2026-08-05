@@ -41,6 +41,9 @@ struct S2FullPipelineMain {
         let title = map["title"] ?? "sample"
         let artist = map["artist"] ?? "unknown"
         let writeSidecar = (map["write-sidecar"] ?? "0") == "1"
+        // Absolute capture window on the track timeline (Spotify domain).
+        let positionStart = Double(map["position-start"] ?? "0") ?? 0
+        let trackDurationOverride = Double(map["track-duration"] ?? "")
 
         let fm = FileManager.default
         try fm.createDirectory(atPath: outDir, withIntermediateDirectories: true)
@@ -59,14 +62,16 @@ struct S2FullPipelineMain {
             throw AlignmentError.failed("empty lyrics")
         }
 
-        let duration = try audioDuration(url: wavURL)
-        let sampleCount = try estimateSampleCount(url: wavURL, duration: duration)
+        let wavDuration = try audioDuration(url: wavURL)
+        let sampleCount = try estimateSampleCount(url: wavURL, duration: wavDuration)
+        let positionEnd = Double(map["position-end"] ?? "") ?? (positionStart + wavDuration)
+        let trackDuration = trackDurationOverride ?? max(positionEnd, wavDuration)
 
         // --- Speech ---
         let speechStarted = Date()
         let engineResult: SpeechEngineResult
         if let inject = map["transcript-json"], fm.isReadableFile(atPath: inject) {
-            engineResult = try loadTranscriptJSON(path: inject, engineName: engineName, language: lang, duration: duration)
+            engineResult = try loadTranscriptJSON(path: inject, engineName: engineName, language: lang, duration: wavDuration)
         } else {
             engineResult = try await runEngine(
                 name: engineName,
@@ -97,12 +102,12 @@ struct S2FullPipelineMain {
         ] as [String: Any]
         try writeJSON(speechOut, to: "\(outDir)/speech.json")
 
-        // --- Captured session (single continuous segment spanning WAV) ---
+        // --- Captured session (absolute Spotify positions for capture-window constraints) ---
         let identity = TrackIdentity(
             title: title,
             artist: artist,
             album: "",
-            duration: duration
+            duration: trackDuration
         )
         let sessionID = UUID()
         let segmentID = UUID()
@@ -110,17 +115,17 @@ struct S2FullPipelineMain {
             segmentID: segmentID,
             sessionID: sessionID,
             trackIdentity: identity,
-            spotifyPositionStart: 0,
-            spotifyPositionEnd: duration,
+            spotifyPositionStart: positionStart,
+            spotifyPositionEnd: positionEnd,
             hostTimeStart: 0,
-            hostTimeEnd: duration,
+            hostTimeEnd: wavDuration,
             audioPTSStart: 0,
-            audioPTSEnd: duration,
+            audioPTSEnd: wavDuration,
             sampleRate: 16_000,
             channelCount: 1,
             sampleCount: sampleCount,
             bufferCount: max(1, sampleCount / 1600),
-            duration: duration,
+            duration: wavDuration,
             continuityID: UUID(),
             startReason: .initial,
             endReason: .autoStop,
@@ -130,7 +135,7 @@ struct S2FullPipelineMain {
         let session = CapturedAudioSession(
             sessionID: sessionID,
             trackIdentity: identity,
-            trackDuration: duration,
+            trackDuration: trackDuration,
             segments: [segment],
             terminalReason: .autoStop
         )
@@ -208,17 +213,59 @@ struct S2FullPipelineMain {
         let s3aOnly = draft.lines.filter { $0.evidenceSummary.hasPrefix("s3a:") }.count
         let s3bOnly = draft.lines.filter { $0.evidenceSummary.hasPrefix("s3b:") }.count
 
+        // Repeated-section summary for S4
+        let groups = RepeatedLyricsSectionResolver.buildGroups(plainLines: plainLines, language: lang)
+        let timedForResolve: [Int: TimeInterval] = {
+            var m: [Int: TimeInterval] = [:]
+            for line in report.candidate.lines {
+                if let t = line.startTime { m[line.sourceLineIndex] = t }
+            }
+            return m
+        }()
+        let capture = RepeatedLyricsSectionResolver.CaptureWindow(
+            absoluteStart: positionStart,
+            absoluteEnd: positionEnd,
+            trackDuration: trackDuration
+        )
+        let resolution = RepeatedLyricsSectionResolver.resolve(
+            plainLines: plainLines,
+            timedLines: timedForResolve,
+            capture: capture,
+            anchors: report.acceptedAnchors,
+            language: lang
+        )
+        try enc.encode(resolution.groups).write(
+            to: URL(fileURLWithPath: "\(outDir)/repeated_groups.json"),
+            options: .atomic
+        )
+        try enc.encode(resolution.results).write(
+            to: URL(fileURLWithPath: "\(outDir)/repeated_resolution.json"),
+            options: .atomic
+        )
+
         let metrics: [String: Any] = [
             "sample_title": title,
             "engine": engineName,
             "engine_id": engineResult.engineID.rawValue,
             "language": lang,
+            "capture": [
+                "position_start": positionStart,
+                "position_end": positionEnd,
+                "track_duration": trackDuration,
+                "wav_duration": wavDuration
+            ],
+            "repeated": [
+                "group_count": groups.count,
+                "rejected_wrong_occurrence": resolution.results.filter { $0.reason.contains("wrong_occurrence") || $0.reason.contains("outside_capture") }.count,
+                "ambiguous_unresolved": resolution.results.filter { $0.decision == .unresolved && $0.reason.contains("ambiguous") }.count,
+                "accepted": resolution.results.filter { $0.decision == .accepted }.count
+            ],
             "speech": [
                 "pieces": engineResult.segments.count,
                 "non_empty_chars": engineResult.segments.map(\.text).joined().filter { !$0.isWhitespace }.count,
                 "empty_segments": engineResult.segments.filter { $0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }.count,
                 "elapsed_seconds": engineResult.elapsedSeconds > 0 ? engineResult.elapsedSeconds : speechElapsed,
-                "audio_duration": duration
+                "audio_duration": wavDuration
             ],
             "s3a": candidateMetrics(report.s3aCandidate),
             "s3b": candidateMetrics(report.candidate),

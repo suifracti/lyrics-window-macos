@@ -320,6 +320,91 @@ public enum SegmentPartialAlignmentPipeline {
             SCKSpikeLog.log("S3B fallback to S3A reason=\(fallbackReason ?? "")")
         }
 
+        // --- S4: local window refine between anchors (does not replace global DP) ---
+        if accepted.count >= 2 {
+            let local = LocalAlignmentWindow.refineBetweenAnchors(
+                plainLines: plainLines,
+                bundles: bundles,
+                anchors: accepted,
+                existing: s3bLines,
+                locale: localeRec.localeIdentifier
+            )
+            s3bLines = local.lines
+            for d in local.diagnostics.prefix(12) {
+                SCKSpikeLog.log("S4 \(d)")
+            }
+        }
+
+        // --- S4: capture-window + repeated-section occurrence constraints ---
+        let capStart = ranges.map(\.start).min() ?? 0
+        let capEnd = ranges.map(\.end).max() ?? (capStart + totalCapturedDuration)
+        let capture = RepeatedLyricsSectionResolver.CaptureWindow(
+            absoluteStart: capStart,
+            absoluteEnd: capEnd,
+            trackDuration: max(session.trackDuration, capEnd)
+        )
+        var timedMap: [Int: TimeInterval] = [:]
+        for line in s3bLines {
+            if let t = line.startTime {
+                timedMap[line.sourceLineIndex] = t
+            }
+        }
+        let languageHint = localeRec.localeIdentifier.lowercased().hasPrefix("zh")
+            ? "zh"
+            : (localeRec.localeIdentifier.lowercased().hasPrefix("en") ? "en" : "ja")
+        let resolution = RepeatedLyricsSectionResolver.resolve(
+            plainLines: plainLines,
+            timedLines: timedMap,
+            capture: capture,
+            anchors: accepted,
+            language: languageHint
+        )
+        for d in resolution.diagnostics {
+            SCKSpikeLog.log("S4 \(d)")
+        }
+        let keptTimes = RepeatedLyricsSectionResolver.applyRejections(
+            times: timedMap,
+            resolution: resolution
+        )
+        s3bLines = s3bLines.map { line in
+            guard let t = line.startTime else { return line }
+            if keptTimes[line.sourceLineIndex] == nil {
+                // Drop rejected / ambiguous repeated-section wrong occurrence.
+                let reason = resolution.results.first { $0.lyricLineIndex == line.sourceLineIndex }?.reason
+                    ?? "repeated_section_drop"
+                return PartialAlignedLine(
+                    sourceLineIndex: line.sourceLineIndex,
+                    text: line.text,
+                    status: .unresolved,
+                    startTime: nil,
+                    endTime: nil,
+                    confidence: 0,
+                    segmentID: line.segmentID,
+                    evidenceKind: "s4:\(reason)",
+                    speechRelativeStart: line.speechRelativeStart,
+                    speechRelativeEnd: line.speechRelativeEnd
+                )
+            }
+            // Annotate capture constraint OK
+            if !line.evidenceKind.contains("s4:") {
+                return PartialAlignedLine(
+                    sourceLineIndex: line.sourceLineIndex,
+                    text: line.text,
+                    status: line.status,
+                    startTime: t,
+                    endTime: line.endTime,
+                    confidence: line.confidence,
+                    segmentID: line.segmentID,
+                    evidenceKind: line.evidenceKind + ";s4:capture_ok",
+                    speechRelativeStart: line.speechRelativeStart,
+                    speechRelativeEnd: line.speechRelativeEnd
+                )
+            }
+            return line
+        }
+        // Also drop times outside capture on S3A primary for consistency
+        _ = keptTimes
+
         let s3bCandidate = makeCandidate(
             identity: identity,
             sessionID: session.sessionID,
