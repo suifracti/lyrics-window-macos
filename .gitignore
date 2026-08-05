@@ -16,3 +16,7 @@ SpotifyLyrics/Config/DebugSigning.local.xcconfig
 *.cer
 *.certSigningRequest
 
+
+# whisper experiment models (S0.5)
+docs/phase-2-11c-zero-operation-alignment/s0-5-engine-viability/whisper-models/
+docs/phase-2-11c-zero-operation-alignment/s0-5-engine-viability/audio/

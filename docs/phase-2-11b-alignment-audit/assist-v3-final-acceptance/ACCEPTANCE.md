@@ -3,7 +3,7 @@
 | 项 | 值 |
 |---|---|
 | 产品 | **Lyric Island** |
-| 日期 | 2026-08-04 |
+| 日期 | 2026-08-04（2026-08-05 更正：撤销“用户已检查入口”误述） |
 | 分支 | `codex/phase-2-11b-assist-mvp` |
 | **HEAD** | **`abee438ce10c736f083d4b13ab32f5a3b0fdac3a`** |
 | 实现 commit | `abee438` — fix(assist): wire listening alignment into immersive V3 |
@@ -34,22 +34,23 @@ codesign: valid on disk · satisfies Designated Requirement
 
 ## 0. 结论（先读）
 
-### 最终状态（本轮）
+### 最终状态（2026-08-05 收口裁定）
 
-**Phase 2.11B 尚未正式写满「✅ 核心链路、默认 V3 产品入口与完整跟播均真实验收完成」。**
+**Phase 2.11B：实现与工程验收完成；真人 UI 验收延期。**
 
 | 层 | 状态 |
 |---|---|
-| 算法 / 捕获 / Merger / 部分持久化 / 会话隔离（此前真机 + 合同） | **已真实验收**（`assist-mvp-closure-final` + 合同全绿） |
-| 默认 V3 **接线**（Sheet host / phase UI / dismiss 恢复） | **代码与合同通过**（`abee438` + `assist_v3_entry_contract`） |
-| 用户现场确认 V3 手动入口 | **用户声明已检查**（本会话输入） |
-| 代理在本机 **无 harness 完整走通** 入口→Sheet→捕获→编辑→部分保存→完整跟播录屏 | **未完成**（见 §5 自动化阻塞） |
-| 完整时间轴主界面跟播录屏（本轮新样本） | **未完成** |
+| 算法 / 捕获 / Merger / 部分持久化 / 会话隔离（真机 + 合同） | **工程验收完成** |
+| 默认 V3 接线（Sheet host / phase UI / dismiss） | **工程验收完成**（`abee438` + 合同） |
+| 合同套件 | **全 PASS** |
+| **真人 UI 录屏 G1–G7** | **延期**（用户不继续手动验收；**不阻塞**进入 2.11C 规划） |
+| 产品默认主路径 | **不再以手动 Assist 为主**；手动 Assist 保留为高级校正 / DIY 回退 |
 
 ### 准确表述
 
-> Phase 2.11B：**核心链路（捕获→合并→草稿→部分保存→隔离库）已真实验收；默认 V3 产品入口已接线并通过合同与用户现场检查；代理侧无 harness 的完整 UI 录屏闭环与完整跟播录屏仍缺。**  
-> **不**将本轮记为「正式关闭 Phase 2.11B」。
+> Phase 2.11B：**实现与工程验收完成；真人 UI 验收延期。**  
+> 手动「边听边排轴」保留为高级 / DIY 路径，**不再作为默认产品主路径**。  
+> 默认主路径规划转入 **Phase 2.11C Zero-Operation Automatic Alignment**（见 `docs/phase-2-11c-zero-operation-alignment/`）。
 
 ---
 
@@ -94,8 +95,8 @@ s3b_anchor_alignment_contract: PASS
 | 纯文本 · 未排轴 | 截图可见状态条「纯文本 · 未排轴」；e2e `alignmentQueued source=qqExperimental lines=32` | ✅ |
 | 歌词已持久化到 TEMP | TEMP db timed=0/32 qqExperimental | ✅ |
 | 未使用 assist_start / control 文件 | e2e 计数 0 | ✅ |
-| 当前歌曲面板「边听边排轴」可见 | **用户现场已检查**；合同断言代码路径存在 | ⚠️ 用户证 + 代码；代理截图未打开面板 |
-| Sheet / 取消恢复 / 再进入 | 用户现场已检查；合同 `dismissListeningAssistExplanation` | ⚠️ 用户证 + 代码 |
+| 当前歌曲面板「边听边排轴」可见 | **真人入口检查未完成**；仅有合同/代码路径，**无**真人/截图证据 | ❌ 属 G1，未完成 |
+| Sheet / 取消恢复 / 再进入 | **真人入口检查未完成**；合同覆盖 `dismissListeningAssistExplanation` 源码存在性 | ❌ 属 G1–G2，未完成 |
 | 真实捕获 STREAM / PCM | 本轮 **未**从 UI 启动捕获 | ❌ 本轮缺口 |
 | Merger → 编辑器草稿 | 本轮 **未**从 UI 完成 | ❌ 本轮缺口 |
 | Space / N / undo | 编辑器路径仍在；本轮 **未**交互录制 | ❌ 本轮缺口 |
@@ -172,7 +173,8 @@ onContinuousHover: y ≤ 96 → revealTools()
 4. 未打开面板则无法 AX 到「边听边排轴」/ Sheet「开始」  
 5. **禁止** 用 `assist_start` 绕过 → 代理卡在入口点击  
 
-这 **不是** 算法回归；是 **验收自动化与 content-first 工具栏** 的摩擦。用户真人鼠标可走通（用户已声明检查入口）。
+这 **不是** 算法回归；是 **验收自动化与 content-first 工具栏** 的摩擦。  
+**真人入口是否可走通：尚未完成检查**（不得假设用户已验证）。
 
 ---
 
@@ -194,8 +196,8 @@ onContinuousHover: y ≤ 96 → revealTools()
 
 | # | 缺口 | 建议证据 |
 |---|---|---|
-| G1 | **真人**从 V3 顶栏 hover → 当前歌曲 →「边听边排轴」→ Sheet 截图 | 截图 / 短录屏 |
-| G2 | Sheet **取消** → 入口恢复 → **再开始**（无 harness） | 录屏 + e2e 无 control |
+| G1 | **真人入口检查未完成**：V3 顶栏 hover → 当前歌曲 →「边听边排轴」可见 → Sheet 出现（此前误记“用户已检查”，**已撤销，不计入完成**） | 截图 / 短录屏 |
+| G2 | Sheet **取消** → 入口恢复 → **再开始**（无 harness）；**真人未完成** | 录屏 + e2e 无 control |
 | G3 | 真实 STREAM / PCM / 无 mic / 无 video | `spotifylyrics-sck-spike.log` |
 | G4 | draft ready → 编辑器建议/未排 | 截图 |
 | G5 | Space / N / ↑↓ / undo | 短录屏 |

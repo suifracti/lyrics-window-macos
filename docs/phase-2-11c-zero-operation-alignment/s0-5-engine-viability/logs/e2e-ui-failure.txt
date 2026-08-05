@@ -1,0 +1,56 @@
+[2026-08-04T15:50:45Z] LOG_RESET
+[2026-08-04T15:50:45Z] PlaybackState init providers=Local LRC,LRCLIB,NetEase Experimental,QQ Music Experimental
+[2026-08-04T15:50:46Z] PERSISTENCE startup ready
+[2026-08-04T15:50:46Z] SESSION clear
+[2026-08-04T15:50:46Z] Playback trackChange identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171 title=夜の合図 artist=Kawasaki.Rio duration=170.72
+[2026-08-04T15:50:46Z] SESSION begin rev=1 identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171 title=夜の合図 artist=Kawasaki.Rio duration=170.72 spotifyId=spotify:track:0662H3g9lGdt2ViPzYPzxm
+[2026-08-04T15:50:46Z] SESSION persistence miss rev=1 identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171
+[2026-08-04T15:50:46Z] MANAGER start title=夜の合図 artist=Kawasaki.Rio variants=3 providers=["Local LRC", "LRCLIB", "NetEase Experimental", "QQ Music Experimental"] queryOverride=
+[2026-08-04T15:50:48Z] SESSION clear
+[2026-08-04T15:50:48Z] SESSION clear
+[2026-08-04T15:50:49Z] SESSION cancelled before apply rev=1
+[2026-08-04T15:50:51Z] SESSION clear
+[2026-08-04T15:50:51Z] Playback trackChange identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171 title=夜の合図 artist=Kawasaki.Rio duration=170.72
+[2026-08-04T15:50:51Z] SESSION begin rev=3 identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171 title=夜の合図 artist=Kawasaki.Rio duration=170.72 spotifyId=spotify:track:0662H3g9lGdt2ViPzYPzxm
+[2026-08-04T15:50:51Z] SESSION persistence miss rev=3 identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171
+[2026-08-04T15:50:51Z] MANAGER start title=夜の合図 artist=Kawasaki.Rio variants=3 providers=["Local LRC", "LRCLIB", "NetEase Experimental", "QQ Music Experimental"] queryOverride=
+[2026-08-04T15:50:54Z] QQ best mid-candidate title=夜の合図 artist=Kawasaki.Rio conf=1.0 lines=32 sync=false
+[2026-08-04T15:50:54Z] QQ MATCH lines=32 conf=1.0 first=ねえ　忘れたいのに　また君を探す
+[2026-08-04T15:50:54Z] MANAGER AUTO_ADOPT provider=QQ Music Experimental strategy=primaryOriginal kind=exactTitleFullArtist tier=autoHigh score=0.7999999999999999 evidence=titleExact +0.30;primaryArtistExact +0.30;durationClose +0.12;albumExact +0.08 lines=32 sync=false
+[2026-08-04T15:50:54Z] SESSION search finished rev=3 result=match(qqExperimental,lines=32,sync=false) diag=4
+[2026-08-04T15:50:54Z]   DIAG Local LRC@primaryOriginal noMatch 0.00s
+[2026-08-04T15:50:54Z]   DIAG LRCLIB@primaryOriginal noMatch 0.85s
+[2026-08-04T15:50:54Z]   DIAG NetEase Experimental@primaryOriginal noMatch 0.67s
+[2026-08-04T15:50:54Z]   DIAG QQ Music Experimental@primaryOriginal match 1.50s
+[2026-08-04T15:50:54Z] SESSION apply alignmentQueued source=qqExperimental lines=32 first=ねえ　忘れたいのに　また君を探す
+[2026-08-04T15:50:54Z] SESSION persistence save rev=3 disposition=Optional(SpotifyLyrics.LyricsPersistenceSaveDisposition.inserted) lines=32
+[2026-08-04T18:56:06Z] SESSION clear
+[2026-08-04T18:56:06Z] SESSION clear
+[2026-08-04T18:56:08Z] SESSION clear
+[2026-08-04T18:56:08Z] Playback trackChange identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171 title=夜の合図 artist=Kawasaki.Rio duration=170.72
+[2026-08-04T18:56:08Z] SESSION begin rev=5 identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171 title=夜の合図 artist=Kawasaki.Rio duration=170.72 spotifyId=spotify:track:0662H3g9lGdt2ViPzYPzxm
+[2026-08-04T18:56:09Z] SESSION persistence hit rev=5 source=qqExperimental provider=qq:004b7vc61NGxXJ lines=32 sync=false
+[2026-08-04T18:56:09Z] SESSION search finished rev=5 result=match(qqExperimental,lines=32,sync=false) diag=0
+[2026-08-04T18:56:09Z] SESSION apply alignmentQueued source=qqExperimental lines=32 first=ねえ　忘れたいのに　また君を探す
+[2026-08-04T18:56:09Z] SESSION persistence save rev=5 disposition=Optional(SpotifyLyrics.LyricsPersistenceSaveDisposition.duplicate) lines=32
+[2026-08-04T20:26:26Z] SESSION clear
+[2026-08-04T20:26:26Z] SESSION clear
+[2026-08-04T20:26:29Z] SESSION clear
+[2026-08-04T20:26:29Z] Playback trackChange identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171 title=夜の合図 artist=Kawasaki.Rio duration=170.72
+[2026-08-04T20:26:29Z] SESSION begin rev=7 identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171 title=夜の合図 artist=Kawasaki.Rio duration=170.72 spotifyId=spotify:track:0662H3g9lGdt2ViPzYPzxm
+[2026-08-04T20:26:29Z] SESSION persistence hit rev=7 source=qqExperimental provider=qq:004b7vc61NGxXJ lines=32 sync=false
+[2026-08-04T20:26:29Z] SESSION search finished rev=7 result=match(qqExperimental,lines=32,sync=false) diag=0
+[2026-08-04T20:26:29Z] SESSION apply alignmentQueued source=qqExperimental lines=32 first=ねえ　忘れたいのに　また君を探す
+[2026-08-04T20:26:29Z] SESSION persistence save rev=7 disposition=Optional(SpotifyLyrics.LyricsPersistenceSaveDisposition.duplicate) lines=32
+[2026-08-05T02:43:58Z] SESSION clear
+[2026-08-05T02:43:58Z] SESSION clear
+[2026-08-05T02:44:00Z] SESSION clear
+[2026-08-05T02:44:00Z] Playback trackChange identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171 title=夜の合図 artist=Kawasaki.Rio duration=170.72
+[2026-08-05T02:44:00Z] SESSION begin rev=9 identity=spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|kawasakirio|夜の合図|171 title=夜の合図 artist=Kawasaki.Rio duration=170.72 spotifyId=spotify:track:0662H3g9lGdt2ViPzYPzxm
+[2026-08-05T02:44:01Z] SESSION persistence hit rev=9 source=qqExperimental provider=qq:004b7vc61NGxXJ lines=32 sync=false
+[2026-08-05T02:44:01Z] SESSION search finished rev=9 result=match(qqExperimental,lines=32,sync=false) diag=0
+[2026-08-05T02:44:01Z] SESSION apply alignmentQueued source=qqExperimental lines=32 first=ねえ　忘れたいのに　また君を探す
+[2026-08-05T02:44:01Z] SESSION persistence save rev=9 disposition=Optional(SpotifyLyrics.LyricsPersistenceSaveDisposition.duplicate) lines=32
+[2026-08-05T02:55:59Z] ASSIST present explanation sheet
+[2026-08-05T02:56:02Z] ASSIST confirm capture seconds=55.0
+[2026-08-05T02:57:22Z] ASSIST failed message=未能生成建议时间

@@ -1,0 +1,1015 @@
+{
+  "acceptedAnchors" : [
+    {
+      "absoluteEndTime" : 76.22013669967671,
+      "absoluteStartTime" : 73.94013669967671,
+      "accepted" : true,
+      "evidence" : "textSim=0.882;speech=0.465;window=0-4",
+      "lyricLineIndex" : 12,
+      "lyricText" : "何度でも踏み出すふりして",
+      "overallConfidence" : 0.798677575118614,
+      "relativeEndTime" : 25.560000000000002,
+      "relativeStartTime" : 23.28,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.46459999680519104,
+      "textConfidence" : 0.8821969696969697,
+      "transcriptEndIndex" : 4,
+      "transcriptStartIndex" : 0,
+      "transcriptText" : "何度でも踏み出すプリして"
+    },
+    {
+      "absoluteEndTime" : 79.01013669967672,
+      "absoluteStartTime" : 76.82013669967672,
+      "accepted" : true,
+      "evidence" : "textSim=1.000;speech=0.810;window=5-10",
+      "lyricLineIndex" : 13,
+      "lyricText" : "時計の針を戻してる",
+      "overallConfidence" : 0.9620999991893768,
+      "relativeEndTime" : 28.35,
+      "relativeStartTime" : 26.16,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.8104999959468842,
+      "textConfidence" : 1,
+      "transcriptEndIndex" : 10,
+      "transcriptStartIndex" : 5,
+      "transcriptText" : "時計の針を戻してる"
+    },
+    {
+      "absoluteEndTime" : 81.95013669967672,
+      "absoluteStartTime" : 79.49013669967673,
+      "accepted" : true,
+      "evidence" : "textSim=1.000;speech=0.213;window=11-12",
+      "lyricLineIndex" : 14,
+      "lyricText" : "愛してた　それだけじゃ",
+      "overallConfidence" : 0.8426714986562729,
+      "relativeEndTime" : 31.29,
+      "relativeStartTime" : 28.830000000000002,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.21335749328136444,
+      "textConfidence" : 1,
+      "transcriptEndIndex" : 12,
+      "transcriptStartIndex" : 11,
+      "transcriptText" : "愛してたそれだけじゃ"
+    },
+    {
+      "absoluteEndTime" : 84.44013669967671,
+      "absoluteStartTime" : 82.67013669967672,
+      "accepted" : true,
+      "evidence" : "textSim=0.869;speech=0.599;window=13-15",
+      "lyricLineIndex" : 15,
+      "lyricText" : "ダメだったんだね",
+      "overallConfidence" : 0.814866665204366,
+      "relativeEndTime" : 33.78,
+      "relativeStartTime" : 32.01,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.5993333260218302,
+      "textConfidence" : 0.8687499999999999,
+      "transcriptEndIndex" : 15,
+      "transcriptStartIndex" : 13,
+      "transcriptText" : "だめだったんだな"
+    }
+  ],
+  "candidate" : {
+    "captureSessionID" : "E0095CFA-CC1F-4474-A894-460DA887B9CF",
+    "capturedDuration" : 40.004226446151215,
+    "capturedRanges" : [
+      {
+        "end" : 90.66436314582793,
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "start" : 50.66013669967672
+      }
+    ],
+    "coverageRatio" : 0.125,
+    "createdAt" : "2026-08-05T03:05:42Z",
+    "lines" : [
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-noEvidence",
+        "sourceLineIndex" : 0,
+        "status" : "unresolved",
+        "text" : "ねえ　忘れたいのに　また君を探す"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-noEvidence",
+        "sourceLineIndex" : 1,
+        "status" : "unresolved",
+        "text" : "深夜0時の通知にまだ　期待してる"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-noEvidence",
+        "sourceLineIndex" : 2,
+        "status" : "unresolved",
+        "text" : "「平気だよ」って言葉の裏"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-noEvidence",
+        "sourceLineIndex" : 3,
+        "status" : "unresolved",
+        "text" : "崩れそうな強がりで塗った夜"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-noEvidence",
+        "sourceLineIndex" : 4,
+        "status" : "unresolved",
+        "text" : "歩道橋から見下ろす街"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-noEvidence",
+        "sourceLineIndex" : 5,
+        "status" : "unresolved",
+        "text" : "終わらせたのは私だったのに"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-noEvidence",
+        "sourceLineIndex" : 6,
+        "status" : "unresolved",
+        "text" : "流れるラジオ　雨音混じり"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-noEvidence",
+        "sourceLineIndex" : 7,
+        "status" : "unresolved",
+        "text" : "まだあの時に縛られてるみたい"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-noEvidence",
+        "sourceLineIndex" : 8,
+        "status" : "unresolved",
+        "text" : "心に走る夜の合図"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-noEvidence",
+        "sourceLineIndex" : 9,
+        "status" : "unresolved",
+        "text" : "君の名前がまだ痛い"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-noEvidence",
+        "sourceLineIndex" : 10,
+        "status" : "unresolved",
+        "text" : "通り過ぎたはずの未来が"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-noEvidence",
+        "sourceLineIndex" : 11,
+        "status" : "unresolved",
+        "text" : "まだ私を呼び止める"
+      },
+      {
+        "confidence" : 0.798677575118614,
+        "endTime" : 76.22013669967671,
+        "evidenceKind" : "anchor",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 12,
+        "speechRelativeEnd" : 25.560000000000002,
+        "speechRelativeStart" : 23.28,
+        "startTime" : 73.94013669967671,
+        "status" : "resolved",
+        "text" : "何度でも踏み出すふりして"
+      },
+      {
+        "confidence" : 0.9620999991893768,
+        "endTime" : 79.01013669967672,
+        "evidenceKind" : "anchor",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 13,
+        "speechRelativeEnd" : 28.35,
+        "speechRelativeStart" : 26.16,
+        "startTime" : 76.82013669967672,
+        "status" : "resolved",
+        "text" : "時計の針を戻してる"
+      },
+      {
+        "confidence" : 0.8426714986562729,
+        "endTime" : 81.95013669967672,
+        "evidenceKind" : "anchor",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 14,
+        "speechRelativeEnd" : 31.29,
+        "speechRelativeStart" : 28.830000000000002,
+        "startTime" : 79.49013669967673,
+        "status" : "resolved",
+        "text" : "愛してた　それだけじゃ"
+      },
+      {
+        "confidence" : 0.814866665204366,
+        "endTime" : 84.44013669967671,
+        "evidenceKind" : "anchor",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 15,
+        "speechRelativeEnd" : 33.78,
+        "speechRelativeStart" : 32.01,
+        "startTime" : 82.67013669967672,
+        "status" : "resolved",
+        "text" : "ダメだったんだね"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 16,
+        "status" : "unresolved",
+        "text" : "すれ違った言葉たちが"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 17,
+        "status" : "unresolved",
+        "text" : "今さら意味を持ち始めてる"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 18,
+        "status" : "unresolved",
+        "text" : "君の癖　君の声"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 19,
+        "status" : "unresolved",
+        "text" : "消えないまま今日も続いてる"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 20,
+        "status" : "unresolved",
+        "text" : "記憶の奥で鳴るアラーム"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 21,
+        "status" : "unresolved",
+        "text" : "止めたはずの感情がまだ"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 22,
+        "status" : "unresolved",
+        "text" : "夜に混ざってしまいそうで"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 23,
+        "status" : "unresolved",
+        "text" : "また逃げ出してしまいそうで"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 24,
+        "status" : "unresolved",
+        "text" : "心に響く　夜の合図"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 25,
+        "status" : "unresolved",
+        "text" : "君を知らない私になりたい"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 26,
+        "status" : "unresolved",
+        "text" : "なのにふとした仕草ひとつ"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 27,
+        "status" : "unresolved",
+        "text" : "思い出が勝手に疼く"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 28,
+        "status" : "unresolved",
+        "text" : "何度でも上書きしようとして"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 29,
+        "status" : "unresolved",
+        "text" : "あの日のまま動けない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 30,
+        "status" : "unresolved",
+        "text" : "さよならは　きっとそう"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "s3b-region-unresolved",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 31,
+        "status" : "unresolved",
+        "text" : "優しさじゃなかった"
+      }
+    ],
+    "locale" : "ja-JP",
+    "lowConfidenceCount" : 0,
+    "outsideCapturedRangeCount" : 0,
+    "overallConfidence" : 0.8545789345421575,
+    "resolvedCount" : 4,
+    "trackIdentityDigest" : "spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|",
+    "transcriptSegmentCount" : 25,
+    "unresolvedCount" : 28
+  },
+  "heldOut" : {
+    "comparedLineCount" : 0,
+    "note" : "no_held_out_synced_lyrics",
+    "obviousMismatchCount" : 0,
+    "withinHalfSecondCount" : 0,
+    "withinOneSecondCount" : 0,
+    "withinTwoSecondCount" : 0
+  },
+  "judgment" : "B_coverage_up_but_errors_remain",
+  "rejectedAnchors" : [
+    {
+      "absoluteEndTime" : 75.62013669967672,
+      "absoluteStartTime" : 73.94013669967671,
+      "accepted" : false,
+      "evidence" : "textSim=0.792;speech=0.392;window=0-2",
+      "lyricLineIndex" : 12,
+      "lyricText" : "何度でも踏み出すふりして",
+      "overallConfidence" : 0.7122444455093808,
+      "rejectionReason" : "overall_confidence_below_threshold",
+      "relativeEndTime" : 24.96,
+      "relativeStartTime" : 23.28,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.39233333865801495,
+      "textConfidence" : 0.7922222222222222,
+      "transcriptEndIndex" : 2,
+      "transcriptStartIndex" : 0,
+      "transcriptText" : "何度でも踏み出す"
+    },
+    {
+      "absoluteEndTime" : 76.10013669967672,
+      "absoluteStartTime" : 73.94013669967671,
+      "accepted" : false,
+      "evidence" : "textSim=0.777;speech=0.424;window=0-3",
+      "lyricLineIndex" : 12,
+      "lyricText" : "何度でも踏み出すふりして",
+      "overallConfidence" : 0.7062545459433036,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 25.44,
+      "relativeStartTime" : 23.28,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.42400000244379044,
+      "textConfidence" : 0.7768181818181819,
+      "transcriptEndIndex" : 3,
+      "transcriptStartIndex" : 0,
+      "transcriptText" : "何度でも踏み出すプリ"
+    },
+    {
+      "absoluteEndTime" : 81.95013669967672,
+      "absoluteStartTime" : 77.51013669967672,
+      "accepted" : false,
+      "evidence" : "textSim=0.762;speech=0.591;window=7-12",
+      "lyricLineIndex" : 14,
+      "lyricText" : "愛してた　それだけじゃ",
+      "overallConfidence" : 0.7282904988527298,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 31.29,
+      "relativeStartTime" : 26.85,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.591452494263649,
+      "textConfidence" : 0.7625,
+      "transcriptEndIndex" : 12,
+      "transcriptStartIndex" : 7,
+      "transcriptText" : "針を戻してる愛してたそれだけじゃ"
+    },
+    {
+      "absoluteEndTime" : 83.03013669967672,
+      "absoluteStartTime" : 77.87013669967672,
+      "accepted" : false,
+      "evidence" : "textSim=0.733;speech=0.556;window=8-13",
+      "lyricLineIndex" : 14,
+      "lyricText" : "愛してた　それだけじゃ",
+      "overallConfidence" : 0.6979090162586283,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 32.37,
+      "relativeStartTime" : 27.21,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.5556191553672155,
+      "textConfidence" : 0.7334814814814814,
+      "transcriptEndIndex" : 13,
+      "transcriptStartIndex" : 8,
+      "transcriptText" : "を戻してる愛してたそれだけじゃだめ"
+    },
+    {
+      "absoluteEndTime" : 83.03013669967672,
+      "absoluteStartTime" : 78.05013669967673,
+      "accepted" : false,
+      "evidence" : "textSim=0.762;speech=0.505;window=9-13",
+      "lyricLineIndex" : 14,
+      "lyricText" : "愛してた　それだけじゃ",
+      "overallConfidence" : 0.7110685980319977,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 32.37,
+      "relativeStartTime" : 27.39,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.5053429901599884,
+      "textConfidence" : 0.7625,
+      "transcriptEndIndex" : 13,
+      "transcriptStartIndex" : 9,
+      "transcriptText" : "戻してる愛してたそれだけじゃだめ"
+    },
+    {
+      "absoluteEndTime" : 83.93013669967672,
+      "absoluteStartTime" : 79.49013669967673,
+      "accepted" : false,
+      "evidence" : "textSim=0.762;speech=0.364;window=11-14",
+      "lyricLineIndex" : 14,
+      "lyricText" : "愛してた　それだけじゃ",
+      "overallConfidence" : 0.6827357491850853,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 33.27,
+      "relativeStartTime" : 28.830000000000002,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.3636787459254265,
+      "textConfidence" : 0.7625,
+      "transcriptEndIndex" : 14,
+      "transcriptStartIndex" : 11,
+      "transcriptText" : "愛してたそれだけじゃだめだったん"
+    },
+    {
+      "absoluteEndTime" : 81.95013669967672,
+      "absoluteStartTime" : 80.57013669967672,
+      "accepted" : false,
+      "evidence" : "textSim=0.738;speech=0.322;window=12-12",
+      "lyricLineIndex" : 14,
+      "lyricText" : "愛してた　それだけじゃ",
+      "overallConfidence" : 0.6544909977912904,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 31.29,
+      "relativeStartTime" : 29.91,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.3224549889564514,
+      "textConfidence" : 0.7375,
+      "transcriptEndIndex" : 12,
+      "transcriptStartIndex" : 12,
+      "transcriptText" : "それだけじゃ"
+    },
+    {
+      "absoluteEndTime" : 85.37013669967672,
+      "absoluteStartTime" : 82.67013669967672,
+      "accepted" : false,
+      "evidence" : "textSim=0.768;speech=0.599;window=13-16",
+      "lyricLineIndex" : 15,
+      "lyricText" : "ダメだったんだね",
+      "overallConfidence" : 0.7341944434907701,
+      "rejectionReason" : "text_similarity_below_threshold",
+      "relativeEndTime" : 34.71,
+      "relativeStartTime" : 32.01,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.5987499952316284,
+      "textConfidence" : 0.7680555555555555,
+      "transcriptEndIndex" : 16,
+      "transcriptStartIndex" : 13,
+      "transcriptText" : "だめだったんだなそれ"
+    },
+    {
+      "absoluteEndTime" : 78.59013669967672,
+      "absoluteStartTime" : 76.82013669967672,
+      "accepted" : false,
+      "evidence" : "textSim=0.869;speech=0.815;window=5-9",
+      "lyricLineIndex" : 13,
+      "lyricText" : "時計の針を戻してる",
+      "overallConfidence" : 0.8579999995231629,
+      "rejectionReason" : "duplicate_lyric_line",
+      "relativeEndTime" : 27.93,
+      "relativeStartTime" : 26.16,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.8149999976158142,
+      "textConfidence" : 0.8687499999999999,
+      "transcriptEndIndex" : 9,
+      "transcriptStartIndex" : 5,
+      "transcriptText" : "時計の針を戻し"
+    },
+    {
+      "absoluteEndTime" : 79.01013669967672,
+      "absoluteStartTime" : 77.33013669967673,
+      "accepted" : false,
+      "evidence" : "textSim=0.869;speech=0.799;window=6-10",
+      "lyricLineIndex" : 13,
+      "lyricText" : "時計の針を戻してる",
+      "overallConfidence" : 0.8547199988365173,
+      "rejectionReason" : "duplicate_lyric_line",
+      "relativeEndTime" : 28.35,
+      "relativeStartTime" : 26.67,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.7985999941825866,
+      "textConfidence" : 0.8687499999999999,
+      "transcriptEndIndex" : 10,
+      "transcriptStartIndex" : 6,
+      "transcriptText" : "の針を戻してる"
+    },
+    {
+      "absoluteEndTime" : 78.59013669967672,
+      "absoluteStartTime" : 76.10013669967672,
+      "accepted" : false,
+      "evidence" : "textSim=0.812;speech=0.784;window=4-9",
+      "lyricLineIndex" : 13,
+      "lyricText" : "時計の針を戻してる",
+      "overallConfidence" : 0.8061777765221065,
+      "rejectionReason" : "duplicate_lyric_line",
+      "relativeEndTime" : 27.93,
+      "relativeStartTime" : 25.44,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.7836666603883108,
+      "textConfidence" : 0.8118055555555554,
+      "transcriptEndIndex" : 9,
+      "transcriptStartIndex" : 4,
+      "transcriptText" : "して時計の針を戻し"
+    },
+    {
+      "absoluteEndTime" : 81.95013669967672,
+      "absoluteStartTime" : 78.59013669967672,
+      "accepted" : false,
+      "evidence" : "textSim=0.906;speech=0.405;window=10-12",
+      "lyricLineIndex" : 14,
+      "lyricText" : "愛してた　それだけじゃ",
+      "overallConfidence" : 0.805708271004937,
+      "rejectionReason" : "duplicate_lyric_line",
+      "relativeEndTime" : 31.29,
+      "relativeStartTime" : 27.93,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.4049049913883209,
+      "textConfidence" : 0.905909090909091,
+      "transcriptEndIndex" : 12,
+      "transcriptStartIndex" : 10,
+      "transcriptText" : "てる愛してたそれだけじゃ"
+    },
+    {
+      "absoluteEndTime" : 83.03013669967672,
+      "absoluteStartTime" : 79.49013669967673,
+      "accepted" : false,
+      "evidence" : "textSim=0.906;speech=0.334;window=11-13",
+      "lyricLineIndex" : 14,
+      "lyricText" : "愛してた　それだけじゃ",
+      "overallConfidence" : 0.7915082710367263,
+      "rejectionReason" : "duplicate_lyric_line",
+      "relativeEndTime" : 32.37,
+      "relativeStartTime" : 28.830000000000002,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.33390499154726666,
+      "textConfidence" : 0.905909090909091,
+      "transcriptEndIndex" : 13,
+      "transcriptStartIndex" : 11,
+      "transcriptText" : "愛してたそれだけじゃだめ"
+    },
+    {
+      "absoluteEndTime" : 79.01013669967672,
+      "absoluteStartTime" : 77.51013669967672,
+      "accepted" : false,
+      "evidence" : "textSim=0.789;speech=0.780;window=7-10",
+      "lyricLineIndex" : 13,
+      "lyricText" : "時計の針を戻してる",
+      "overallConfidence" : 0.7874846143355737,
+      "rejectionReason" : "duplicate_lyric_line",
+      "relativeEndTime" : 28.35,
+      "relativeStartTime" : 26.85,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.7804999947547913,
+      "textConfidence" : 0.7892307692307692,
+      "transcriptEndIndex" : 10,
+      "transcriptStartIndex" : 7,
+      "transcriptText" : "針を戻してる"
+    },
+    {
+      "absoluteEndTime" : 83.93013669967672,
+      "absoluteStartTime" : 82.67013669967672,
+      "accepted" : false,
+      "evidence" : "textSim=0.849;speech=0.514;window=13-14",
+      "lyricLineIndex" : 15,
+      "lyricText" : "ダメだったんだね",
+      "overallConfidence" : 0.7818476187615169,
+      "rejectionReason" : "duplicate_lyric_line",
+      "relativeEndTime" : 33.27,
+      "relativeStartTime" : 32.01,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.5139999985694885,
+      "textConfidence" : 0.8488095238095239,
+      "transcriptEndIndex" : 14,
+      "transcriptStartIndex" : 13,
+      "transcriptText" : "だめだったん"
+    },
+    {
+      "absoluteEndTime" : 81.95013669967672,
+      "absoluteStartTime" : 78.05013669967673,
+      "accepted" : false,
+      "evidence" : "textSim=0.828;speech=0.488;window=9-12",
+      "lyricLineIndex" : 14,
+      "lyricText" : "愛してた　それだけじゃ",
+      "overallConfidence" : 0.7600099905602862,
+      "rejectionReason" : "duplicate_lyric_line",
+      "relativeEndTime" : 31.29,
+      "relativeStartTime" : 27.39,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.48792874068021774,
+      "textConfidence" : 0.8280303030303031,
+      "transcriptEndIndex" : 12,
+      "transcriptStartIndex" : 9,
+      "transcriptText" : "戻してる愛してたそれだけじゃ"
+    },
+    {
+      "absoluteEndTime" : 77.33013669967673,
+      "absoluteStartTime" : 73.94013669967671,
+      "accepted" : false,
+      "evidence" : "textSim=0.812;speech=0.532;window=0-5",
+      "lyricLineIndex" : 12,
+      "lyricText" : "何度でも踏み出すふりして",
+      "overallConfidence" : 0.756433332959811,
+      "rejectionReason" : "duplicate_lyric_line",
+      "relativeEndTime" : 26.67,
+      "relativeStartTime" : 23.28,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.5321666647990545,
+      "textConfidence" : 0.8125,
+      "transcriptEndIndex" : 5,
+      "transcriptStartIndex" : 0,
+      "transcriptText" : "何度でも踏み出すプリして時計"
+    },
+    {
+      "absoluteEndTime" : 83.03013669967672,
+      "absoluteStartTime" : 78.59013669967672,
+      "accepted" : false,
+      "evidence" : "textSim=0.828;speech=0.447;window=10-13",
+      "lyricLineIndex" : 14,
+      "lyricText" : "愛してた　それだけじゃ",
+      "overallConfidence" : 0.7519099905364443,
+      "rejectionReason" : "duplicate_lyric_line",
+      "relativeEndTime" : 32.37,
+      "relativeStartTime" : 27.93,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.44742874056100845,
+      "textConfidence" : 0.8280303030303031,
+      "transcriptEndIndex" : 13,
+      "transcriptStartIndex" : 10,
+      "transcriptText" : "てる愛してたそれだけじゃだめ"
+    },
+    {
+      "absoluteEndTime" : 81.95013669967672,
+      "absoluteStartTime" : 77.87013669967672,
+      "accepted" : false,
+      "evidence" : "textSim=0.794;speech=0.552;window=8-12",
+      "lyricLineIndex" : 14,
+      "lyricText" : "愛してた　それだけじゃ",
+      "overallConfidence" : 0.7454790325475776,
+      "rejectionReason" : "duplicate_lyric_line",
+      "relativeEndTime" : 31.29,
+      "relativeStartTime" : 27.21,
+      "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+      "temporalConfidence" : 0.5517429888248444,
+      "textConfidence" : 0.7939130434782609,
+      "transcriptEndIndex" : 12,
+      "transcriptStartIndex" : 8,
+      "transcriptText" : "を戻してる愛してたそれだけじゃ"
+    }
+  ],
+  "s3aCandidate" : {
+    "captureSessionID" : "E0095CFA-CC1F-4474-A894-460DA887B9CF",
+    "capturedDuration" : 40.004226446151215,
+    "capturedRanges" : [
+      {
+        "end" : 90.66436314582793,
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "start" : 50.66013669967672
+      }
+    ],
+    "coverageRatio" : 0.125,
+    "createdAt" : "2026-08-05T03:05:41Z",
+    "lines" : [
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 0,
+        "status" : "unresolved",
+        "text" : "ねえ　忘れたいのに　また君を探す"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 1,
+        "status" : "unresolved",
+        "text" : "深夜0時の通知にまだ　期待してる"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 2,
+        "status" : "unresolved",
+        "text" : "「平気だよ」って言葉の裏"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 3,
+        "status" : "unresolved",
+        "text" : "崩れそうな強がりで塗った夜"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 4,
+        "status" : "unresolved",
+        "text" : "歩道橋から見下ろす街"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 5,
+        "status" : "unresolved",
+        "text" : "終わらせたのは私だったのに"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 6,
+        "status" : "unresolved",
+        "text" : "流れるラジオ　雨音混じり"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 7,
+        "status" : "unresolved",
+        "text" : "まだあの時に縛られてるみたい"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 8,
+        "status" : "unresolved",
+        "text" : "心に走る夜の合図"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 9,
+        "status" : "unresolved",
+        "text" : "君の名前がまだ痛い"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 10,
+        "status" : "unresolved",
+        "text" : "通り過ぎたはずの未来が"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 11,
+        "status" : "unresolved",
+        "text" : "まだ私を呼び止める"
+      },
+      {
+        "confidence" : 0.44162128164040737,
+        "endTime" : 77.33013669967673,
+        "evidenceKind" : "directSpeech",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 12,
+        "speechRelativeEnd" : 26.67,
+        "speechRelativeStart" : 23.28,
+        "startTime" : 73.94013669967671,
+        "status" : "lowConfidence",
+        "text" : "何度でも踏み出すふりして"
+      },
+      {
+        "confidence" : 0,
+        "endTime" : 76.71513669967672,
+        "evidenceKind" : "boundedInterpolation",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 13,
+        "speechRelativeEnd" : 26.055,
+        "speechRelativeStart" : 26.055,
+        "startTime" : 76.71513669967672,
+        "status" : "interpolated",
+        "text" : "時計の針を戻してる"
+      },
+      {
+        "confidence" : 0.6852640073735747,
+        "endTime" : 81.95013669967672,
+        "evidenceKind" : "directSpeech",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 14,
+        "speechRelativeEnd" : 31.29,
+        "speechRelativeStart" : 28.830000000000002,
+        "startTime" : 79.49013669967673,
+        "status" : "lowConfidence",
+        "text" : "愛してた　それだけじゃ"
+      },
+      {
+        "confidence" : 0.8101747602962311,
+        "endTime" : 84.44013669967671,
+        "evidenceKind" : "directSpeech",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 15,
+        "speechRelativeEnd" : 33.78,
+        "speechRelativeStart" : 32.01,
+        "startTime" : 82.67013669967672,
+        "status" : "resolved",
+        "text" : "ダメだったんだね"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 16,
+        "status" : "unresolved",
+        "text" : "すれ違った言葉たちが"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 17,
+        "status" : "unresolved",
+        "text" : "今さら意味を持ち始めてる"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 18,
+        "status" : "unresolved",
+        "text" : "君の癖　君の声"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 19,
+        "status" : "unresolved",
+        "text" : "消えないまま今日も続いてる"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 20,
+        "status" : "unresolved",
+        "text" : "記憶の奥で鳴るアラーム"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 21,
+        "status" : "unresolved",
+        "text" : "止めたはずの感情がまだ"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 22,
+        "status" : "unresolved",
+        "text" : "夜に混ざってしまいそうで"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 23,
+        "status" : "unresolved",
+        "text" : "また逃げ出してしまいそうで"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 24,
+        "status" : "unresolved",
+        "text" : "心に響く　夜の合図"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 25,
+        "status" : "unresolved",
+        "text" : "君を知らない私になりたい"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 26,
+        "status" : "unresolved",
+        "text" : "なのにふとした仕草ひとつ"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 27,
+        "status" : "unresolved",
+        "text" : "思い出が勝手に疼く"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 28,
+        "status" : "unresolved",
+        "text" : "何度でも上書きしようとして"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 29,
+        "status" : "unresolved",
+        "text" : "あの日のまま動けない"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 30,
+        "status" : "unresolved",
+        "text" : "さよならは　きっとそう"
+      },
+      {
+        "confidence" : 0,
+        "evidenceKind" : "noEvidence",
+        "segmentID" : "73D2140D-021B-45C7-B870-97299C15000E",
+        "sourceLineIndex" : 31,
+        "status" : "unresolved",
+        "text" : "優しさじゃなかった"
+      }
+    ],
+    "locale" : "ja-JP",
+    "lowConfidenceCount" : 2,
+    "outsideCapturedRangeCount" : 0,
+    "overallConfidence" : 0.48426501232755337,
+    "resolvedCount" : 2,
+    "trackIdentityDigest" : "spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|",
+    "transcriptSegmentCount" : 25,
+    "unresolvedCount" : 28
+  },
+  "s3aHeldOut" : {
+    "comparedLineCount" : 0,
+    "note" : "no_held_out_synced_lyrics",
+    "obviousMismatchCount" : 0,
+    "withinHalfSecondCount" : 0,
+    "withinOneSecondCount" : 0,
+    "withinTwoSecondCount" : 0
+  },
+  "usedConstrainedAlignment" : true,
+  "wavPaths" : [
+    "\/var\/folders\/kq\/dz44fm994nz94zw2dfqnz_g00000gn\/T\/SpotifyLyricsCapture\/s2-sessions\/E0095CFA-CC1F-4474-A894-460DA887B9CF\/seg-73D2140D-mono.wav"
+  ]
+}

@@ -1,0 +1,1 @@
+-rw-r--r--  1 apple  staff   465M  8月  5 11:22 /Users/apple/backup/sptifylyrics/docs/phase-2-11c-zero-operation-alignment/s0-5-engine-viability/whisper-models/ggml-small.bin

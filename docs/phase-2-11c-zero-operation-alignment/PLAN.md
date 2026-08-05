@@ -3,9 +3,9 @@
 | 项 | 值 |
 |---|---|
 | 产品 | Lyric Island |
-| 状态 | **只读规划 · 不实施** |
-| 前置 | Phase 2.11B Assist MVP（半自动边听边排轴） |
-| 日期 | 2026-08-04 |
+| 状态 | **只读规划 · 不实施**（架构细节见同目录 `S0_ARCHITECTURE_AUDIT.md`） |
+| 前置 | Phase 2.11B：**实现与工程验收完成；真人 UI 验收延期**；手动 Assist = DIY 回退 |
+| 日期 | 2026-08-04（2026-08-05 链到 S0 审计） |
 | 禁止本轮 | whisper.cpp · Demucs · Spleeter · S3C 实施 · schema 迁移 · Phase 3 视觉 |
 
 ---
