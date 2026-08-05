@@ -210,17 +210,30 @@ public enum LineForcedAligner {
                 combined += normalizedSegments[end]
                 guard !combined.isEmpty else { continue }
                 let similarity = similarity(target, combined)
-                let confidence = segments[start...end].map(\.confidence).reduce(0, +)
-                    / Double(end - start + 1)
+                let rawConfs = segments[start...end].map(\.confidence)
+                let observed = rawConfs.filter { isObservedAsrConfidence($0) }
+                let hasAsr = !observed.isEmpty
+                let confidence = hasAsr
+                    ? observed.reduce(0, +) / Double(observed.count)
+                    : -1
                 let lengthPenalty = abs(Double(combined.count - target.count))
                     / Double(max(1, target.count))
-                let score = max(0, 0.78 * similarity + 0.22 * confidence - 0.06 * lengthPenalty)
+                // When ASR confidence is missing, do NOT invent 1.0 (Apple-like).
+                // Use a documented neutral prior (0.85) so lexical matches still
+                // score, while evidence records transcriptConfidence = -1.
+                let score: Double
+                if hasAsr {
+                    score = max(0, 0.78 * similarity + 0.22 * confidence - 0.06 * lengthPenalty)
+                } else {
+                    let neutralPrior = 0.85
+                    score = max(0, 0.78 * similarity + 0.22 * neutralPrior - 0.06 * lengthPenalty)
+                }
                 if score >= parameters.minimumDirectScore {
                     result.append(Match(
                         start: start,
                         end: end,
                         score: score,
-                        transcriptConfidence: confidence
+                        transcriptConfidence: hasAsr ? confidence : -1
                     ))
                 }
                 if combined.count > target.count * 2 + 16 { break }
@@ -377,6 +390,9 @@ public enum LineForcedAligner {
     }
 
     public static func normalize(_ text: String) -> String {
+        // Keep the established aligner match view stable (S2 baselines).
+        // TranscriptNormalizer is used in split/prep only — not here — so we do
+        // not silently retune Apple / existing DP scores.
         var s = JapaneseRomanizer.toHiraganaPreservingLatin(text)
         s = s.lowercased()
         let allowed = CharacterSet.alphanumerics
@@ -385,6 +401,11 @@ public enum LineForcedAligner {
             allowed.contains($0) || (0x3040...0x30FF).contains($0.value)
         })
         return s
+    }
+
+    /// ASR confidence values: `>= 0` observed; `< 0` means missing (do not treat as 1.0).
+    public static func isObservedAsrConfidence(_ value: Double) -> Bool {
+        value >= 0 && value <= 1.0001
     }
 
     private static func isBlank(_ text: String) -> Bool {

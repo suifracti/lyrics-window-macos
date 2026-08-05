@@ -36,8 +36,12 @@ public enum AnchorConstrainedAligner {
                     scores.sort { $0.score > $1.score }
                     guard let best = scores.first else { continue }
 
-                    let speechConf = segs[tStart...tEnd].map(\.confidence).reduce(0, +)
-                        / Double(tEnd - tStart + 1)
+                    let rawSpeech = segs[tStart...tEnd].map(\.confidence)
+                    let observedSpeech = rawSpeech.filter { LineForcedAligner.isObservedAsrConfidence($0) }
+                    let hasAsr = !observedSpeech.isEmpty
+                    let speechConf = hasAsr
+                        ? observedSpeech.reduce(0, +) / Double(observedSpeech.count)
+                        : -1
                     let second = scores.dropFirst().first?.score ?? 0
                     let unique = best.score - second >= AnchorAlignmentPolicy.uniquenessGap
                         || scores.count == 1
@@ -46,8 +50,17 @@ public enum AnchorConstrainedAligner {
                     let relEnd = segs[tEnd].endTime
                     let absStart = bundle.positionStart + relStart
                     let absEnd = bundle.positionStart + relEnd
-                    let overall = AnchorAlignmentPolicy.textWeight * best.score
-                        + AnchorAlignmentPolicy.speechWeight * speechConf
+                    // Missing ASR confidence: use neutral prior 0.85 (not 1.0, not 0).
+                    // Lexical textConfidence remains the primary evidence in `evidence`.
+                    let overall: Double
+                    if hasAsr {
+                        overall = AnchorAlignmentPolicy.textWeight * best.score
+                            + AnchorAlignmentPolicy.speechWeight * speechConf
+                    } else {
+                        let neutralPrior = 0.85
+                        overall = AnchorAlignmentPolicy.textWeight * best.score
+                            + AnchorAlignmentPolicy.speechWeight * neutralPrior
+                    }
 
                     let transcriptText = segs[tStart...tEnd].map(\.text).joined()
                     var reason: String? = nil
@@ -62,10 +75,13 @@ public enum AnchorConstrainedAligner {
                         accepted = false
                         reason = "overall_confidence_below_threshold"
                     } else if !unique {
+                        // Repeated lyric lines (choruses): keep best unique temporal
+                        // candidate later via monotonic selection; mark ambiguous.
                         accepted = false
                         reason = "ambiguous_multiple_lyric_matches"
                     }
 
+                    let speechNote = hasAsr ? fmt(speechConf) : "missing_asr"
                     let anchor = AlignmentAnchor(
                         transcriptStartIndex: tStart,
                         transcriptEndIndex: tEnd,
@@ -78,9 +94,9 @@ public enum AnchorConstrainedAligner {
                         relativeStartTime: relStart,
                         relativeEndTime: relEnd,
                         textConfidence: best.score,
-                        temporalConfidence: speechConf,
+                        temporalConfidence: hasAsr ? speechConf : 1,
                         overallConfidence: overall,
-                        evidence: "textSim=\(fmt(best.score));speech=\(fmt(speechConf));window=\(tStart)-\(tEnd)",
+                        evidence: "textSim=\(fmt(best.score));speech=\(speechNote);window=\(tStart)-\(tEnd);asr=\(hasAsr ? "observed" : "missing")",
                         accepted: accepted,
                         rejectionReason: reason
                     )
