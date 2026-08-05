@@ -39,6 +39,8 @@ public final class AppSettingsStore: ObservableObject {
         public static let automaticCompactLyricsFocus = "general.automaticCompactLyricsFocus"
         public static let connectSpotifyOnLaunch = "general.connectSpotifyOnLaunch"
         public static let autoSearchLyricsOnTrackChange = "general.autoSearchLyricsOnTrackChange"
+        /// Product zero-operation automatic alignment (default off).
+        public static let automaticAlignmentEnabled = "automaticAlignment.enabled.v1"
         public static let keepMainWindowOnTop = "general.keepMainWindowOnTop"
         public static let restoreWindowState = "general.restoreWindowState"
         public static let mainWindowFrame = "general.mainWindowFrame"
@@ -118,6 +120,11 @@ public final class AppSettingsStore: ObservableObject {
 
     @Published public var autoSearchLyricsOnTrackChange: Bool {
         didSet { defaults.set(autoSearchLyricsOnTrackChange, forKey: Key.autoSearchLyricsOnTrackChange) }
+    }
+
+    /// When enabled, playing an unsynced plain-lyrics track may auto-capture and align.
+    @Published public var automaticAlignmentEnabled: Bool {
+        didSet { defaults.set(automaticAlignmentEnabled, forKey: Key.automaticAlignmentEnabled) }
     }
 
     @Published public var keepMainWindowOnTop: Bool {
@@ -225,6 +232,7 @@ public final class AppSettingsStore: ObservableObject {
         automaticCompactLyricsFocus = defaults.object(forKey: Key.automaticCompactLyricsFocus) as? Bool ?? false
         connectSpotifyOnLaunch = defaults.object(forKey: Key.connectSpotifyOnLaunch) as? Bool ?? true
         autoSearchLyricsOnTrackChange = defaults.object(forKey: Key.autoSearchLyricsOnTrackChange) as? Bool ?? true
+        automaticAlignmentEnabled = defaults.object(forKey: Key.automaticAlignmentEnabled) as? Bool ?? false
         // Keep the normal window behavior by default. Users can opt into
         // always-on-top explicitly in Settings; existing saved choices are
         // preserved because the fallback is only used when the key is absent.

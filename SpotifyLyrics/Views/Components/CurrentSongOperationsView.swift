@@ -5,6 +5,7 @@ import SwiftUI
 /// this view owns no repository, search task, timer, or playback command.
 struct CurrentSongOperationsView: View {
     @ObservedObject var state: PlaybackState
+    @ObservedObject private var autoAlign = AutomaticAlignmentJobController.shared
     @EnvironmentObject private var settings: AppSettingsStore
     @Environment(\.openWindow) private var openWindow
 
@@ -42,6 +43,10 @@ struct CurrentSongOperationsView: View {
             if !state.liveLyrics.isEmpty {
                 Divider()
                 translationSection
+            }
+            if showsAutomaticAlignmentSection {
+                Divider()
+                automaticAlignmentSection
             }
             if hasAlignmentAction {
                 Divider()
@@ -445,6 +450,17 @@ struct CurrentSongOperationsView: View {
         }
     }
 
+    /// Product zero-operation status — visible when switch on or a job is active.
+    private var showsAutomaticAlignmentSection: Bool {
+        if settings.automaticAlignmentEnabled { return true }
+        switch autoAlign.state {
+        case .idle, .canceled:
+            return false
+        default:
+            return !autoAlign.statusMessage.isEmpty
+        }
+    }
+
     private var hasAlignmentAction: Bool {
         switch state.liveLyricsState {
         case .alignmentQueued, .alignmentRunning, .alignmentPreview:
@@ -456,6 +472,95 @@ struct CurrentSongOperationsView: View {
         if state.showsListeningAssistControls { return true }
 #endif
         return false
+    }
+
+    @ViewBuilder
+    private var automaticAlignmentSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Label("自动时间轴", systemImage: "timeline.selection")
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                Spacer()
+                Text(autoAlignStatusLabel)
+                    .font(.system(size: 11, design: .rounded))
+                    .foregroundStyle(autoAlignStatusColor)
+                    .accessibilityIdentifier("autoAlign.status")
+            }
+            if !autoAlign.statusMessage.isEmpty {
+                Text(autoAlign.statusMessage)
+                    .font(.system(size: 11, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else if settings.automaticAlignmentEnabled {
+                Text("播放未排轴歌曲时会在后台尝试生成时间轴。")
+                    .font(.system(size: 11, design: .rounded))
+                    .foregroundStyle(.secondary)
+            }
+            HStack(spacing: 8) {
+                if autoAlignJobIsActive {
+                    Button("停止本次") {
+                        autoAlign.cancelCurrentJob(userInitiated: true)
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("autoAlign.stop")
+                }
+                if settings.automaticAlignmentEnabled,
+                   !state.liveLyricsAreSynchronized,
+                   state.hasLiveTrack {
+                    Button("重新尝试") {
+                        autoAlign.retry()
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("autoAlign.retry")
+                }
+#if DEBUG
+                if state.showsListeningAssistControls || state.canStartListeningAssist {
+                    Button("打开排轴工作台") {
+                        state.presentListeningAssistExplanation()
+                    }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("autoAlign.openWorkbench")
+                }
+#endif
+            }
+        }
+    }
+
+    private var autoAlignJobIsActive: Bool {
+        switch autoAlign.state {
+        case .capturing, .paused, .aligning, .evaluating, .waitingForPlayback, .accumulating, .deferred:
+            return true
+        default:
+            return false
+        }
+    }
+
+    private var autoAlignStatusLabel: String {
+        switch autoAlign.state {
+        case .idle: return settings.automaticAlignmentEnabled ? "就绪" : "关闭"
+        case .waitingForPlayback: return "等待播放"
+        case .capturing, .aligning, .evaluating: return "正在生成时间轴"
+        case .paused: return "已暂停"
+        case .accumulating: return "已保存部分进度"
+        case .completed: return "已完成"
+        case .failed: return "本次无法可靠完成"
+        case .canceled: return "已停止"
+        case .deferred:
+            if autoAlign.statusMessage.contains("引擎") {
+                return "引擎尚未准备好"
+            }
+            return "等待继续播放"
+        }
+    }
+
+    private var autoAlignStatusColor: Color {
+        switch autoAlign.state {
+        case .completed: return .green
+        case .failed, .canceled: return .orange
+        case .capturing, .aligning, .evaluating: return .primary
+        default: return .secondary
+        }
     }
 
     private func readingVersionTitle(_ version: StoredReadingVersion) -> String {

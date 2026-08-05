@@ -182,6 +182,14 @@ private struct GeneralSettingsView: View {
                 Toggle("启动时自动连接 Spotify Desktop", isOn: $settings.connectSpotifyOnLaunch)
                 Toggle("切歌后自动搜索歌词", isOn: $settings.autoSearchLyricsOnTrackChange)
             }
+
+            Section("自动排轴") {
+                Toggle("自动为未排轴歌词生成时间轴", isOn: $settings.automaticAlignmentEnabled)
+                Text("播放未排轴歌曲时，Lyric Island 会在后台尝试生成时间轴。默认关闭；开启后无需点击「边听边排轴」。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         .formStyle(.grouped)
     }
