@@ -1,0 +1,11 @@
+real_song_manifest_contract: PASS
+ground_truth_timeline_contract: PASS
+automatic_reference_scoring_contract: PASS
+wrong_occurrence_metric_contract: PASS
+captured_range_violation_contract: PASS
+commercial_audio_not_tracked_contract: PASS
+copyrighted_lyrics_not_tracked_contract: PASS
+route D
+real_song_gate_contract: PASS
+repeated_section_group_contract: PASS
+speech_engine_contract: PASS

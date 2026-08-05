@@ -1,0 +1,221 @@
+{
+  "formal_before": "d6d5f121152057908ccd70cf4b83d8c76d86b9f4b9c9929326c45a60eb5f420b",
+  "formal_after": "d6d5f121152057908ccd70cf4b83d8c76d86b9f4b9c9929326c45a60eb5f420b",
+  "formal_unchanged": true,
+  "formal_opened": false,
+  "results": [
+    {
+      "id": "RS01",
+      "engine": "whisper_small",
+      "ok": false,
+      "skip": "audio_missing",
+      "audio_status": "pending_capture"
+    },
+    {
+      "id": "RS02",
+      "engine": "whisper_small",
+      "ok": false,
+      "skip": "audio_missing",
+      "audio_status": "pending_capture"
+    },
+    {
+      "id": "RS03",
+      "engine": "whisper_small",
+      "ok": false,
+      "skip": "audio_missing",
+      "audio_status": "pending_capture"
+    },
+    {
+      "id": "RS04",
+      "engine": "whisper_small",
+      "ok": false,
+      "skip": "audio_missing",
+      "audio_status": "pending_capture"
+    },
+    {
+      "id": "RS05",
+      "engine": "whisper_small",
+      "ok": false,
+      "skip": "audio_missing",
+      "audio_status": "pending_capture"
+    },
+    {
+      "id": "RS06",
+      "engine": "whisper_small",
+      "ok": false,
+      "skip": "audio_missing",
+      "audio_status": "pending_capture"
+    },
+    {
+      "id": "RS07",
+      "engine": "whisper_small",
+      "ok": false,
+      "skip": "audio_missing",
+      "audio_status": "pending_capture"
+    },
+    {
+      "id": "RS-EXIST-A",
+      "engine": "whisper_small",
+      "ok": true,
+      "wall": 2.1239140033721924,
+      "peak_rss": 860291072,
+      "script_lang": "ja",
+      "structure_tag": "medium",
+      "audio_status": "local_existing_capture",
+      "audio_sha256": "657ba7e48815adb20e2b9eea46d2f7e4fd7b3d38187b65f56a26413be750e3b0",
+      "capture": {
+        "position_start": 0.0,
+        "position_end": 40.14,
+        "track_duration": 170.72
+      },
+      "pipeline_metrics": {
+        "suggestions": 5,
+        "s3a_coverage": 0.3125,
+        "s3b_anchors": 5,
+        "repeated": {
+          "accepted": 8,
+          "ambiguous_unresolved": 0,
+          "group_count": 0,
+          "rejected_wrong_occurrence": 0
+        }
+      },
+      "score": {
+        "suggestions": 5,
+        "suggestion_coverage": 0.15625,
+        "correct": 0,
+        "wrong": 0,
+        "wrong_occurrence": 0,
+        "timing_error_gt3s": 0,
+        "unsupported_interpolation": 0,
+        "capture_violations": 0,
+        "non_monotonic": 0,
+        "median_abs_error": null,
+        "p90_abs_error": null,
+        "gt3_mismatch": 0,
+        "unresolved": 27,
+        "gt_offset_estimate": 0.0,
+        "gt_pairs_for_offset": 0,
+        "details": [
+          {
+            "line_index": 8,
+            "t_raw": 0.0,
+            "t_aligned": 0.0,
+            "label": "no_gt",
+            "note": "offset=0.000",
+            "gt": null,
+            "err": null
+          },
+          {
+            "line_index": 9,
+            "t_raw": 5.88,
+            "t_aligned": 5.88,
+            "label": "no_gt",
+            "note": "offset=0.000",
+            "gt": null,
+            "err": null
+          },
+          {
+            "line_index": 10,
+            "t_raw": 11.54,
+            "t_aligned": 11.54,
+            "label": "no_gt",
+            "note": "offset=0.000",
+            "gt": null,
+            "err": null
+          },
+          {
+            "line_index": 11,
+            "t_raw": 16.12,
+            "t_aligned": 16.12,
+            "label": "no_gt",
+            "note": "offset=0.000",
+            "gt": null,
+            "err": null
+          },
+          {
+            "line_index": 16,
+            "t_raw": 34.26,
+            "t_aligned": 34.26,
+            "label": "no_gt",
+            "note": "offset=0.000",
+            "gt": null,
+            "err": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "RS-EXIST-B",
+      "engine": "whisper_small",
+      "ok": true,
+      "wall": 2.93853497505188,
+      "peak_rss": 891355136,
+      "script_lang": "ja",
+      "structure_tag": "repeated",
+      "audio_status": "local_existing_capture",
+      "audio_sha256": "71cdc68dd5eab6139671a4209cd5c7769f95d1d4c51fa8bcf53f58b922b6416c",
+      "capture": {
+        "position_start": 0.0,
+        "position_end": 40.2,
+        "track_duration": 213.0
+      },
+      "pipeline_metrics": {
+        "suggestions": 3,
+        "s3a_coverage": 0.12582781456953643,
+        "s3b_anchors": 3,
+        "repeated": {
+          "accepted": 15,
+          "ambiguous_unresolved": 0,
+          "group_count": 2,
+          "rejected_wrong_occurrence": 0
+        }
+      },
+      "score": {
+        "suggestions": 3,
+        "suggestion_coverage": 0.019867549668874173,
+        "correct": 1,
+        "wrong": 0,
+        "wrong_occurrence": 0,
+        "timing_error_gt3s": 0,
+        "unsupported_interpolation": 0,
+        "capture_violations": 0,
+        "non_monotonic": 0,
+        "median_abs_error": 0.0,
+        "p90_abs_error": 0.0,
+        "gt3_mismatch": 0,
+        "unresolved": 144,
+        "gt_offset_estimate": 119.80000000000001,
+        "gt_pairs_for_offset": 1,
+        "details": [
+          {
+            "line_index": 42,
+            "t_raw": 8.04,
+            "t_aligned": 127.84,
+            "label": "correct",
+            "note": "offset=119.800",
+            "gt": 127.84,
+            "err": 0.0
+          },
+          {
+            "line_index": 48,
+            "t_raw": 20.52,
+            "t_aligned": 140.32000000000002,
+            "label": "no_gt",
+            "note": "offset=119.800",
+            "gt": null,
+            "err": null
+          },
+          {
+            "line_index": 51,
+            "t_raw": 22.52,
+            "t_aligned": 142.32000000000002,
+            "label": "no_gt",
+            "note": "offset=119.800",
+            "gt": null,
+            "err": null
+          }
+        ]
+      }
+    }
+  ]
+}

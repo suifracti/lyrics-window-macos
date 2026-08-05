@@ -1,0 +1,9 @@
+branch=codex/phase-2-11c-s4-5-real-song-gate
+baseline=449af66
+formal_db_sha=d6d5f121152057908ccd70cf4b83d8c76d86b9f4b9c9929326c45a60eb5f420b
+formal_opened=NO
+route=D
+evaluated_with_audio=2
+selected_slots=9
+spotify_capture=failed
+algorithm_changes=NONE

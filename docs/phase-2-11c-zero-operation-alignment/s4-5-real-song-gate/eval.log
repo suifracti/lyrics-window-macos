@@ -1,0 +1,20 @@
+== RS01 audio=pending_capture ==
+  ok=False sug=None wrong=None wocc=None
+== RS02 audio=pending_capture ==
+  ok=False sug=None wrong=None wocc=None
+== RS03 audio=pending_capture ==
+  ok=False sug=None wrong=None wocc=None
+== RS04 audio=pending_capture ==
+  ok=False sug=None wrong=None wocc=None
+== RS05 audio=pending_capture ==
+  ok=False sug=None wrong=None wocc=None
+== RS06 audio=pending_capture ==
+  ok=False sug=None wrong=None wocc=None
+== RS07 audio=pending_capture ==
+  ok=False sug=None wrong=None wocc=None
+== RS-EXIST-A audio=local_existing_capture ==
+  ok=True sug=5 wrong=0 wocc=0
+== RS-EXIST-B audio=local_existing_capture ==
+  ok=True sug=3 wrong=0 wocc=0
+formal_unchanged True
+wrote /Users/apple/backup/sptifylyrics/docs/phase-2-11c-zero-operation-alignment/s4-5-real-song-gate/metrics_raw.json

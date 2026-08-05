@@ -1,0 +1,14 @@
+{
+  "selected_slots": 9,
+  "with_audio": 4,
+  "evaluated_ok": 2,
+  "nonzero_suggestions": 2,
+  "total_wrong_occurrence": 0,
+  "total_capture_violations": 0,
+  "spotify_capture_status": "failed_no_current_track",
+  "english_pool_size": 1,
+  "zh_pool_size": 9,
+  "ja_pool_size": 51,
+  "route": "D",
+  "route_reason": "Only 2/8+ slots have real mixed audio; Spotify automation could not load tracks for capture; English GT+audio insufficient."
+}
