@@ -20,3 +20,9 @@ SpotifyLyrics/Config/DebugSigning.local.xcconfig
 # whisper experiment models (S0.5)
 docs/phase-2-11c-zero-operation-alignment/s0-5-engine-viability/whisper-models/
 docs/phase-2-11c-zero-operation-alignment/s0-5-engine-viability/audio/
+
+# S2 offline evaluation: models already under s0-5 path; large runs/audio local-only
+docs/phase-2-11c-zero-operation-alignment/s2-whisper-full-pipeline/fixtures/audio/
+docs/phase-2-11c-zero-operation-alignment/s2-whisper-full-pipeline/runs/
+docs/phase-2-11c-zero-operation-alignment/s2-whisper-full-pipeline/models/*.bin
+Tools/s2_full_pipeline/.build/

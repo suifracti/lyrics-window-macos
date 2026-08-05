@@ -1,0 +1,1164 @@
+{
+  "formal_before": "d6d5f121152057908ccd70cf4b83d8c76d86b9f4b9c9929326c45a60eb5f420b",
+  "formal_after": "d6d5f121152057908ccd70cf4b83d8c76d86b9f4b9c9929326c45a60eb5f420b",
+  "formal_unchanged": true,
+  "formal_opened": false,
+  "results": [
+    {
+      "sample": "sampleA",
+      "engine": "apple",
+      "exit_code": 0,
+      "wall_seconds": 1.219665765762329,
+      "peak_rss_bytes": 27492352,
+      "model_path": null,
+      "ok": true,
+      "metrics": {
+        "engine": "apple",
+        "engine_id": "speechEngine.apple.v1",
+        "formal_db_opened": false,
+        "held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "judgment": "B_coverage_up_but_errors_remain",
+        "language": "ja",
+        "merger": {
+          "evidence_s3a": 0,
+          "evidence_s3b": 0,
+          "final_suggestions": 4,
+          "from_anchor": 4,
+          "from_speech_resolved": 0,
+          "outside": 0,
+          "plain_line_count": 32,
+          "suggestion_coverage": 0.125,
+          "unresolved": 28
+        },
+        "s3a": {
+          "coverage": 0.1875,
+          "line_count": 32,
+          "low": 2,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.7488730182801975,
+          "present": true,
+          "resolved": 4,
+          "transcript_segments": 25,
+          "unresolved": 26
+        },
+        "s3a_held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "s3b": {
+          "coverage": 0.1875,
+          "line_count": 32,
+          "low": 2,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.7536606491952802,
+          "present": true,
+          "resolved": 4,
+          "transcript_segments": 25,
+          "unresolved": 26
+        },
+        "s3b_anchors_accepted": 4,
+        "s3b_anchors_rejected": 19,
+        "s3b_fallback": null,
+        "s3b_used_constrained": true,
+        "sample_title": "夜の合図",
+        "speech": {
+          "audio_duration": 40.14,
+          "elapsed_seconds": 1.1332510709762573,
+          "empty_segments": 0,
+          "non_empty_chars": 56,
+          "pieces": 25
+        }
+      },
+      "token_hit": {
+        "token_hit_rate": 0.1875,
+        "hit_lines": 6,
+        "total_lines": 32
+      },
+      "wrong": {
+        "wrong_suggestions": 0,
+        "suggested_count": 4,
+        "wrong_reasons": []
+      },
+      "hallucination": {
+        "empty_segments": 0,
+        "repeat_segments": 0,
+        "piece_count": 25,
+        "non_empty_chars": 56
+      }
+    },
+    {
+      "sample": "sampleA",
+      "engine": "whisper_small",
+      "exit_code": 0,
+      "wall_seconds": 1.7918572425842285,
+      "peak_rss_bytes": 858849280,
+      "model_path": "/Users/apple/backup/sptifylyrics/docs/phase-2-11c-zero-operation-alignment/s0-5-engine-viability/whisper-models/ggml-small.bin",
+      "ok": true,
+      "metrics": {
+        "engine": "whisper_small",
+        "engine_id": "speechEngine.whisperCLI.experimental.v1",
+        "formal_db_opened": false,
+        "held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "judgment": "B_coverage_up_but_errors_remain",
+        "language": "ja",
+        "merger": {
+          "evidence_s3a": 0,
+          "evidence_s3b": 1,
+          "final_suggestions": 8,
+          "from_anchor": 7,
+          "from_speech_resolved": 1,
+          "outside": 0,
+          "plain_line_count": 32,
+          "suggestion_coverage": 0.25,
+          "unresolved": 24
+        },
+        "s3a": {
+          "coverage": 0.3125,
+          "line_count": 32,
+          "low": 1,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.8142618181818181,
+          "present": true,
+          "resolved": 9,
+          "transcript_segments": 9,
+          "unresolved": 22
+        },
+        "s3a_held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "s3b": {
+          "coverage": 0.28125,
+          "line_count": 32,
+          "low": 1,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.9068588829471182,
+          "present": true,
+          "resolved": 8,
+          "transcript_segments": 9,
+          "unresolved": 23
+        },
+        "s3b_anchors_accepted": 7,
+        "s3b_anchors_rejected": 1,
+        "s3b_fallback": null,
+        "s3b_used_constrained": true,
+        "sample_title": "夜の合図",
+        "speech": {
+          "audio_duration": 40.14,
+          "elapsed_seconds": 1.7330880165100098,
+          "empty_segments": 0,
+          "non_empty_chars": 96,
+          "pieces": 9
+        }
+      },
+      "token_hit": {
+        "token_hit_rate": 0.40625,
+        "hit_lines": 13,
+        "total_lines": 32
+      },
+      "wrong": {
+        "wrong_suggestions": 0,
+        "suggested_count": 8,
+        "wrong_reasons": []
+      },
+      "hallucination": {
+        "empty_segments": 0,
+        "repeat_segments": 0,
+        "piece_count": 9,
+        "non_empty_chars": 96
+      },
+      "model_bytes": 487601967,
+      "model_sha256": "1be3a9b2063867b937e64e2ec7483364a79917e157fa98c5d94b5c1fffea987b"
+    },
+    {
+      "sample": "sampleA",
+      "engine": "whisper_medium",
+      "exit_code": 0,
+      "wall_seconds": 5.075954914093018,
+      "peak_rss_bytes": 2216820736,
+      "model_path": "/Users/apple/backup/sptifylyrics/docs/phase-2-11c-zero-operation-alignment/s0-5-engine-viability/whisper-models/ggml-medium.bin",
+      "ok": true,
+      "metrics": {
+        "engine": "whisper_medium",
+        "engine_id": "speechEngine.whisperCLI.experimental.v1",
+        "formal_db_opened": false,
+        "held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "judgment": "B_coverage_up_but_errors_remain",
+        "language": "ja",
+        "merger": {
+          "evidence_s3a": 0,
+          "evidence_s3b": 1,
+          "final_suggestions": 10,
+          "from_anchor": 9,
+          "from_speech_resolved": 1,
+          "outside": 0,
+          "plain_line_count": 32,
+          "suggestion_coverage": 0.3125,
+          "unresolved": 22
+        },
+        "s3a": {
+          "coverage": 0.3125,
+          "line_count": 32,
+          "low": 0,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.97599,
+          "present": true,
+          "resolved": 10,
+          "transcript_segments": 10,
+          "unresolved": 22
+        },
+        "s3a_held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "s3b": {
+          "coverage": 0.3125,
+          "line_count": 32,
+          "low": 0,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.97599,
+          "present": true,
+          "resolved": 10,
+          "transcript_segments": 10,
+          "unresolved": 22
+        },
+        "s3b_anchors_accepted": 9,
+        "s3b_anchors_rejected": 1,
+        "s3b_fallback": null,
+        "s3b_used_constrained": true,
+        "sample_title": "夜の合図",
+        "speech": {
+          "audio_duration": 40.14,
+          "elapsed_seconds": 5.011842966079712,
+          "empty_segments": 0,
+          "non_empty_chars": 96,
+          "pieces": 10
+        }
+      },
+      "token_hit": {
+        "token_hit_rate": 0.40625,
+        "hit_lines": 13,
+        "total_lines": 32
+      },
+      "wrong": {
+        "wrong_suggestions": 0,
+        "suggested_count": 10,
+        "wrong_reasons": []
+      },
+      "hallucination": {
+        "empty_segments": 0,
+        "repeat_segments": 0,
+        "piece_count": 10,
+        "non_empty_chars": 96
+      },
+      "model_bytes": 1533763059,
+      "model_sha256": "6c14d5adee5f86394037b4e4e8b59f1673b6cee10e3cf0b11bbdbee79c156208"
+    },
+    {
+      "sample": "sampleB",
+      "engine": "apple",
+      "exit_code": 0,
+      "wall_seconds": 2.622131109237671,
+      "peak_rss_bytes": 29835264,
+      "model_path": null,
+      "ok": true,
+      "metrics": {
+        "engine": "apple",
+        "engine_id": "speechEngine.apple.v1",
+        "formal_db_opened": false,
+        "held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "judgment": "C_insufficient_reliable_anchors",
+        "language": "ja",
+        "merger": {
+          "evidence_s3a": 0,
+          "evidence_s3b": 0,
+          "final_suggestions": 0,
+          "from_anchor": 0,
+          "from_speech_resolved": 0,
+          "outside": 0,
+          "plain_line_count": 151,
+          "suggestion_coverage": 0,
+          "unresolved": 151
+        },
+        "s3a": {
+          "coverage": 0.25165562913907286,
+          "line_count": 151,
+          "low": 3,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.04304566498380882,
+          "present": true,
+          "resolved": 35,
+          "transcript_segments": 27,
+          "unresolved": 113
+        },
+        "s3a_held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "s3b": {
+          "coverage": 0.25165562913907286,
+          "line_count": 151,
+          "low": 3,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.04304566498380882,
+          "present": true,
+          "resolved": 35,
+          "transcript_segments": 27,
+          "unresolved": 113
+        },
+        "s3b_anchors_accepted": 0,
+        "s3b_anchors_rejected": 1,
+        "s3b_fallback": "insufficientAnchors_zero",
+        "s3b_used_constrained": false,
+        "sample_title": "アイドル",
+        "speech": {
+          "audio_duration": 40.2,
+          "elapsed_seconds": 2.300291061401367,
+          "empty_segments": 0,
+          "non_empty_chars": 59,
+          "pieces": 27
+        }
+      },
+      "token_hit": {
+        "token_hit_rate": 0.026490066225165563,
+        "hit_lines": 4,
+        "total_lines": 151
+      },
+      "wrong": {
+        "wrong_suggestions": 0,
+        "suggested_count": 0,
+        "wrong_reasons": []
+      },
+      "hallucination": {
+        "empty_segments": 0,
+        "repeat_segments": 0,
+        "piece_count": 27,
+        "non_empty_chars": 59
+      }
+    },
+    {
+      "sample": "sampleB",
+      "engine": "whisper_small",
+      "exit_code": 0,
+      "wall_seconds": 2.526125192642212,
+      "peak_rss_bytes": 890863616,
+      "model_path": "/Users/apple/backup/sptifylyrics/docs/phase-2-11c-zero-operation-alignment/s0-5-engine-viability/whisper-models/ggml-small.bin",
+      "ok": true,
+      "metrics": {
+        "engine": "whisper_small",
+        "engine_id": "speechEngine.whisperCLI.experimental.v1",
+        "formal_db_opened": false,
+        "held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "judgment": "B_coverage_up_but_errors_remain",
+        "language": "ja",
+        "merger": {
+          "evidence_s3a": 0,
+          "evidence_s3b": 2,
+          "final_suggestions": 7,
+          "from_anchor": 5,
+          "from_speech_resolved": 2,
+          "outside": 0,
+          "plain_line_count": 151,
+          "suggestion_coverage": 0.046357615894039736,
+          "unresolved": 144
+        },
+        "s3a": {
+          "coverage": 0.18543046357615894,
+          "line_count": 151,
+          "low": 5,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.3208444305616984,
+          "present": true,
+          "resolved": 23,
+          "transcript_segments": 14,
+          "unresolved": 123
+        },
+        "s3a_held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "s3b": {
+          "coverage": 0.10596026490066225,
+          "line_count": 151,
+          "low": 5,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.5621031892314343,
+          "present": true,
+          "resolved": 11,
+          "transcript_segments": 14,
+          "unresolved": 135
+        },
+        "s3b_anchors_accepted": 5,
+        "s3b_anchors_rejected": 1,
+        "s3b_fallback": null,
+        "s3b_used_constrained": true,
+        "sample_title": "アイドル",
+        "speech": {
+          "audio_duration": 40.2,
+          "elapsed_seconds": 2.125870943069458,
+          "empty_segments": 0,
+          "non_empty_chars": 163,
+          "pieces": 14
+        }
+      },
+      "token_hit": {
+        "token_hit_rate": 0.1456953642384106,
+        "hit_lines": 22,
+        "total_lines": 151
+      },
+      "wrong": {
+        "wrong_suggestions": 0,
+        "suggested_count": 7,
+        "wrong_reasons": []
+      },
+      "hallucination": {
+        "empty_segments": 0,
+        "repeat_segments": 0,
+        "piece_count": 14,
+        "non_empty_chars": 163
+      },
+      "model_bytes": 487601967,
+      "model_sha256": "1be3a9b2063867b937e64e2ec7483364a79917e157fa98c5d94b5c1fffea987b"
+    },
+    {
+      "sample": "sampleB",
+      "engine": "whisper_medium",
+      "exit_code": 0,
+      "wall_seconds": 5.650553941726685,
+      "peak_rss_bytes": 2253307904,
+      "model_path": "/Users/apple/backup/sptifylyrics/docs/phase-2-11c-zero-operation-alignment/s0-5-engine-viability/whisper-models/ggml-medium.bin",
+      "ok": true,
+      "metrics": {
+        "engine": "whisper_medium",
+        "engine_id": "speechEngine.whisperCLI.experimental.v1",
+        "formal_db_opened": false,
+        "held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "judgment": "B_coverage_up_but_errors_remain",
+        "language": "ja",
+        "merger": {
+          "evidence_s3a": 0,
+          "evidence_s3b": 1,
+          "final_suggestions": 10,
+          "from_anchor": 9,
+          "from_speech_resolved": 1,
+          "outside": 0,
+          "plain_line_count": 151,
+          "suggestion_coverage": 0.06622516556291391,
+          "unresolved": 141
+        },
+        "s3a": {
+          "coverage": 0.18543046357615894,
+          "line_count": 151,
+          "low": 3,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.384403847094798,
+          "present": true,
+          "resolved": 25,
+          "transcript_segments": 15,
+          "unresolved": 123
+        },
+        "s3a_held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "s3b": {
+          "coverage": 0.09271523178807947,
+          "line_count": 151,
+          "low": 3,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.7703267298740453,
+          "present": true,
+          "resolved": 11,
+          "transcript_segments": 15,
+          "unresolved": 137
+        },
+        "s3b_anchors_accepted": 9,
+        "s3b_anchors_rejected": 2,
+        "s3b_fallback": null,
+        "s3b_used_constrained": true,
+        "sample_title": "アイドル",
+        "speech": {
+          "audio_duration": 40.2,
+          "elapsed_seconds": 5.229732990264893,
+          "empty_segments": 0,
+          "non_empty_chars": 160,
+          "pieces": 15
+        }
+      },
+      "token_hit": {
+        "token_hit_rate": 0.152317880794702,
+        "hit_lines": 23,
+        "total_lines": 151
+      },
+      "wrong": {
+        "wrong_suggestions": 0,
+        "suggested_count": 10,
+        "wrong_reasons": []
+      },
+      "hallucination": {
+        "empty_segments": 0,
+        "repeat_segments": 0,
+        "piece_count": 15,
+        "non_empty_chars": 160
+      },
+      "model_bytes": 1533763059,
+      "model_sha256": "6c14d5adee5f86394037b4e4e8b59f1673b6cee10e3cf0b11bbdbee79c156208"
+    },
+    {
+      "sample": "sampleC",
+      "engine": "apple",
+      "exit_code": 0,
+      "wall_seconds": 2.5153799057006836,
+      "peak_rss_bytes": 31014912,
+      "model_path": null,
+      "ok": true,
+      "metrics": {
+        "engine": "apple",
+        "engine_id": "speechEngine.apple.v1",
+        "formal_db_opened": false,
+        "held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "judgment": "B_coverage_up_but_errors_remain",
+        "language": "ja",
+        "merger": {
+          "evidence_s3a": 0,
+          "evidence_s3b": 0,
+          "final_suggestions": 29,
+          "from_anchor": 29,
+          "from_speech_resolved": 0,
+          "outside": 0,
+          "plain_line_count": 32,
+          "suggestion_coverage": 0.90625,
+          "unresolved": 3
+        },
+        "s3a": {
+          "coverage": 1,
+          "line_count": 32,
+          "low": 4,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.8791784053899869,
+          "present": true,
+          "resolved": 28,
+          "transcript_segments": 161,
+          "unresolved": 0
+        },
+        "s3a_held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "s3b": {
+          "coverage": 1,
+          "line_count": 32,
+          "low": 3,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.8883311947098154,
+          "present": true,
+          "resolved": 29,
+          "transcript_segments": 161,
+          "unresolved": 0
+        },
+        "s3b_anchors_accepted": 29,
+        "s3b_anchors_rejected": 175,
+        "s3b_fallback": null,
+        "s3b_used_constrained": true,
+        "sample_title": "水曜日の約束",
+        "speech": {
+          "audio_duration": 79.8255,
+          "elapsed_seconds": 2.1000380516052246,
+          "empty_segments": 0,
+          "non_empty_chars": 335,
+          "pieces": 161
+        }
+      },
+      "token_hit": {
+        "token_hit_rate": 1.0,
+        "hit_lines": 32,
+        "total_lines": 32
+      },
+      "wrong": {
+        "wrong_suggestions": 0,
+        "suggested_count": 29,
+        "wrong_reasons": []
+      },
+      "hallucination": {
+        "empty_segments": 0,
+        "repeat_segments": 0,
+        "piece_count": 161,
+        "non_empty_chars": 335
+      }
+    },
+    {
+      "sample": "sampleC",
+      "engine": "whisper_small",
+      "exit_code": 0,
+      "wall_seconds": 4.019896984100342,
+      "peak_rss_bytes": 916815872,
+      "model_path": "/Users/apple/backup/sptifylyrics/docs/phase-2-11c-zero-operation-alignment/s0-5-engine-viability/whisper-models/ggml-small.bin",
+      "ok": true,
+      "metrics": {
+        "engine": "whisper_small",
+        "engine_id": "speechEngine.whisperCLI.experimental.v1",
+        "formal_db_opened": false,
+        "held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "judgment": "C_insufficient_reliable_anchors",
+        "language": "ja",
+        "merger": {
+          "evidence_s3a": 0,
+          "evidence_s3b": 0,
+          "final_suggestions": 0,
+          "from_anchor": 0,
+          "from_speech_resolved": 0,
+          "outside": 0,
+          "plain_line_count": 32,
+          "suggestion_coverage": 0,
+          "unresolved": 32
+        },
+        "s3a": {
+          "coverage": 0.96875,
+          "line_count": 32,
+          "low": 16,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.3137991858348623,
+          "present": true,
+          "resolved": 15,
+          "transcript_segments": 16,
+          "unresolved": 1
+        },
+        "s3a_held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "s3b": {
+          "coverage": 0.96875,
+          "line_count": 32,
+          "low": 16,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.3137991858348623,
+          "present": true,
+          "resolved": 15,
+          "transcript_segments": 16,
+          "unresolved": 1
+        },
+        "s3b_anchors_accepted": 0,
+        "s3b_anchors_rejected": 2,
+        "s3b_fallback": "insufficientAnchors_zero",
+        "s3b_used_constrained": false,
+        "sample_title": "水曜日の約束",
+        "speech": {
+          "audio_duration": 79.8255,
+          "elapsed_seconds": 3.8940430879592896,
+          "empty_segments": 0,
+          "non_empty_chars": 338,
+          "pieces": 16
+        }
+      },
+      "token_hit": {
+        "token_hit_rate": 1.0,
+        "hit_lines": 32,
+        "total_lines": 32
+      },
+      "wrong": {
+        "wrong_suggestions": 0,
+        "suggested_count": 0,
+        "wrong_reasons": []
+      },
+      "hallucination": {
+        "empty_segments": 0,
+        "repeat_segments": 0,
+        "piece_count": 16,
+        "non_empty_chars": 338
+      },
+      "model_bytes": 487601967,
+      "model_sha256": "1be3a9b2063867b937e64e2ec7483364a79917e157fa98c5d94b5c1fffea987b"
+    },
+    {
+      "sample": "sampleC",
+      "engine": "whisper_medium",
+      "exit_code": 0,
+      "wall_seconds": 9.107309103012085,
+      "peak_rss_bytes": 2238562304,
+      "model_path": "/Users/apple/backup/sptifylyrics/docs/phase-2-11c-zero-operation-alignment/s0-5-engine-viability/whisper-models/ggml-medium.bin",
+      "ok": true,
+      "metrics": {
+        "engine": "whisper_medium",
+        "engine_id": "speechEngine.whisperCLI.experimental.v1",
+        "formal_db_opened": false,
+        "held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "judgment": "C_insufficient_reliable_anchors",
+        "language": "ja",
+        "merger": {
+          "evidence_s3a": 0,
+          "evidence_s3b": 0,
+          "final_suggestions": 0,
+          "from_anchor": 0,
+          "from_speech_resolved": 0,
+          "outside": 0,
+          "plain_line_count": 32,
+          "suggestion_coverage": 0,
+          "unresolved": 32
+        },
+        "s3a": {
+          "coverage": 0.9375,
+          "line_count": 32,
+          "low": 16,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.32456784888030826,
+          "present": true,
+          "resolved": 14,
+          "transcript_segments": 16,
+          "unresolved": 2
+        },
+        "s3a_held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "s3b": {
+          "coverage": 0.9375,
+          "line_count": 32,
+          "low": 16,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.32456784888030826,
+          "present": true,
+          "resolved": 14,
+          "transcript_segments": 16,
+          "unresolved": 2
+        },
+        "s3b_anchors_accepted": 0,
+        "s3b_anchors_rejected": 2,
+        "s3b_fallback": "insufficientAnchors_zero",
+        "s3b_used_constrained": false,
+        "sample_title": "水曜日の約束",
+        "speech": {
+          "audio_duration": 79.8255,
+          "elapsed_seconds": 8.98257303237915,
+          "empty_segments": 0,
+          "non_empty_chars": 338,
+          "pieces": 16
+        }
+      },
+      "token_hit": {
+        "token_hit_rate": 1.0,
+        "hit_lines": 32,
+        "total_lines": 32
+      },
+      "wrong": {
+        "wrong_suggestions": 0,
+        "suggested_count": 0,
+        "wrong_reasons": []
+      },
+      "hallucination": {
+        "empty_segments": 0,
+        "repeat_segments": 0,
+        "piece_count": 16,
+        "non_empty_chars": 338
+      },
+      "model_bytes": 1533763059,
+      "model_sha256": "6c14d5adee5f86394037b4e4e8b59f1673b6cee10e3cf0b11bbdbee79c156208"
+    },
+    {
+      "sample": "sampleD",
+      "engine": "apple",
+      "exit_code": 0,
+      "wall_seconds": 0.7194077968597412,
+      "peak_rss_bytes": 27230208,
+      "model_path": null,
+      "ok": true,
+      "metrics": {
+        "engine": "apple",
+        "engine_id": "speechEngine.apple.v1",
+        "formal_db_opened": false,
+        "held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "judgment": "B_coverage_up_but_errors_remain",
+        "language": "en",
+        "merger": {
+          "evidence_s3a": 0,
+          "evidence_s3b": 0,
+          "final_suggestions": 3,
+          "from_anchor": 3,
+          "from_speech_resolved": 0,
+          "outside": 0,
+          "plain_line_count": 6,
+          "suggestion_coverage": 0.5,
+          "unresolved": 3
+        },
+        "s3a": {
+          "coverage": 0.8333333333333334,
+          "line_count": 6,
+          "low": 2,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.5345793247573617,
+          "present": true,
+          "resolved": 3,
+          "transcript_segments": 21,
+          "unresolved": 1
+        },
+        "s3a_held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "s3b": {
+          "coverage": 0.5,
+          "line_count": 6,
+          "low": 0,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.8648784813918965,
+          "present": true,
+          "resolved": 3,
+          "transcript_segments": 21,
+          "unresolved": 3
+        },
+        "s3b_anchors_accepted": 3,
+        "s3b_anchors_rejected": 14,
+        "s3b_fallback": null,
+        "s3b_used_constrained": true,
+        "sample_title": "JFK inaugural excerpt",
+        "speech": {
+          "audio_duration": 11,
+          "elapsed_seconds": 0.6843390464782715,
+          "empty_segments": 0,
+          "non_empty_chars": 81,
+          "pieces": 21
+        }
+      },
+      "token_hit": {
+        "token_hit_rate": 1.0,
+        "hit_lines": 6,
+        "total_lines": 6
+      },
+      "wrong": {
+        "wrong_suggestions": 0,
+        "suggested_count": 3,
+        "wrong_reasons": []
+      },
+      "hallucination": {
+        "empty_segments": 0,
+        "repeat_segments": 0,
+        "piece_count": 21,
+        "non_empty_chars": 81
+      }
+    },
+    {
+      "sample": "sampleD",
+      "engine": "whisper_small",
+      "exit_code": 0,
+      "wall_seconds": 0.7290802001953125,
+      "peak_rss_bytes": 857571328,
+      "model_path": "/Users/apple/backup/sptifylyrics/docs/phase-2-11c-zero-operation-alignment/s0-5-engine-viability/whisper-models/ggml-small.bin",
+      "ok": true,
+      "metrics": {
+        "engine": "whisper_small",
+        "engine_id": "speechEngine.whisperCLI.experimental.v1",
+        "formal_db_opened": false,
+        "held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "judgment": "C_insufficient_reliable_anchors",
+        "language": "en",
+        "merger": {
+          "evidence_s3a": 0,
+          "evidence_s3b": 0,
+          "final_suggestions": 0,
+          "from_anchor": 0,
+          "from_speech_resolved": 0,
+          "outside": 0,
+          "plain_line_count": 6,
+          "suggestion_coverage": 0,
+          "unresolved": 6
+        },
+        "s3a": {
+          "coverage": 0.16666666666666666,
+          "line_count": 6,
+          "low": 1,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.46327040462735897,
+          "present": true,
+          "resolved": 0,
+          "transcript_segments": 1,
+          "unresolved": 5
+        },
+        "s3a_held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "s3b": {
+          "coverage": 0.16666666666666666,
+          "line_count": 6,
+          "low": 1,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.46327040462735897,
+          "present": true,
+          "resolved": 0,
+          "transcript_segments": 1,
+          "unresolved": 5
+        },
+        "s3b_anchors_accepted": 0,
+        "s3b_anchors_rejected": 0,
+        "s3b_fallback": "insufficientAnchors_zero",
+        "s3b_used_constrained": false,
+        "sample_title": "JFK inaugural excerpt",
+        "speech": {
+          "audio_duration": 11,
+          "elapsed_seconds": 0.7072079181671143,
+          "empty_segments": 0,
+          "non_empty_chars": 86,
+          "pieces": 1
+        }
+      },
+      "token_hit": {
+        "token_hit_rate": 1.0,
+        "hit_lines": 6,
+        "total_lines": 6
+      },
+      "wrong": {
+        "wrong_suggestions": 0,
+        "suggested_count": 0,
+        "wrong_reasons": []
+      },
+      "hallucination": {
+        "empty_segments": 0,
+        "repeat_segments": 0,
+        "piece_count": 1,
+        "non_empty_chars": 86
+      },
+      "model_bytes": 487601967,
+      "model_sha256": "1be3a9b2063867b937e64e2ec7483364a79917e157fa98c5d94b5c1fffea987b"
+    },
+    {
+      "sample": "sampleD",
+      "engine": "whisper_medium",
+      "exit_code": 0,
+      "wall_seconds": 1.8079590797424316,
+      "peak_rss_bytes": 2251685888,
+      "model_path": "/Users/apple/backup/sptifylyrics/docs/phase-2-11c-zero-operation-alignment/s0-5-engine-viability/whisper-models/ggml-medium.bin",
+      "ok": true,
+      "metrics": {
+        "engine": "whisper_medium",
+        "engine_id": "speechEngine.whisperCLI.experimental.v1",
+        "formal_db_opened": false,
+        "held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "judgment": "C_insufficient_reliable_anchors",
+        "language": "en",
+        "merger": {
+          "evidence_s3a": 0,
+          "evidence_s3b": 0,
+          "final_suggestions": 0,
+          "from_anchor": 0,
+          "from_speech_resolved": 0,
+          "outside": 0,
+          "plain_line_count": 6,
+          "suggestion_coverage": 0,
+          "unresolved": 6
+        },
+        "s3a": {
+          "coverage": 0.16666666666666666,
+          "line_count": 6,
+          "low": 1,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.46327040462735897,
+          "present": true,
+          "resolved": 0,
+          "transcript_segments": 1,
+          "unresolved": 5
+        },
+        "s3a_held_out": {
+          "compared": 0,
+          "gt_3s_mismatch": 0,
+          "mean": null,
+          "median_abs_error": null,
+          "note": "no_held_out_synced_lyrics",
+          "p90": null
+        },
+        "s3b": {
+          "coverage": 0.16666666666666666,
+          "line_count": 6,
+          "low": 1,
+          "monotonic_violations": 0,
+          "outside": 0,
+          "overall_confidence": 0.46327040462735897,
+          "present": true,
+          "resolved": 0,
+          "transcript_segments": 1,
+          "unresolved": 5
+        },
+        "s3b_anchors_accepted": 0,
+        "s3b_anchors_rejected": 0,
+        "s3b_fallback": "insufficientAnchors_zero",
+        "s3b_used_constrained": false,
+        "sample_title": "JFK inaugural excerpt",
+        "speech": {
+          "audio_duration": 11,
+          "elapsed_seconds": 1.7862499952316284,
+          "empty_segments": 0,
+          "non_empty_chars": 87,
+          "pieces": 1
+        }
+      },
+      "token_hit": {
+        "token_hit_rate": 1.0,
+        "hit_lines": 6,
+        "total_lines": 6
+      },
+      "wrong": {
+        "wrong_suggestions": 0,
+        "suggested_count": 0,
+        "wrong_reasons": []
+      },
+      "hallucination": {
+        "empty_segments": 0,
+        "repeat_segments": 0,
+        "piece_count": 1,
+        "non_empty_chars": 87
+      },
+      "model_bytes": 1533763059,
+      "model_sha256": "6c14d5adee5f86394037b4e4e8b59f1673b6cee10e3cf0b11bbdbee79c156208"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "name": "ggml-medium.bin",
+    "path": "/Users/apple/backup/sptifylyrics/docs/phase-2-11c-zero-operation-alignment/s0-5-engine-viability/whisper-models/ggml-medium.bin",
+    "bytes": 1533763059,
+    "sha256": "6c14d5adee5f86394037b4e4e8b59f1673b6cee10e3cf0b11bbdbee79c156208",
+    "format": "ggml",
+    "quant_note": "stock whisper.cpp HF ggml (not q5/q8)",
+    "in_git": false,
+    "in_app_bundle": false
+  },
+  {
+    "name": "ggml-small.bin",
+    "path": "/Users/apple/backup/sptifylyrics/docs/phase-2-11c-zero-operation-alignment/s0-5-engine-viability/whisper-models/ggml-small.bin",
+    "bytes": 487601967,
+    "sha256": "1be3a9b2063867b937e64e2ec7483364a79917e157fa98c5d94b5c1fffea987b",
+    "format": "ggml",
+    "quant_note": "stock whisper.cpp HF ggml (not q5/q8)",
+    "in_git": false,
+    "in_app_bundle": false
+  }
+]

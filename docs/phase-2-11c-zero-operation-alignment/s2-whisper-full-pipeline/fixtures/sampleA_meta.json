@@ -1,0 +1,10 @@
+{
+  "id": "sampleA",
+  "title": "夜の合図",
+  "artist": "Kawasaki.Rio",
+  "spotify_digest": "spotify-id:0662h3g9lgdt2vipzypzxm|metadata:夜の合図|",
+  "wav": "../s0-5-engine-viability/audio/sampleA-yoru-no-aizu-45s-16k.wav",
+  "language": "ja",
+  "locale": "ja-JP",
+  "line_count": 32
+}

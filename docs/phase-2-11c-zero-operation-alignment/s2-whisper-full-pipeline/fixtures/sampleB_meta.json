@@ -1,0 +1,10 @@
+{
+  "id": "sampleB",
+  "title": "アイドル",
+  "artist": "YOASOBI",
+  "spotify_digest": "spotify-id:7ovucf5uhtbrzupb6zomvt|metadata:アイドル|",
+  "wav": "../s0-5-engine-viability/audio/sampleB-idol-40s-16k.wav",
+  "language": "ja",
+  "locale": "ja-JP",
+  "line_count": 151
+}

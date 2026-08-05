@@ -1,0 +1,10 @@
+branch=codex/phase-2-11c-s2-whisper-evaluation
+baseline=eb5b8b4
+formal_db_sha=d6d5f121152057908ccd70cf4b83d8c76d86b9f4b9c9929326c45a60eb5f420b
+formal_opened=NO
+matrix_cells=12
+engines=apple,whisper_small,whisper_medium
+samples=sampleA,sampleB,sampleC,sampleD
+route=B
+small_vs_medium=C
+demucs=not_now

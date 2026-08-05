@@ -1,0 +1,13 @@
+[sampleA/apple] exit=0 wall=1.2s peak=27492352 ok=True
+[sampleA/whisper_small] exit=0 wall=1.8s peak=858849280 ok=True
+[sampleA/whisper_medium] exit=0 wall=5.1s peak=2216820736 ok=True
+[sampleB/apple] exit=0 wall=2.6s peak=29835264 ok=True
+[sampleB/whisper_small] exit=0 wall=2.5s peak=890863616 ok=True
+[sampleB/whisper_medium] exit=0 wall=5.7s peak=2253307904 ok=True
+[sampleC/apple] exit=0 wall=2.5s peak=31014912 ok=True
+[sampleC/whisper_small] exit=0 wall=4.0s peak=916815872 ok=True
+[sampleC/whisper_medium] exit=0 wall=9.1s peak=2238562304 ok=True
+[sampleD/apple] exit=0 wall=0.7s peak=27230208 ok=True
+[sampleD/whisper_small] exit=0 wall=0.7s peak=857571328 ok=True
+[sampleD/whisper_medium] exit=0 wall=1.8s peak=2251685888 ok=True
+formal_unchanged= True

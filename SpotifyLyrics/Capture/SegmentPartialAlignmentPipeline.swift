@@ -114,6 +114,74 @@ public enum SegmentPartialAlignmentPipeline {
             throw AlignmentError.noSpeech
         }
 
+        return try finalizeFromBundles(
+            session: session,
+            bundles: bundles,
+            plainLines: plainLines,
+            localeRec: localeRec,
+            groundTruthSyncedLines: groundTruthSyncedLines,
+            identity: identity,
+            wavPaths: usable.compactMap(\.temporaryPCMReference),
+            writeSidecar: true
+        )
+    }
+
+    /// Offline / evaluation entry: identical S3A→S3B→report path after speech.
+    /// Does not open SQLite or adopt results. Used by S2 full-pipeline harness.
+    public static func alignFromTimedTranscript(
+        session: CapturedAudioSession,
+        segment: CapturedAudioSegment,
+        plainLines: [LyricLine],
+        transcript: TimedTranscript,
+        languageHint: String?,
+        localeOverride: String?,
+        groundTruthSyncedLines: [LyricLine]?,
+        identity: TrackIdentity,
+        writeSidecar: Bool = false
+    ) throws -> PartialAlignmentReport {
+        let text = plainLines.map(\.originalText).joined(separator: "\n")
+        let localeRec = AlignmentLocaleRecommender.recommend(
+            languageHint: languageHint,
+            lyricText: text,
+            override: localeOverride
+        )
+        let posStart = segment.spotifyPositionStart
+        let posEnd = segment.spotifyPositionEnd ?? (posStart + max(segment.duration, 0.1))
+        let bundle = SegmentSpeechBundle(
+            segment: segment,
+            transcript: transcript,
+            positionStart: posStart,
+            positionEnd: posEnd
+        )
+        return try finalizeFromBundles(
+            session: session,
+            bundles: [bundle],
+            plainLines: plainLines,
+            localeRec: localeRec,
+            groundTruthSyncedLines: groundTruthSyncedLines,
+            identity: identity,
+            wavPaths: [segment.temporaryPCMReference].compactMap { $0 },
+            writeSidecar: writeSidecar
+        )
+    }
+
+    /// Shared post-speech alignment chain (S3A baseline + S3B + report).
+    private static func finalizeFromBundles(
+        session: CapturedAudioSession,
+        bundles: [SegmentSpeechBundle],
+        plainLines: [LyricLine],
+        localeRec: LocaleRecommendation,
+        groundTruthSyncedLines: [LyricLine]?,
+        identity: TrackIdentity,
+        wavPaths: [String],
+        writeSidecar: Bool
+    ) throws -> PartialAlignmentReport {
+        let ranges: [CapturedTimeRange] = bundles.map {
+            CapturedTimeRange(segmentID: $0.segment.segmentID, start: $0.positionStart, end: $0.positionEnd)
+        }
+        let totalTranscriptSegments = bundles.reduce(0) { $0 + $1.transcript.segments.count }
+        let totalCapturedDuration = ranges.reduce(0.0) { $0 + max(0, $1.end - $1.start) }
+
         // --- S3A baseline (global Partial DP per segment) ---
         let s3aLines = buildS3ALines(
             bundles: bundles,
@@ -200,7 +268,7 @@ public enum SegmentPartialAlignmentPipeline {
             candidate: s3bCandidate,
             heldOut: s3bHeldOut,
             judgment: judgment,
-            wavPaths: usable.compactMap(\.temporaryPCMReference),
+            wavPaths: wavPaths,
             s3aCandidate: s3aCandidate,
             s3aHeldOut: s3aHeldOut,
             acceptedAnchors: accepted,
@@ -208,7 +276,9 @@ public enum SegmentPartialAlignmentPipeline {
             usedConstrainedAlignment: usedConstrained,
             s3bFallbackReason: fallbackReason
         )
-        try writeReport(report, sessionID: session.sessionID)
+        if writeSidecar {
+            try writeReport(report, sessionID: session.sessionID)
+        }
         SCKSpikeLog.log(
             "S3A coverage=\(fmt(s3aCandidate.coverageRatio)) resolved=\(s3aCandidate.resolvedCount) low=\(s3aCandidate.lowConfidenceCount) unresolved=\(s3aCandidate.unresolvedCount)"
         )
