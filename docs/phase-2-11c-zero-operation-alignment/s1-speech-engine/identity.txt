@@ -1,0 +1,14 @@
+branch=codex/phase-2-11c-s1-speech-engine
+baseline=fcd03a8
+fix_commit=6630db6
+feat_commit_message=feat(alignment): add pluggable speech engines with whisper experiment
+# recorded after final amend:
+HEAD=51a5d1e11825818b0d18baca0254ab58cb11fd7a
+APP=/Users/apple/backup/sptifylyrics/DerivedDataS1/Build/Products/Debug/SpotifyLyrics.app
+CDHash=351d1799ddd7f88a11fbc774c0b136532393c79d
+Authority=Apple Development: 3881920884@qq.com (XJDV53A9C8)
+TeamIdentifier=5RGL84U3V2
+ENABLE_DEBUG_DYLIB=NO
+formal_db_sha=d6d5f121152057908ccd70cf4b83d8c76d86b9f4b9c9929326c45a60eb5f420b
+formal_db_opened=NO
+codesign_verify=valid

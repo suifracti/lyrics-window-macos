@@ -46,7 +46,15 @@ public enum SegmentPartialAlignmentPipeline {
         var totalCapturedDuration: TimeInterval = 0
         var bundles: [SegmentSpeechBundle] = []
 
-        let provider = SpeechTimedTranscriptProvider(localeIdentifier: localeRec.localeIdentifier)
+        // Pluggable speech front-end via registry (default Apple; experimental engines optional).
+        // S3A/S3B never import engine-specific types or subprocess details.
+        let speechEngine = SpeechEngineRegistry.resolve()
+        SCKSpikeLog.log(
+            "S3A speech_engine=\(speechEngine.engineID.rawValue) available=\(speechEngine.isAvailable)"
+        )
+        if !speechEngine.isAvailable {
+            throw AlignmentError.recognizerUnavailable
+        }
 
         for segment in usable {
             guard isGenerationCurrent() else { throw AlignmentError.cancelled }
@@ -58,15 +66,31 @@ public enum SegmentPartialAlignmentPipeline {
             totalCapturedDuration += max(0, posEnd - posStart)
 
             SCKSpikeLog.log(
-                "S3A speech begin segmentID=\(segment.segmentID.uuidString.prefix(8)) wav=\(wavURL.lastPathComponent) pos=\(fmt(posStart))->\(fmt(posEnd))"
+                "S3A speech begin segmentID=\(segment.segmentID.uuidString.prefix(8)) wav=\(wavURL.lastPathComponent) pos=\(fmt(posStart))->\(fmt(posEnd)) engine=\(speechEngine.engineID.rawValue)"
             )
             let transcript: TimedTranscript
             do {
-                transcript = try await provider.transcribe(
+                let engineResult = try await speechEngine.transcribe(
                     pcmURL: wavURL,
-                    localeIdentifier: localeRec.localeIdentifier,
+                    languageHint: localeRec.localeIdentifier,
                     progress: nil
                 )
+                transcript = engineResult.asTimedTranscript()
+                SCKSpikeLog.log(
+                    "S3A speech diag engine=\(engineResult.engineID.rawValue) pieces=\(engineResult.segments.count) tokens=\(engineResult.nonEmptyTokenCount) elapsed=\(String(format: "%.2f", engineResult.elapsedSeconds))s"
+                )
+            } catch let engineError as SpeechEngineError {
+                SCKSpikeLog.log(
+                    "S3A speech failed segmentID=\(segment.segmentID.uuidString.prefix(8)) engine=\(speechEngine.engineID.rawValue) error=\(engineError.localizedDescription)"
+                )
+                // Surface hard unavailability instead of silently skipping all segments.
+                if case .unavailable = engineError {
+                    throw engineError.asAlignmentError
+                }
+                if case .permissionDenied = engineError {
+                    throw engineError.asAlignmentError
+                }
+                continue
             } catch {
                 SCKSpikeLog.log("S3A speech failed segmentID=\(segment.segmentID.uuidString.prefix(8)) error=\(error.localizedDescription)")
                 continue
@@ -84,6 +108,10 @@ public enum SegmentPartialAlignmentPipeline {
                     positionEnd: posEnd
                 )
             )
+        }
+
+        if bundles.isEmpty {
+            throw AlignmentError.noSpeech
         }
 
         // --- S3A baseline (global Partial DP per segment) ---

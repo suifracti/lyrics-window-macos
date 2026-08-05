@@ -23,10 +23,11 @@ grep -Eq 'AnchorConstrainedAligner|acceptedAnchors|s3aCandidate|usedConstrainedA
 grep -Eq 's3aCandidate|acceptedAnchors|rejectedAnchors|usedConstrainedAlignment' "$MODELS"
 grep -Eq 'withinHalfSecondCount|withinOneSecondCount|withinTwoSecondCount' "$MODELS"
 
-# Reuse existing Speech + LineForcedAligner; no second ASR
-grep -Eq 'SpeechTimedTranscriptProvider|LineForcedAligner' "$PIPE"
-if grep -Eiq 'whisper|WhisperKit|openai|musixmatch' "$PIPE" "$ALIGNER" "$ANCHOR" "$POLICY"; then
-  echo "S3B must not introduce Whisper/paid engines" >&2
+# Reuse pluggable speech result + LineForcedAligner; no second ASR stack in S3B
+grep -Eq 'SpeechEngineRegistry|LineForcedAligner' "$PIPE"
+# S3B files must stay engine-agnostic (no CLI flags / SFSpeech hardcoding)
+if grep -Eiq 'whisper-cli|WhisperKit|SFSpeechRecognizer|openai|musixmatch|ggml-' "$PIPE" "$ALIGNER" "$ANCHOR" "$POLICY"; then
+  echo "S3B must not hardcode speech engines or paid APIs" >&2
   exit 1
 fi
 

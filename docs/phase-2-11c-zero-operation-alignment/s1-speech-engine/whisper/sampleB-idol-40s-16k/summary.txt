@@ -1,0 +1,2 @@
+pieces=14
+joined_chars=179

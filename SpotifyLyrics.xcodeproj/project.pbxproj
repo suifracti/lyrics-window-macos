@@ -86,6 +86,9 @@
 		110001062D83400100000001 /* AnchorConstrainedAligner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001062D83400100000000 /* AnchorConstrainedAligner.swift */; };
 		110001072D83400100000001 /* AssistedAlignmentDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001072D83400100000000 /* AssistedAlignmentDraft.swift */; };
 		110001082D83400100000001 /* AssistedCandidateMerger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001082D83400100000000 /* AssistedCandidateMerger.swift */; };
+		110001202D83400100000001 /* SpeechEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001202D83400100000000 /* SpeechEngine.swift */; };
+		110001212D83400100000001 /* AppleSpeechEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001212D83400100000000 /* AppleSpeechEngine.swift */; };
+		110001222D83400100000001 /* WhisperCLISpeechEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001222D83400100000000 /* WhisperCLISpeechEngine.swift */; };
 		110001092D83400100000001 /* AssistExplainSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001092D83400100000000 /* AssistExplainSheet.swift */; };
 		1100004C2D83400100000001 /* LocalAlignedLyricsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */; };
 		1100004D2D83400100000001 /* JapaneseReadingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */; };
@@ -250,6 +253,9 @@
 		110001062D83400100000000 /* AnchorConstrainedAligner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/AnchorConstrainedAligner.swift; sourceTree = "<group>"; };
 		110001072D83400100000000 /* AssistedAlignmentDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/AssistedAlignmentDraft.swift; sourceTree = "<group>"; };
 		110001082D83400100000000 /* AssistedCandidateMerger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/AssistedCandidateMerger.swift; sourceTree = "<group>"; };
+		110001202D83400100000000 /* SpeechEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/SpeechEngine.swift; sourceTree = "<group>"; };
+		110001212D83400100000000 /* AppleSpeechEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/AppleSpeechEngine.swift; sourceTree = "<group>"; };
+		110001222D83400100000000 /* WhisperCLISpeechEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/WhisperCLISpeechEngine.swift; sourceTree = "<group>"; };
 		110001092D83400100000000 /* AssistExplainSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistExplainSheet.swift; sourceTree = "<group>"; };
 		1100010A2D83400100000000 /* DebugSigning.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/DebugSigning.xcconfig; sourceTree = "<group>"; };
 		1100010B2D83400100000000 /* Info-Additions.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-Additions.plist"; sourceTree = "<group>"; };
@@ -396,6 +402,9 @@
 				110001062D83400100000000 /* AnchorConstrainedAligner.swift */,
 				110001072D83400100000000 /* AssistedAlignmentDraft.swift */,
 				110001082D83400100000000 /* AssistedCandidateMerger.swift */,
+				110001202D83400100000000 /* SpeechEngine.swift */,
+				110001212D83400100000000 /* AppleSpeechEngine.swift */,
+				110001222D83400100000000 /* WhisperCLISpeechEngine.swift */,
 			);
 			path = SpotifyLyrics;
 			sourceTree = "<group>";
@@ -782,6 +791,9 @@
 				110001062D83400100000001 /* AnchorConstrainedAligner.swift in Sources */,
 				110001072D83400100000001 /* AssistedAlignmentDraft.swift in Sources */,
 				110001082D83400100000001 /* AssistedCandidateMerger.swift in Sources */,
+				110001202D83400100000001 /* SpeechEngine.swift in Sources */,
+				110001212D83400100000001 /* AppleSpeechEngine.swift in Sources */,
+				110001222D83400100000001 /* WhisperCLISpeechEngine.swift in Sources */,
 				110000492D83400100000001 /* AudioPCMConverter.swift in Sources */,
 				110000482D83400100000001 /* AlignmentService.swift in Sources */,
 				110000472D83400100000001 /* AlignmentModels.swift in Sources */,
