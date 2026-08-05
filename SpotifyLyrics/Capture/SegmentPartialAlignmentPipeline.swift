@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 
 /// S3A: run Speech + LineForcedAligner per continuous CapturedAudioSegment,
@@ -874,4 +873,3 @@ public enum SegmentPartialAlignmentPipeline {
         String(format: "%.3f", value)
     }
 }
-#endif

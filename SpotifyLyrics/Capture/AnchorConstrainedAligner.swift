@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 
 /// S3B: conservative anchors from Speech + constrained region DP via
@@ -438,4 +437,3 @@ public enum AnchorConstrainedAligner {
 
     private static func fmt(_ v: Double) -> String { String(format: "%.3f", v) }
 }
-#endif

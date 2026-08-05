@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 
 /// In-memory capture session for S2. Never persisted to SQLite.
@@ -88,4 +87,3 @@ public enum CaptureTerminalReason: String, Sendable, Codable {
     case appExit
     case noLiveTrack
 }
-#endif

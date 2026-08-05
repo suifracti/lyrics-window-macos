@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 
 public struct LocaleRecommendation: Equatable, Sendable {
@@ -69,4 +68,3 @@ public enum AlignmentLocaleRecommender: Sendable {
         }
     }
 }
-#endif

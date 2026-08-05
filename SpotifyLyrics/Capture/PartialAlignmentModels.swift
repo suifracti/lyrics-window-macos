@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 
 /// Per-line status for S3A partial candidates (Debug-only product surface).
@@ -183,4 +182,3 @@ public struct PartialAlignmentReport: Codable, Equatable, Sendable {
         self.s3bFallbackReason = s3bFallbackReason
     }
 }
-#endif

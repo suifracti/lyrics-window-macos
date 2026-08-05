@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 
 /// Constrained local refinement between accepted anchors.
@@ -158,4 +157,3 @@ public enum LocalAlignmentWindow {
         return WindowResult(lines: lines, diagnostics: diag)
     }
 }
-#endif

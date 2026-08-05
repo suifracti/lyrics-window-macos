@@ -93,6 +93,9 @@
 		110001242D83400100000001 /* TranscriptSegmentSplitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001242D83400100000000 /* TranscriptSegmentSplitter.swift */; };
 		110001252D83400100000001 /* RepeatedLyricsSectionResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001252D83400100000000 /* RepeatedLyricsSectionResolver.swift */; };
 		110001262D83400100000001 /* LocalAlignmentWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001262D83400100000000 /* LocalAlignmentWindow.swift */; };
+		110001272D83400100000001 /* AutomaticAlignmentJobController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001272D83400100000000 /* AutomaticAlignmentJobController.swift */; };
+		110001282D83400100000001 /* AutomaticAlignmentQualityGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001282D83400100000000 /* AutomaticAlignmentQualityGate.swift */; };
+		110001292D83400100000001 /* AutomaticAlignmentProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001292D83400100000000 /* AutomaticAlignmentProgressStore.swift */; };
 		110001092D83400100000001 /* AssistExplainSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001092D83400100000000 /* AssistExplainSheet.swift */; };
 		1100004C2D83400100000001 /* LocalAlignedLyricsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */; };
 		1100004D2D83400100000001 /* JapaneseReadingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */; };
@@ -264,6 +267,9 @@
 		110001242D83400100000000 /* TranscriptSegmentSplitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/TranscriptSegmentSplitter.swift; sourceTree = "<group>"; };
 		110001252D83400100000000 /* RepeatedLyricsSectionResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/RepeatedLyricsSectionResolver.swift; sourceTree = "<group>"; };
 		110001262D83400100000000 /* LocalAlignmentWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/LocalAlignmentWindow.swift; sourceTree = "<group>"; };
+		110001272D83400100000000 /* AutomaticAlignmentJobController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/AutomaticAlignmentJobController.swift; sourceTree = "<group>"; };
+		110001282D83400100000000 /* AutomaticAlignmentQualityGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/AutomaticAlignmentQualityGate.swift; sourceTree = "<group>"; };
+		110001292D83400100000000 /* AutomaticAlignmentProgressStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/AutomaticAlignmentProgressStore.swift; sourceTree = "<group>"; };
 		110001092D83400100000000 /* AssistExplainSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistExplainSheet.swift; sourceTree = "<group>"; };
 		1100010A2D83400100000000 /* DebugSigning.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/DebugSigning.xcconfig; sourceTree = "<group>"; };
 		1100010B2D83400100000000 /* Info-Additions.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-Additions.plist"; sourceTree = "<group>"; };
@@ -417,6 +423,9 @@
 				110001242D83400100000000 /* TranscriptSegmentSplitter.swift */,
 				110001252D83400100000000 /* RepeatedLyricsSectionResolver.swift */,
 				110001262D83400100000000 /* LocalAlignmentWindow.swift */,
+				110001272D83400100000000 /* AutomaticAlignmentJobController.swift */,
+				110001282D83400100000000 /* AutomaticAlignmentQualityGate.swift */,
+				110001292D83400100000000 /* AutomaticAlignmentProgressStore.swift */,
 			);
 			path = SpotifyLyrics;
 			sourceTree = "<group>";
@@ -810,6 +819,9 @@
 				110001242D83400100000001 /* TranscriptSegmentSplitter.swift in Sources */,
 				110001252D83400100000001 /* RepeatedLyricsSectionResolver.swift in Sources */,
 				110001262D83400100000001 /* LocalAlignmentWindow.swift in Sources */,
+				110001272D83400100000001 /* AutomaticAlignmentJobController.swift in Sources */,
+				110001282D83400100000001 /* AutomaticAlignmentQualityGate.swift in Sources */,
+				110001292D83400100000001 /* AutomaticAlignmentProgressStore.swift in Sources */,
 				110000492D83400100000001 /* AudioPCMConverter.swift in Sources */,
 				110000482D83400100000001 /* AlignmentService.swift in Sources */,
 				110000472D83400100000001 /* AlignmentModels.swift in Sources */,

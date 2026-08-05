@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 
 /// Split long ASR segments into lyric-line-scale subsegments without fabricating
@@ -326,4 +325,3 @@ public enum TranscriptSegmentSplitter {
         return Double(hit) / Double(n.count)
     }
 }
-#endif

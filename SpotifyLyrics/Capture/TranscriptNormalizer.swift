@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 
 /// Match-view normalization only. Never overwrites display/source lyrics.
@@ -166,4 +165,3 @@ public enum TranscriptNormalizer {
         text.unicodeScalars.contains { (0x4E00...0x9FFF).contains($0.value) }
     }
 }
-#endif

@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 
 /// Central thresholds for LiveCapture S2 continuity. Do not scatter magic
@@ -39,4 +38,3 @@ public enum CaptureContinuityPolicy: Sendable {
     /// Capture source identifier for provenance later (not written to SQLite in S2).
     public static let captureSourceID = "screenCaptureKit.spotifyAudio.v1"
 }
-#endif

@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 import CoreMedia
 import AVFoundation
@@ -180,4 +179,3 @@ public final class SegmentWAVWriter: @unchecked Sendable {
         try? FileManager.default.removeItem(at: fileURL)
     }
 }
-#endif

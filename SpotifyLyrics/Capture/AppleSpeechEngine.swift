@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 
 /// Adapts the production Speech timed-transcript path to `LyricsSpeechEngine`.
@@ -70,4 +69,3 @@ public struct AppleSpeechEngine: LyricsSpeechEngine {
         }
     }
 }
-#endif

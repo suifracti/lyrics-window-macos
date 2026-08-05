@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 
 /// Central thresholds for S3B conservative anchors. Do not scatter magic numbers.
@@ -32,4 +31,3 @@ public enum AnchorAlignmentPolicy: Sendable {
     /// Minimum number of accepted anchors required to run constrained regions.
     public static let minimumAnchorsForConstrained: Int = 2
 }
-#endif

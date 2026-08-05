@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 import AVFoundation
 
@@ -318,4 +317,3 @@ public struct WhisperCLISpeechEngine: LyricsSpeechEngine {
     }
 }
 
-#endif

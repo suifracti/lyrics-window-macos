@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 import Combine
 import CoreMedia
@@ -76,6 +75,8 @@ public final class LiveCaptureCoordinator: ObservableObject {
 
     private init() {
         LiveCaptureCoordinator.scavengeOrphanTemp()
+        #if DEBUG
+        // Diagnostic harness only — never auto-start on product launch.
         let s3a = ProcessInfo.processInfo.environment["SPOTIFYLYRICS_SCK_S3A"] == "1"
         let s2 = ProcessInfo.processInfo.environment["SPOTIFYLYRICS_SCK_S2"] == "1" || s3a
         if s2 {
@@ -88,6 +89,7 @@ public final class LiveCaptureCoordinator: ObservableObject {
                 await self.start(autoStopAfter: max(20, seconds), runPartialAlignment: s3a)
             }
         }
+        #endif
     }
 
     public func bind(playback: PlaybackState) {
@@ -1010,4 +1012,3 @@ private final class MutableSegment {
         )
     }
 }
-#endif

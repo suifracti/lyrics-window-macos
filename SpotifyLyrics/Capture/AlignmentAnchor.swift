@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 
 public struct AlignmentAnchor: Codable, Equatable, Sendable, Identifiable {
@@ -88,4 +87,3 @@ public struct SegmentSpeechBundle: Equatable, Sendable {
         self.positionEnd = positionEnd
     }
 }
-#endif

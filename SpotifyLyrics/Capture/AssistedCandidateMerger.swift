@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 
 /// Thin merge layer over existing S3A/S3B outputs.
@@ -332,4 +331,3 @@ public enum AssistedCandidateMerger {
         return result
     }
 }
-#endif

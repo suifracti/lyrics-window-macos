@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 
 /// Product-facing confidence class for Assist UI (no raw scores in normal UI).
@@ -134,4 +133,3 @@ public struct AssistedMergeDecision: Equatable, Sendable, Codable {
     public let confidence: Double?
     public let startTime: TimeInterval?
 }
-#endif

@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 
 /// Stable engine identifiers (DEBUG / experimental selection only).
@@ -160,4 +159,3 @@ public enum SpeechEngineRegistry {
         resolve().engineID
     }
 }
-#endif

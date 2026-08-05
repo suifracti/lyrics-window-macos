@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 import ScreenCaptureKit
 import CoreMedia
@@ -485,4 +484,3 @@ enum SCKSpikeLog {
         fputs(line, stderr)
     }
 }
-#endif

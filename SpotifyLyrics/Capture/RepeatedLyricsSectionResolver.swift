@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 
 /// Engine-agnostic repeated-lyric occurrence modeling and capture-window constraints.
@@ -269,4 +268,3 @@ public enum RepeatedLyricsSectionResolver {
         String(format: "%.2f", t)
     }
 }
-#endif
