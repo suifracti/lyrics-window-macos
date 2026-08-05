@@ -76,6 +76,11 @@ public final class AutomaticAlignmentJobController: ObservableObject {
         scheduleEvaluate()
     }
 
+    /// Product surfaces call this after session/lyrics settle (in addition to Combine).
+    public func notePlaybackContextChanged() {
+        scheduleEvaluate()
+    }
+
     private var evaluateWorkItem: DispatchWorkItem?
 
     private func scheduleEvaluate() {
@@ -88,8 +93,14 @@ public final class AutomaticAlignmentJobController: ObservableObject {
     }
 
     private func evaluateTrigger() {
+        // Re-read UserDefaults so CLI `defaults write` and Settings UI stay consistent.
+        let defaultsEnabled = UserDefaults.standard.object(forKey: AppSettingsStore.Key.automaticAlignmentEnabled) as? Bool
         let settings = AppSettingsStore.shared
+        if let defaultsEnabled, settings.automaticAlignmentEnabled != defaultsEnabled {
+            settings.automaticAlignmentEnabled = defaultsEnabled
+        }
         guard settings.automaticAlignmentEnabled else {
+            LyricsE2ELog.log("AUTO_ALIGN gate=false reason=switch_off stored=\(String(describing: defaultsEnabled))")
             if state != .idle && state != .canceled && state != .completed {
                 cancelCurrentJob(userInitiated: false)
             }
@@ -101,19 +112,28 @@ public final class AutomaticAlignmentJobController: ObservableObject {
             }
             return
         }
-        guard let playback else { return }
+        guard let playback else {
+            LyricsE2ELog.log("AUTO_ALIGN gate=false reason=no_playback_bound")
+            return
+        }
         // Never hijack manual assist capture.
         #if DEBUG
         if playback.assistPhase == .capturing || playback.assistPhase == .merging || playback.assistPhase == .explaining {
+            LyricsE2ELog.log("AUTO_ALIGN gate=false reason=assist_active phase=\(playback.assistPhase)")
             return
         }
         #endif
         guard playback.hasLiveTrack, !playback.isMockPreviewMode else {
+            LyricsE2ELog.log("AUTO_ALIGN gate=false reason=no_live_track hasLive=\(playback.hasLiveTrack) mock=\(playback.isMockPreviewMode)")
             if jobTask == nil { state = .waitingForPlayback; statusMessage = "等待播放" }
             return
         }
-        guard let identity = playback.currentTrackIdentity else { return }
+        guard let identity = playback.currentTrackIdentity else {
+            LyricsE2ELog.log("AUTO_ALIGN gate=false reason=no_track_identity")
+            return
+        }
         guard playback.isPlaying else {
+            LyricsE2ELog.log("AUTO_ALIGN gate=false reason=not_playing state=\(state.rawValue)")
             if state == .capturing || state == .aligning {
                 // Pause: stop accumulating new audio; keep job/progress for resume.
                 let captureState = LiveCaptureCoordinator.shared.state
@@ -134,6 +154,10 @@ public final class AutomaticAlignmentJobController: ObservableObject {
         // Eligibility: plain lyrics, not full sync, not locked, has version id
         guard let plain = playback.lyricsSession.state.plainDocument ?? playback.lyricsSession.state.document,
               !plain.isSynchronized else {
+            let doc = playback.lyricsSession.state.document
+            LyricsE2ELog.log(
+                "AUTO_ALIGN gate=false reason=no_plain_or_already_synced hasDoc=\(doc != nil) sync=\(doc?.isSynchronized ?? playback.lyricsSession.isSynchronized) sessionSync=\(playback.lyricsSession.isSynchronized)"
+            )
             if jobTask == nil {
                 state = .idle
                 statusMessage = ""
@@ -142,23 +166,38 @@ public final class AutomaticAlignmentJobController: ObservableObject {
         }
         guard plain.lines.contains(where: {
             !$0.originalText.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty
-        }) else { return }
-        guard let parentVersionID = playback.lyricsSession.activeLyricsVersionID else { return }
+        }) else {
+            LyricsE2ELog.log("AUTO_ALIGN gate=false reason=empty_lyrics")
+            return
+        }
+        guard let parentVersionID = playback.lyricsSession.activeLyricsVersionID else {
+            LyricsE2ELog.log("AUTO_ALIGN gate=false reason=no_active_version_id")
+            return
+        }
         // Locked sync versions already excluded by !isSynchronized path for plain; also skip if active is locked synced
-        if playback.lyricsSession.isSynchronized { return }
+        if playback.lyricsSession.isSynchronized {
+            LyricsE2ELog.log("AUTO_ALIGN gate=false reason=session_marked_synchronized")
+            return
+        }
 
         let key = identity.stableKey
         if let active = activeIdentityKey, active != key, jobTask != nil {
+            LyricsE2ELog.log("AUTO_ALIGN gate=false reason=identity_mismatch_inflight")
             // track change handled by cancel in playback invalidate
             return
         }
         if jobTask != nil, activeIdentityKey == key {
+            LyricsE2ELog.log("AUTO_ALIGN gate=skip reason=job_already_running key=\(key.prefix(24))")
             return // already running for this song
         }
         if state == .completed, activeIdentityKey == key {
+            LyricsE2ELog.log("AUTO_ALIGN gate=skip reason=already_completed key=\(key.prefix(24))")
             return
         }
 
+        LyricsE2ELog.log(
+            "AUTO_ALIGN gate=true identity=\(key.prefix(32)) version=\(parentVersionID.uuidString.prefix(8)) lines=\(plain.lines.count) playing=\(playback.isPlaying)"
+        )
         startJob(
             playback: playback,
             identity: identity,

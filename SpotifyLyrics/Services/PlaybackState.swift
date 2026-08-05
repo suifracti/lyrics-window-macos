@@ -163,6 +163,9 @@ public final class PlaybackState: ObservableObject {
                 guard let self else { return }
                 self.objectWillChange.send()
                 self.syncTranslationSession()
+                // Product auto-align must re-evaluate after lyrics settle
+                // (plain document / version id), not only on willChange races.
+                AutomaticAlignmentJobController.shared.notePlaybackContextChanged()
             }
         }
         self.searchPreviewSessionCancellable = previewSession.objectWillChange.sink { [weak self] _ in
@@ -1844,6 +1847,7 @@ public final class PlaybackState: ObservableObject {
             currentTrack = nextTrack
         }
 
+        let wasPlaying = isPlaying
         isPlaying = snapshot.isPlaying
         // S2 live-capture continuity: Desktop position can jump after a user
         // seek without going through seek(to:). Product auto-align reuses this.
@@ -1854,6 +1858,9 @@ public final class PlaybackState: ObservableObject {
             AutomaticAlignmentJobController.shared.notifySeek(from: previousPosition, to: incoming)
         }
         resetPlaybackAnchor(to: snapshot.position)
+        if wasPlaying != snapshot.isPlaying || identityChanged {
+            AutomaticAlignmentJobController.shared.notePlaybackContextChanged()
+        }
     }
 
     private func clearLiveTrackIfNeeded() {
