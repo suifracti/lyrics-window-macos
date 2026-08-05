@@ -1,0 +1,15 @@
+automatic_alignment_complete_adopt_contract: PASS
+automatic_alignment_disabled_contract: PASS
+automatic_alignment_engine_unavailable_contract: PASS
+automatic_alignment_job_state_contract: PASS
+automatic_alignment_no_harness_contract: PASS
+accumulate branch clean
+automatic_alignment_no_partial_adopt_contract: PASS
+automatic_alignment_product_path_contract: PASS
+automatic_alignment_progress_contract: PASS
+automatic_alignment_quality_gate_contract: PASS
+automatic_alignment_resume_contract: PASS
+automatic_alignment_seek_contract: PASS
+automatic_alignment_track_change_contract: PASS
+automatic_alignment_trigger_contract: PASS
+automatic_alignment_version_explosion_contract: PASS

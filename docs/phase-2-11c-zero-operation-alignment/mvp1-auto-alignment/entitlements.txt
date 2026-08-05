@@ -1,0 +1,8 @@
+Executable=/Users/apple/backup/sptifylyrics/DerivedDataMVP1/Build/Products/Debug/SpotifyLyrics.app/Contents/MacOS/SpotifyLyrics
+[Dict]
+	[Key] com.apple.security.automation.apple-events
+	[Value]
+		[Bool] true
+	[Key] com.apple.security.get-task-allow
+	[Value]
+		[Bool] true

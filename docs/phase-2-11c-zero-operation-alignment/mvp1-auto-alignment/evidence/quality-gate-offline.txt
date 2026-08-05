@@ -1,0 +1,8 @@
+OK partial 3/30: decision=accumulate reason=partial expected=accumulate
+OK full 30/30: decision=completeAndAdopt reason=full expected=completeAndAdopt
+OK weak: decision=reject reason=weak_or_capture expected=reject
+OK engine off: decision=deferred reason=engine_unavailable expected=deferred
+OK force harness: decision=completeAndAdopt reason=full expected=completeAndAdopt
+OK no suggestions: decision=deferred reason=no_suggestions expected=deferred
+OK 1 line only: decision=deferred reason=insufficient expected=deferred
+GATE_OFFLINE PASS

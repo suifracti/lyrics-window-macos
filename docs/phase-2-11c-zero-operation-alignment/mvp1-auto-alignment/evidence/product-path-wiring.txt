@@ -1,0 +1,33 @@
+=== trigger wiring ===
+SpotifyLyrics/Services/PlaybackState.swift:540:            lyricsSession.adoptPersisted(
+SpotifyLyrics/Services/PlaybackState.swift:681:        AutomaticAlignmentJobController.shared.bind(playback: self)
+SpotifyLyrics/Services/PlaybackState.swift:1001:        AutomaticAlignmentJobController.shared.notifySeek(from: previousPosition, to: seekTime)
+SpotifyLyrics/Services/PlaybackState.swift:1826:            AutomaticAlignmentJobController.shared.notifyTrackChanged(
+SpotifyLyrics/Services/PlaybackState.swift:1854:            AutomaticAlignmentJobController.shared.notifySeek(from: previousPosition, to: incoming)
+SpotifyLyrics/Main.swift:30:                    AutomaticAlignmentJobController.shared.bind(playback: playbackState)
+SpotifyLyrics/Capture/AutomaticAlignmentJobController.swift:183:        LyricsE2ELog.log("AUTO_ALIGN start identity=\(identity.stableKey.prefix(32))")
+SpotifyLyrics/Capture/AutomaticAlignmentJobController.swift:279:            case .completeAndAdopt:
+SpotifyLyrics/Capture/AutomaticAlignmentJobController.swift:280:                await self.completeAndAdopt(
+SpotifyLyrics/Capture/AutomaticAlignmentJobController.swift:311:    private func completeAndAdopt(
+SpotifyLyrics/Capture/AutomaticAlignmentJobController.swift:427:            playback.lyricsSession.adoptPersisted(
+SpotifyLyrics/Capture/AutomaticAlignmentJobController.swift:434:            LyricsE2ELog.log("AUTO_ALIGN completeAndAdopt version=\(versionID.uuidString.prefix(8))")
+SpotifyLyrics/Capture/AutomaticAlignmentJobController.swift:444:    public func notifyTrackChanged(previousKey: String?, nextKey: String?) {
+SpotifyLyrics/Capture/AutomaticAlignmentJobController.swift:456:    public func notifySeek(from: TimeInterval, to: TimeInterval) {
+SpotifyLyrics/Settings/AppSettingsStore.swift:43:        public static let automaticAlignmentEnabled = "automaticAlignment.enabled.v1"
+=== no assist_start in job ===
+no assist_start: PASS
+=== product UI ===
+SpotifyLyrics/Views/Settings/SettingsRootView.swift:187:                Toggle("自动为未排轴歌词生成时间轴", isOn: $settings.automaticAlignmentEnabled)
+SpotifyLyrics/Views/Components/CurrentSongOperationsView.swift:460:            return !autoAlign.statusMessage.isEmpty
+SpotifyLyrics/Views/Components/CurrentSongOperationsView.swift:481:                Label("自动时间轴", systemImage: "timeline.selection")
+SpotifyLyrics/Views/Components/CurrentSongOperationsView.swift:487:                    .accessibilityIdentifier("autoAlign.status")
+SpotifyLyrics/Views/Components/CurrentSongOperationsView.swift:489:            if !autoAlign.statusMessage.isEmpty {
+SpotifyLyrics/Views/Components/CurrentSongOperationsView.swift:490:                Text(autoAlign.statusMessage)
+SpotifyLyrics/Views/Components/CurrentSongOperationsView.swift:543:        case .capturing, .aligning, .evaluating: return "正在生成时间轴"
+SpotifyLyrics/Views/Components/CurrentSongOperationsView.swift:550:            if autoAlign.statusMessage.contains("引擎") {
+=== Capture not whole-file DEBUG ===
+CapturedAudioModels first=import Foundation
+LiveCaptureCoordinator first=import Foundation
+SpeechEngine first=import Foundation
+WhisperCLISpeechEngine first=import Foundation
+AutomaticAlignmentJobController first=import Foundation
