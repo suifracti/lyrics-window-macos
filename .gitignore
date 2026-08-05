@@ -27,3 +27,5 @@ docs/phase-2-11c-zero-operation-alignment/s2-whisper-full-pipeline/runs/
 docs/phase-2-11c-zero-operation-alignment/s2-whisper-full-pipeline/models/*.bin
 Tools/s2_full_pipeline/.build/
 docs/phase-2-11c-zero-operation-alignment/s3-transcript-alignment/runs/
+docs/phase-2-11c-zero-operation-alignment/s4-repeated-sections/runs/
+docs/phase-2-11c-zero-operation-alignment/s4-repeated-sections/local-real-songs/

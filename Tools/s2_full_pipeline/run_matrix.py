@@ -18,11 +18,17 @@ ROOT = Path(__file__).resolve().parents[2]
 S2 = ROOT / "docs/phase-2-11c-zero-operation-alignment/s2-whisper-full-pipeline"
 # S3 after-matrix writes here when SPOTIFYLYRICS_S3_OUT=1 or --s3 flag.
 S3 = ROOT / "docs/phase-2-11c-zero-operation-alignment/s3-transcript-alignment"
+S4 = ROOT / "docs/phase-2-11c-zero-operation-alignment/s4-repeated-sections"
 MODEL_DIR = ROOT / "docs/phase-2-11c-zero-operation-alignment/s0-5-engine-viability/whisper-models"
 BIN = ROOT / "Tools/s2_full_pipeline/.build/s2_full_pipeline"
 WHISPER_CLI = os.environ.get("SPOTIFYLYRICS_WHISPER_CLI", "/opt/homebrew/bin/whisper-cli")
 FORMAL_DB = Path.home() / "Library/Application Support/SpotifyLyrics/SpotifyLyrics.sqlite3"
-OUT_ROOT = S3 if os.environ.get("SPOTIFYLYRICS_S3_OUT") == "1" else S2
+if os.environ.get("SPOTIFYLYRICS_S4_OUT") == "1":
+    OUT_ROOT = S4
+elif os.environ.get("SPOTIFYLYRICS_S3_OUT") == "1":
+    OUT_ROOT = S3
+else:
+    OUT_ROOT = S2
 
 
 def sha256(path: Path) -> str:
@@ -273,6 +279,11 @@ def main() -> int:
                     prep = json.loads(prep_p.read_text())
                     r["raw_pieces"] = prep.get("raw_pieces")
                     r["prepared_pieces"] = prep.get("prepared_pieces")
+                m = r.get("metrics") or {}
+                rep = m.get("repeated") or {}
+                r["repeated_groups"] = rep.get("group_count")
+                r["wrong_occurrence"] = rep.get("rejected_wrong_occurrence")
+                r["ambiguous_unresolved"] = rep.get("ambiguous_unresolved")
             all_results.append(r)
 
     formal_after = formal_sha()

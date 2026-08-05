@@ -1,0 +1,7 @@
+branch=codex/phase-2-11c-s4-repeated-sections
+baseline=ed1e97f
+formal_db_sha=d6d5f121152057908ccd70cf4b83d8c76d86b9f4b9c9929326c45a60eb5f420b
+formal_opened=NO
+route=B
+auto_gate_eligible=false
+capture_constraint_test=PASS

@@ -1,0 +1,17 @@
+{
+  "note": "Assistant-aided heuristic review of S4 12-cell matrix (not a substitute for human GT on commercial songs). Labels derived from merger decisions + capture checks + overlap heuristic.",
+  "cells": [
+    {"sample": "sampleA", "engine": "whisper_small", "suggestions": 5, "heuristic_wrong": 0, "wrong_occurrence": 0, "label_summary": "stable_nonrepeat; no_regession"},
+    {"sample": "sampleA", "engine": "whisper_medium", "suggestions": 9, "heuristic_wrong": 0, "wrong_occurrence": 0, "label_summary": "stable_nonrepeat"},
+    {"sample": "sampleB", "engine": "whisper_small", "suggestions": 3, "heuristic_wrong": 0, "wrong_occurrence": 0, "repeated_groups": 2, "label_summary": "repeated_groups_present; no_wrong_occurrence_flag"},
+    {"sample": "sampleB", "engine": "whisper_medium", "suggestions": 5, "heuristic_wrong": 0, "wrong_occurrence": 0, "repeated_groups": 2, "label_summary": "repeated_groups_present"},
+    {"sample": "sampleC", "engine": "whisper_small", "suggestions": 21, "heuristic_wrong": 6, "wrong_occurrence": 0, "label_summary": "clear_vocal; residual_interp_overlap_issues"},
+    {"sample": "sampleC", "engine": "whisper_medium", "suggestions": 23, "heuristic_wrong": 6, "wrong_occurrence": 0, "label_summary": "clear_vocal; residual_interp_overlap_issues"},
+    {"sample": "sampleD", "engine": "whisper_small", "suggestions": 3, "heuristic_wrong": 0, "wrong_occurrence": 0, "label_summary": "english_speech_control_ok"}
+  ],
+  "priority_findings": [
+    "Error-rate priority: C residual weak-local-overlap on constrained interpolation remains the main quality debt.",
+    "Repeated groups on B detected (2); no wrong_occurrence rejections fired on default position-start=0 windows.",
+    "Capture-window unit test (position-start=120) passed: no absolute times outside 119–161."
+  ]
+}

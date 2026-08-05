@@ -1,0 +1,23 @@
+{
+  "song_id": "RS-XX",
+  "engine": "whisper_small",
+  "reviewer": "",
+  "date": "",
+  "sampled_suggestions": [
+    {
+      "line_index": 0,
+      "suggested_start": null,
+      "label": "correct|wrong_line|wrong_occurrence|too_early|too_late|ambiguous|unsupported_interpolation",
+      "notes": ""
+    }
+  ],
+  "summary": {
+    "reviewed": 0,
+    "correct": 0,
+    "wrong_line": 0,
+    "wrong_occurrence": 0,
+    "timing_error": 0,
+    "ambiguous": 0,
+    "unsupported_interpolation": 0
+  }
+}
