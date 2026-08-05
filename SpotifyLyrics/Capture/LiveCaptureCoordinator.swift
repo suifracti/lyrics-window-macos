@@ -42,6 +42,37 @@ public final class LiveCaptureCoordinator: ObservableObject {
     private let generationFlag = GenerationFlag()
     private var alignmentTask: Task<Void, Never>?
     @Published public private(set) var lastPartialReport: PartialAlignmentReport?
+    /// Generation of the most recently started capture session (Assist handoff).
+    public private(set) var lastStartedGeneration: UInt64 = 0
+    /// Atomic handoff after stop + optional partial alignment completes.
+    /// Assist must only consume a handoff whose `generation` matches `lastStartedGeneration`.
+    public private(set) var lastAlignmentHandoff: PartialAlignmentHandoff?
+
+    /// Classifies why Assist could not produce a draft (logs + UI mapping).
+    public enum PartialAlignmentFailureKind: String, Sendable, Equatable {
+        case startIgnored
+        case captureFailed
+        case noCompletedSession
+        case noWavSegments
+        case noLyrics
+        case noPlayback
+        case speechFailed
+        case alignmentFailed
+        case cancelled
+        case emptyTranscript
+        case insufficientSuggestions
+        case unknown
+    }
+
+    public struct PartialAlignmentHandoff: Sendable, Equatable {
+        public let generation: UInt64
+        public let identityDigest: String?
+        public let report: PartialAlignmentReport?
+        public let failureKind: PartialAlignmentFailureKind?
+        public let message: String?
+
+        public var hasReport: Bool { report != nil }
+    }
 
     private init() {
         LiveCaptureCoordinator.scavengeOrphanTemp()
@@ -93,10 +124,19 @@ public final class LiveCaptureCoordinator: ObservableObject {
     public func start(autoStopAfter seconds: TimeInterval? = nil, runPartialAlignment: Bool = false) async {
         guard state == .idle || state == .failed else {
             SCKSpikeLog.log("S2 start ignored state=\(state.rawValue)")
+            // Do not clear an in-flight handoff; surface explicit start-ignored.
+            lastAlignmentHandoff = PartialAlignmentHandoff(
+                generation: lastStartedGeneration,
+                identityDigest: playback?.currentTrackIdentity?.stableKey,
+                report: nil,
+                failureKind: .startIgnored,
+                message: "捕获仍在进行中，请稍后再试"
+            )
             return
         }
         lastError = nil
         lastPartialReport = nil
+        lastAlignmentHandoff = nil
         completedSessions = []
         activeSession = nil
         openSegment = nil
@@ -104,6 +144,7 @@ public final class LiveCaptureCoordinator: ObservableObject {
             || ProcessInfo.processInfo.environment["SPOTIFYLYRICS_SCK_S3A"] == "1"
         alignmentGeneration &+= 1
         generationFlag.value = alignmentGeneration
+        lastStartedGeneration = alignmentGeneration
         alignmentTask?.cancel()
         SCKSpikeLog.log(
             "S2 SESSION_BOOT formal_db_opened=NO partial=\(shouldRunPartialAlignment) gen=\(alignmentGeneration)"
@@ -123,6 +164,13 @@ public final class LiveCaptureCoordinator: ObservableObject {
             lastError = SpotifyScreenCaptureAudioSpike.shared.lastError ?? "capture failed"
             state = .failed
             SCKSpikeLog.log("S2 failed to start underlying spike error=\(lastError ?? "")")
+            // Assist must observe a generation-matched handoff, not idle+nil.
+            publishHandoff(
+                generation: lastStartedGeneration,
+                report: nil,
+                failureKind: .captureFailed,
+                message: lastError
+            )
             return
         }
 
@@ -177,8 +225,42 @@ public final class LiveCaptureCoordinator: ObservableObject {
         SpotifyScreenCaptureAudioSpike.shared.audioSampleHandler = nil
 
         // Align while WAVs still exist; S1 spike stop scavenges capture temp.
+        let handoffGen = lastStartedGeneration
         if shouldRunPartialAlignment {
             await runPartialAlignmentIfNeeded(stopReason: reason)
+            // Guarantee Assist never sees idle with a cleared handoff for this gen.
+            if lastAlignmentHandoff?.generation != handoffGen {
+                if let report = lastPartialReport {
+                    publishHandoff(
+                        generation: handoffGen,
+                        report: report,
+                        failureKind: nil,
+                        message: nil
+                    )
+                } else if reason == .userStop || reason == .trackChanged {
+                    publishHandoff(
+                        generation: handoffGen,
+                        report: nil,
+                        failureKind: .cancelled,
+                        message: reason == .trackChanged ? "切歌导致捕获终止" : "已取消边听边排轴"
+                    )
+                } else {
+                    publishHandoff(
+                        generation: handoffGen,
+                        report: nil,
+                        failureKind: lastAlignmentHandoff?.failureKind ?? .unknown,
+                        message: lastError ?? "未能生成建议时间"
+                    )
+                }
+            }
+        } else {
+            // Capture-only stops still publish a handoff so waiters can unblock.
+            publishHandoff(
+                generation: handoffGen,
+                report: nil,
+                failureKind: reason == .userStop || reason == .trackChanged ? .cancelled : nil,
+                message: nil
+            )
         }
 
         await SpotifyScreenCaptureAudioSpike.shared.stop(reason: "s2-\(reason.rawValue)")
@@ -187,17 +269,57 @@ public final class LiveCaptureCoordinator: ObservableObject {
         cleanupSessionDirectory()
         LiveCaptureCoordinator.scavengeOrphanTemp()
         state = .idle
-        SCKSpikeLog.log("S2 stopped idle sessions=\(completedSessions.count)")
+        SCKSpikeLog.log(
+            "S2 stopped idle sessions=\(completedSessions.count) handoffGen=\(handoffGen) hasReport=\(lastPartialReport != nil)"
+        )
         logSummaryTable()
     }
 
-    private func appendPCM(_ sampleBuffer: CMSampleBuffer) {
-        // Called from capture queue via handler; writer is thread-safe.
-        // openSegment is MainActor-isolated — use a lock-free snapshot of the writer.
-        // We hop: writers are only swapped on MainActor, so we take a local ref under MainActor.
-        Task { @MainActor in
-            self.openSegment?.wavWriter?.append(sampleBuffer)
+    /// Wait until capture leaves running/stopping. Callers must then read `lastAlignmentHandoff`.
+    public func waitUntilIdle(timeoutSeconds: TimeInterval = 180) async {
+        let deadline = Date().addingTimeInterval(timeoutSeconds)
+        while state == .running || state == .stopping {
+            if Date() > deadline { break }
+            try? await Task.sleep(nanoseconds: 100_000_000)
         }
+    }
+
+    private func publishHandoff(
+        generation: UInt64,
+        report: PartialAlignmentReport?,
+        failureKind: PartialAlignmentFailureKind?,
+        message: String?
+    ) {
+        // Never overwrite a newer generation's handoff with a stale one.
+        if let existing = lastAlignmentHandoff, existing.generation > generation {
+            SCKSpikeLog.log("S2 drop stale handoff gen=\(generation) current=\(existing.generation)")
+            return
+        }
+        let digest = report?.candidate.trackIdentityDigest
+            ?? playback?.currentTrackIdentity?.stableKey
+        lastAlignmentHandoff = PartialAlignmentHandoff(
+            generation: generation,
+            identityDigest: digest,
+            report: report,
+            failureKind: failureKind,
+            message: message
+        )
+        if let report {
+            lastPartialReport = report
+        }
+        if let message, failureKind != nil {
+            lastError = message
+        }
+        SCKSpikeLog.log(
+            "S2 HANDOFF gen=\(generation) report=\(report != nil) kind=\(failureKind?.rawValue ?? "ok") msg=\(message ?? "")"
+        )
+    }
+
+    private func appendPCM(_ sampleBuffer: CMSampleBuffer) {
+        // Writer is thread-safe. Append synchronously on the capture callback —
+        // an async MainActor hop races finalize/finish() and can yield empty WAV
+        // plus a nil lastPartialReport handoff.
+        openSegment?.wavWriter?.append(sampleBuffer)
     }
 
     // MARK: - Playback observation (no second Spotify poller)
@@ -436,9 +558,15 @@ public final class LiveCaptureCoordinator: ObservableObject {
     }
 
     private func runPartialAlignmentIfNeeded(stopReason: CaptureTerminalReason) async {
-        let gen = alignmentGeneration
+        let gen = lastStartedGeneration
         guard isGenerationCurrent(gen) else {
             SCKSpikeLog.log("S3A skip stale generation")
+            publishHandoff(
+                generation: gen,
+                report: nil,
+                failureKind: .cancelled,
+                message: "会话已失效，已丢弃迟到结果"
+            )
             return
         }
         // Prefer the longest completed session with WAV-backed segments.
@@ -447,16 +575,34 @@ public final class LiveCaptureCoordinator: ObservableObject {
             lhs.segments.map(\.duration).reduce(0, +) < rhs.segments.map(\.duration).reduce(0, +)
         }) else {
             SCKSpikeLog.log("S3A no completed sessions")
+            publishHandoff(
+                generation: gen,
+                report: nil,
+                failureKind: .noCompletedSession,
+                message: "没有捕获到有效音频会话"
+            )
             return
         }
         let wavSegments = session.segments.filter { ($0.temporaryPCMReference ?? "").hasSuffix(".wav") }
         guard !wavSegments.isEmpty else {
             SCKSpikeLog.log("S3A no wav segments session=\(session.sessionID.uuidString.prefix(8))")
+            publishHandoff(
+                generation: gen,
+                report: nil,
+                failureKind: .noWavSegments,
+                message: "没有捕获到有效音频文件"
+            )
             return
         }
 
         guard let playback else {
             SCKSpikeLog.log("S3A no playback for lyrics")
+            publishHandoff(
+                generation: gen,
+                report: nil,
+                failureKind: .noPlayback,
+                message: "当前没有可用的播放会话"
+            )
             return
         }
         // Held-out: use current synced lyrics times only for evaluation AFTER
@@ -464,6 +610,12 @@ public final class LiveCaptureCoordinator: ObservableObject {
         let liveLines = playback.liveLyrics
         guard !liveLines.isEmpty else {
             SCKSpikeLog.log("S3A no lyrics lines")
+            publishHandoff(
+                generation: gen,
+                report: nil,
+                failureKind: .noLyrics,
+                message: "当前没有可对齐的歌词"
+            )
             return
         }
         let plain = liveLines.map {
@@ -502,9 +654,21 @@ public final class LiveCaptureCoordinator: ObservableObject {
             )
             guard isGenerationCurrent(gen) else {
                 SCKSpikeLog.log("S3A drop stale report gen=\(gen)")
+                publishHandoff(
+                    generation: gen,
+                    report: nil,
+                    failureKind: .cancelled,
+                    message: "切歌或取消导致结果已丢弃"
+                )
                 return
             }
             lastPartialReport = report
+            publishHandoff(
+                generation: gen,
+                report: report,
+                failureKind: nil,
+                message: nil
+            )
             SCKSpikeLog.log(
                 "S3B judgment=\(report.judgment) constrained=\(report.usedConstrainedAlignment) anchors=\(report.acceptedAnchors.count)/rej=\(report.rejectedAnchors.count) fallback=\(report.s3bFallbackReason ?? "none")"
             )
@@ -516,8 +680,36 @@ public final class LiveCaptureCoordinator: ObservableObject {
         } catch {
             if !isGenerationCurrent(gen) {
                 SCKSpikeLog.log("S3A cancelled gen=\(gen)")
+                publishHandoff(
+                    generation: gen,
+                    report: nil,
+                    failureKind: .cancelled,
+                    message: "切歌或取消导致识别中止"
+                )
             } else {
-                SCKSpikeLog.log("S3A failed error=\(error.localizedDescription)")
+                let message = error.localizedDescription
+                SCKSpikeLog.log("S3A failed error=\(message)")
+                let kind: PartialAlignmentFailureKind
+                if let alignError = error as? AlignmentError {
+                    switch alignError {
+                    case .noSpeech, .speechPermissionDenied, .recognizerUnavailable:
+                        kind = .speechFailed
+                    case .invalidAudio:
+                        kind = .noWavSegments
+                    case .cancelled:
+                        kind = .cancelled
+                    default:
+                        kind = .alignmentFailed
+                    }
+                } else {
+                    kind = .alignmentFailed
+                }
+                publishHandoff(
+                    generation: gen,
+                    report: nil,
+                    failureKind: kind,
+                    message: message
+                )
             }
         }
     }

@@ -1151,25 +1151,27 @@ public final class PlaybackState: ObservableObject {
         assistTask?.cancel()
         assistTask = Task { @MainActor [weak self] in
             guard let self else { return }
+            let genBefore = LiveCaptureCoordinator.shared.lastStartedGeneration
             await LiveCaptureCoordinator.shared.start(
                 autoStopAfter: max(25, seconds),
                 runPartialAlignment: true
             )
-            // Wait until coordinator returns to idle after auto-stop + partial.
-            for _ in 0..<600 {
-                if Task.isCancelled {
-                    // cancelListeningAssist already set phase; do not overwrite.
-                    if self.assistPhase == .capturing || self.assistPhase == .merging {
-                        self.assistPhase = .cancelled
-                    }
-                    return
-                }
-                let st = LiveCaptureCoordinator.shared.state
-                if st == .idle || st == .failed {
-                    break
-                }
-                try? await Task.sleep(nanoseconds: 200_000_000)
+            let startedGen = LiveCaptureCoordinator.shared.lastStartedGeneration
+            // Generation must advance for this Assist attempt to own the session.
+            // If start was ignored (busy) or never booted, fail immediately —
+            // do not wait on another session's idle.
+            if startedGen == genBefore {
+                let handoff = LiveCaptureCoordinator.shared.lastAlignmentHandoff
+                self.resetAssistToFailed(
+                    kind: handoff?.failureKind ?? .startIgnored,
+                    message: handoff?.message
+                        ?? LiveCaptureCoordinator.shared.lastError
+                        ?? "无法开始捕获"
+                )
+                return
             }
+            // Wait until capture + partial alignment handoff is published (not just idle).
+            await LiveCaptureCoordinator.shared.waitUntilIdle(timeoutSeconds: 200)
             // Cancelled while waiting.
             if Task.isCancelled || self.assistPhase == .cancelled {
                 return
@@ -1189,15 +1191,33 @@ public final class PlaybackState: ObservableObject {
                 LyricsE2ELog.log("ASSIST drop stale identity")
                 return
             }
-            if LiveCaptureCoordinator.shared.state == .failed {
+            let handoff = LiveCaptureCoordinator.shared.lastAlignmentHandoff
+            // Reject stale handoff from a previous song/session.
+            if let handoff, handoff.generation != startedGen {
+                LyricsE2ELog.log(
+                    "ASSIST reject stale handoff gen=\(handoff.generation) expected=\(startedGen)"
+                )
                 self.resetAssistToFailed(
-                    message: LiveCaptureCoordinator.shared.lastError ?? "音频捕获失败"
+                    kind: .cancelled,
+                    message: "会话结果已过期，请重试"
                 )
                 return
             }
-            guard let report = LiveCaptureCoordinator.shared.lastPartialReport else {
+            if LiveCaptureCoordinator.shared.state == .failed {
                 self.resetAssistToFailed(
-                    message: LiveCaptureCoordinator.shared.lastError ?? "未能生成建议时间"
+                    kind: handoff?.failureKind ?? .captureFailed,
+                    message: handoff?.message
+                        ?? LiveCaptureCoordinator.shared.lastError
+                        ?? "音频捕获失败"
+                )
+                return
+            }
+            guard let report = handoff?.report ?? LiveCaptureCoordinator.shared.lastPartialReport else {
+                self.resetAssistToFailed(
+                    kind: handoff?.failureKind ?? .unknown,
+                    message: handoff?.message
+                        ?? LiveCaptureCoordinator.shared.lastError
+                        ?? "未能生成建议时间"
                 )
                 return
             }
@@ -1212,12 +1232,21 @@ public final class PlaybackState: ObservableObject {
             }
             self.assistDraft = draft
             self.assistPhase = .ready
-            self.assistStatusMessage =
-                "建议 \(draft.suggestedCount) 行 · 未排 \(draft.unresolvedCount) 行（确认前不写库）"
+            if draft.suggestedCount == 0 {
+                // Report exists — this is NOT a lifecycle failure.
+                self.assistStatusMessage =
+                    "识别完成，但可靠建议不足（未排 \(draft.unresolvedCount) 行）。可打开编辑器查看或重试。"
+                LyricsE2ELog.log(
+                    "ASSIST draft ready suggested=0 unresolved=\(draft.unresolvedCount) session=\(report.candidate.captureSessionID.uuidString.prefix(8)) insufficient"
+                )
+            } else {
+                self.assistStatusMessage =
+                    "建议 \(draft.suggestedCount) 行 · 未排 \(draft.unresolvedCount) 行（确认前不写库）"
+                LyricsE2ELog.log(
+                    "ASSIST draft ready suggested=\(draft.suggestedCount) unresolved=\(draft.unresolvedCount) session=\(report.candidate.captureSessionID.uuidString.prefix(8))"
+                )
+            }
             self.songSearchSelectionMessage = self.assistStatusMessage
-            LyricsE2ELog.log(
-                "ASSIST draft ready suggested=\(draft.suggestedCount) unresolved=\(draft.unresolvedCount) session=\(report.candidate.captureSessionID.uuidString.prefix(8))"
-            )
             // Open existing editor and apply suggestions (still draft only — no auto-save).
             self.openListeningAssistEditorWithDraft(draft)
         }
@@ -1285,13 +1314,48 @@ public final class PlaybackState: ObservableObject {
         LyricsE2ELog.log("ASSIST invalidate trackChanged prev=\(prev.prefix(24)) next=\(next.prefix(24))")
     }
 
-    private func resetAssistToFailed(message: String) {
+    private func resetAssistToFailed(
+        kind: LiveCaptureCoordinator.PartialAlignmentFailureKind? = nil,
+        message: String
+    ) {
         isAssistExplainSheetPresented = false
         assistPhase = .failed
-        assistStatusMessage = message
-        songSearchSelectionMessage = message
+        let display = Self.assistUserFacingMessage(kind: kind, fallback: message)
+        assistStatusMessage = display
+        songSearchSelectionMessage = display
         assistDraft = nil
-        LyricsE2ELog.log("ASSIST failed message=\(message)")
+        LyricsE2ELog.log(
+            "ASSIST failed kind=\(kind?.rawValue ?? "none") message=\(message) display=\(display)"
+        )
+    }
+
+    /// Maps internal failure kinds to concise product copy (logs keep full detail).
+    private static func assistUserFacingMessage(
+        kind: LiveCaptureCoordinator.PartialAlignmentFailureKind?,
+        fallback: String
+    ) -> String {
+        switch kind {
+        case .noCompletedSession, .noWavSegments, .captureFailed:
+            return "没有捕获到有效音频"
+        case .speechFailed:
+            return "识别失败或引擎不可用"
+        case .noLyrics:
+            return "当前没有可对齐的歌词"
+        case .cancelled:
+            return "已取消"
+        case .startIgnored:
+            return "捕获仍在进行中，请稍后再试"
+        case .emptyTranscript:
+            return "识别完成，但未得到有效文字"
+        case .insufficientSuggestions:
+            return "识别完成，但可靠建议不足"
+        case .alignmentFailed:
+            return "识别有结果，但无法可靠匹配歌词"
+        case .noPlayback:
+            return "当前没有可用的播放会话"
+        case .unknown, .none:
+            return fallback.isEmpty ? "未能生成建议" : fallback
+        }
     }
 #endif
 

@@ -6,5 +6,6 @@ MAPPER="$ROOT/SpotifyLyrics/Persistence/LyricsPersistenceMapper.swift"
 MODELS="$ROOT/SpotifyLyrics/Lyrics/LyricsModels.swift"
 grep -Eq 'explicitlyTimedLineIndices' "$MODELS" "$MAPPER"
 # documentWithoutTranslations must preserve mask
-grep -A25 'documentWithoutTranslations' "$REPO" | grep -Eq 'explicitlyTimedLineIndices: document.explicitlyTimedLineIndices'
+# -A40: body includes a multi-line comment above the mask field
+grep -A40 'func documentWithoutTranslations' "$REPO" | grep -Eq 'explicitlyTimedLineIndices: document.explicitlyTimedLineIndices'
 echo "assist_partial_persist_contract: PASS"
