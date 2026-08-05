@@ -117,7 +117,11 @@ public enum AssistedCandidateMergePolicy: Sendable {
         "noEvidence",
         "s3b-noEvidence",
         "s3b-region-unresolved",
-        "s3b-region-boundedInterpolation"
+        "s3b-region-boundedInterpolation",
+        "weakInterpolated",
+        "wrong_occurrence",
+        "outside_capture_window",
+        "ambiguous_repeated_section"
     ]
 }
 

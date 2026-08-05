@@ -281,6 +281,12 @@ public enum AssistedCandidateMerger {
         for bad in AssistedCandidateMergePolicy.rejectedEvidenceSubstrings {
             if lower.contains(bad.lowercased()) { return false }
         }
+        // Weak interpolation must not enter draft (S4).
+        if lower.contains("weakinterpolated") { return false }
+        // Constrained local-window / constrained intra-segment may enter if resolved.
+        if lower.contains("constrainedinterpolated") || lower.contains("localwindow") {
+            return true
+        }
         if lower.contains("directspeech") || lower.contains("anchor") || lower.contains("s3b-region-direct") {
             return true
         }

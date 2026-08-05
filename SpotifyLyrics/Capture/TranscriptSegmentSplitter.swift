@@ -5,8 +5,14 @@ import Foundation
 /// speech content. Times stay inside the observed parent segment bounds.
 public enum TranscriptSegmentSplitter {
     public enum TimeProvenance: String, Sendable, Codable, Equatable {
+        /// Engine-original segment boundary (unsplit).
         case observed
+        /// Legacy alias for constrained intra-segment allocation.
         case interpolatedWithinObservedSegment
+        /// Token/lyric alignment inside an observed parent (acceptable for candidates).
+        case constrainedInterpolated
+        /// Punctuation/blank-only split without strong lyric evidence (do not auto-accept).
+        case weakInterpolated
         case unresolved
     }
 
@@ -75,7 +81,8 @@ public enum TranscriptSegmentSplitter {
                     end: seg.endTime,
                     asrConfidence: seg.asrConfidence,
                     sourceIndex: seg.sourceIndex,
-                    reason: "lyric_token_alignment"
+                    reason: "lyric_token_alignment",
+                    provenance: .constrainedInterpolated
                 )
                 out.append(contentsOf: pieces)
                 diag.append("split source=\(seg.sourceIndex) reason=lyric_token_alignment parts=\(pieces.count)")
@@ -89,10 +96,11 @@ public enum TranscriptSegmentSplitter {
                     end: seg.endTime,
                     asrConfidence: seg.asrConfidence,
                     sourceIndex: seg.sourceIndex,
-                    reason: "punctuation_whitespace"
+                    reason: "punctuation_whitespace",
+                    provenance: .weakInterpolated
                 )
                 out.append(contentsOf: pieces)
-                diag.append("split source=\(seg.sourceIndex) reason=punctuation_whitespace parts=\(pieces.count)")
+                diag.append("split source=\(seg.sourceIndex) reason=punctuation_whitespace parts=\(pieces.count) weak=1")
             } else {
                 let cover = greedyCover(segmentMatch: match, lyricMatch: lyricMatch)
                 if cover.count >= 2 {
@@ -105,7 +113,8 @@ public enum TranscriptSegmentSplitter {
                         end: seg.endTime,
                         asrConfidence: seg.asrConfidence,
                         sourceIndex: seg.sourceIndex,
-                        reason: "hybrid_greedy_cover"
+                        reason: "hybrid_greedy_cover",
+                        provenance: .constrainedInterpolated
                     )
                     out.append(contentsOf: pieces)
                     diag.append("split source=\(seg.sourceIndex) reason=hybrid_greedy_cover parts=\(pieces.count)")
@@ -268,8 +277,10 @@ public enum TranscriptSegmentSplitter {
         end: TimeInterval,
         asrConfidence: Double?,
         sourceIndex: Int,
-        reason: String
+        reason: String,
+        provenance: TimeProvenance
     ) -> [Subsegment] {
+        // Prefer match-token weights; never invent times outside [start,end].
         let weights = parts.map { max(1, $0.match.isEmpty ? $0.original.count : $0.match.count) }
         let total = max(1, weights.reduce(0, +))
         var cursor = start
@@ -278,21 +289,23 @@ public enum TranscriptSegmentSplitter {
         for (i, part) in parts.enumerated() {
             let frac = Double(weights[i]) / Double(total)
             let next = (i == parts.count - 1) ? end : (cursor + span * frac)
-            let provenance: TimeProvenance = parts.count == 1 ? .observed : .interpolatedWithinObservedSegment
+            let prov: TimeProvenance = parts.count == 1 ? .observed : provenance
+            // Guard: no multi-line collapse onto nearly identical times.
+            let endT = max(cursor + 0.05, next)
             result.append(
                 Subsegment(
                     sourceIndex: sourceIndex,
                     originalText: part.original,
                     matchText: part.match,
                     startTime: cursor,
-                    endTime: max(cursor + 0.02, next),
+                    endTime: min(end, endT),
                     asrConfidence: asrConfidence,
-                    timeProvenance: provenance,
+                    timeProvenance: prov,
                     splitReason: reason,
                     matchedLyricLineIndex: part.line
                 )
             )
-            cursor = next
+            cursor = min(end, endT)
         }
         return result
     }
