@@ -160,7 +160,8 @@ struct S2FullPipelineMain {
             writeSidecar: writeSidecar
         )
 
-        let draft = AssistedCandidateMerger.merge(report: report, plainLines: plainLines)
+        let mergeOut = AssistedCandidateMerger.mergeWithExplanation(report: report, plainLines: plainLines)
+        let draft = mergeOut.draft
 
         // Encode reports
         let enc = JSONEncoder()
@@ -168,6 +169,38 @@ struct S2FullPipelineMain {
         enc.dateEncodingStrategy = .iso8601
         try enc.encode(report).write(to: URL(fileURLWithPath: "\(outDir)/alignment_report.json"), options: .atomic)
         try enc.encode(draft).write(to: URL(fileURLWithPath: "\(outDir)/merger_draft.json"), options: .atomic)
+        try enc.encode(mergeOut.decisions).write(
+            to: URL(fileURLWithPath: "\(outDir)/merger_decisions.json"),
+            options: .atomic
+        )
+
+        // Transcript prep audit (normalize + split)
+        let prep = SegmentPartialAlignmentPipeline.prepareTranscript(
+            timed: transcript,
+            plainLines: plainLines,
+            languageHint: locale
+        )
+        var prepJSON: [String: Any] = [
+            "raw_pieces": engineResult.segments.count,
+            "prepared_pieces": prep.transcript.segments.count,
+            "diagnostics": prep.diagnostics,
+            "has_asr_confidence": engineResult.hasAsrConfidence,
+            "subsegments": prep.split.subsegments.map { sub -> [String: Any] in
+                [
+                    "sourceIndex": sub.sourceIndex,
+                    "text": sub.originalText,
+                    "match": sub.matchText,
+                    "start": sub.startTime,
+                    "end": sub.endTime,
+                    "asrConfidence": sub.asrConfidence as Any,
+                    "timeProvenance": sub.timeProvenance.rawValue,
+                    "splitReason": sub.splitReason,
+                    "matchedLyricLineIndex": sub.matchedLyricLineIndex as Any
+                ]
+            }
+        ]
+        _ = prepJSON
+        try writeJSON(prepJSON, to: "\(outDir)/transcript_prep.json")
 
         // Merger source breakdown
         let anchorN = draft.lines.filter { $0.status == .suggested && $0.source == .anchor }.count

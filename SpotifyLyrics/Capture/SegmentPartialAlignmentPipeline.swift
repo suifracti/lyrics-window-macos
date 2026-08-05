@@ -75,10 +75,18 @@ public enum SegmentPartialAlignmentPipeline {
                     languageHint: localeRec.localeIdentifier,
                     progress: nil
                 )
-                transcript = engineResult.asTimedTranscript()
-                SCKSpikeLog.log(
-                    "S3A speech diag engine=\(engineResult.engineID.rawValue) pieces=\(engineResult.segments.count) tokens=\(engineResult.nonEmptyTokenCount) elapsed=\(String(format: "%.2f", engineResult.elapsedSeconds))s"
+                let prepared = prepareTranscript(
+                    engineResult: engineResult,
+                    plainLines: plainLines,
+                    languageHint: localeRec.localeIdentifier
                 )
+                transcript = prepared.transcript
+                SCKSpikeLog.log(
+                    "S3A speech diag engine=\(engineResult.engineID.rawValue) raw_pieces=\(engineResult.segments.count) prepared_pieces=\(transcript.segments.count) tokens=\(engineResult.nonEmptyTokenCount) elapsed=\(String(format: "%.2f", engineResult.elapsedSeconds))s asr_conf=\(engineResult.hasAsrConfidence)"
+                )
+                for line in prepared.diagnostics.prefix(12) {
+                    SCKSpikeLog.log("S3A transcript_prep \(line)")
+                }
             } catch let engineError as SpeechEngineError {
                 SCKSpikeLog.log(
                     "S3A speech failed segmentID=\(segment.segmentID.uuidString.prefix(8)) engine=\(speechEngine.engineID.rawValue) error=\(engineError.localizedDescription)"
@@ -127,7 +135,7 @@ public enum SegmentPartialAlignmentPipeline {
     }
 
     /// Offline / evaluation entry: identical S3A→S3B→report path after speech.
-    /// Does not open SQLite or adopt results. Used by S2 full-pipeline harness.
+    /// Does not open SQLite or adopt results. Used by S2/S3 full-pipeline harness.
     public static func alignFromTimedTranscript(
         session: CapturedAudioSession,
         segment: CapturedAudioSegment,
@@ -145,11 +153,22 @@ public enum SegmentPartialAlignmentPipeline {
             lyricText: text,
             override: localeOverride
         )
+        let prepared = prepareTranscript(
+            timed: transcript,
+            plainLines: plainLines,
+            languageHint: localeOverride ?? languageHint ?? localeRec.localeIdentifier
+        )
+        for line in prepared.diagnostics.prefix(12) {
+            SCKSpikeLog.log("S3A transcript_prep \(line)")
+        }
+        SCKSpikeLog.log(
+            "S3A prepared raw_pieces=\(transcript.segments.count) prepared_pieces=\(prepared.transcript.segments.count)"
+        )
         let posStart = segment.spotifyPositionStart
         let posEnd = segment.spotifyPositionEnd ?? (posStart + max(segment.duration, 0.1))
         let bundle = SegmentSpeechBundle(
             segment: segment,
-            transcript: transcript,
+            transcript: prepared.transcript,
             positionStart: posStart,
             positionEnd: posEnd
         )
@@ -162,6 +181,62 @@ public enum SegmentPartialAlignmentPipeline {
             identity: identity,
             wavPaths: [segment.temporaryPCMReference].compactMap { $0 },
             writeSidecar: writeSidecar
+        )
+    }
+
+    /// Normalize + split long ASR segments before S3A/S3B (engine-agnostic).
+    public static func prepareTranscript(
+        engineResult: SpeechEngineResult,
+        plainLines: [LyricLine],
+        languageHint: String?
+    ) -> (transcript: TimedTranscript, diagnostics: [String], split: TranscriptSegmentSplitter.Result) {
+        let norm = TranscriptNormalizer.normalize(
+            engineResult: engineResult,
+            languageHint: languageHint
+        )
+        let split = TranscriptSegmentSplitter.split(
+            normalized: norm,
+            plainLines: plainLines,
+            language: norm.language
+        )
+        let transcript = TranscriptSegmentSplitter.asTimedTranscript(
+            split: split,
+            engineID: engineResult.engineID.rawValue,
+            audioDuration: engineResult.audioDuration
+        )
+        var diag = split.diagnostics
+        diag.append("norm_ops=\(norm.operations.count)")
+        diag.append("raw=\(engineResult.segments.count)->split=\(split.subsegments.count)")
+        return (transcript, diag, split)
+    }
+
+    public static func prepareTranscript(
+        timed: TimedTranscript,
+        plainLines: [LyricLine],
+        languageHint: String?
+    ) -> (transcript: TimedTranscript, diagnostics: [String], split: TranscriptSegmentSplitter.Result) {
+        let engineID = SpeechEngineID(rawValue: timed.backendID) ?? .apple
+        let segs = timed.segments.map { seg in
+            SpeechEngineSegment(
+                index: seg.index,
+                text: seg.text,
+                startTime: seg.startTime,
+                endTime: seg.endTime,
+                confidence: LineForcedAligner.isObservedAsrConfidence(seg.confidence) ? seg.confidence : nil
+            )
+        }
+        let engineResult = SpeechEngineResult(
+            engineID: engineID,
+            language: languageHint ?? "ja",
+            segments: segs,
+            audioDuration: timed.audioDuration,
+            diagnostics: ["from=timed_transcript"],
+            elapsedSeconds: 0
+        )
+        return prepareTranscript(
+            engineResult: engineResult,
+            plainLines: plainLines,
+            languageHint: languageHint
         )
     }
 

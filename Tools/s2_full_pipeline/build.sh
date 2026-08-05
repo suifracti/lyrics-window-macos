@@ -33,6 +33,8 @@ swiftc -parse-as-library -O -DDEBUG \
   "$ROOT/SpotifyLyrics/Capture/SpeechEngine.swift" \
   "$ROOT/SpotifyLyrics/Capture/AppleSpeechEngine.swift" \
   "$ROOT/SpotifyLyrics/Capture/WhisperCLISpeechEngine.swift" \
+  "$ROOT/SpotifyLyrics/Capture/TranscriptNormalizer.swift" \
+  "$ROOT/SpotifyLyrics/Capture/TranscriptSegmentSplitter.swift" \
   "$ROOT/SpotifyLyrics/Capture/SegmentPartialAlignmentPipeline.swift" \
   \
   "$ROOT/Tools/s2_full_pipeline/SCKSpikeLogStub.swift" \

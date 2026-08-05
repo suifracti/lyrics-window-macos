@@ -89,6 +89,8 @@
 		110001202D83400100000001 /* SpeechEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001202D83400100000000 /* SpeechEngine.swift */; };
 		110001212D83400100000001 /* AppleSpeechEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001212D83400100000000 /* AppleSpeechEngine.swift */; };
 		110001222D83400100000001 /* WhisperCLISpeechEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001222D83400100000000 /* WhisperCLISpeechEngine.swift */; };
+		110001232D83400100000001 /* TranscriptNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001232D83400100000000 /* TranscriptNormalizer.swift */; };
+		110001242D83400100000001 /* TranscriptSegmentSplitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001242D83400100000000 /* TranscriptSegmentSplitter.swift */; };
 		110001092D83400100000001 /* AssistExplainSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001092D83400100000000 /* AssistExplainSheet.swift */; };
 		1100004C2D83400100000001 /* LocalAlignedLyricsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004C2D83400100000000 /* LocalAlignedLyricsStore.swift */; };
 		1100004D2D83400100000001 /* JapaneseReadingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100004D2D83400100000000 /* JapaneseReadingPipeline.swift */; };
@@ -256,6 +258,8 @@
 		110001202D83400100000000 /* SpeechEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/SpeechEngine.swift; sourceTree = "<group>"; };
 		110001212D83400100000000 /* AppleSpeechEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/AppleSpeechEngine.swift; sourceTree = "<group>"; };
 		110001222D83400100000000 /* WhisperCLISpeechEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/WhisperCLISpeechEngine.swift; sourceTree = "<group>"; };
+		110001232D83400100000000 /* TranscriptNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/TranscriptNormalizer.swift; sourceTree = "<group>"; };
+		110001242D83400100000000 /* TranscriptSegmentSplitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/TranscriptSegmentSplitter.swift; sourceTree = "<group>"; };
 		110001092D83400100000000 /* AssistExplainSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistExplainSheet.swift; sourceTree = "<group>"; };
 		1100010A2D83400100000000 /* DebugSigning.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/DebugSigning.xcconfig; sourceTree = "<group>"; };
 		1100010B2D83400100000000 /* Info-Additions.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-Additions.plist"; sourceTree = "<group>"; };
@@ -794,6 +798,8 @@
 				110001202D83400100000001 /* SpeechEngine.swift in Sources */,
 				110001212D83400100000001 /* AppleSpeechEngine.swift in Sources */,
 				110001222D83400100000001 /* WhisperCLISpeechEngine.swift in Sources */,
+				110001232D83400100000001 /* TranscriptNormalizer.swift in Sources */,
+				110001242D83400100000001 /* TranscriptSegmentSplitter.swift in Sources */,
 				110000492D83400100000001 /* AudioPCMConverter.swift in Sources */,
 				110000482D83400100000001 /* AlignmentService.swift in Sources */,
 				110000472D83400100000001 /* AlignmentModels.swift in Sources */,

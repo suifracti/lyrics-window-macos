@@ -68,6 +68,7 @@ public struct SpeechEngineResult: Equatable, Sendable {
     }
 
     /// Bridge into the existing alignment pipeline without exposing engine details.
+    /// Missing ASR confidence is encoded as `-1` (not fabricated as 1.0).
     public func asTimedTranscript() -> TimedTranscript {
         TimedTranscript(
             backendID: engineID.rawValue,
@@ -77,11 +78,16 @@ public struct SpeechEngineResult: Equatable, Sendable {
                     text: seg.text,
                     startTime: seg.startTime,
                     endTime: seg.endTime,
-                    confidence: seg.confidence ?? 1
+                    confidence: seg.confidence ?? -1
                 )
             },
             audioDuration: audioDuration
         )
+    }
+
+    /// True when this result has no real per-segment ASR confidence.
+    public var hasAsrConfidence: Bool {
+        segments.contains { $0.confidence != nil }
     }
 }
 
