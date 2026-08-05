@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lyric Island Phase 3.1 — 方案 D 最终方向收口 Mockup 原型系统</title>
+  <link rel="stylesheet" href="shared/styles.css">
+  <style>
+    .container {
+      padding: 24px 32px;
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+    .mockup-stage {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 740px;
+      background: radial-gradient(circle at 50% 30%, rgba(74, 18, 52, 0.3) 0%, rgba(5, 2, 10, 0.98) 75%);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+    .direction-card {
+      width: 100%;
+      display: none;
+    }
+    .direction-card.active {
+      display: block;
+    }
+    .state-info-panel {
+      margin-top: 12px;
+      padding: 14px 20px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .tag {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 5px;
+      background: rgba(142, 45, 226, 0.2);
+      color: var(--text-accent);
+      border: 1px solid rgba(142, 45, 226, 0.35);
+    }
+    .tag.hero-tag {
+      background: rgba(52, 199, 89, 0.2);
+      color: #34C759;
+      border-color: rgba(52, 199, 89, 0.35);
+    }
+
+    /* Sub-tabs for Direction D 19 Real States */
+    .state-selector-bar {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-top: 8px;
+    }
+    .state-selector-bar::-webkit-scrollbar {
+      height: 4px;
+    }
+    .state-selector-bar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+    }
+    .state-chip {
+      padding: 5px 11px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      color: var(--text-secondary);
+      font-size: 12px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .state-chip:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+    }
+    .state-chip.active {
+      background: var(--palette-accent);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.3);
+      font-weight: 600;
+      box-shadow: 0 2px 8px var(--palette-glow);
+    }
+
+    /* Task Language Inspector List */
+    .task-section {
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 8px;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .task-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .task-status {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .btn-action-sm {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-action-sm:hover {
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    /* Comparison Grid */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      width: 100%;
+    }
+    .comparison-col {
+      background: rgba(18, 9, 26, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top App Navigation & Controls -->
+  <header class="app-header">
+    <div class="app-title-row">
+      <div>
+        <h1 class="app-brand">Lyric Island</h1>
+        <p style="font-size: 12px; color: var(--text-tertiary); margin-top: 2px;">Phase 3.1 统一收口方案 D：安静歌词伴侣 + 可展开歌曲工作台 + 轻量语境快捷</p>
+      </div>
+      <div class="proposal-tabs">
+        <button class="tab-btn active" onclick="switchMainTab('d')">★ 方案 D：统一收口方案 (Final Direction)</button>
+        <button class="tab-btn" onclick="switchMainTab('a')">方案 A 探索记录</button>
+        <button class="tab-btn" onclick="switchMainTab('b')">方案 B 探索记录</button>
+        <button class="tab-btn" onclick="switchMainTab('c')">方案 C 探索记录</button>
+      </div>
+    </div>
+
+    <!-- Direction D 19 Real Visual States Bar -->
+    <div class="state-selector-bar" id="dirDStateBar">
+      <span class="state-chip active" onclick="renderStateD(1)">01 Wide 工作台关闭</span>
+      <span class="state-chip" onclick="renderStateD(2)">02 Wide 工作台展开</span>
+      <span class="state-chip" onclick="renderStateD(3)">03 Wide 当前行语境</span>
+      <span class="state-chip" onclick="renderStateD(4)">04 Small 工作台关闭</span>
+      <span class="state-chip" onclick="renderStateD(5)">05 Small 工作台展开</span>
+      <span class="state-chip" onclick="renderStateD(6)">06 Lyrics Focus 专注</span>
+      <span class="state-chip" onclick="renderStateD(7)">07 Idle 待机</span>
+      <span class="state-chip" onclick="renderStateD(8)">08 Spotify 未运行/未授权</span>
+      <span class="state-chip" onclick="renderStateD(9)">09 加载歌词中</span>
+      <span class="state-chip" onclick="renderStateD(10)">10 未找到歌词</span>
+      <span class="state-chip" onclick="renderStateD(11)">11 网络/Provider 失败</span>
+      <span class="state-chip" onclick="renderStateD(12)">12 自动同步进行中</span>
+      <span class="state-chip" onclick="renderStateD(13)">13 已保存部分进度</span>
+      <span class="state-chip" onclick="renderStateD(14)">14 自动同步完成</span>
+      <span class="state-chip" onclick="renderStateD(15)">15 普通设置</span>
+      <span class="state-chip" onclick="renderStateD(16)">16 高级设置</span>
+      <span class="state-chip" onclick="renderStateD(17)">17 桌面歌词</span>
+      <span class="state-chip" onclick="renderStateD(18)">18 顶部胶囊 (三态)</span>
+      <span class="state-chip" onclick="renderStateD(19)">19 全屏歌词</span>
+    </div>
+  </header>
+
+  <!-- Main Display Stage -->
+  <main class="container">
+    
+    <div class="state-info-panel" id="stateDescriptionPanel">
+      <div>
+        <strong id="stateTitleD" style="color: var(--text-primary);">01 Wide 工作台关闭 (1200 × 760)</strong>
+        <p id="stateDescD" style="font-size: 12px; margin-top: 4px;">默认安静播放态，绝无常驻状态栏与 Provider/模型/数据库工程信息。严格修正歌词层级：仅展示【原文 + 翻译】。</p>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <span class="tag hero-tag" id="tagHero">硬约束：原文 + 1 辅助层</span>
+        <span class="tag" id="tagWorkbench">歌曲工作台：关闭</span>
+      </div>
+    </div>
+
+    <div class="mockup-stage">
+
+      <!-- Dynamic Container for Direction D 19 Visual States -->
+      <div class="direction-card active" id="viewStageD">
+        <!-- Rendered DOM content dynamically inserted by JavaScript -->
+      </div>
+
+      <!-- Exploration Record A -->
+      <div class="direction-card" id="viewStageA">
+        <div style="text-align: center; color: var(--text-secondary); padding: 40px;">
+          <h3>方案 A 探索记录（安静优先）</h3>
+          <p style="margin-top: 8px; font-size: 13px;">包含极简悬停工具栏与 Popover 级歌曲控制。</p>
+        </div>
+      </div>
+
+      <!-- Exploration Record B -->
+      <div class="direction-card" id="viewStageB">
+        <div style="text-align: center; color: var(--text-secondary); padding: 40px;">
+          <h3>方案 B 探索记录（伴侣 + 工作台双层）</h3>
+          <p style="margin-top: 8px; font-size: 13px;">包含 380px 侧边栏 Inspector 工作台与 4 大工程区块。</p>
+        </div>
+      </div>
+
+      <!-- Exploration Record C -->
+      <div class="direction-card" id="viewStageC">
+        <div style="text-align: center; color: var(--text-secondary); padding: 40px;">
+          <h3>方案 C 探索记录（语境融合）</h3>
+          <p style="margin-top: 8px; font-size: 13px;">包含点击当前行、标题与状态点的行级与元素级 Popover 微控。</p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // State Descriptions & Metadata for Direction D 19 Real States
+    const stateMetaD = {
+      1: {
+        title: "01 Wide 工作台关闭 (1200 × 760)",
+        desc: "默认安静播放态。当前行是唯一主角，工具栏悬停淡入。硬约束：仅展示【原文 + 翻译】，不暴露任何 Provider / 模型 / SQLite 数据。",
+        hero: "硬约束：原文 + 1 辅助层",
+        wb: "歌曲工作台：已收起"
+      },
+      2: {
+        title: "02 Wide 工作台展开 (1200 × 760)",
+        desc: "点击右上角 [􀍵 歌曲工作台] 后，从右侧平滑滑出 380px 原生 Inspector。全面洗牌为用户任务语言 (歌词、翻译、读音、时间同步、历史、导入导出)。",
+        hero: "Native Inspector (380px)",
+        wb: "歌曲工作台：展开中"
+      },
+      3: {
+        title: "03 Wide 当前行语境操作",
+        desc: "鼠标悬停当前歌词行，右侧出现极轻微微点触点。点击弹出行级轻量快捷操作 [修正译文 | 调整读音 | 校准时间]，不替代完整工作台。",
+        hero: "行级轻量语境 (From C)",
+        wb: "歌曲工作台：关闭"
+      },
+      4: {
+        title: "04 Small 工作台关闭 (520 × 720)",
+        desc: "小窗口响应式自适应。专辑封面与歌曲信息紧凑折叠为 180px 顶部卡片，歌词居中播放，单层辅助。工作台按钮转换为 Icon 态。",
+        hero: "Small Compact 520px",
+        wb: "歌曲工作台：已收起"
+      },
+      5: {
+        title: "05 Small 工作台展开 (520 × 720)",
+        desc: "在小窗口下，歌曲工作台自适应为从底部向上弹出的 85% 高度 Bottom Sheet 覆盖视图，滑动手势可顺畅下拉关闭。",
+        hero: "Bottom Sheet (Small 模式)",
+        wb: "歌曲工作台：Sheet 展开"
+      },
+      6: {
+        title: "06 Lyrics Focus 歌词专注模式 (680 × 760)",
+        desc: "隐藏大框架与侧边栏，字号放大至 32pt 超级高亮。底部带轻量透明播放浮条，点击 [􀍵] 仍可随时打开工作台。",
+        hero: "32pt 极致大字号",
+        wb: "歌曲工作台：浮条入口"
+      },
+      7: {
+        title: "07 Idle 待机状态",
+        desc: "优雅空态占位：“等待 Spotify 播放歌曲…”，画质微暗，绝无报错阻断。工作台按钮呈 disabled 灰化。",
+        hero: "优雅待机空态",
+        wb: "歌曲工作台：禁用"
+      },
+      8: {
+        title: "08 Spotify 未运行或未授权",
+        desc: "显示清晰的用户语言操作引导：“请启动 Spotify 并播放音乐”，提供轻量 [尝试重新连接] 按钮。",
+        hero: "用户语言引导",
+        wb: "歌曲工作台：禁用"
+      },
+      9: {
+        title: "09 加载歌词中",
+        desc: "显示“正在搜索歌词…”，配合优雅 Spinner。彻底隐藏 Local -> LRCLIB -> 网易云查询链条与 Endpoint 耗时。",
+        hero: "纯净加载状态",
+        wb: "歌曲工作台：检索中"
+      },
+      10: {
+        title: "10 未找到歌词",
+        desc: "显示“暂未找到歌词”，提供两个干净的用户任务入口：[手动搜索歌词] [导入本地歌词]。",
+        hero: "未找到占位",
+        wb: "歌曲工作台：可手动接管"
+      },
+      11: {
+        title: "11 网络或 Provider 失败",
+        desc: "显示“网络连接超时，已保留本地缓存”，绝不上报底座 JSON 解码错误或 HTTP 404 状态码，附带 [重新重试] 按钮。",
+        hero: "优雅降级缓存",
+        wb: "歌曲工作台：提供备用选项"
+      },
+      12: {
+        title: "12 自动同步进行中",
+        desc: "纯文本歌词播放中，后台 Whisper+DP 自动排轴运行，顶部极隐上报“正在自动同步时间轴…”，隐藏算法细节。",
+        hero: "后台静默同步",
+        wb: "工作台实时展示进度"
+      },
+      13: {
+        title: "13 已保存部分进度",
+        desc: "排轴中断或部分完成时，优雅提示“已保存前 18 行同步点”，等待继续播放自动接续。",
+        hero: "部分进度落盘",
+        wb: "工作台保存记录"
+      },
+      14: {
+        title: "14 自动同步完成",
+        desc: "自动无感升级为精准高亮同步歌词，提示“已自动采用精准时间轴”，无强打扰弹窗。",
+        hero: "平滑升级高亮",
+        wb: "工作台完成打勾"
+      },
+      15: {
+        title: "15 普通设置 (常规选项)",
+        desc: "极简单页设置，仅保留：歌词显示层、字号大小、桌面/胶囊开关、快捷键 4 项基础内容，极其易懂。",
+        hero: "基础常规单页",
+        wb: "设置系统"
+      },
+      16: {
+        title: "16 高级设置 (工程配置防护门)",
+        desc: "具备防护门，明确隔离 API Key、Base URL、Whisper 模型阈值、SQLite 数据库诊断等高级工程接管选项。",
+        hero: "高级防护门隔离",
+        wb: "设置系统"
+      },
+      17: {
+        title: "17 自由位置多行桌面歌词 (760px)",
+        desc: "独立 WindowController 表面。760px 宽半透明玻璃卡片，支持 1-3 行展示、鼠标穿透、锁定与快捷工作台呼出。",
+        hero: "独立 Surface: Desktop",
+        wb: "桌面歌词表面"
+      },
+      18: {
+        title: "18 顶部胶囊 (收起 240 / Hover 280 / 展开 420)",
+        desc: "独立 WindowController 表面。三态灵动岛结构，负责紧凑播放与最多 1 行当前歌词展示。绝对不与桌面歌词合并。",
+        hero: "独立 Surface: Capsule",
+        wb: "顶部胶囊表面"
+      },
+      19: {
+        title: "19 16:10 全屏歌词模式",
+        desc: "整屏封面取色光源扩散，当前行 40pt 大字超级 Hero，按 ⌘I 可随时呼出全屏抽屉式歌曲工作台。",
+        hero: "16:10 沉浸全屏",
+        wb: "全屏抽屉工作台"
+      }
+    };
+
+    // Main Function to Render Direction D Real DOM States
+    function renderStateD(stateNum) {
+      // Update Tab Chip Active
+      document.querySelectorAll('#dirDStateBar .state-chip').forEach((chip, idx) => {
+        if (idx === stateNum - 1) chip.classList.add('active');
+        else chip.classList.remove('active');
+      });
+
+      // Update Info Header Panel
+      const meta = stateMetaD[stateNum];
+      document.getElementById('stateTitleD').innerText = meta.title;
+      document.getElementById('stateDescD').innerText = meta.desc;
+      document.getElementById('tagHero').innerText = meta.hero;
+      document.getElementById('tagWorkbench').innerText = meta.wb;
+
+      const stage = document.getElementById('viewStageD');
+      
+      // 19 Real Visual DOM Renderings
+      if (stateNum === 1) { // Wide Workbench Closed
+        stage.innerHTML = `
+          <div class="macos-window" style="width: 1120px; height: 660px;">
+            <div class="titlebar">
+              <div class="traffic-lights"><div class="traffic-light close"></div><div class="traffic-light minimize"></div><div class="traffic-light maximize"></div></div>
+              <div class="titlebar-title">Lyric Island · 安静伴侣</div>
+              <div class="toolbar-actions">
+                <button class="btn-action-sm" onclick="renderStateD(2)">􀍵 歌曲工作台</button>
+                <button class="icon-btn" title="搜索">􀊫</button>
+                <button class="icon-btn" title="设置" onclick="renderStateD(15)">􀍟</button>
+              </div>
+            </div>
+            <div class="window-content">
+              <div class="track-panel">
+                <div>
+                  <div class="album-art-container"><img src="shared/album_cover.jpg" class="album-art"></div>
+                  <div class="track-meta">
+                    <div class="track-title">丸ノ内サディスティック</div>
+                    <div class="track-artist">椎名林檎</div>
+                    <div class="track-album">無罪モラトリアム</div>
+                  </div>
+                </div>
+                <div class="playback-controls">
+                  <div class="progress-bar-container"><span class="time-label">01:28</span><div class="progress-track"><div class="progress-fill"></div></div><span class="time-label">04:47</span></div>
+                  <div class="transport-buttons"><button class="btn-transport">􀊉</button><button class="btn-play-pause">􀊄</button><button class="btn-transport">􀊋</button></div>
+                </div>
+              </div>
+              <div class="lyrics-viewport">
+                <!-- Strict Single Auxiliary Rule: Original + Translation ONLY -->
+                <div class="lyric-row">
+                  <div class="original-layer">報酬は入社したての初任給をドライヴして</div>
+                  <div class="translation-layer">用刚入职的初薪作为报酬驾驶汽车</div>
+                </div>
+                <div class="lyric-row active">
+                  <div class="original-layer">東京は夜七時 慌ただしい街に雨が降り出す</div>
+                  <div class="translation-layer">东京晚上七点 匆忙的街头开始下起了雨</div>
+                </div>
+                <div class="lyric-row adjacent">
+                  <div class="original-layer">そっと抱き寄せて耳元で囁く</div>
+                  <div class="translation-layer">轻轻将你搂入怀中 在耳边轻声细语</div>
+                </div>
+              </div>
+            </div>
+          </div>`;
+      } else if (stateNum === 2) { // Wide Workbench Open (Inspector 380px)
+        stage.innerHTML = `
+          <div class="macos-window" style="width: 1180px; height: 660px;">
+            <div class="titlebar">
+              <div class="traffic-lights"><div class="traffic-light close"></div><div class="traffic-light minimize"></div><div class="traffic-light maximize"></div></div>
+              <div class="titlebar-title">Lyric Island · 歌曲工作台已展开</div>
+              <div class="toolbar-actions">
+                <button class="btn-action-sm" style="background: var(--palette-accent);" onclick="renderStateD(1)">􀍵 收起工作台</button>
+                <button class="icon-btn" title="搜索">􀊫</button>
+                <button class="icon-btn" title="设置">􀍟</button>
+              </div>
+            </div>
+            <div class="window-content">
+              <div class="track-panel" style="width: 260px;">
+                <div>
+                  <div class="album-art-container"><img src="shared/album_cover.jpg" class="album-art"></div>
+                  <div class="track-meta">
+                    <div class="track-title" style="font-size: 16px;">丸ノ内サディスティック</div>
+                    <div class="track-artist">椎名林檎</div>
+                  </div>
+                </div>
+                <div class="playback-controls">
+                  <div class="progress-bar-container"><span class="time-label">01:28</span><div class="progress-track"><div class="progress-fill"></div></div><span class="time-label">04:47</span></div>
+                  <div class="transport-buttons"><button class="btn-transport">􀊉</button><button class="btn-play-pause">􀊄</button><button class="btn-transport">􀊋</button></div>
+                </div>
+              </div>
+
+              <div class="lyrics-viewport" style="padding: 24px;">
+                <div class="lyric-row active">
+                  <div class="original-layer" style="font-size: 22px;">東京は夜七時 慌ただしい街に雨が降り出す</div>
+                  <div class="translation-layer">东京晚上七点 匆忙的街头开始下起了雨</div>
+                </div>
+              </div>
+
+              <!-- Native Inspector (380px) Task Language -->
+              <div class="inspector-panel" style="width: 380px;">
+                <div class="inspector-header">
+                  <span class="inspector-title">􀍵 歌曲工作台 <span class="badge basic">当前曲目</span></span>
+                  <button class="icon-btn" onclick="renderStateD(1)">✕</button>
+                </div>
+
+                <div class="task-section">
+                  <div class="task-title-row">
+                    <span>1. 歌词与版本</span>
+                    <span class="task-status" style="color: #34C759;">已采用社区同步歌词</span>
+                  </div>
+                  <div style="display: flex; gap: 8px; margin-top: 4px;">
+                    <button class="btn-action-sm" style="flex:1;">切换候选歌词 (3)</button>
+                    <button class="btn-action-sm" style="flex:1;">重新搜索</button>
+                  </div>
+                </div>
+
+                <div class="task-section">
+                  <div class="task-title-row">
+                    <span>2. 翻译与读音</span>
+                    <span class="task-status">智能意译 + 假名注音</span>
+                  </div>
+                  <div style="display: flex; gap: 8px; margin-top: 4px;">
+                    <button class="btn-action-sm" style="flex:1;">重新生成翻译</button>
+                    <button class="btn-action-sm" style="flex:1;">校准注音</button>
+                  </div>
+                </div>
+
+                <div class="task-section">
+                  <div class="task-title-row">
+                    <span>3. 时间同步</span>
+                    <span class="task-status" style="color: #34C759;">已自动对齐 (32 行)</span>
+                  </div>
+                  <button class="btn-action-sm" style="margin-top: 4px;">打开打轴修正界面...</button>
+                </div>
+
+                <div class="task-section">
+                  <div class="task-title-row">
+                    <span>4. 历史版本</span>
+                    <span class="task-status">已有 3 个历史记录</span>
+                  </div>
+                  <span style="font-size: 11px; color: var(--text-tertiary);">上次修改：今天 14:20 · 手动调轴</span>
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-top: auto;">
+                  <button class="btn-action-sm" style="flex:1;">􀈂 导出 .lrc</button>
+                  <button class="btn-action-sm" style="flex:1;">􀈄 导入歌词</button>
+                </div>
+              </div>
+            </div>
+          </div>`;
+      } else if (stateNum === 3) { // Wide Current Line Contextual Action
+        stage.innerHTML = `
+          <div class="macos-window" style="width: 1120px; height: 660px;">
+            <div class="titlebar">
+              <div class="traffic-lights"><div class="traffic-light close"></div><div class="traffic-light minimize"></div><div class="traffic-light maximize"></div></div>
+              <div class="titlebar-title">Lyric Island · 当前行轻量语境快捷操作</div>
+              <div class="toolbar-actions">
+                <button class="btn-action-sm" onclick="renderStateD(2)">􀍵 歌曲工作台</button>
+              </div>
+            </div>
+            <div class="window-content">
+              <div class="track-panel">
+                <div>
+                  <div class="album-art-container"><img src="shared/album_cover.jpg" class="album-art"></div>
+                  <div class="track-meta">
+                    <div class="track-title">丸ノ内サディスティック</div>
+                    <div class="track-artist">椎名林檎</div>
+                  </div>
+                </div>
+              </div>
+              <div class="lyrics-viewport" style="position: relative;">
+                <div class="lyric-row active" style="position: relative; border: 1px solid var(--palette-accent); padding: 16px; border-radius: 10px; background: rgba(142,45,226,0.1);">
+                  <div class="original-layer">東京は夜七時 慌ただしい街に雨が降り出す</div>
+                  <div class="translation-layer">东京晚上七点 匆忙的街头开始下起了雨</div>
+                  
+                  <!-- Floating Context Action Menu -->
+                  <div style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: rgba(12,6,18,0.95); border: 1px solid var(--material-border); border-radius: 8px; padding: 6px; display: flex; gap: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.6);">
+                    <button class="btn-action-sm">􀈂 修正译文</button>
+                    <button class="btn-action-sm">􀎧 调整注音</button>
+                    <button class="btn-action-sm">􀐫 校准时间</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>`;
+      } else if (stateNum === 4) { // Small Workbench Closed
+        stage.innerHTML = `
+          <div class="macos-window" style="width: 520px; height: 660px;">
+            <div class="titlebar">
+              <div class="traffic-lights"><div class="traffic-light close"></div><div class="traffic-light minimize"></div><div class="traffic-light maximize"></div></div>
+              <div class="titlebar-title">Lyric Island (Small 520px)</div>
+              <div class="toolbar-actions">
+                <button class="icon-btn" onclick="renderStateD(5)" title="工作台">􀍵</button>
+              </div>
+            </div>
+            <div class="window-content" style="flex-direction: column;">
+              <div style="padding: 16px; display: flex; gap: 14px; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.06); align-items: center;">
+                <img src="shared/album_cover.jpg" style="width: 64px; height: 64px; border-radius: 8px; object-fit: cover;">
+                <div style="flex: 1;">
+                  <div style="font-size: 15px; font-weight: 700;">丸ノ内サディスティック</div>
+                  <div style="font-size: 12px; color: var(--text-secondary);">椎名林檎</div>
+                </div>
+                <button class="btn-play-pause" style="width: 36px; height: 36px; font-size: 14px;">􀊄</button>
+              </div>
+              <div class="lyrics-viewport" style="padding: 24px;">
+                <div class="lyric-row active">
+                  <div class="original-layer" style="font-size: 20px;">東京は夜七時 慌ただしい街に雨が降り出す</div>
+                  <div class="translation-layer" style="font-size: 13px;">东京晚上七点 匆忙的街头开始下起了雨</div>
+                </div>
+              </div>
+            </div>
+          </div>`;
+      } else if (stateNum === 5) { // Small Workbench Open (Bottom Sheet 85%)
+        stage.innerHTML = `
+          <div class="macos-window" style="width: 520px; height: 660px; position: relative;">
+            <div class="titlebar">
+              <div class="traffic-lights"><div class="traffic-light close"></div><div class="traffic-light minimize"></div><div class="traffic-light maximize"></div></div>
+              <div class="titlebar-title">Small Mode Sheet</div>
+            </div>
+            <!-- Bottom Sheet Overlay -->
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 85%; background: rgba(18,9,26,0.96); backdrop-filter: blur(30px); border-top-left-radius: 16px; border-top-right-radius: 16px; border-top: 1px solid var(--material-border); padding: 20px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 -10px 40px rgba(0,0,0,0.8); z-index: 50;">
+              <div style="width: 36px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; align-self: center;"></div>
+              <div class="inspector-header">
+                <span class="inspector-title">􀍵 歌曲工作台 (Bottom Sheet)</span>
+                <button class="icon-btn" onclick="renderStateD(4)">✕</button>
+              </div>
+              <div class="task-section">
+                <div class="task-title-row"><span>歌词来源</span><span style="color:#34C759;">社区同步歌词</span></div>
+              </div>
+              <div class="task-section">
+                <div class="task-title-row"><span>翻译与读音</span><span>智能意译 + 注音</span></div>
+              </div>
+              <div class="task-section">
+                <div class="task-title-row"><span>时间同步</span><span>已对齐 32 行</span></div>
+              </div>
+              <button class="btn-action-sm" style="margin-top: auto; padding: 10px;" onclick="renderStateD(4)">关闭 Sheet 恢复歌词伴侣</button>
+            </div>
+          </div>`;
+      } else if (stateNum === 6) { // Lyrics Focus Mode
+        stage.innerHTML = `
+          <div class="macos-window" style="width: 680px; height: 660px; background: #05020A;">
+            <div class="titlebar">
+              <div class="traffic-lights"><div class="traffic-light close"></div><div class="traffic-light minimize"></div><div class="traffic-light maximize"></div></div>
+              <div class="titlebar-title">Lyrics Focus 专注模式</div>
+              <div class="toolbar-actions"><button class="btn-action-sm" onclick="renderStateD(2)">􀍵 工作台</button></div>
+            </div>
+            <div class="lyrics-viewport" style="align-items: center; text-align: center; padding: 40px;">
+              <div class="lyric-row active">
+                <div class="original-layer" style="font-size: 32px; line-height: 1.3;">東京は夜七時 慌ただしい街に雨が降り出す</div>
+                <div class="translation-layer" style="font-size: 18px; margin-top: 8px;">东京晚上七点 匆忙的街头开始下起了雨</div>
+              </div>
+            </div>
+          </div>`;
+      } else if (stateNum === 7) { // Idle Waiting
+        stage.innerHTML = `
+          <div class="macos-window" style="width: 1000px; height: 620px;">
+            <div class="titlebar">
+              <div class="traffic-lights"><div class="traffic-light close"></div><div class="traffic-light minimize"></div><div class="traffic-light maximize"></div></div>
+              <div class="titlebar-title">Lyric Island · 待机</div>
+            </div>
+            <div class="window-content" style="align-items: center; justify-content: center; text-align: center;">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; opacity: 0.6;">
+                <div style="font-size: 40px;">􀑪</div>
+                <div style="font-size: 16px; font-weight: 500;">等待 Spotify 播放歌曲…</div>
+                <div style="font-size: 12px; color: var(--text-tertiary);">播放后自动获取并展示精准歌词</div>
+              </div>
+            </div>
+          </div>`;
+      } else if (stateNum === 8) { // Spotify Not Running
+        stage.innerHTML = `
+          <div class="macos-window" style="width: 1000px; height: 620px;">
+            <div class="titlebar"><div class="traffic-lights"><div class="traffic-light close"></div><div class="traffic-light minimize"></div><div class="traffic-light maximize"></div></div></div>
+            <div class="window-content" style="align-items: center; justify-content: center; text-align: center;">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                <div style="font-size: 44px; color: var(--status-warning);">􀌬</div>
+                <div style="font-size: 18px; font-weight: 600;">请启动 Spotify 并播放音乐</div>
+                <button class="btn-action-sm" style="padding: 8px 16px; font-size: 12px;">尝试重新连接 Spotify</button>
+              </div>
+            </div>
+          </div>`;
+      } else if (stateNum === 9) { // Loading Lyrics
+        stage.innerHTML = `
+          <div class="macos-window" style="width: 1000px; height: 620px;">
+            <div class="titlebar"><div class="traffic-lights"><div class="traffic-light close"></div><div class="traffic-light minimize"></div><div class="traffic-light maximize"></div></div></div>
+            <div class="window-content" style="align-items: center; justify-content: center;">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+                <div style="width: 32px; height: 32px; border: 3px solid rgba(255,255,255,0.2); border-top-color: var(--palette-accent); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <div style="font-size: 14px; color: var(--text-secondary);">正在搜索歌词…</div>
+              </div>
+            </div>
+          </div>`;
+      } else if (stateNum === 10) { // Lyrics Not Found
+        stage.innerHTML = `
+          <div class="macos-window" style="width: 1000px; height: 620px;">
+            <div class="titlebar"><div class="traffic-lights"><div class="traffic-light close"></div><div class="traffic-light minimize"></div><div class="traffic-light maximize"></div></div></div>
+            <div class="window-content" style="align-items: center; justify-content: center; text-align: center;">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
+                <div style="font-size: 36px; opacity: 0.5;">􀋭</div>
+                <div style="font-size: 16px; font-weight: 600;">暂未找到歌词</div>
+                <div style="display: flex; gap: 10px;">
+                  <button class="btn-action-sm">手动搜索歌词</button>
+                  <button class="btn-action-sm">导入本地歌词</button>
+                </div>
+              </div>
+            </div>
+          </div>`;
+      } else if (stateNum === 11) { // Network Failure
+        stage.innerHTML = `
+          <div class="macos-window" style="width: 1000px; height: 620px;">
+            <div class="titlebar"><div class="traffic-lights"><div class="traffic-light close"></div><div class="traffic-light minimize"></div><div class="traffic-light maximize"></div></div></div>
+            <div class="window-content" style="align-items: center; justify-content: center; text-align: center;">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+                <div style="font-size: 36px; color: var(--status-error);">􀌞</div>
+                <div style="font-size: 15px; font-weight: 600;">网络连接超时，已保留本地缓存</div>
+                <button class="btn-action-sm">重新重试</button>
+              </div>
+            </div>
+          </div>`;
+      } else if (stateNum === 12) { // Auto Syncing
+        stage.innerHTML = `
+          <div class="macos-window" style="width: 1000px; height: 620px;">
+            <div class="titlebar">
+              <div class="traffic-lights"><div class="traffic-light close"></div><div class="traffic-light minimize"></div><div class="traffic-light maximize"></div></div>
+              <div class="titlebar-title" style="color: var(--status-info);">正在自动同步时间轴…</div>
+            </div>
+            <div class="window-content" style="padding: 40px;">
+              <div class="lyrics-viewport">
+                <div class="lyric-row active"><div class="original-layer">東京は夜七時 慌ただしい街に雨が降り出す</div></div>
+              </div>
+            </div>
+          </div>`;
+      } else if (stateNum === 13) { // Saved Partial Progress
+        stage.innerHTML = `
+          <div class="macos-window" style="width: 1000px; height: 620px;">
+            <div class="titlebar">
+              <div class="traffic-lights"><div class="traffic-light close"></div><div class="traffic-light minimize"></div><div class="traffic-light maximize"></div></div>
+              <div class="titlebar-title" style="color: var(--status-warning);">已保存前 18 行同步点</div>
+            </div>
+            <div class="window-content" style="padding: 40px;">
+              <div class="lyrics-viewport">
+                <div class="lyric-row active"><div class="original-layer">東京は夜七時 慌ただしい街に雨が降り出す</div></div>
+              </div>
+            </div>
+          </div>`;
+      } else if (stateNum === 14) { // Auto Sync Complete
+        stage.innerHTML = `
+          <div class="macos-window" style="width: 1000px; height: 620px;">
+            <div class="titlebar">
+              <div class="traffic-lights"><div class="traffic-light close"></div><div class="traffic-light minimize"></div><div class="traffic-light maximize"></div></div>
+              <div class="titlebar-title" style="color: var(--status-success);">已自动采用精准时间轴</div>
+            </div>
+            <div class="window-content" style="padding: 40px;">
+              <div class="lyrics-viewport">
+                <div class="lyric-row active"><div class="original-layer">東京は夜七時 慌ただしい街に雨が降り出す</div></div>
+              </div>
+            </div>
+          </div>`;
+      } else if (stateNum === 15) { // Basic Settings
+        stage.innerHTML = `
+          <div class="macos-window" style="width: 780px; height: 560px;">
+            <div class="titlebar">
+              <div class="traffic-lights"><div class="traffic-light close"></div><div class="traffic-light minimize"></div><div class="traffic-light maximize"></div></div>
+              <div class="titlebar-title">设置 · 常规</div>
+            </div>
+            <div style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+              <div class="control-card"><div class="control-info"><span class="control-name">歌词显示层</span><span class="control-desc">默认显示原文 + 中文翻译</span></div><div class="toggle-switch on"></div></div>
+              <div class="control-card"><div class="control-info"><span class="control-name">歌词字号</span><span class="control-desc">标准 (26pt)</span></div><button class="btn-action-sm">调节字号</button></div>
+              <div class="control-card"><div class="control-info"><span class="control-name">桌面歌词</span><span class="control-desc">在桌面上浮动显示歌词</span></div><div class="toggle-switch on"></div></div>
+              <button class="btn-action-sm" style="align-self: flex-start; margin-top: 12px;" onclick="renderStateD(16)">打开高级工程设置...</button>
+            </div>
+          </div>`;
+      } else if (stateNum === 16) { // Advanced Settings (Gate)
+        stage.innerHTML = `
+          <div class="macos-window" style="width: 780px; height: 560px;">
+            <div class="titlebar">
+              <div class="traffic-lights"><div class="traffic-light close"></div><div class="traffic-light minimize"></div><div class="traffic-light maximize"></div></div>
+              <div class="titlebar-title" style="color: var(--status-warning);">高级工程设置 (已解禁)</div>
+            </div>
+            <div style="padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+              <div class="control-card"><div class="control-info"><span class="control-name">AI 翻译 Endpoint / Base URL</span><span class="control-desc">https://api.openai.com/v1</span></div><button class="btn-action-sm">修改</button></div>
+              <div class="control-card"><div class="control-info"><span class="control-name">Whisper 音频排轴引擎参数</span><span class="control-desc">Beam size: 5 · Confidence threshold: 0.65</span></div><button class="btn-action-sm">配置</button></div>
+              <div class="control-card"><div class="control-info"><span class="control-name">SQLite 本地缓存维护</span><span class="control-desc">Migration v3 · 包含 1,280 条索引</span></div><button class="btn-action-sm">重建索引</button></div>
+            </div>
+          </div>`;
+      } else if (stateNum === 17) { // Desktop Lyrics Surface
+        stage.innerHTML = `
+          <div class="surface-desktop-lyrics">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-tertiary);">
+              <span>􀑪 桌面歌词 (760px 自由位置)</span>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn-action-sm">􀎡 锁定</button>
+                <button class="btn-action-sm">􀍵 工作台</button>
+              </div>
+            </div>
+            <div style="font-size: 22px; font-weight: 700; color: #fff;">東京は夜七時 慌ただしい街に雨が降り出す</div>
+            <div style="font-size: 14px; color: var(--text-secondary);">东京晚上七点 匆忙的街头开始下起了雨</div>
+          </div>`;
+      } else if (stateNum === 18) { // Capsule (3 states)
+        stage.innerHTML = `
+          <div style="display: flex; flex-direction: column; gap: 24px; align-items: center;">
+            <div>
+              <span style="font-size: 11px; color: var(--text-tertiary); display: block; margin-bottom: 6px;">1. 胶囊收起态 (240 × 36)</span>
+              <div class="surface-capsule collapsed"><img src="shared/album_cover.jpg" style="width: 24px; height: 24px; border-radius: 50%;"><span style="font-size: 12px; white-space: nowrap; overflow: hidden;">東京は夜七時...</span></div>
+            </div>
+            <div>
+              <span style="font-size: 11px; color: var(--text-tertiary); display: block; margin-bottom: 6px;">2. 胶囊 Hover 态 (280 × 36)</span>
+              <div class="surface-capsule hover"><button style="background:none; border:none; color:#fff; font-size:12px;">􀊉</button><button style="background:none; border:none; color:#fff; font-size:12px;">􀊄</button><button style="background:none; border:none; color:#fff; font-size:12px;">􀊋</button><span style="font-size: 12px;">東京は夜七時...</span></div>
+            </div>
+            <div>
+              <span style="font-size: 11px; color: var(--text-tertiary); display: block; margin-bottom: 6px;">3. 胶囊展开态 (420 × 52)</span>
+              <div class="surface-capsule expanded"><img src="shared/album_cover.jpg" style="width: 36px; height: 36px; border-radius: 6px;"><div><div style="font-size: 13px; font-weight: 700;">東京は夜七時...</div><div style="font-size: 11px; color: var(--text-secondary);">东京晚上七点...</div></div></div>
+            </div>
+          </div>`;
+      } else if (stateNum === 19) { // Full Screen Lyrics
+        stage.innerHTML = `
+          <div class="macos-window" style="width: 1120px; height: 660px; background: radial-gradient(circle at 30% 30%, rgba(142,45,226,0.4) 0%, #05020A 80%);">
+            <div class="titlebar"><div class="traffic-lights"><div class="traffic-light close"></div><div class="traffic-light minimize"></div><div class="traffic-light maximize"></div></div><div class="titlebar-title">16:10 全屏歌词模式</div></div>
+            <div class="lyrics-viewport" style="align-items: center; text-align: center; justify-content: center;">
+              <div class="lyric-row active">
+                <div class="original-layer" style="font-size: 40px; font-weight: 800;">東京は夜七時 慌ただしい街に雨が降り出す</div>
+                <div class="translation-layer" style="font-size: 20px; margin-top: 10px;">东京晚上七点 匆忙的街头开始下起了雨</div>
+              </div>
+            </div>
+          </div>`;
+      }
+    }
+
+    // Tab Switching System
+    function switchMainTab(tab) {
+      document.querySelectorAll('.proposal-tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.direction-card').forEach(card => card.classList.remove('active'));
+
+      if (tab === 'd') {
+        document.querySelectorAll('.proposal-tabs .tab-btn')[0].classList.add('active');
+        document.getElementById('viewStageD').classList.add('active');
+        document.getElementById('dirDStateBar').style.display = 'flex';
+        document.getElementById('stateDescriptionPanel').style.display = 'flex';
+        renderStateD(1);
+      } else if (tab === 'a') {
+        document.querySelectorAll('.proposal-tabs .tab-btn')[1].classList.add('active');
+        document.getElementById('viewStageA').classList.add('active');
+        document.getElementById('dirDStateBar').style.display = 'none';
+        document.getElementById('stateDescriptionPanel').style.display = 'none';
+      } else if (tab === 'b') {
+        document.querySelectorAll('.proposal-tabs .tab-btn')[2].classList.add('active');
+        document.getElementById('viewStageB').classList.add('active');
+        document.getElementById('dirDStateBar').style.display = 'none';
+        document.getElementById('stateDescriptionPanel').style.display = 'none';
+      } else if (tab === 'c') {
+        document.querySelectorAll('.proposal-tabs .tab-btn')[3].classList.add('active');
+        document.getElementById('viewStageC').classList.add('active');
+        document.getElementById('dirDStateBar').style.display = 'none';
+        document.getElementById('stateDescriptionPanel').style.display = 'none';
+      }
+    }
+
+    // Initialize Default State: Direction D State 1
+    renderStateD(1);
+  </script>
+</body>
+</html>
