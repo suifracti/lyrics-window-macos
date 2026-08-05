@@ -82,14 +82,36 @@ public final class AutomaticAlignmentJobController: ObservableObject {
     }
 
     private var evaluateWorkItem: DispatchWorkItem?
+    /// Throttle (not debounce): PlaybackState publishes `currentTime` every
+    /// ~0.2s while playing. Debounce-after-silence never fires during playback.
+    private var lastEvaluateScheduledAt: Date = .distantPast
+    private let evaluateMinInterval: TimeInterval = 0.4
 
     private func scheduleEvaluate() {
-        evaluateWorkItem?.cancel()
+        let now = Date()
+        let elapsed = now.timeIntervalSince(lastEvaluateScheduledAt)
+        if elapsed >= evaluateMinInterval {
+            lastEvaluateScheduledAt = now
+            evaluateWorkItem?.cancel()
+            let item = DispatchWorkItem { [weak self] in
+                Task { @MainActor in self?.evaluateTrigger() }
+            }
+            evaluateWorkItem = item
+            DispatchQueue.main.async(execute: item)
+            return
+        }
+        // Coalesce: ensure one trailing evaluate after the quiet gap.
+        if evaluateWorkItem != nil { return }
+        let delay = evaluateMinInterval - elapsed
         let item = DispatchWorkItem { [weak self] in
-            Task { @MainActor in self?.evaluateTrigger() }
+            Task { @MainActor in
+                self?.lastEvaluateScheduledAt = Date()
+                self?.evaluateWorkItem = nil
+                self?.evaluateTrigger()
+            }
         }
         evaluateWorkItem = item
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35, execute: item)
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: item)
     }
 
     private func evaluateTrigger() {
