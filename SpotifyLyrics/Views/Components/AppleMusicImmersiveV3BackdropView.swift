@@ -23,6 +23,8 @@ enum AppleMusicImmersiveV3BackdropKey {
 struct AppleMusicImmersiveV3BackdropView: View {
     let track: Track
     let identity: TrackIdentity?
+    var isInstrumental: Bool = false
+    var settings: AppSettingsStore? = nil
 
     @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
     @State private var artworkImage: NSImage?
@@ -119,7 +121,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
             return min(0.88, paletteVeil + 0.14)
         }
 
-        return min(0.82, paletteVeil)
+        return min(0.08, paletteVeil * 0.4)
     }
 
     private var artworkTransitionDuration: Double {
@@ -157,12 +159,26 @@ struct AppleMusicImmersiveV3BackdropView: View {
         }
     }
 
+    private var effectiveBlurRadius: Double {
+        if settings?.v3InstrumentalPureImmersion == true && isInstrumental {
+            return 8.0
+        }
+        return settings?.v3BackdropBlurRadius ?? 36.0
+    }
+
+    private var effectiveScreenBlurRadius: Double {
+        if settings?.v3InstrumentalPureImmersion == true && isInstrumental {
+            return 2.0
+        }
+        return (settings?.v3BackdropBlurRadius ?? 36.0) * 0.3
+    }
+
     @ViewBuilder
     private func artworkLayers(image: NSImage) -> some View {
         let style = presentationStyle
         let saturation = min(
-            1,
-            style.paletteSaturation + (increaseContrast ? 0.08 : 0)
+            1.4,
+            style.paletteSaturation * 1.35 + (increaseContrast ? 0.08 : 0)
         )
 
         // Keep a second, lower-radius pass over the cached thumbnail so the
@@ -172,62 +188,40 @@ struct AppleMusicImmersiveV3BackdropView: View {
             .resizable()
             .scaledToFill()
             .scaleEffect(style.artworkScreenScale)
-            .blur(radius: style.artworkScreenBlur)
+            .blur(radius: max(2, effectiveScreenBlurRadius))
             .blendMode(.screen)
-            .opacity(min(1, style.artworkScreenOpacity * style.textureIntensity))
+            .opacity(min(1, style.artworkScreenOpacity * style.textureIntensity * 1.2))
 
         Image(nsImage: image)
             .resizable()
             .scaledToFill()
             .scaleEffect(style.artworkScale)
-            // The cache stores a 320px image, so a lower blur keeps cover
-            // texture visible without doing full-resolution work per tick.
-            .blur(radius: style.artworkBlur)
-            .opacity(min(1, style.artworkOpacity * style.textureIntensity))
+            .blur(radius: max(4, effectiveBlurRadius))
+            .opacity(min(1, style.artworkOpacity * style.textureIntensity * 1.1))
 
         LinearGradient(
             colors: [
                 color(palette.primary, saturation: saturation)
-                    .opacity(min(1, 0.48 * style.paletteOpacity)),
+                    .opacity(min(1, 0.18 * style.paletteOpacity)),
                 color(palette.secondary, saturation: saturation)
-                    .opacity(min(1, 0.56 * style.paletteOpacity)),
+                    .opacity(min(1, 0.15 * style.paletteOpacity)),
                 color(palette.glow, saturation: saturation)
-                    .opacity(min(1, 0.30 * style.paletteOpacity))
+                    .opacity(min(1, 0.12 * style.paletteOpacity))
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
 
+        // Symmetrical ambient radial glow centered on the artwork canvas
         RadialGradient(
             colors: [
                 color(palette.glow, saturation: saturation)
-                    .opacity(min(1, style.glowIntensity)),
+                    .opacity(min(1, style.glowIntensity * 0.5)),
                 .clear
             ],
-            center: UnitPoint(x: 0.16, y: 0.52),
-            startRadius: 16,
-            endRadius: 540
-        )
-
-        // Keep the lyric half calm without flattening the cover half.
-        LinearGradient(
-            colors: [
-                .clear,
-                Color.black.opacity(min(0.24, style.lyricVeilMultiplier * 0.15)),
-                Color.black.opacity(min(0.48, style.lyricVeilMultiplier * 0.44))
-            ],
-            startPoint: .leading,
-            endPoint: .trailing
-        )
-
-        RadialGradient(
-            colors: [
-                .clear,
-                Color.black.opacity(min(0.72, style.vignetteIntensity))
-            ],
             center: .center,
-            startRadius: 150,
-            endRadius: 900
+            startRadius: 40,
+            endRadius: 750
         )
 
         if let noiseImage {

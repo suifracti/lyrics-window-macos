@@ -19,7 +19,6 @@ struct ArtworkView: View {
                 Image(nsImage: remoteArtwork)
                     .resizable()
                     .scaledToFill()
-                    .overlay(Color.black.opacity(showsAlbumLabel ? 0.04 : 0.13))
                     .transition(.opacity)
             }
 

@@ -98,22 +98,22 @@ public struct BackdropPalette: Equatable, Sendable {
         let vivid = samples.max { lhs, rhs in
             (lhs.saturation * 0.8 + lhs.luminance * 0.2) < (rhs.saturation * 0.8 + rhs.luminance * 0.2)
         }?.color ?? average
-        let primary = blend(average, vivid, amount: 0.62)
-        let secondary = blend(primary, BackdropColor(red: 0.02, green: 0.03, blue: 0.08), amount: 0.45)
-        let glow = blend(vivid, BackdropColor(red: 0.8, green: 0.55, blue: 0.32), amount: 0.22)
+        let primary = blend(vivid, average, amount: 0.35)
+        let secondary = blend(primary, vivid, amount: 0.50)
+        let glow = blend(vivid, BackdropColor(red: 0.95, green: 0.75, blue: 0.65), amount: 0.35)
         let averageLuminance = luminance(of: average)
         let averageSaturation = samples.map(\.saturation).reduce(0, +) / Double(samples.count)
 
         let veil: Double
         switch averageLuminance {
         case 0.72...:
-            veil = 0.58
+            veil = 0.30
         case 0.5..<0.72:
-            veil = 0.46
+            veil = 0.22
         case ..<0.16:
-            veil = 0.34
+            veil = 0.15
         default:
-            veil = 0.4
+            veil = 0.18
         }
 
         return BackdropPalette(
@@ -122,8 +122,8 @@ public struct BackdropPalette: Equatable, Sendable {
             glow: glow,
             luminance: averageLuminance,
             saturation: averageSaturation,
-            readabilityVeilOpacity: max(veil, averageSaturation > 0.7 ? 0.44 : 0.28),
-            textureOpacity: averageLuminance > 0.82 ? 0.24 : 0.34
+            readabilityVeilOpacity: max(veil, averageSaturation > 0.7 ? 0.24 : 0.16),
+            textureOpacity: averageLuminance > 0.82 ? 0.35 : 0.45
         )
     }
 
@@ -212,19 +212,19 @@ public enum BackdropPresentationID: String, CaseIterable, Sendable {
         case .defaultV1:
             return BackdropPresentationStyle(
                 textureIntensity: LyricsDesignTokens.Backdrop.textureIntensity,
-                artworkScreenOpacity: 0.62,
-                artworkOpacity: 0.72,
-                artworkScreenBlur: 24,
-                artworkBlur: 72,
-                artworkScreenScale: 1.16,
-                artworkScale: 1.34,
-                paletteSaturation: LyricsDesignTokens.Backdrop.paletteSaturation,
-                paletteOpacity: 1.0,
-                glowIntensity: LyricsDesignTokens.Backdrop.glowIntensity,
-                lyricVeilMultiplier: LyricsDesignTokens.Backdrop.lyricVeilMultiplier,
-                minimumLyricVeil: LyricsDesignTokens.Backdrop.minimumLyricVeil,
-                vignetteIntensity: LyricsDesignTokens.Backdrop.vignetteIntensity,
-                noiseIntensity: LyricsDesignTokens.Backdrop.noiseIntensity,
+                artworkScreenOpacity: 0.85,
+                artworkOpacity: 0.95,
+                artworkScreenBlur: 10,
+                artworkBlur: 36,
+                artworkScreenScale: 1.18,
+                artworkScale: 1.36,
+                paletteSaturation: 1.2,
+                paletteOpacity: 0.25,
+                glowIntensity: 0.45,
+                lyricVeilMultiplier: 0.45,
+                minimumLyricVeil: 0.14,
+                vignetteIntensity: 0.28,
+                noiseIntensity: 0.02,
                 transitionDuration: LyricsDesignTokens.Backdrop.transitionDuration,
                 outgoingTransitionDuration: LyricsDesignTokens.Backdrop.outgoingTransitionDuration
             )

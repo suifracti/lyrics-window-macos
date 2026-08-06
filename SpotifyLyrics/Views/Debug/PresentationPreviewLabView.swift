@@ -16,6 +16,7 @@ struct PresentationPreviewLabView: View {
     @State private var source: PresentationPreviewSource = .mock
     @State private var compareEnabled = true
     @State private var capsulePreviewState: PresentationPreviewCapsuleState = .expanded
+    @State private var showDirectionDMatrix = false
 
     private var categoryEntries: [PresentationMetadata] {
         catalog.entries(for: selectedCategory)
@@ -143,7 +144,17 @@ struct PresentationPreviewLabView: View {
                     .frame(width: 260)
                 }
 
+                Button("方向 D 矩阵…") {
+                    showDirectionDMatrix = true
+                }
+                .buttonStyle(.bordered)
+                .help("打开 Direction D 23 状态设计系统预览（仅 DEBUG）")
+
                 Spacer()
+            }
+            .sheet(isPresented: $showDirectionDMatrix) {
+                DirectionDPreviewMatrixView()
+                    .frame(minWidth: 1_000, minHeight: 660)
             }
 
             if let context = previewContext {

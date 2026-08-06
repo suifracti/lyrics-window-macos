@@ -89,6 +89,10 @@ public final class AppSettingsStore: ObservableObject {
         public static let aiWorkflowID = "ai.workflowID"
         public static let settingsCenterPresentation = "settings.centerPresentation"
         public static let readingPreferences = "reading.preferences.v1"
+        public static let v3BackdropBlurRadius = "v3.backdropBlurRadius"
+        public static let v3ArtworkPosition = "v3.artworkPosition"
+        public static let v3ArtworkSizeScale = "v3.artworkSizeScale"
+        public static let v3InstrumentalPureImmersion = "v3.instrumentalPureImmersion"
     }
 
     public static let currentSettingsVersion = 1
@@ -214,6 +218,22 @@ public final class AppSettingsStore: ObservableObject {
         didSet { defaults.set(aiTranslationAPIKeyConfigured, forKey: Key.aiAPIKeyConfigured) }
     }
 
+    @Published public var v3BackdropBlurRadius: Double {
+        didSet { defaults.set(v3BackdropBlurRadius, forKey: Key.v3BackdropBlurRadius) }
+    }
+
+    @Published public var v3ArtworkPosition: String {
+        didSet { defaults.set(v3ArtworkPosition, forKey: Key.v3ArtworkPosition) }
+    }
+
+    @Published public var v3ArtworkSizeScale: Double {
+        didSet { defaults.set(v3ArtworkSizeScale, forKey: Key.v3ArtworkSizeScale) }
+    }
+
+    @Published public var v3InstrumentalPureImmersion: Bool {
+        didSet { defaults.set(v3InstrumentalPureImmersion, forKey: Key.v3InstrumentalPureImmersion) }
+    }
+
     /// Model names are non-secret metadata. The directory is cached so the
     /// settings page can be browsed without touching Keychain.
     @Published public private(set) var aiModelDirectoryStatus: TranslationModelDirectoryStatus
@@ -221,6 +241,10 @@ public final class AppSettingsStore: ObservableObject {
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        self.v3BackdropBlurRadius = defaults.object(forKey: Key.v3BackdropBlurRadius) as? Double ?? 36.0
+        self.v3ArtworkPosition = defaults.string(forKey: Key.v3ArtworkPosition) ?? "left"
+        self.v3ArtworkSizeScale = defaults.object(forKey: Key.v3ArtworkSizeScale) as? Double ?? 1.0
+        self.v3InstrumentalPureImmersion = defaults.object(forKey: Key.v3InstrumentalPureImmersion) as? Bool ?? true
         self.presentationSelections = PresentationSelectionStore(defaults: defaults)
         self.translationProfiles = TranslationProfileStore(defaults: defaults)
         self.readingUserDictionary = ReadingUserDictionaryStore(defaults: defaults)
@@ -404,7 +428,8 @@ public final class AppSettingsStore: ObservableObject {
             return [
                 "mainWindow.lyricsFocus.v1",
                 "mainWindow.immersiveSplit.v2",
-                "mainWindow.appleMusicImmersiveV3.v3"
+                "mainWindow.appleMusicImmersiveV3.v3",
+                "mainWindow.directionD.v4"
             ].contains(stableID)
         case .capsule:
             return CapsuleLyricsPresentationVersion(rawValue: stableID) != nil
@@ -439,7 +464,9 @@ public final class AppSettingsStore: ObservableObject {
             switch stableID {
             case "mainWindow.lyricsFocus.v1": rawValue = MainWindowLayoutStyle.lyricsFocus.rawValue
             case "mainWindow.immersiveSplit.v2": rawValue = MainWindowLayoutStyle.immersiveSplit.rawValue
-            default: rawValue = MainWindowLayoutStyle.appleMusicImmersiveV3.rawValue
+            case "mainWindow.appleMusicImmersiveV3.v3": rawValue = MainWindowLayoutStyle.appleMusicImmersiveV3.rawValue
+            case "mainWindow.directionD.v4": rawValue = MainWindowLayoutStyle.directionDV4.rawValue
+            default: return false
             }
             mainWindowLayoutStyleRawValue = rawValue
         case .capsule:
@@ -472,6 +499,7 @@ public final class AppSettingsStore: ObservableObject {
             case "mainWindow.lyricsFocus.v1": rawValue = MainWindowLayoutStyle.lyricsFocus.rawValue
             case "mainWindow.immersiveSplit.v2": rawValue = MainWindowLayoutStyle.immersiveSplit.rawValue
             case "mainWindow.appleMusicImmersiveV3.v3": rawValue = MainWindowLayoutStyle.appleMusicImmersiveV3.rawValue
+            case "mainWindow.directionD.v4": rawValue = MainWindowLayoutStyle.directionDV4.rawValue
             default: return false
             }
             mainWindowLayoutStyleRawValue = rawValue

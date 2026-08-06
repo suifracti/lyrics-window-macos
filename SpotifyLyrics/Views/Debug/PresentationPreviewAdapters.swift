@@ -42,6 +42,8 @@ struct PresentationPreviewAdapterView: View {
             MainImmersiveSplitPreview(context: context)
         case "main.appleMusicImmersiveV3":
             MainAppleMusicImmersiveV3Preview(context: context)
+        case "main.directionD":
+            MainDirectionDPreview(context: context)
         case "fullscreen.borderlessPanel":
             FullscreenPreview(context: context)
         case "capsule.legacy":
@@ -343,6 +345,64 @@ private struct MainAppleMusicImmersiveV3Preview: View {
                     }
                     .foregroundStyle(.white.opacity(0.48))
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            }
+            .padding(24)
+        }
+    }
+}
+
+/// Read-only Direction D V4 preview.  This is intentionally a small preview
+/// renderer, not a second runtime window or a copy of the V3 view.
+private struct MainDirectionDPreview: View {
+    let context: PresentationPreviewContext
+
+    var body: some View {
+        ZStack {
+            PreviewBackdropCanvas(preset: "backdrop.default", context: context)
+
+            HStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 14) {
+                    PreviewArtwork(context: context, size: 118)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(context.track.title)
+                            .font(.system(size: 17, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                        Text(context.track.artist)
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                            .foregroundStyle(.white.opacity(0.72))
+                            .lineLimit(1)
+                    }
+                    HStack(spacing: 12) {
+                        Image(systemName: "backward.fill")
+                        Image(systemName: context.isPlaying ? "pause.fill" : "play.fill")
+                        Image(systemName: "forward.fill")
+                    }
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.86))
+                }
+                .frame(width: 164, alignment: .leading)
+
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Spacer()
+                        Image(systemName: "slider.horizontal.3")
+                            .foregroundStyle(.white.opacity(0.56))
+                    }
+                    Spacer(minLength: 4)
+                    PreviewLyricBlock(
+                        context: context,
+                        titleSize: 25,
+                        includeKana: context.kanaDisplayMode != .hidden,
+                        includeRomaji: context.showRomaji,
+                        includeTranslation: context.showTranslation,
+                        dimmed: false
+                    )
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    Spacer(minLength: 4)
+                }
+                .padding(.leading, 28)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
             .padding(24)

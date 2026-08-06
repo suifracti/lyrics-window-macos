@@ -14,8 +14,8 @@ struct TrackMetadataView: View {
     var body: some View {
         VStack(alignment: alignment, spacing: 5) {
             Text(track.title)
-                .font(.system(size: titleSize, weight: .semibold, design: .rounded))
-                .foregroundStyle(LyricsDesignTokens.primaryText)
+                .font(.system(size: titleSize, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
                 .lineLimit(2)
                 .multilineTextAlignment(alignment == .center ? .center : .leading)
 

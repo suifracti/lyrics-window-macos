@@ -42,6 +42,7 @@ public struct PresentationPreviewRendererRegistry: Sendable {
         descriptor("mainWindow.lyricsFocus.v1", .mainWindow, "main.lyricsFocus", "main.lyricsFocus.v1.lyrics-first"),
         descriptor("mainWindow.immersiveSplit.v2", .mainWindow, "main.immersiveSplit", "main.immersiveSplit.v2.split-columns"),
         descriptor("mainWindow.appleMusicImmersiveV3.v3", .mainWindow, "main.appleMusicImmersiveV3", "main.appleMusicImmersiveV3.v3.cover-lyrics"),
+        descriptor("mainWindow.directionD.v4", .mainWindow, "main.directionD", "mainWindow.directionD.v4.live-projection"),
 
         descriptor("fullscreen.borderlessPanel.v1", .fullscreen, "fullscreen.borderlessPanel", "fullscreen.borderlessPanel.v1.canvas"),
 

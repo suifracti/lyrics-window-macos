@@ -345,7 +345,8 @@ public final class PlaybackState: ObservableObject {
     /// deliberately ignores search-preview state so an unplayed catalog
     /// result can never appear in the floating window.
     public var liveLyrics: [LyricLine] {
-        projectedLyrics(
+        guard liveLyricsDocumentMatchesCurrentTrack else { return [] }
+        return projectedLyrics(
             base: lyricsSession.lyrics,
             session: lyricsSession,
             cache: &liveLyricsProjectionCache
@@ -360,12 +361,40 @@ public final class PlaybackState: ObservableObject {
     public var lyricsSessionRevision: UInt64 {
         isShowingSearchPreview ? searchPreviewSession.revision : lyricsSession.revision
     }
-    public var liveLyricsState: LyricsLoadState { lyricsSession.state }
-    public var liveLyricsAreSynchronized: Bool { lyricsSession.isSynchronized }
+    /// Identity of the current Desktop playback snapshot, independent from
+    /// the session's last adopted document.  During the synchronous handoff
+    /// between a provider track update and `lyricsSession.begin`, these two
+    /// identities can briefly differ; live projections must fail closed then.
+    public var liveTrackIdentity: TrackIdentity? {
+        guard hasLiveTrack, !isMockPreviewMode else { return nil }
+        return TrackIdentity(track: currentTrack)
+    }
+
+    public var liveLyricsDocumentMatchesCurrentTrack: Bool {
+        guard let liveTrackIdentity else { return false }
+        return lyricsSession.activeIdentity == liveTrackIdentity
+    }
+
+    public var liveLyricsState: LyricsLoadState {
+        guard liveLyricsDocumentMatchesCurrentTrack else {
+            guard let identity = liveTrackIdentity else { return .idle }
+            return .loading(identity)
+        }
+        return lyricsSession.state
+    }
+    public var liveLyricsAreSynchronized: Bool {
+        liveLyricsDocumentMatchesCurrentTrack && lyricsSession.isSynchronized
+    }
     public var liveLyricsSessionRevision: UInt64 { lyricsSession.revision }
-    public var liveLyricsLanguage: String? { lyricsSession.activeDocument?.language }
-    public var liveLyricsVersionID: UUID? { lyricsSession.activeLyricsVersionID }
-    public var liveLyricsSource: LyricsSource? { lyricsSession.activeDocument?.source }
+    public var liveLyricsLanguage: String? {
+        liveLyricsDocumentMatchesCurrentTrack ? lyricsSession.activeDocument?.language : nil
+    }
+    public var liveLyricsVersionID: UUID? {
+        liveLyricsDocumentMatchesCurrentTrack ? lyricsSession.activeLyricsVersionID : nil
+    }
+    public var liveLyricsSource: LyricsSource? {
+        liveLyricsDocumentMatchesCurrentTrack ? lyricsSession.activeDocument?.source : nil
+    }
     public var isLyricsSelectionEmpty: Bool { lyricsSession.isNoSelection }
     public var liveCurrentLineIndex: Int? {
         LyricsTimeline.activeLineIndex(
@@ -567,6 +596,12 @@ public final class PlaybackState: ObservableObject {
     public func selectNoLyricsVersion() {
         guard let identity = currentTrackIdentity else { return }
         lyricsSession.selectNoVersion(identity: identity)
+    }
+
+    public func markCurrentTrackAsInstrumental() {
+        guard let identity = currentTrackIdentity else { return }
+        lyricsSession.markAsInstrumental(identity: identity)
+        objectWillChange.send()
     }
 
     public func selectNoReadingVersion() { readingSession.selectNone() }

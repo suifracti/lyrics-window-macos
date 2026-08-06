@@ -1,6 +1,17 @@
 import AppKit
 import SwiftUI
 
+private struct DirectionDBackdropTreatmentKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var directionDBackdropTreatment: Bool {
+        get { self[DirectionDBackdropTreatmentKey.self] }
+        set { self[DirectionDBackdropTreatmentKey.self] = newValue }
+    }
+}
+
 struct TrackBackdropView: View {
     let track: Track
     let identity: TrackIdentity?
@@ -8,6 +19,7 @@ struct TrackBackdropView: View {
 
     @State private var currentPayload: BackdropPayload?
     @State private var outgoingPayload: BackdropPayload?
+    @Environment(\.directionDBackdropTreatment) private var directionDBackdropTreatment
 
     var body: some View {
         ZStack {
@@ -24,7 +36,9 @@ struct TrackBackdropView: View {
                     .transition(.opacity)
             }
 
-            Color.black.opacity(currentPayload?.palette.readabilityVeilOpacity ?? 0.36)
+            Color.black.opacity(directionDBackdropTreatment
+                ? min(0.70, max(0.26, (currentPayload?.palette.readabilityVeilOpacity ?? 0.36) * 0.82))
+                : (currentPayload?.palette.readabilityVeilOpacity ?? 0.36))
         }
         .ignoresSafeArea()
         .allowsHitTesting(false)
@@ -41,14 +55,26 @@ struct TrackBackdropView: View {
 
     private var neutralBackground: some View {
         let palette = BackdropPalette.neutral
-        return LinearGradient(
-            colors: [
-                color(palette.primary),
-                color(palette.secondary)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+        return ZStack {
+            LinearGradient(
+                colors: [
+                    color(palette.primary),
+                    color(palette.secondary),
+                    color(palette.glow).opacity(directionDBackdropTreatment ? 0.72 : 1)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            if directionDBackdropTreatment {
+                RadialGradient(
+                    colors: [color(palette.glow).opacity(0.34), .clear],
+                    center: UnitPoint(x: 0.18, y: 0.42),
+                    startRadius: 24,
+                    endRadius: 560
+                )
+            }
+        }
     }
 
     private func backdropLayers(for payload: BackdropPayload) -> some View {
@@ -57,19 +83,31 @@ struct TrackBackdropView: View {
             Image(nsImage: payload.image)
                 .resizable()
                 .scaledToFill()
-                .scaleEffect(1.34)
-                .blur(radius: 72)
-                .opacity(palette.textureOpacity)
+                .scaleEffect(directionDBackdropTreatment ? 1.24 : 1.34)
+                .blur(radius: directionDBackdropTreatment ? 48 : 72)
+                .opacity(directionDBackdropTreatment
+                    ? min(0.70, palette.textureOpacity + 0.22)
+                    : palette.textureOpacity)
+
+            if directionDBackdropTreatment {
+                Image(nsImage: payload.image)
+                    .resizable()
+                    .scaledToFill()
+                    .scaleEffect(1.12)
+                    .blur(radius: 22)
+                    .blendMode(.screen)
+                    .opacity(0.10)
+            }
 
             Rectangle()
                 .fill(.ultraThinMaterial)
-                .opacity(0.34)
+                .opacity(directionDBackdropTreatment ? 0.14 : 0.34)
 
             LinearGradient(
                 colors: [
-                    color(palette.primary).opacity(0.86),
-                    color(palette.secondary).opacity(0.94),
-                    color(palette.glow).opacity(0.64)
+                    color(palette.primary).opacity(directionDBackdropTreatment ? 0.62 : 0.86),
+                    color(palette.secondary).opacity(directionDBackdropTreatment ? 0.74 : 0.94),
+                    color(palette.glow).opacity(directionDBackdropTreatment ? 0.42 : 0.64)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -77,13 +115,31 @@ struct TrackBackdropView: View {
 
             RadialGradient(
                 colors: [
-                    color(palette.glow).opacity(0.36),
+                    color(palette.glow).opacity(directionDBackdropTreatment ? 0.48 : 0.36),
                     .clear
                 ],
-                center: .topTrailing,
+                center: directionDBackdropTreatment
+                    ? UnitPoint(x: 0.16, y: 0.44)
+                    : .topTrailing,
                 startRadius: 16,
                 endRadius: 560
             )
+
+            if directionDBackdropTreatment {
+                // One continuous canvas: the lyric side is quieter, not a
+                // second opaque panel.
+                LinearGradient(
+                    colors: [.clear, Color.black.opacity(0.10), Color.black.opacity(0.30)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                RadialGradient(
+                    colors: [.clear, Color.black.opacity(0.44)],
+                    center: .center,
+                    startRadius: 160,
+                    endRadius: 900
+                )
+            }
         }
         .clipped()
     }

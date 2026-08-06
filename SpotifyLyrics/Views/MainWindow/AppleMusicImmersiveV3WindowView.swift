@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 enum MainWindowResponsiveThresholds {
@@ -22,10 +23,11 @@ struct AppleMusicImmersiveV3WindowView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var isSearchPresented = false
+    @State private var isVisualTuningPresented = false
     // The canvas starts clean. Controls reveal only when the pointer reaches
     // the top edge, so playback remains content-first without sacrificing
     // access to search, layout, and settings.
-    @State private var toolsVisible = false
+    @State private var toolsVisible = true
     @State private var interactionToken = 0
     @State private var isAlignmentDetailsPresented = false
     @State private var isCurrentSongOperationsPresented = false
@@ -33,9 +35,13 @@ struct AppleMusicImmersiveV3WindowView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .topTrailing) {
+                let isInst = state.liveLyrics.first?.originalText.contains("纯音乐") == true
+                    || state.liveLyrics.first?.originalText.contains("没有填词") == true
                 AppleMusicImmersiveV3BackdropView(
                     track: state.currentTrack,
-                    identity: state.currentTrackIdentity
+                    identity: state.currentTrackIdentity,
+                    isInstrumental: isInst,
+                    settings: settings
                 )
 
                 layout(for: geometry)
@@ -43,20 +49,26 @@ struct AppleMusicImmersiveV3WindowView: View {
                 toolBar
                     .padding(.top, 18)
                     .padding(.trailing, 26)
-                    .opacity(toolsVisible ? 1 : 0)
-                    .allowsHitTesting(toolsVisible)
+                    .opacity(toolsVisible || isVisualTuningPresented ? 1 : 0)
+                    .allowsHitTesting(toolsVisible || isVisualTuningPresented)
                     .animation(
                         LyricsDesignTokens.Motion.animation(reduceMotion: reduceMotion),
-                        value: toolsVisible
+                        value: toolsVisible || isVisualTuningPresented
                     )
             }
             .contentShape(Rectangle())
             .onContinuousHover(coordinateSpace: .local) { phase in
                 switch phase {
-                case .active(let location) where location.y <= MainWindowResponsiveThresholds.toolbarRevealHeight:
-                    revealTools()
-                case .active(_), .ended:
-                    break
+                case .active(let location):
+                    if location.y <= MainWindowResponsiveThresholds.toolbarRevealHeight || isVisualTuningPresented {
+                        revealTools()
+                    } else if !isVisualTuningPresented {
+                        toolsVisible = false
+                    }
+                case .ended:
+                    if !isVisualTuningPresented {
+                        toolsVisible = false
+                    }
                 }
             }
             .task(id: interactionToken) {
@@ -156,33 +168,123 @@ struct AppleMusicImmersiveV3WindowView: View {
         let horizontalPadding = LyricsDesignTokens.Spacing.windowWide
         let verticalPadding = LyricsDesignTokens.Spacing.xl + LyricsDesignTokens.Spacing.sm
         let contentWidth = max(1, geometry.size.width - horizontalPadding * 2)
-        let leftWidth = contentWidth * 0.45
-        let rightWidth = contentWidth * 0.55
-        let coverSize = min(leftWidth * 0.84, geometry.size.height * 0.52)
+        let availableHeight = max(1, geometry.size.height - verticalPadding * 2)
 
-        return HStack(spacing: 0) {
-            trackColumn(
-                width: leftWidth,
-                availableHeight: geometry.size.height - verticalPadding * 2,
-                coverSize: coverSize,
-                alignment: .leading,
-                compact: false,
-                progressDensity: .wide
+        let position = settings.v3ArtworkPosition // "left", "center", "right"
+        let scale = min(1.4, max(0.8, settings.v3ArtworkSizeScale))
+
+        if position == "center" {
+            let baseSize = min(contentWidth * 0.38, availableHeight * 0.48)
+            let coverSize = max(180, baseSize * scale)
+
+            return AnyView(
+                VStack(alignment: .center, spacing: 14) {
+                    Spacer(minLength: 8)
+
+                    ArtworkView(
+                        track: state.currentTrack,
+                        size: coverSize,
+                        showsAlbumLabel: false,
+                        cornerRadiusRatio: 0.06
+                    )
+                    .shadow(color: Color.black.opacity(0.32), radius: 20, x: 0, y: 8)
+
+                    TrackMetadataView(
+                        track: state.currentTrack,
+                        titleSize: min(28, max(20, coverSize * 0.075)),
+                        alignment: .center
+                    )
+
+                    AppleMusicImmersiveV3TransportControls(
+                        state: state,
+                        alignment: .center,
+                        progressDensity: .wide,
+                        progressMaxWidth: min(420, contentWidth * 0.60)
+                    )
+
+                    Spacer(minLength: 8)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                .padding(.horizontal, horizontalPadding)
+                .padding(.vertical, verticalPadding)
             )
-            .frame(width: leftWidth)
+        }
+
+        let leftRatio = 0.45 * scale
+        let leftWidth = min(contentWidth * 0.7, max(contentWidth * 0.3, contentWidth * (leftRatio / (1.0 + leftRatio * 0.3))))
+        let rightWidth = max(1, contentWidth - leftWidth)
+        let baseCoverSize = min(leftWidth * 0.86, availableHeight * 0.58)
+        let coverSize = max(180, baseCoverSize * (scale / 1.1))
+
+        let trackCol = trackColumn(
+            width: leftWidth,
+            availableHeight: availableHeight,
+            coverSize: coverSize,
+            alignment: .leading,
+            compact: false,
+            progressDensity: .wide
+        )
+        .frame(width: leftWidth)
+        .frame(maxHeight: .infinity)
+
+        let lyricsCol = lyricsColumn(width: rightWidth, compact: false)
+            .frame(width: rightWidth)
             .frame(maxHeight: .infinity)
 
-            lyricsColumn(width: rightWidth, compact: false)
-                .frame(width: rightWidth)
-                .frame(maxHeight: .infinity)
-        }
-        .frame(
-            width: contentWidth,
-            height: max(1, geometry.size.height - verticalPadding * 2),
-            alignment: .center
+        return AnyView(
+            HStack(spacing: 0) {
+                if position == "right" {
+                    lyricsCol
+                    trackCol
+                } else {
+                    trackCol
+                    lyricsCol
+                }
+            }
+            .frame(width: contentWidth, height: availableHeight, alignment: .center)
+            .padding(.horizontal, horizontalPadding)
+            .padding(.vertical, verticalPadding)
         )
-        .padding(.horizontal, horizontalPadding)
-        .padding(.vertical, verticalPadding)
+    }
+
+    private func instrumentalPosterLayout(in geometry: GeometryProxy) -> some View {
+        let availableHeight = max(1, geometry.size.height - 60)
+        let coverSize = max(180, min(geometry.size.width * 0.38, availableHeight * 0.46)) * min(1.3, max(0.8, settings.v3ArtworkSizeScale))
+
+        return ScrollView(.vertical) {
+            VStack(alignment: .center, spacing: 14) {
+                ArtworkView(
+                    track: state.currentTrack,
+                    size: coverSize,
+                    showsAlbumLabel: false,
+                    cornerRadiusRatio: 0.06
+                )
+                .shadow(color: Color.black.opacity(0.32), radius: 20, x: 0, y: 8)
+
+                VStack(spacing: 4) {
+                    Text(state.currentTrack.title)
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+
+                    Text(state.currentTrack.artist)
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.72))
+                        .lineLimit(1)
+                }
+
+                AppleMusicImmersiveV3TransportControls(
+                    state: state,
+                    alignment: .center,
+                    progressDensity: .wide,
+                    progressMaxWidth: min(400, geometry.size.width * 0.60)
+                )
+            }
+            .padding(.vertical, 24)
+            .frame(maxWidth: .infinity, alignment: .center)
+        }
+        .scrollIndicators(.hidden)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func mediumLayout(in geometry: GeometryProxy) -> some View {
@@ -259,7 +361,7 @@ struct AppleMusicImmersiveV3WindowView: View {
                 track: state.currentTrack,
                 size: coverSize,
                 showsAlbumLabel: false,
-                cornerRadiusRatio: 0.04
+                cornerRadiusRatio: 0.06
             )
             .frame(maxWidth: width, alignment: alignment == .center ? .center : .leading)
 
@@ -308,11 +410,12 @@ struct AppleMusicImmersiveV3WindowView: View {
             lyricsFocus: lyricsFocus,
             onSearch: onSearch
         )
+        .environmentObject(settings)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var toolBar: some View {
-        HStack(spacing: LyricsDesignTokens.Spacing.xs) {
+        HStack(spacing: LyricsDesignTokens.Spacing.xs + 2) {
             windowModeMenu
             providerStatusMenu
             currentSongOperationsButton
@@ -320,7 +423,16 @@ struct AppleMusicImmersiveV3WindowView: View {
             layoutMenu
             preferencesButton
         }
-        .font(.system(size: 14, weight: .medium))
+        .font(.system(size: 13, weight: .medium))
+        .padding(.horizontal, 14)
+        .padding(.vertical, 7)
+        .background(.ultraThinMaterial)
+        .clipShape(Capsule())
+        .overlay(
+            Capsule()
+                .stroke(Color.white.opacity(0.22), lineWidth: 0.8)
+        )
+        .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 4)
         .foregroundStyle(.white.opacity(LyricsDesignTokens.Material.primaryTextOpacity))
     }
 
@@ -513,22 +625,17 @@ struct AppleMusicImmersiveV3WindowView: View {
     }
 
     private var layoutMenu: some View {
-        Menu {
-            Section("主窗口布局") {
-                ForEach(MainWindowLayoutStyle.allCases) { style in
-                    Button {
-                        layoutStyleRawValue = style.rawValue
-                    } label: {
-                        Label(style.title, systemImage: style.systemImage)
-                    }
-                }
-            }
+        Button {
+            isVisualTuningPresented.toggle()
         } label: {
-            iconLabel("rectangle.split.2x1", description: "主窗口布局")
+            iconLabel("slider.horizontal.3", description: "V3 视觉与布局调节")
         }
-        .menuStyle(.borderlessButton)
         .buttonStyle(.plain)
-        .accessibilityLabel("主窗口布局：Apple Music 沉浸 V3")
+        .popover(isPresented: $isVisualTuningPresented, arrowEdge: .top) {
+            V3VisualTuningPopoverView(layoutStyleRawValue: $layoutStyleRawValue)
+                .environmentObject(settings)
+        }
+        .accessibilityLabel("V3 视觉与布局调节")
     }
 
     private var preferencesButton: some View {
@@ -698,14 +805,24 @@ private struct AppleMusicImmersiveV3TransportControls: View {
     let progressMaxWidth: CGFloat?
 
     var body: some View {
-        VStack(alignment: alignment, spacing: LyricsDesignTokens.Spacing.sm + 1) {
+        VStack(alignment: alignment, spacing: 4) {
             AppleMusicImmersiveV3PlaybackProgress(
                 state: state,
                 density: progressDensity,
                 maxWidth: progressMaxWidth
             )
 
-            HStack(spacing: LyricsDesignTokens.Spacing.md + 2) {
+            HStack {
+                Text(formatTime(state.currentTime))
+                Spacer()
+                Text(formatTime(state.currentTrack.duration))
+            }
+            .font(.system(size: 11, weight: .medium, design: .rounded).monospacedDigit())
+            .foregroundStyle(.white.opacity(0.68))
+            .frame(maxWidth: progressMaxWidth ?? .infinity)
+            .padding(.horizontal, 2)
+
+            HStack(spacing: LyricsDesignTokens.Spacing.md + 4) {
                 v3TransportButton("backward.fill", label: "上一首", enabled: state.canControlSpotify) {
                     state.previousTrack()
                 }
@@ -717,8 +834,12 @@ private struct AppleMusicImmersiveV3TransportControls: View {
                         .font(.system(size: 22, weight: .semibold))
                         .foregroundStyle(.white)
                         .frame(width: 44, height: 44)
+                        .background(
+                            Circle()
+                                .fill(Color.white.opacity(0.16))
+                        )
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(V3BounceButtonStyle())
                 .disabled(!state.canInteractWithPlayback)
                 .opacity(state.canInteractWithPlayback ? 1 : 0.42)
                 .accessibilityLabel(state.isPlaying ? "暂停" : "播放")
@@ -726,12 +847,8 @@ private struct AppleMusicImmersiveV3TransportControls: View {
                 v3TransportButton("forward.fill", label: "下一首", enabled: state.canControlSpotify) {
                     state.nextTrack()
                 }
-
-                Text("\(formatTime(state.currentTime)) / \(formatTime(state.currentTrack.duration))")
-                    .font(.system(size: 12, weight: .medium, design: .rounded).monospacedDigit())
-                    .foregroundStyle(.white.opacity(LyricsDesignTokens.Material.secondaryTextOpacity))
-                    .padding(.leading, 4)
             }
+            .padding(.top, 4)
         }
         .frame(maxWidth: .infinity, alignment: alignment == .center ? .center : .leading)
     }
@@ -744,13 +861,13 @@ private struct AppleMusicImmersiveV3TransportControls: View {
     ) -> some View {
         Button(action: action) {
             Image(systemName: systemImage)
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 40, height: 40)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(.white.opacity(enabled ? 0.90 : 0.35))
+                .frame(width: 36, height: 36)
+                .contentShape(Circle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(V3BounceButtonStyle())
         .disabled(!enabled)
-        .opacity(enabled ? 1 : 0.4)
         .accessibilityLabel(label)
     }
 
@@ -758,6 +875,15 @@ private struct AppleMusicImmersiveV3TransportControls: View {
         let minutes = Int(seconds) / 60
         let remainder = Int(seconds) % 60
         return String(format: "%02d:%02d", minutes, remainder)
+    }
+}
+
+struct V3BounceButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.84 : 1.0)
+            .opacity(configuration.isPressed ? 0.72 : 1.0)
+            .animation(.spring(response: 0.22, dampingFraction: 0.65), value: configuration.isPressed)
     }
 }
 
@@ -820,8 +946,13 @@ private struct AppleMusicImmersiveV3LyricProgressStatus: View {
 
     let mode: Mode
     let currentIndex: Int?
+    var isInstrumental: Bool = false
+    var pureImmersion: Bool = false
 
     private var title: String {
+        if isInstrumental {
+            return pureImmersion ? "纯音乐 · 极简通透沉浸" : "纯音乐"
+        }
         switch mode {
         case .synchronized:
             return currentIndex == nil ? "同步歌词 · 前奏" : "同步歌词"
@@ -831,6 +962,7 @@ private struct AppleMusicImmersiveV3LyricProgressStatus: View {
     }
 
     private var icon: String {
+        if isInstrumental { return "music.note" }
         switch mode {
         case .synchronized: return "waveform"
         case .plainText: return "text.alignleft"
@@ -841,9 +973,11 @@ private struct AppleMusicImmersiveV3LyricProgressStatus: View {
         Label(title, systemImage: icon)
             .font(.system(size: 11, weight: .medium, design: .rounded))
             .foregroundStyle(.white.opacity(
-                mode == .synchronized
-                    ? LyricsDesignTokens.Material.secondaryTextOpacity
-                    : LyricsDesignTokens.Material.mutedTextOpacity
+                isInstrumental
+                    ? 0.75
+                    : (mode == .synchronized
+                        ? LyricsDesignTokens.Material.secondaryTextOpacity
+                        : LyricsDesignTokens.Material.mutedTextOpacity)
             ))
             .accessibilityLabel(title)
     }
@@ -855,14 +989,19 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
     let compact: Bool
     let lyricsFocus: Bool
     let onSearch: (() -> Void)?
+    @EnvironmentObject private var settings: AppSettingsStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(alignment: .leading, spacing: LyricsDesignTokens.Spacing.xs) {
             if !state.liveLyrics.isEmpty {
+                let isInst = state.liveLyrics.first?.originalText.contains("纯音乐") == true
+                    || state.liveLyrics.first?.originalText.contains("没有填词") == true
                 AppleMusicImmersiveV3LyricProgressStatus(
                     mode: state.liveLyricsAreSynchronized ? .synchronized : .plainText,
-                    currentIndex: state.liveLyricsAreSynchronized ? state.liveCurrentLineIndex : nil
+                    currentIndex: state.liveLyricsAreSynchronized ? state.liveCurrentLineIndex : nil,
+                    isInstrumental: isInst,
+                    pureImmersion: settings.v3InstrumentalPureImmersion
                 )
                 .padding(.leading, 2)
             }
@@ -1014,6 +1153,7 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
             preferences: state.preferences,
             language: state.liveLyricsLanguage
         )
+        .environmentObject(settings)
         if let timestamp = LyricsTimeline.validSeekTimestamp(
             for: line,
             isSynchronized: synchronized,
@@ -1050,6 +1190,36 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
     }
 }
 
+/// Reading generation is a fallback for provider lines that do not carry a
+/// kana layer. Keep it outside the SwiftUI body so a row redraw does not run
+/// MeCab repeatedly, which otherwise makes lyric scrolling feel sticky.
+private enum V3JapaneseReadingCache {
+    private static let lock = NSLock()
+    private static var values: [String: JapaneseReadingResult] = [:]
+
+    static func reading(for text: String) -> JapaneseReadingResult? {
+        let key = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !key.isEmpty else { return nil }
+
+        lock.lock()
+        if let cached = values[key] {
+            lock.unlock()
+            return cached
+        }
+        lock.unlock()
+
+        let result = JapaneseReadingPipeline.analyze(originalText: key)
+
+        lock.lock()
+        values[key] = result
+        if values.count > 256, let oldestKey = values.keys.first {
+            values.removeValue(forKey: oldestKey)
+        }
+        lock.unlock()
+        return result
+    }
+}
+
 private struct AppleMusicImmersiveV3LyricRow: View {
     let line: LyricLine
     let isActive: Bool
@@ -1059,6 +1229,7 @@ private struct AppleMusicImmersiveV3LyricRow: View {
     let compact: Bool
     let preferences: DisplayPreferences
     let language: String?
+    @EnvironmentObject private var settings: AppSettingsStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var layerCount: Int {
@@ -1103,16 +1274,37 @@ private struct AppleMusicImmersiveV3LyricRow: View {
 
     private var shouldShowKana: Bool {
         guard preferences.kanaDisplayMode != .hidden,
-              line.kanaText?.isEmpty == false else { return false }
+              displayKanaText?.isEmpty == false else { return false }
         guard isSynchronized else { return true }
         return distance <= 1
+    }
+
+    private var storedKanaText: String? {
+        guard let kana = line.kanaText?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !kana.isEmpty else {
+            return nil
+        }
+        return JapaneseRomanizer.displayKana(kana)
+    }
+
+    private var automaticReading: JapaneseReadingResult? {
+        guard effectiveOriginalText.count > 2,
+              effectiveOriginalText.unicodeScalars.contains(where: { scalar in
+                  let value = scalar.value
+                  return (0x3400...0x4DBF).contains(value)
+                      || (0x4E00...0x9FFF).contains(value)
+                      || (0xF900...0xFAFF).contains(value)
+              }) else {
+            return nil
+        }
+        return V3JapaneseReadingCache.reading(for: effectiveOriginalText)
     }
 
     private var displayKanaText: String? {
         guard LyricsLanguageGate.allowsJapaneseReadings(language: language, text: effectiveOriginalText) else {
             return nil
         }
-        return line.kanaText.map(JapaneseRomanizer.displayKana)
+        return storedKanaText ?? automaticReading?.kanaText
     }
 
     private var effectiveOriginalText: String {
@@ -1124,15 +1316,32 @@ private struct AppleMusicImmersiveV3LyricRow: View {
         return representation.hasPrefix("readingRepresentation.pinyin")
     }
 
-    /// Keep a confirmed token mapping when one exists. For older lyric data
-    /// without token-level readings, `RubyLineView` receives nil and safely
-    /// falls back to a word-level annotation instead of dropping kana.
-    private var inlineRubyTokens: [LyricRubyToken]? {
+    private var reliableRubyTokens: [LyricRubyToken]? {
         guard let tokens = line.rubyTokens,
               tokens.contains(where: { $0.hasDisplayRuby }) else {
             return nil
         }
         return tokens
+    }
+
+    private var providerRubyTokens: [LyricRubyToken]? {
+        guard let kana = storedKanaText else { return nil }
+        let reading = JapaneseReadingPipeline.analyze(
+            originalText: effectiveOriginalText,
+            providerKana: kana
+        )
+        let tokens = reading.tokens.flatMap { JapaneseReadingPipeline.rubyTokens(for: $0) }
+        return tokens.contains(where: { $0.hasDisplayRuby }) ? tokens : nil
+    }
+
+    private var automaticRubyTokens: [LyricRubyToken]? {
+        guard let reading = automaticReading else { return nil }
+        let tokens = reading.tokens.flatMap { JapaneseReadingPipeline.rubyTokens(for: $0) }
+        return tokens.contains(where: { $0.hasDisplayRuby }) ? tokens : nil
+    }
+
+    private var inlineRubyTokens: [LyricRubyToken]? {
+        reliableRubyTokens ?? providerRubyTokens ?? automaticRubyTokens
     }
 
     private var shouldRenderInlineRuby: Bool {
@@ -1241,9 +1450,30 @@ private struct AppleMusicImmersiveV3LyricRow: View {
         LyricsTransitionPolicy.animation(reduceMotion: reduceMotion)
     }
 
+    private var isInstrumentalLine: Bool {
+        effectiveOriginalText.contains("纯音乐") || effectiveOriginalText.contains("没有填词")
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if shouldRenderInlineRuby,
+            if isInstrumentalLine {
+                HStack(spacing: 8) {
+                    Image(systemName: "music.note")
+                        .font(.system(size: 14, weight: .medium))
+                    Text("纯音乐 · 请您欣赏")
+                        .font(.system(size: 15, weight: .medium, design: .rounded))
+                }
+                .foregroundStyle(.white.opacity(0.88))
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(.ultraThinMaterial)
+                .clipShape(Capsule())
+                .overlay(
+                    Capsule()
+                        .stroke(Color.white.opacity(0.20), lineWidth: 0.8)
+                )
+                .shadow(color: Color.black.opacity(0.2), radius: 8, x: 0, y: 3)
+            } else if shouldRenderInlineRuby,
                let kana = displayKanaText {
                 RubyLineView(
                     originalText: effectiveOriginalText,
@@ -1261,7 +1491,7 @@ private struct AppleMusicImmersiveV3LyricRow: View {
                 KanaReplacementLineView(
                     originalText: effectiveOriginalText,
                     kanaText: kana,
-                    tokens: line.rubyTokens,
+                    tokens: inlineRubyTokens,
                     showsOriginalAnnotation: true,
                     baseFont: .system(size: baseSize, weight: rowWeight, design: .rounded),
                     annotationFont: .system(size: rubySize, weight: .regular, design: .rounded),
@@ -1317,5 +1547,135 @@ private struct AppleMusicImmersiveV3LyricRow: View {
             transitionAnimation,
             value: layoutSignature
         )
+    }
+}
+
+private struct V3VisualTuningPopoverView: View {
+    @EnvironmentObject private var settings: AppSettingsStore
+    @Binding var layoutStyleRawValue: String
+
+    private var blurPresetName: String {
+        let r = settings.v3BackdropBlurRadius
+        if r <= 18 { return "超清" }
+        if r <= 36 { return "标准" }
+        if r <= 60 { return "中度" }
+        return "深幻"
+    }
+
+    private var sizePresetName: String {
+        let s = settings.v3ArtworkSizeScale
+        if s <= 0.90 { return "精巧" }
+        if s <= 1.10 { return "标准" }
+        if s <= 1.30 { return "大图" }
+        return "巨幕"
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("V3 视觉与布局调节调参面板")
+                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .foregroundStyle(.primary)
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("背景高斯模糊度")
+                        .font(.system(size: 12, weight: .medium))
+                    Spacer()
+                    Text("\(blurPresetName) · \(Int(settings.v3BackdropBlurRadius)) pt")
+                        .font(.system(size: 11, weight: .bold).monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+                Slider(value: $settings.v3BackdropBlurRadius, in: 5...100, step: 1)
+
+                HStack(spacing: 0) {
+                    blurPresetButton("超清 12pt", val: 12)
+                    Spacer()
+                    blurPresetButton("标准 28pt", val: 28)
+                    Spacer()
+                    blurPresetButton("中度 45pt", val: 45)
+                    Spacer()
+                    blurPresetButton("深幻 75pt", val: 75)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("封面显示尺寸")
+                        .font(.system(size: 12, weight: .medium))
+                    Spacer()
+                    Text("\(sizePresetName) · \(Int(settings.v3ArtworkSizeScale * 100))%")
+                        .font(.system(size: 11, weight: .bold).monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+                Slider(value: $settings.v3ArtworkSizeScale, in: 0.8...1.4, step: 0.05)
+
+                HStack(spacing: 0) {
+                    sizePresetButton("精巧 80%", val: 0.80)
+                    Spacer()
+                    sizePresetButton("标准 100%", val: 1.00)
+                    Spacer()
+                    sizePresetButton("大图 120%", val: 1.20)
+                    Spacer()
+                    sizePresetButton("巨幕 140%", val: 1.40)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 5) {
+                Text("封面排布位置")
+                    .font(.system(size: 12, weight: .medium))
+                Picker("", selection: $settings.v3ArtworkPosition) {
+                    Text("居左 (分栏)").tag("left")
+                    Text("居中 (中置)").tag("center")
+                    Text("居右 (右侧)").tag("right")
+                }
+                .pickerStyle(.segmented)
+            }
+
+            Toggle("纯音乐极简通透沉浸", isOn: $settings.v3InstrumentalPureImmersion)
+                .font(.system(size: 12, weight: .medium))
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 5) {
+                Text("切换主窗口布局")
+                    .font(.system(size: 12, weight: .medium))
+                Picker("", selection: $layoutStyleRawValue) {
+                    ForEach(MainWindowLayoutStyle.allCases) { style in
+                        Text(style.title).tag(style.rawValue)
+                    }
+                }
+                .pickerStyle(.menu)
+            }
+        }
+        .padding(14)
+        .frame(width: 275)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.white.opacity(0.18), lineWidth: 0.8)
+        )
+    }
+
+    @ViewBuilder
+    private func blurPresetButton(_ title: String, val: Double) -> some View {
+        Button(title) {
+            settings.v3BackdropBlurRadius = val
+        }
+        .buttonStyle(.plain)
+        .font(.system(size: 10, weight: abs(settings.v3BackdropBlurRadius - val) < 5 ? .bold : .regular))
+        .foregroundStyle(abs(settings.v3BackdropBlurRadius - val) < 5 ? Color.blue : Color.secondary)
+    }
+
+    @ViewBuilder
+    private func sizePresetButton(_ title: String, val: Double) -> some View {
+        Button(title) {
+            settings.v3ArtworkSizeScale = val
+        }
+        .buttonStyle(.plain)
+        .font(.system(size: 10, weight: abs(settings.v3ArtworkSizeScale - val) < 0.04 ? .bold : .regular))
+        .foregroundStyle(abs(settings.v3ArtworkSizeScale - val) < 0.04 ? Color.blue : Color.secondary)
     }
 }

@@ -176,6 +176,21 @@
 		110000F92D83400100000001 /* SettingsCenterPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000F92D83400100000000 /* SettingsCenterPresentation.swift */; };
 		110000FA2D83400100000001 /* CurrentSongOperationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000FA2D83400100000000 /* CurrentSongOperationState.swift */; };
 		110000FB2D83400100000001 /* CurrentSongOperationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000FB2D83400100000000 /* CurrentSongOperationsView.swift */; };
+		110002002D83400100000001 /* DirectionDDesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110002002D83400100000000 /* DirectionDDesignTokens.swift */; };
+		110002012D83400100000001 /* DirectionDLyricsPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110002012D83400100000000 /* DirectionDLyricsPolicy.swift */; };
+		110002022D83400100000001 /* DirectionDUserTaskBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110002022D83400100000000 /* DirectionDUserTaskBadge.swift */; };
+		110002032D83400100000001 /* DirectionDSongWorkbenchButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110002032D83400100000000 /* DirectionDSongWorkbenchButton.swift */; };
+		110002042D83400100000001 /* DirectionDLyricRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110002042D83400100000000 /* DirectionDLyricRowView.swift */; };
+		110002052D83400100000001 /* DirectionDInspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110002052D83400100000000 /* DirectionDInspectorView.swift */; };
+		110002062D83400100000001 /* DirectionDSettingsSectionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110002062D83400100000000 /* DirectionDSettingsSectionGate.swift */; };
+		110002072D83400100000001 /* DirectionDPreviewMatrixView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110002072D83400100000000 /* DirectionDPreviewMatrixView.swift */; };
+		110003002D83400100000001 /* DirectionDProductStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110003002D83400100000000 /* DirectionDProductStateModel.swift */; };
+		110003012D83400100000001 /* DirectionDProductStateAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110003012D83400100000000 /* DirectionDProductStateAdapter.swift */; };
+		110003022D83400100000001 /* DirectionDActionRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110003022D83400100000000 /* DirectionDActionRouter.swift */; };
+		110003032D83400100000001 /* DirectionDProductStateHostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110003032D83400100000000 /* DirectionDProductStateHostView.swift */; };
+		110003042D83400100000001 /* DirectionDExperimentalProductHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110003042D83400100000000 /* DirectionDExperimentalProductHost.swift */; };
+		110004002D83400100000001 /* DirectionDResponsiveLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110004002D83400100000000 /* DirectionDResponsiveLayout.swift */; };
+		110004012D83400100000001 /* DirectionDMainWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110004012D83400100000000 /* DirectionDMainWindowView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -352,6 +367,21 @@
 		110000F92D83400100000000 /* SettingsCenterPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsCenterPresentation.swift; sourceTree = "<group>"; };
 		110000FA2D83400100000000 /* CurrentSongOperationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentSongOperationState.swift; sourceTree = "<group>"; };
 		110000FB2D83400100000000 /* CurrentSongOperationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentSongOperationsView.swift; sourceTree = "<group>"; };
+		110002002D83400100000000 /* DirectionDDesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Design/DirectionD/DirectionDDesignTokens.swift; sourceTree = "<group>"; };
+		110002012D83400100000000 /* DirectionDLyricsPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Design/DirectionD/DirectionDLyricsPolicy.swift; sourceTree = "<group>"; };
+		110002022D83400100000000 /* DirectionDUserTaskBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Components/DirectionD/DirectionDUserTaskBadge.swift; sourceTree = "<group>"; };
+		110002032D83400100000000 /* DirectionDSongWorkbenchButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Components/DirectionD/DirectionDSongWorkbenchButton.swift; sourceTree = "<group>"; };
+		110002042D83400100000000 /* DirectionDLyricRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Components/DirectionD/DirectionDLyricRowView.swift; sourceTree = "<group>"; };
+		110002052D83400100000000 /* DirectionDInspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Components/DirectionD/DirectionDInspectorView.swift; sourceTree = "<group>"; };
+		110002062D83400100000000 /* DirectionDSettingsSectionGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Components/DirectionD/DirectionDSettingsSectionGate.swift; sourceTree = "<group>"; };
+		110002072D83400100000000 /* DirectionDPreviewMatrixView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Debug/DirectionDPreviewMatrixView.swift; sourceTree = "<group>"; };
+		110003002D83400100000000 /* DirectionDProductStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Design/DirectionD/DirectionDProductStateModel.swift; sourceTree = "<group>"; };
+		110003012D83400100000000 /* DirectionDProductStateAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Design/DirectionD/DirectionDProductStateAdapter.swift; sourceTree = "<group>"; };
+		110003022D83400100000000 /* DirectionDActionRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Design/DirectionD/DirectionDActionRouter.swift; sourceTree = "<group>"; };
+		110003032D83400100000000 /* DirectionDProductStateHostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Components/DirectionD/DirectionDProductStateHostView.swift; sourceTree = "<group>"; };
+		110003042D83400100000000 /* DirectionDExperimentalProductHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Components/DirectionD/DirectionDExperimentalProductHost.swift; sourceTree = "<group>"; };
+		110004002D83400100000000 /* DirectionDResponsiveLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Design/DirectionD/DirectionDResponsiveLayout.swift; sourceTree = "<group>"; };
+		110004012D83400100000000 /* DirectionDMainWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Components/DirectionD/DirectionDMainWindowView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -380,6 +410,21 @@
 				110000052D83400100000000 /* WindowManager.swift */,
 				110000852D83400100000000 /* FullScreenLyricsWindowController.swift */,
 				110000062D83400100000000 /* LyricsViews.swift */,
+				110004002D83400100000000 /* DirectionDResponsiveLayout.swift */,
+				110004012D83400100000000 /* DirectionDMainWindowView.swift */,
+				110003002D83400100000000 /* DirectionDProductStateModel.swift */,
+				110003012D83400100000000 /* DirectionDProductStateAdapter.swift */,
+				110003022D83400100000000 /* DirectionDActionRouter.swift */,
+				110003032D83400100000000 /* DirectionDProductStateHostView.swift */,
+				110003042D83400100000000 /* DirectionDExperimentalProductHost.swift */,
+				110002002D83400100000000 /* DirectionDDesignTokens.swift */,
+				110002012D83400100000000 /* DirectionDLyricsPolicy.swift */,
+				110002022D83400100000000 /* DirectionDUserTaskBadge.swift */,
+				110002032D83400100000000 /* DirectionDSongWorkbenchButton.swift */,
+				110002042D83400100000000 /* DirectionDLyricRowView.swift */,
+				110002052D83400100000000 /* DirectionDInspectorView.swift */,
+				110002062D83400100000000 /* DirectionDSettingsSectionGate.swift */,
+				110002072D83400100000000 /* DirectionDPreviewMatrixView.swift */,
 				110000732D83400100000000 /* FloatingLyricsPresentation.swift */,
 				110000742D83400100000000 /* FloatingLyricsStatusView.swift */,
 				110000752D83400100000000 /* FloatingLyricsView.swift */,
@@ -741,6 +786,21 @@
 				110000042D83400100000001 /* PlaybackState.swift in Sources */,
 				110000052D83400100000001 /* WindowManager.swift in Sources */,
 				110000062D83400100000001 /* LyricsViews.swift in Sources */,
+				110004002D83400100000001 /* DirectionDResponsiveLayout.swift in Sources */,
+				110004012D83400100000001 /* DirectionDMainWindowView.swift in Sources */,
+				110003002D83400100000001 /* DirectionDProductStateModel.swift in Sources */,
+				110003012D83400100000001 /* DirectionDProductStateAdapter.swift in Sources */,
+				110003022D83400100000001 /* DirectionDActionRouter.swift in Sources */,
+				110003032D83400100000001 /* DirectionDProductStateHostView.swift in Sources */,
+				110003042D83400100000001 /* DirectionDExperimentalProductHost.swift in Sources */,
+				110002002D83400100000001 /* DirectionDDesignTokens.swift in Sources */,
+				110002012D83400100000001 /* DirectionDLyricsPolicy.swift in Sources */,
+				110002022D83400100000001 /* DirectionDUserTaskBadge.swift in Sources */,
+				110002032D83400100000001 /* DirectionDSongWorkbenchButton.swift in Sources */,
+				110002042D83400100000001 /* DirectionDLyricRowView.swift in Sources */,
+				110002052D83400100000001 /* DirectionDInspectorView.swift in Sources */,
+				110002062D83400100000001 /* DirectionDSettingsSectionGate.swift in Sources */,
+				110002072D83400100000001 /* DirectionDPreviewMatrixView.swift in Sources */,
 				110000072D83400100000001 /* MainLyricsWindowView.swift in Sources */,
 				110000082D83400100000001 /* LyricsCanvasView.swift in Sources */,
 				110001092D83400100000001 /* AssistExplainSheet.swift in Sources */,

@@ -203,6 +203,7 @@ public struct PresentationCatalog: Sendable {
         entry("mainWindow.lyricsFocus.v1", "歌词专注", .mainWindow, "1", .classic, .release, true, true, "保持文字层级；Reduce Motion 下不依赖位移动画。", [.mainWindow, .preview]),
         entry("mainWindow.immersiveSplit.v2", "沉浸分栏（旧）", .mainWindow, "2", .classic, .release, true, true, "旧分栏路径保留；不作为新视觉默认。", [.mainWindow, .preview]),
         entry("mainWindow.appleMusicImmersiveV3.v3", "Apple Music 沉浸 V3", .mainWindow, "3", .recommended, .release, true, true, "歌词前景必须保持可读；支持 Reduce Transparency 与 Increase Contrast。", [.mainWindow, .preview]),
+        entry("mainWindow.directionD.v4", "Direction D V4", .mainWindow, "4", .experimental, .release, true, true, "新的 Direction D 主窗口；使用共享实时播放和歌词投影。V3 仍为默认。", [.mainWindow, .preview]),
 
         entry("fullscreen.borderlessPanel.v1", "无边框全屏歌词", .fullscreen, "1", .current, .release, true, true, "支持键盘退出和高对比文字；不依赖额外计时器。", [.fullscreen, .preview]),
 
@@ -239,7 +240,16 @@ public struct PresentationCatalog: Sendable {
         entry("responsiveLayout.wide.v1", "宽窗口", .responsiveLayout, "1", .current, .release, true, true, "完整显示主要内容和控制。", [.mainWindow, .preview]),
         entry("responsiveLayout.medium.v1", "中等窗口", .responsiveLayout, "1", .current, .release, true, true, "缩小非核心区域，保留阅读节奏。", [.mainWindow, .preview]),
         entry("responsiveLayout.small.v1", "小窗口", .responsiveLayout, "1", .current, .release, true, true, "限制进度和辅助层宽度，避免横向撑满。", [.mainWindow, .preview]),
-        entry("responsiveLayout.lyricsFocus.v1", "歌词专注布局", .responsiveLayout, "1", .current, .release, true, true, "优先保留当前歌词和必要上下文，不改变用户布局选择。", [.mainWindow, .preview])
+        entry("responsiveLayout.lyricsFocus.v1", "歌词专注布局", .responsiveLayout, "1", .current, .release, true, true, "优先保留当前歌词和必要上下文，不改变用户布局选择。", [.mainWindow, .preview]),
+
+        // Historical Direction D identities remain in the catalog so an old
+        // persisted/debug reference is diagnosable, but they are not separate
+        // user-selectable releases.  The formal selectable surface is the
+        // single independent V4 identity above.
+        entry("mainWindow.directionDQuiet.v1", "方向 D 安静伴侣（历史）", .mainWindow, "1", .archived, .archived, false, false, "历史设计身份；请使用 Direction D V4。", [.mainWindow, .preview]),
+        entry("mainWindow.directionDWorkbenchInspector.v1", "方向 D 工作台 Inspector（历史）", .mainWindow, "1", .archived, .archived, false, false, "历史设计身份；请使用 Direction D V4。", [.mainWindow, .preview]),
+        entry("lyricsStatePresentation.directionDUserLanguage.v1", "方向 D 用户任务语言状态（历史）", .lyricsState, "1", .archived, .archived, false, false, "历史状态身份；不作为独立运行时版本。", [.mainWindow, .fullscreen, .floatingLyrics, .capsule, .preview]),
+        entry("responsiveLayout.directionDInspector.v1", "方向 D 响应式 Inspector 布局（历史）", .responsiveLayout, "1", .archived, .archived, false, false, "历史布局身份；不作为独立运行时版本。", [.mainWindow, .preview])
     ]
 
     private static func entry(

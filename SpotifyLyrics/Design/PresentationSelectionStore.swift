@@ -231,6 +231,7 @@ public final class PresentationSelectionStore: ObservableObject {
             case "lyricsFocus": stableID = "mainWindow.lyricsFocus.v1"
             case "immersiveSplit": stableID = "mainWindow.immersiveSplit.v2"
             case "appleMusicImmersiveV3": stableID = "mainWindow.appleMusicImmersiveV3.v3"
+            case "directionD": stableID = "mainWindow.directionD.v4"
             default: stableID = catalog.metadata(for: legacy)?.stableID
             }
             if let stableID { next[PresentationCategory.mainWindow.rawValue] = stableID }

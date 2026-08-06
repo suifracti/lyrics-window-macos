@@ -6,6 +6,14 @@ struct SpotifyLyricsApp: App {
     @StateObject private var appSettings: AppSettingsStore
     @StateObject private var playbackState: PlaybackState
     @StateObject private var settingsData: SettingsDataController
+    /// Shared projection adapter used by the formal Direction D V4 main
+    /// window and the DEBUG acceptance host. It does not own playback or a
+    /// second lyric session.
+    @StateObject private var directionDMainWindowAdapter: DirectionDProductStateAdapter
+#if DEBUG
+    @NSApplicationDelegateAdaptor(DirectionDMainWindowDebugDelegate.self)
+    private var directionDMainWindowDebugDelegate
+#endif
 
     init() {
 #if DEBUG
@@ -18,6 +26,14 @@ struct SpotifyLyricsApp: App {
         _appSettings = StateObject(wrappedValue: settings)
         _playbackState = StateObject(wrappedValue: PlaybackState(settings: settings))
         _settingsData = StateObject(wrappedValue: SettingsDataController())
+        _directionDMainWindowAdapter = StateObject(wrappedValue: DirectionDProductStateAdapter())
+#if DEBUG
+        DirectionDMainWindowDebugDelegate.configure(
+            playbackState: playbackState,
+            adapter: directionDMainWindowAdapter,
+            router: DirectionDExperimentalProductHost.makeRouter(playback: playbackState)
+        )
+#endif
     }
 
     var body: some Scene {
@@ -25,6 +41,7 @@ struct SpotifyLyricsApp: App {
             MainLyricsWindowView()
                 .environmentObject(playbackState)
                 .environmentObject(appSettings)
+                .environmentObject(directionDMainWindowAdapter)
                 .onAppear {
                     // Product path: zero-operation automatic alignment observes playback.
                     AutomaticAlignmentJobController.shared.bind(playback: playbackState)
@@ -44,6 +61,9 @@ struct SpotifyLyricsApp: App {
                     _ = SpotifyScreenCaptureAudioSpike.shared
 #endif
                 }
+#if DEBUG
+                .background(DirectionDMatrixLaunchHook())
+#endif
         }
         .defaultSize(width: 1152, height: 720)
         .windowStyle(.hiddenTitleBar)
@@ -57,12 +77,42 @@ struct SpotifyLyricsApp: App {
         .defaultSize(width: 1100, height: 720)
 
 #if DEBUG
+        // Real Direction D main-window entry.  The root view is the formal
+        // DirectionDMainWindowView, not the Phase 3.3 product-state host or
+        // Preview Matrix.  It is debug-reachable and remains experimental.
+        Window("Lyric Island", id: "direction-d-main-window") {
+            DirectionDMainWindowPresentationFactory.makeMainWindow(
+                stableID: "mainWindow.directionD.v4",
+                playbackState: playbackState,
+                adapter: directionDMainWindowAdapter,
+                router: DirectionDExperimentalProductHost.makeRouter(playback: playbackState)
+            )
+            .background(DirectionDMainWindowWindowIdentifier())
+            .environmentObject(playbackState)
+            .environmentObject(appSettings)
+        }
+        .defaultSize(width: 1_200, height: 760)
+
         Window("Presentation Preview Lab", id: "presentation-preview-lab") {
             PresentationPreviewLabView()
                 .environmentObject(playbackState)
                 .environmentObject(appSettings)
         }
         .defaultSize(width: 1_060, height: 680)
+
+        // Design-system matrix only — no formal DB / no Spotify / no providers required.
+        Window("Direction D Preview Matrix", id: "direction-d-preview-matrix") {
+            DirectionDPreviewMatrixView()
+        }
+        .defaultSize(width: 1_040, height: 720)
+
+        // Experimental product host — real PlaybackState + Adapter (not default main window).
+        Window("Direction D Experimental Host", id: "direction-d-experimental-host") {
+            DirectionDExperimentalProductHost()
+                .environmentObject(playbackState)
+                .environmentObject(appSettings)
+        }
+        .defaultSize(width: 1_100, height: 720)
 #endif
 
         Settings {
@@ -206,7 +256,163 @@ private struct PresentationPreviewCommands: Commands {
                 openWindow(id: "presentation-preview-lab")
             }
             .keyboardShortcut("p", modifiers: [.command, .option])
+            Button("打开 Direction D 矩阵") {
+                openWindow(id: "direction-d-preview-matrix")
+            }
+            .keyboardShortcut("d", modifiers: [.command, .option])
+            Button("打开 Direction D Experimental Host") {
+                openWindow(id: "direction-d-experimental-host")
+            }
+            .keyboardShortcut("e", modifiers: [.command, .option])
         }
+    }
+}
+
+/// Opens Direction D matrix when launched with `--debug-direction-d-matrix` (TEMP DB only).
+private struct DirectionDMatrixLaunchHook: View {
+    @Environment(\.openWindow) private var openWindow
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .onAppear {
+                let args = ProcessInfo.processInfo.arguments
+                if args.contains("--debug-direction-d-main-window") {
+                    // The DEBUG delegate below owns the isolated visual host
+                    // for this argument. Do not also open the SwiftUI Window
+                    // scene: two same-title hosts race their frame fitting
+                    // and make the evidence window collapse to a status view.
+                    return
+                }
+                if args.contains("--debug-direction-d-experimental-host") {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                        openWindow(id: "direction-d-experimental-host")
+                    }
+                    return
+                }
+                guard args.contains("--debug-direction-d-matrix") else { return }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                    openWindow(id: "direction-d-preview-matrix")
+                }
+            }
+    }
+}
+
+/// DEBUG-only window identification aid for isolated CGWindow captures.
+/// It changes no product state and is not present in Release builds.
+private struct DirectionDMainWindowWindowIdentifier: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView { NSView(frame: .zero) }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        DispatchQueue.main.async {
+            guard let window = nsView.window else { return }
+            window.title = "Lyric Island"
+            window.identifier = NSUserInterfaceItemIdentifier("direction-d-main-window")
+        }
+    }
+}
+
+/// Direct-executable fallback for isolated Debug acceptance runs.
+///
+/// A SwiftUI `Window` scene is still the normal Debug entry point.  Some
+/// macOS launches from an absolute executable do not instantiate a
+/// `WindowGroup` until the app receives an external reopen event, which makes
+/// window-only evidence impossible to capture.  This DEBUG-only delegate
+/// presents the same injected DirectionDMainWindowView without creating a
+/// second business state owner or a WindowController.  It is activated only
+/// by `--debug-direction-d-main-window` and never exists in Release.
+@MainActor
+private final class DirectionDMainWindowDebugDelegate: NSObject, NSApplicationDelegate {
+    private static var configuredPlaybackState: PlaybackState?
+    private static var configuredAdapter: DirectionDProductStateAdapter?
+    private static var configuredRouter = DirectionDActionRouter()
+    private var window: NSWindow?
+
+    static func configure(
+        playbackState: PlaybackState,
+        adapter: DirectionDProductStateAdapter,
+        router: DirectionDActionRouter
+    ) {
+        configuredPlaybackState = playbackState
+        configuredAdapter = adapter
+        configuredRouter = router
+    }
+
+    nonisolated func applicationDidFinishLaunching(_ notification: Notification) {
+        guard ProcessInfo.processInfo.arguments.contains("--debug-direction-d-main-window") else {
+            return
+        }
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 700_000_000)
+            self?.showMainWindowIfNeeded()
+        }
+    }
+
+    private func showMainWindowIfNeeded() {
+        guard let playbackState = Self.configuredPlaybackState,
+              let adapter = Self.configuredAdapter else { return }
+        // The normal MainLyricsWindowView starts the shared provider from its
+        // task.  A direct-executable Direction D acceptance run intentionally
+        // has no default WindowGroup instance, so start the same idempotent
+        // provider path here; PlaybackState guards against a second timer.
+        playbackState.startProvider(connectSpotify: true)
+        // Bind explicitly before installing the hosting view.  AppKit-hosted
+        // SwiftUI roots can defer `onAppear`, while the acceptance window must
+        // still expose the live projection as soon as the first real snapshot
+        // arrives.  `bind` is single-flight and removes any prior adapter
+        // subscriptions, so this does not add a second observer or timer.
+        adapter.bind(playback: playbackState)
+        // The direct-executable DEBUG bridge can install its AppKit hosting
+        // view before the first persistence-backed lyrics projection settles.
+        // Re-read once after that initial handoff; ongoing changes continue
+        // through the existing PlaybackState publisher.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak adapter] in
+            adapter?.refreshFromProduct()
+        }
+        if let window {
+            NSApp.activate(ignoringOtherApps: true)
+            window.makeKeyAndOrderFront(nil)
+            return
+        }
+
+        let content = DirectionDMainWindowPresentationFactory.makeMainWindow(
+            stableID: "mainWindow.directionD.v4",
+            playbackState: playbackState,
+            adapter: adapter,
+            router: Self.configuredRouter
+        )
+
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 1_200, height: 760),
+            styleMask: [.titled, .closable, .resizable, .miniaturizable],
+            backing: .buffered,
+            defer: false
+        )
+        window.title = "Lyric Island"
+        window.identifier = NSUserInterfaceItemIdentifier("direction-d-main-window")
+        window.isReleasedWhenClosed = false
+        // Keep the direct DEBUG host at the visual envelope used for the
+        // responsive presentation. Without an AppKit content minimum,
+        // SwiftUI can fit the window to a transient empty/status view when
+        // the first live playback snapshot arrives, making visual evidence
+        // unusable. This does not affect the production SwiftUI Window.
+        window.contentMinSize = NSSize(width: 520, height: 520)
+        let container = NSView()
+        container.translatesAutoresizingMaskIntoConstraints = false
+        let hostingView = NSHostingView(rootView: content)
+        hostingView.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(hostingView)
+        NSLayoutConstraint.activate([
+            hostingView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            hostingView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            hostingView.topAnchor.constraint(equalTo: container.topAnchor),
+            hostingView.bottomAnchor.constraint(equalTo: container.bottomAnchor)
+        ])
+        window.contentView = container
+        window.center()
+        self.window = window
+
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
     }
 }
 #endif

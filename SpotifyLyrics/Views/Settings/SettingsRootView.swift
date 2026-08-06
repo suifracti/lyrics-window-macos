@@ -131,13 +131,16 @@ private struct GeneralSettingsView: View {
             SettingsPageHeader(title: "通用", detail: "控制启动、切歌和主窗口的默认行为。")
 
             Section("主窗口") {
-                Picker("默认主窗口布局", selection: $settings.mainWindowLayoutStyleRawValue) {
+                Picker("默认主窗口布局", selection: mainWindowLayoutSelection) {
                     ForEach(MainWindowLayoutStyle.allCases) { layout in
                         Text(layout == .immersiveSplit ? "\(layout.title)（deprecated candidate）" : layout.title)
                             .tag(layout.rawValue)
                     }
                 }
                 Text("沉浸分栏仅保留兼容入口，不作为推荐默认布局。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text("V3 仍是默认布局；Direction D V4 作为独立可选版本保留。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Toggle("小窗口自动进入歌词专注", isOn: $settings.automaticCompactLyricsFocus)
@@ -198,6 +201,19 @@ private struct GeneralSettingsView: View {
         Binding(
             get: { settings.floatingWindowInteractionMode },
             set: { settings.floatingWindowInteractionMode = $0 }
+        )
+    }
+
+    private var mainWindowLayoutSelection: Binding<String> {
+        Binding(
+            get: { settings.mainWindowLayoutStyleRawValue },
+            set: { rawValue in
+                guard let style = MainWindowLayoutStyle(rawValue: rawValue) else { return }
+                _ = settings.applyPresentationSelection(
+                    category: .mainWindow,
+                    stableID: style.presentationStableID
+                )
+            }
         )
     }
 }

@@ -4,6 +4,7 @@ enum MainWindowLayoutStyle: String, CaseIterable, Identifiable {
     case lyricsFocus
     case immersiveSplit
     case appleMusicImmersiveV3
+    case directionDV4 = "directionD"
 
     var id: String { rawValue }
 
@@ -15,6 +16,8 @@ enum MainWindowLayoutStyle: String, CaseIterable, Identifiable {
             return "沉浸分栏"
         case .appleMusicImmersiveV3:
             return "Apple Music 沉浸 V3"
+        case .directionDV4:
+            return "Direction D V4"
         }
     }
 
@@ -26,6 +29,19 @@ enum MainWindowLayoutStyle: String, CaseIterable, Identifiable {
             return "rectangle.split.2x1"
         case .appleMusicImmersiveV3:
             return "music.note.house"
+        case .directionDV4:
+            return "rectangle.inset.filled"
+        }
+    }
+
+    /// Stable catalog identity for this selectable main-window presentation.
+    /// V3 remains a separate identity and the default runtime value.
+    var presentationStableID: String {
+        switch self {
+        case .lyricsFocus: return "mainWindow.lyricsFocus.v1"
+        case .immersiveSplit: return "mainWindow.immersiveSplit.v2"
+        case .appleMusicImmersiveV3: return "mainWindow.appleMusicImmersiveV3.v3"
+        case .directionDV4: return "mainWindow.directionD.v4"
         }
     }
 }

@@ -259,16 +259,16 @@ enum LyricsDesignTokens {
         let width = min(max(availableWidth, 520), 1_360)
         let widthProgress = (width - 520) / 840
         let layerPenalty = CGFloat(max(0, visibleLayerCount - 2))
-        let activePrimary = min(34, max(24, 25 + widthProgress * 9 - layerPenalty * 1.6))
-        let activeSecondary = min(19, max(13, 14 + widthProgress * 5 - layerPenalty * 0.9))
+        let activePrimary = min(34, max(26, 27 + widthProgress * 8 - layerPenalty * 1.5))
+        let activeSecondary = min(20, max(14, 15 + widthProgress * 5 - layerPenalty * 0.8))
 
         if !isSynchronized {
             return LyricEmphasis(
-                primaryFontSize: max(20, activePrimary - 3),
-                secondaryFontSize: max(12, activeSecondary - 1),
-                opacity: 0.82,
+                primaryFontSize: max(22, activePrimary - 3),
+                secondaryFontSize: max(13, activeSecondary - 1),
+                opacity: 0.85,
                 blurRadius: 0,
-                verticalPadding: visibleLayerCount >= 4 ? 5 : 7
+                verticalPadding: visibleLayerCount >= 4 ? 6 : 8
             )
         }
 
@@ -278,26 +278,26 @@ enum LyricsDesignTokens {
                 secondaryFontSize: activeSecondary,
                 opacity: 1.0,
                 blurRadius: 0,
-                verticalPadding: visibleLayerCount >= 4 ? 8 : 11
+                verticalPadding: visibleLayerCount >= 4 ? 10 : 14
             )
         }
 
         if distance == 1 {
             return LyricEmphasis(
-                primaryFontSize: max(22, activePrimary - 2.5),
-                secondaryFontSize: max(12, activeSecondary - 0.8),
-                opacity: 0.66,
-                blurRadius: 0.25,
-                verticalPadding: visibleLayerCount >= 4 ? 5 : 7
+                primaryFontSize: max(24, activePrimary - 2.0),
+                secondaryFontSize: max(13, activeSecondary - 0.8),
+                opacity: 0.58,
+                blurRadius: 0.4,
+                verticalPadding: visibleLayerCount >= 4 ? 6 : 9
             )
         }
 
         return LyricEmphasis(
-            primaryFontSize: max(20, activePrimary - 4.5),
-            secondaryFontSize: max(11, activeSecondary - 1.8),
-            opacity: 0.38,
-            blurRadius: 0.8,
-            verticalPadding: visibleLayerCount >= 4 ? 4 : 5
+            primaryFontSize: max(22, activePrimary - 4.0),
+            secondaryFontSize: max(12, activeSecondary - 1.5),
+            opacity: 0.36,
+            blurRadius: 1.6,
+            verticalPadding: visibleLayerCount >= 4 ? 5 : 7
         )
     }
 

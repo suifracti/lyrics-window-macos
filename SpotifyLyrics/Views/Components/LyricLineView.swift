@@ -64,9 +64,9 @@ struct LyricLineView: View {
     }
 
     private var fontWeight: Font.Weight {
-        if isActive { return .semibold }
-        if distance == 1 { return .medium }
-        return .regular
+        if isActive { return .bold }
+        if distance == 1 { return .semibold }
+        return .medium
     }
 
     private var rubyFontSize: CGFloat {

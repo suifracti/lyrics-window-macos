@@ -369,9 +369,9 @@ struct LyricsCanvasView: View {
         detail: String,
         @ViewBuilder accessory: () -> Accessory = { EmptyView() }
     ) -> some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 14) {
             Image(systemName: icon)
-                .font(.system(size: 24, weight: .medium))
+                .font(.system(size: 26, weight: .medium))
                 .foregroundStyle(LyricsDesignTokens.mutedText)
 
             Text(message)
@@ -385,44 +385,34 @@ struct LyricsCanvasView: View {
 
             accessory()
         }
-        .padding(30)
+        .padding(28)
         .frame(maxWidth: 440)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(Color.white.opacity(0.15), lineWidth: 0.8)
+        )
+        .shadow(color: Color.black.opacity(0.25), radius: 16, x: 0, y: 6)
         .accessibilityElement(children: .combine)
     }
 
     private func candidateList(_ candidates: [LyricsCandidate]) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("歌词候选")
-                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+            VStack(alignment: .leading, spacing: 14) {
+                Text("选择歌词版本")
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
                     .foregroundStyle(LyricsDesignTokens.primaryText)
 
-                Text("匹配置信度不足，选择正确版本后才会显示")
-                    .font(.system(size: 12, design: .rounded))
+                Text("先预览内容，再决定是否采用。选择不会改变播放位置。")
+                    .font(.system(size: 13, design: .rounded))
                     .foregroundStyle(LyricsDesignTokens.mutedText)
 
                 ForEach(candidates) { candidate in
                     Button {
                         state.adoptLyricsCandidate(candidate)
                     } label: {
-                        HStack(spacing: 12) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(candidate.title)
-                                    .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                Text("\(candidate.artist) · \(candidate.album)")
-                                    .font(.system(size: 12, design: .rounded))
-                                    .foregroundStyle(LyricsDesignTokens.mutedText)
-                            }
-                            Spacer()
-                            Text("\(Int(candidate.displayedConfidence * 100))%")
-                                .font(.system(size: 12, design: .rounded).monospacedDigit())
-                                .foregroundStyle(LyricsDesignTokens.accent)
-                        }
-                        .padding(12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(LyricsDesignTokens.controlBackground)
-                        )
+                        candidateRow(candidate)
                     }
                     .buttonStyle(.plain)
                 }
@@ -433,6 +423,46 @@ struct LyricsCanvasView: View {
             .padding(.vertical, LyricsDesignTokens.canvasVerticalPadding)
         }
         .scrollIndicators(.hidden)
+    }
+
+    private func candidateRow(_ candidate: LyricsCandidate) -> some View {
+        HStack(spacing: 14) {
+            VStack(alignment: .leading, spacing: 5) {
+                HStack(spacing: 6) {
+                    Text(candidate.title)
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                    if candidate.displayedConfidence > 0.3 {
+                        Text("推荐")
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.orange.opacity(0.25))
+                            .foregroundColor(.orange)
+                            .clipShape(Capsule())
+                    }
+                }
+                Text("\(candidate.artist) · \(candidate.album)")
+                    .font(.system(size: 12, design: .rounded))
+                    .foregroundStyle(LyricsDesignTokens.mutedText)
+            }
+            Spacer()
+            VStack(alignment: .trailing, spacing: 4) {
+                Text("\(Int(candidate.displayedConfidence * 100))%")
+                    .font(.system(size: 13, weight: .semibold, design: .rounded).monospacedDigit())
+                    .foregroundStyle(LyricsDesignTokens.accent)
+                Text("预览")
+                    .font(.system(size: 11, design: .rounded))
+                    .foregroundStyle(LyricsDesignTokens.mutedText)
+            }
+        }
+        .padding(16)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Color.white.opacity(0.16), lineWidth: 0.8)
+        )
+        .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 4)
     }
 
     private func distance(from index: Int) -> Int {
@@ -566,9 +596,15 @@ struct LyricsStateContentFirstView: View {
     private var primaryAction: some View {
         switch state.liveLyricsState {
         case .noLyrics, .noMatch, .failed:
-            Button("重新搜索歌词") { state.retryLyrics() }
-                .buttonStyle(.borderedProminent)
-                .tint(LyricsDesignTokens.accent)
+            HStack(spacing: 8) {
+                Button("重新搜索歌词") { state.retryLyrics() }
+                    .buttonStyle(.borderedProminent)
+                    .tint(LyricsDesignTokens.accent)
+                Button("标记为纯音乐", systemImage: "music.note") {
+                    state.markCurrentTrackAsInstrumental()
+                }
+                .buttonStyle(.bordered)
+            }
         case .noSelection:
             if let onSearch {
                 Button("搜索歌词", action: onSearch)
@@ -860,12 +896,15 @@ struct LyricsStateContentFirstView: View {
                         .foregroundStyle(LyricsDesignTokens.primaryText.opacity(0.78))
                 }
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: LyricsDesignTokens.CornerRadius.card, style: .continuous)
-                    .fill(LyricsDesignTokens.controlBackground)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(Color.white.opacity(0.18), lineWidth: 0.8)
             )
+            .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 4)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("歌词候选：\(candidate.title)，\(candidate.artist)")

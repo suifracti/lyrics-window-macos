@@ -1,8 +1,10 @@
 import SwiftUI
+import AppKit
 
 struct MainLyricsWindowView: View {
     @EnvironmentObject private var state: PlaybackState
     @EnvironmentObject private var settings: AppSettingsStore
+    @EnvironmentObject private var directionDAdapter: DirectionDProductStateAdapter
     @Environment(\.openWindow) private var openWindow
     @State private var isSearchPresented = false
 
@@ -13,7 +15,17 @@ struct MainLyricsWindowView: View {
     private var layoutStyleBinding: Binding<String> {
         Binding(
             get: { settings.mainWindowLayoutStyleRawValue },
-            set: { settings.mainWindowLayoutStyleRawValue = $0 }
+            set: { rawValue in
+                guard let style = MainWindowLayoutStyle(rawValue: rawValue) else { return }
+                // Keep the legacy raw setting and the PresentationSelectionStore
+                // in one write path.  This preserves V3 as the default while
+                // making a user-selected Direction D V4 survive relaunch and
+                // remain visible in Experience Library.
+                _ = settings.applyPresentationSelection(
+                    category: .mainWindow,
+                    stableID: style.presentationStableID
+                )
+            }
         )
     }
 
@@ -24,6 +36,13 @@ struct MainLyricsWindowView: View {
                     state: state,
                     layoutStyleRawValue: layoutStyleBinding
                 )
+            } else if layoutStyle == .directionDV4 {
+                DirectionDMainWindowPresentationFactory.makeMainWindow(
+                    stableID: MainWindowLayoutStyle.directionDV4.presentationStableID,
+                    playbackState: state,
+                    adapter: directionDAdapter,
+                    router: directionDRouter
+                )
             } else {
                 legacyWindowBody
             }
@@ -31,14 +50,30 @@ struct MainLyricsWindowView: View {
         .frame(
             minWidth: layoutStyle == .appleMusicImmersiveV3
                 ? MainWindowResponsiveThresholds.minimumWidth
+                : layoutStyle == .directionDV4
+                    ? DirectionDDesignTokens.Spacing.windowSmall
                 : LyricsDesignTokens.minimumMainWindowSize.width,
             minHeight: layoutStyle == .appleMusicImmersiveV3
                 ? MainWindowResponsiveThresholds.minimumHeight
+                : layoutStyle == .directionDV4
+                    ? 520
                 : LyricsDesignTokens.minimumMainWindowSize.height
         )
         .preferredColorScheme(.dark)
         .background(Color.clear)
         .background(WindowStateAccessor(settings: settings))
+        .popover(
+            isPresented: Binding(
+                get: { layoutStyle == .directionDV4 && isSearchPresented },
+                set: { isSearchPresented = $0 }
+            ),
+            arrowEdge: .top
+        ) {
+            SongSearchPopover(
+                manager: state.songSearchManager,
+                playbackState: state
+            )
+        }
 #if DEBUG
         // Single Assist explain-sheet host for V3 + classic + lyrics-focus.
         // Do not also attach AssistExplainSheet under LyricsCanvasView.
@@ -112,7 +147,38 @@ struct MainLyricsWindowView: View {
             ImmersiveSplitWindowView(state: state)
         case .appleMusicImmersiveV3:
             EmptyView()
+        case .directionDV4:
+            EmptyView()
         }
+    }
+
+    /// Direction D V4 is a layout projection only.  All commands still route
+    /// to the existing PlaybackState and lyric entry points; this router does
+    /// not own a second session, timer or search manager.
+    private var directionDRouter: DirectionDActionRouter {
+        DirectionDActionRouter(
+            onRetryPlaybackDetection: {
+                state.startProvider(connectSpotify: settings.connectSpotifyOnLaunch)
+            },
+            onRetryLyricsSearch: {
+                state.retryLyrics()
+            },
+            onOpenManualLyricsSearch: {
+                isSearchPresented = true
+            },
+            onImportLyrics: {
+                _ = state.prepareManualLyricsFromTXT()
+            },
+            onOpenSettings: {
+                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+            },
+            onRetryAutomaticAlignment: {
+                AutomaticAlignmentJobController.shared.retry()
+            },
+            onStopAutomaticAlignment: {
+                AutomaticAlignmentJobController.shared.cancelCurrentJob(userInitiated: true)
+            }
+        )
     }
 
     private var topBar: some View {
@@ -213,7 +279,10 @@ struct MainLyricsWindowView: View {
                 ForEach(MainWindowLayoutStyle.allCases) { style in
                     Button {
                         withAnimation(.easeInOut(duration: 0.22)) {
-                            settings.mainWindowLayoutStyleRawValue = style.rawValue
+                            _ = settings.applyPresentationSelection(
+                                category: .mainWindow,
+                                stableID: style.presentationStableID
+                            )
                         }
                     } label: {
                         Label(style.title, systemImage: style.systemImage)

@@ -325,6 +325,29 @@ public final class LyricsSessionController: ObservableObject {
         LyricsE2ELog.log("SESSION mockPreview lines=\(lines.count)")
     }
 
+    public func markAsInstrumental(identity: TrackIdentity) {
+        cancelCurrentRequest()
+        revision &+= 1
+        activeIdentity = identity
+        let line = LyricLine(timestamp: 0, originalText: "此歌曲为没有填词的纯音乐，请您欣赏")
+        lyrics = [line]
+        isSynchronized = false
+        isNoSelection = false
+        let doc = LyricsDocument(
+            identity: identity,
+            title: activeTrack?.title,
+            artist: activeTrack?.artist,
+            album: activeTrack?.album,
+            duration: 0,
+            lines: [line],
+            isSynchronized: false,
+            source: .manualImport,
+            confidence: 1.0
+        )
+        state = .loaded(doc)
+        LyricsE2ELog.log("SESSION markAsInstrumental identity=\(identity.stableKey)")
+    }
+
     public func adopt(candidate: LyricsCandidate) {
         guard activeIdentity == candidate.identity else {
             LyricsE2ELog.log("SESSION adopt candidate REJECT identity mismatch")
