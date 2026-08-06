@@ -1,0 +1,1 @@
+# Findings\n\nStarted from a0320d7e64d3a129d34292a564105b66942480a0 on branch codex/phase-2-11a-lyrics-retrieval.\n\nExisting retrieval path and open questions will be recorded here.\n

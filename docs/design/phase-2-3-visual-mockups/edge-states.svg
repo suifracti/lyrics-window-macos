@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#121528"/><stop offset=".54" stop-color="#222344"/><stop offset="1" stop-color="#172d42"/></linearGradient>
+    <linearGradient id="art" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff9f73"/><stop offset=".48" stop-color="#d35177"/><stop offset="1" stop-color="#45214f"/></linearGradient>
+    <linearGradient id="artCold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d3fff9"/><stop offset=".48" stop-color="#53bdd2"/><stop offset="1" stop-color="#1d2c6e"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-40%" width="160%" height="190%"><feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".7"/></filter>
+    <style>
+      .sf { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Hiragino Sans", sans-serif; }
+      .eyebrow { fill:#abb8d6; font-size:15px; letter-spacing:2.2px; font-weight:600; }
+      .title { fill:#f9f9fb; font-size:34px; font-weight:700; }
+      .copy { fill:#cdd4e5; font-size:16px; }
+      .card { fill:#f4f6fc; font-size:18px; font-weight:700; }
+      .sub { fill:#b6c0d8; font-size:13px; }
+      .lyric { fill:#fff; font-size:22px; font-weight:680; }
+      .smallLyric { fill:#fff; font-size:16px; font-weight:560; }
+      .romaji { fill:#d9ddec; font-size:12px; opacity:.66; }
+      .tag { fill:#d8e2ff; font-size:12px; letter-spacing:.8px; font-weight:650; }
+      .note { fill:#91a0c2; font-size:12px; }
+      .warn { fill:#ffc98c; font-size:12px; font-weight:600; }
+    </style>
+  </defs>
+  <rect width="1600" height="1080" fill="url(#bg)"/>
+  <circle cx="1360" cy="220" r="300" fill="#9d67ff" opacity=".1"/>
+  <circle cx="200" cy="920" r="330" fill="#25c8e2" opacity=".06"/>
+  <text x="76" y="70" class="sf eyebrow">PHASE 2.3 · BOUNDARY STATES</text>
+  <text x="76" y="116" class="sf title">长标题、多人艺人、无封面与长歌词</text>
+  <text x="76" y="147" class="sf copy">边界状态优先保留可理解的身份和当前原文，不用无限扩大窗口。</text>
+
+  <!-- long title -->
+  <g transform="translate(76 205)">
+    <rect width="450" height="330" rx="24" fill="#0c1325" fill-opacity=".72" stroke="#9db1e6" stroke-opacity=".16"/>
+    <text x="24" y="38" class="sf tag">LONG TITLE</text>
+    <rect x="24" y="68" width="402" height="58" rx="29" fill="url(#art)" filter="url(#shadow)"/>
+    <rect x="36" y="81" width="32" height="32" rx="8" fill="#fff" opacity=".18"/>
+    <text x="82" y="92" class="sf card">这是一首非常长的歌曲标题…</text>
+    <text x="82" y="111" class="sf sub">副标题保留至可用宽度</text>
+    <g transform="translate(329 87)" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M5 7 0 12l5 5"/><path d="M18 7l5 5-5 5"/><path d="M34 5v14M29 5v14"/></g>
+    <text x="24" y="174" class="sf smallLyric">标题先截断，歌曲身份不变</text>
+    <text x="24" y="205" class="sf romaji">metadata remains stable; no width explosion</text>
+    <text x="24" y="274" class="sf note">规则：Title max-width + ellipsis；不换成两行通知条。</text>
+    <text x="24" y="298" class="sf note">规则：进度和控制不因标题变长而横跨整屏。</text>
+  </g>
+
+  <!-- multi artist -->
+  <g transform="translate(575 205)">
+    <rect width="450" height="330" rx="24" fill="#0c1325" fill-opacity=".72" stroke="#9db1e6" stroke-opacity=".16"/>
+    <text x="24" y="38" class="sf tag">MULTI-ARTIST</text>
+    <rect x="24" y="68" width="402" height="58" rx="29" fill="url(#artCold)" filter="url(#shadow)"/>
+    <rect x="36" y="81" width="32" height="32" rx="8" fill="#fff" opacity=".22"/>
+    <text x="82" y="92" class="sf card">春を告げる</text>
+    <text x="82" y="111" class="sf sub">yama · feat. Lila · +1</text>
+    <g transform="translate(329 87)" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M5 7 0 12l5 5"/><path d="M18 7l5 5-5 5"/><path d="M34 5v14M29 5v14"/></g>
+    <text x="24" y="174" class="sf smallLyric">艺人层按稳定宽度截断</text>
+    <text x="24" y="205" class="sf romaji">primary artist stays visible before featured names</text>
+    <text x="24" y="274" class="sf note">规则：主艺人优先；多艺人不变成密集横向按钮。</text>
+    <text x="24" y="298" class="sf note">规则：点击入口未来按真实 Spotify identity 分开处理。</text>
+  </g>
+
+  <!-- no cover -->
+  <g transform="translate(1074 205)">
+    <rect width="450" height="330" rx="24" fill="#0c1325" fill-opacity=".72" stroke="#9db1e6" stroke-opacity=".16"/>
+    <text x="24" y="38" class="sf tag">NO ARTWORK</text>
+    <rect x="24" y="68" width="402" height="58" rx="29" fill="#22304b" fill-opacity=".92" filter="url(#shadow)"/>
+    <rect x="36" y="81" width="32" height="32" rx="8" fill="#59769d"/>
+    <path d="M45 104v-11l6 4 7-7 8 12z" fill="#cce9ef" opacity=".85"/>
+    <text x="82" y="92" class="sf card">无封面歌曲</text>
+    <text x="82" y="111" class="sf sub">placeholder 不改变结构高度</text>
+    <g transform="translate(329 87)" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M5 7 0 12l5 5"/><path d="M18 7l5 5-5 5"/><path d="M34 5v14M29 5v14"/></g>
+    <text x="24" y="174" class="sf smallLyric">身份和播放状态仍然清楚</text>
+    <text x="24" y="205" class="sf romaji">cover slot remains stable; background uses neutral tone</text>
+    <text x="24" y="274" class="sf note">规则：placeholder 不是黑色空洞，也不改变 capsule 高度。</text>
+    <text x="24" y="298" class="sf note">规则：不因为无封面隐藏可用的歌曲信息。</text>
+  </g>
+
+  <!-- long lyrics -->
+  <g transform="translate(76 590)">
+    <rect width="948" height="400" rx="24" fill="#081022" fill-opacity=".78" stroke="#9db1e6" stroke-opacity=".15"/>
+    <text x="24" y="40" class="sf tag">LONG CURRENT LYRIC · DESKTOP LYRICS</text>
+    <text x="24" y="71" class="sf note">当前原文不裁掉；先减少远处上下文，再缩小字号，再增加纵向空间。</text>
+    <g filter="url(#shadow)">
+      <text x="40" y="145" class="sf smallLyric" opacity=".42">遠い街の灯りを見ている</text>
+      <text x="40" y="218" class="sf lyric">言葉にならないままの気持ちを抱えて夜を歩いている</text>
+      <text x="40" y="248" class="sf romaji">kotoba ni naranai mama no kimochi o kakaete yoru o aruiteiru</text>
+      <text x="40" y="320" class="sf smallLyric" opacity=".42">まだ知らない朝を待っている</text>
+    </g>
+    <text x="40" y="370" class="sf warn">边界：当前行可成为两行，但不从原文中间截断；辅助层可隐藏。</text>
+  </g>
+
+  <!-- states -->
+  <g transform="translate(1074 590)">
+    <rect width="450" height="400" rx="24" fill="#081022" fill-opacity=".78" stroke="#9db1e6" stroke-opacity=".15"/>
+    <text x="24" y="40" class="sf tag">NO LYRICS / PLAIN TEXT</text>
+    <text x="24" y="94" class="sf card">无歌词</text>
+    <text x="24" y="124" class="sf sub">只显示歌曲状态，不伪造当前行</text>
+    <line x1="24" y1="153" x2="426" y2="153" stroke="#a7b5d8" stroke-opacity=".18"/>
+    <text x="24" y="204" class="sf card">纯文本 · 未排轴</text>
+    <text x="24" y="234" class="sf sub">允许手动浏览；不按时长平均切行</text>
+    <text x="24" y="286" class="sf card">加载 / 候选 / 失败</text>
+    <text x="24" y="316" class="sf sub">克制提示，候选回主窗口选择</text>
+    <text x="24" y="370" class="sf note">不在胶囊中显示第一句作为伪同步。</text>
+  </g>
+</svg>

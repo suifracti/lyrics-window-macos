@@ -1,6 +1,52 @@
+## Generated build output and local state
+DerivedData*/
 DerivedData/
+.build/
 build/
+*.app
+*.app/
+*.dSYM
+*.dSYM/
+xcuserdata/
+*.xcuserstate
 .DS_Store
+*.log
+
+## Local data, credentials, and secrets
+*.sqlite
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+.env
+.env.*
+*.pem
+*.p12
+
+## Local archives, reference checkouts, and large experiment inputs
+artifacts/
+其他仓库参考/
+antigravity/
+**/whisper-models/
+**/s0-5-engine-viability/
+**/audio/
+**/runs/
+*.bin
+*.wav
+*.aiff
+*.mp3
+*.m4a
+*.caf
+
+## Historical validation media and local experiment evidence
+docs/design/
+docs/phase-2-11a-runtime-closeout-20260804/
+docs/phase-2-11a-validation/
+docs/phase-2-11b-alignment-audit/
+docs/phase-2-11c-zero-operation-alignment/*/
+docs/phase-2-4-closeout/
+docs/phase-2-5-validation/
+docs/phase-3/phase-3-4-visual-review/
+docs/superpowers/reports/
 
 # Read-only reference project; keep it local but never commit it to this repo.
 Lyricify-App-main/

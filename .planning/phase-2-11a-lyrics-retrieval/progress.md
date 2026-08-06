@@ -1,0 +1,1 @@
+# Progress\n\n- 2026-08-04: created branch from Phase 2.6 HEAD; pre-existing unrelated untracked files left untouched.\n

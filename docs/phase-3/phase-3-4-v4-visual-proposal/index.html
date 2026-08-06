@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lyric Island V3 & V4 高保真交互视觉原型</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Control Harness -->
+  <header class="prototype-harness">
+    <div class="harness-title">
+      <h1><i class="ri-macbook-line"></i> Lyric Island V3 & V4 双版本视觉原型 <span>Phase 3.4 Interactive Proposal</span></h1>
+      <div class="btn-group">
+        <button class="btn-tag btn-pres" id="btnPresV3" onclick="setPresentationStyle('v3')">V3：Apple Music 沉浸式 (包含对比度暗幕与胶囊顶栏优化)</button>
+        <button class="btn-tag btn-pres active" id="btnPresV4" onclick="setPresentationStyle('v4')">V4：Direction D (安静伴侣 + 可展开歌曲工作台)</button>
+      </div>
+    </div>
+
+    <div class="harness-controls">
+      <div class="control-group">
+        <label>V4 参数变体：</label>
+        <button class="btn-tag btn-variant active" id="btnVarA" onclick="setVariant('A')">方案 A：主方案 (Master Vision)</button>
+        <button class="btn-tag btn-variant" id="btnVarB" onclick="setVariant('B')">方案 B：克制变体 (Restrained Variation)</button>
+      </div>
+
+      <div class="control-group">
+        <label>布局模式：</label>
+        <button class="btn-tag btn-mode active" id="btnModeWide" onclick="setWindowMode('wide')">Wide 宽窗口 (1200×760)</button>
+        <button class="btn-tag btn-mode" id="btnModeSmall" onclick="setWindowMode('small')">Small 紧凑 (520×720)</button>
+        <button class="btn-tag btn-mode" id="btnModeFocus" onclick="setWindowMode('focus')">Lyrics Focus 专注 (680×760)</button>
+      </div>
+
+      <div class="control-group">
+        <label>歌词辅助层：</label>
+        <button class="btn-tag btn-policy active" id="btnPolicyTranslation" onclick="setLyricsPolicy('translation')">原文 + 翻译</button>
+        <button class="btn-tag btn-policy" id="btnPolicyRuby" onclick="setLyricsPolicy('ruby')">原文 + Ruby 注音</button>
+      </div>
+
+      <div class="control-group">
+        <label>产品状态验证：</label>
+        <button class="btn-tag btn-status active" id="btnStatusNone" onclick="setStatusState('none')">正常播放中</button>
+        <button class="btn-tag btn-status" id="btnStatusIdle" onclick="setStatusState('idle')">Idle 待机</button>
+        <button class="btn-tag btn-status" id="btnStatusNoLyrics" onclick="setStatusState('noLyrics')">未找到歌词</button>
+        <button class="btn-tag btn-status" id="btnStatusNetworkError" onclick="setStatusState('networkError')">网络失败</button>
+        <button class="btn-tag btn-status" id="btnStatusSyncing" onclick="setStatusState('syncing')">自动同步中</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Interactive macOS Window Stage -->
+  <main class="mac-window-stage" id="macWindowStage">
+    <!-- V3 Backdrop Contrast Shield Overlay (防亮色封面透字暗幕) -->
+    <div class="v3-backdrop-shield"></div>
+
+    <!-- Header Window Bar (Traffic Lights + Quiet Tool Capsule) -->
+    <div class="mac-header-bar">
+      <div class="traffic-lights">
+        <div class="light light-close"></div>
+        <div class="light light-min"></div>
+        <div class="light light-max"></div>
+        <span id="v3BadgeText" style="display: none; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.7); margin-left: 8px;">Apple Music 沉浸式 (已开启防透字暗幕)</span>
+      </div>
+
+      <div class="quiet-toolbar" id="quietToolbar" onmouseenter="setToolbarHover(true)" onmouseleave="setToolbarHover(false)">
+        <div class="v3-tool-capsule">
+          <button class="btn-workbench" id="btnWorkbench" onclick="toggleInspector()">
+            <i class="ri-sidebar-fold-line"></i> 歌曲工作台
+          </button>
+          <div class="btn-icon" onclick="alert('搜索歌词')"><i class="ri-search-line"></i></div>
+          <div class="btn-icon" onclick="alert('设置中心')"><i class="ri-settings-4-line"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Layout Container -->
+    <div class="main-content-layout">
+      <!-- Left Player Panel -->
+      <section class="left-player-area" id="leftPlayerArea">
+        <div class="cover-wrapper">
+          <div class="cover-glow"></div>
+          <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&auto=format&fit=crop&q=60" class="cover-img" alt="Album Cover">
+        </div>
+
+        <div class="track-meta">
+          <div class="track-title">丸ノ内サディスティック</div>
+          <div class="track-artist">椎名林檎</div>
+          <div class="track-album">無罪モラトリアム</div>
+        </div>
+
+        <div class="timeline-area">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill"></div>
+          </div>
+          <div class="time-labels">
+            <span>01:12</span>
+            <span>03:47</span>
+          </div>
+        </div>
+
+        <div class="playback-controls">
+          <i class="ri-skip-back-fill btn-control-skip"></i>
+          <i class="ri-pause-circle-fill btn-control-play" id="playPauseBtn" onclick="setPlaybackState(!isPlaying)"></i>
+          <i class="ri-skip-forward-fill btn-control-skip"></i>
+        </div>
+      </section>
+
+      <!-- Right Lyrics Area & Canvas -->
+      <section class="right-lyrics-area" id="rightLyricsArea">
+        <div class="lyrics-list" id="lyricsContainer">
+          <!-- Rendered via prototype.js -->
+        </div>
+      </section>
+
+      <!-- Wide Mode Inspector Sidebar (360px) -->
+      <aside class="inspector-sidebar" id="inspectorSidebar" style="display: none;">
+        <div class="inspector-header">
+          <div class="inspector-header-title">
+            <i class="ri-sidebar-fold-line"></i> 歌曲工作台
+            <span class="badge-task">当前曲目</span>
+          </div>
+          <div class="btn-icon" onclick="toggleInspector()"><i class="ri-close-line"></i></div>
+        </div>
+
+        <div class="inspector-body">
+          <!-- Task Section 1 -->
+          <div class="inspector-section">
+            <div class="section-title">1. 歌词与版本</div>
+            <div class="task-card">
+              <div class="task-info">
+                <h4>社区同步歌词</h4>
+                <p>已包含逐行时间轴</p>
+              </div>
+              <button class="btn-task-action" onclick="alert('切换候选歌词')">切换候选 (3)</button>
+            </div>
+          </div>
+
+          <!-- Task Section 2 -->
+          <div class="inspector-section">
+            <div class="section-title">2. 翻译与读音</div>
+            <div class="task-card">
+              <div class="task-info">
+                <h4>智能意译 (流畅风格)</h4>
+                <p>日文平假名注音</p>
+              </div>
+              <button class="btn-task-action" onclick="alert('调整翻译风格')">调整偏好</button>
+            </div>
+          </div>
+
+          <!-- Task Section 3 -->
+          <div class="inspector-section">
+            <div class="section-title">3. 时间同步</div>
+            <div class="task-card">
+              <div class="task-info">
+                <h4>逐行时间轴同步</h4>
+                <p>32 行全部校准完成</p>
+              </div>
+              <button class="btn-task-action" onclick="alert('校准时间轴')">校准时间...</button>
+            </div>
+          </div>
+
+          <!-- Task Section 4 -->
+          <div class="inspector-section">
+            <div class="section-title">4. 事项与历史</div>
+            <div class="task-card">
+              <div class="task-info">
+                <h4>历史修改版本 (3)</h4>
+                <p>上次修改：今天 14:20</p>
+              </div>
+              <button class="btn-task-action" onclick="alert('查看历史版本')">查看历史</button>
+            </div>
+          </div>
+
+          <!-- Task Section 5 -->
+          <div class="inspector-section">
+            <div class="section-title">5. 导入与导出</div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-task-action" style="flex: 1;" onclick="alert('导出 LRC')">导出 .lrc 歌词</button>
+              <button class="btn-task-action" style="flex: 1;" onclick="alert('导入文件')">导入本地文件</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Small Mode Bottom Sheet Overlay -->
+    <div class="small-bottom-sheet" id="smallBottomSheet" style="display: none;">
+      <div class="drag-handle"></div>
+      <div class="inspector-header">
+        <div class="inspector-header-title">
+          <i class="ri-sidebar-fold-line"></i> 歌曲工作台 (Small 模式)
+        </div>
+        <div class="btn-icon" onclick="toggleInspector()"><i class="ri-close-line"></i></div>
+      </div>
+      <div class="inspector-body">
+        <div class="task-card">
+          <div class="task-info">
+            <h4>丸ノ内サディスティック — 椎名林檎</h4>
+            <p>已校准 32 行 · 社区同步歌词</p>
+          </div>
+          <button class="btn-task-action" onclick="alert('导出 LRC')">导出 LRC</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Secondary Status Banner Overlay -->
+    <div class="secondary-status-banner" id="secondaryBanner" style="display: none;">
+      <i class="ri-refresh-line status-icon"></i>
+      <span class="status-text">正在同步歌词...</span>
+    </div>
+  </main>
+
+  <script src="prototype.js"></script>
+</body>
+</html>

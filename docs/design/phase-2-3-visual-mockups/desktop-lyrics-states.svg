@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1040" viewBox="0 0 1600 1040">
+  <defs>
+    <linearGradient id="canvas" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f162d"/>
+      <stop offset="0.5" stop-color="#152338"/>
+      <stop offset="1" stop-color="#321d39"/>
+    </linearGradient>
+    <linearGradient id="sunset" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f6a45b"/>
+      <stop offset="0.45" stop-color="#e15d78"/>
+      <stop offset="1" stop-color="#472353"/>
+    </linearGradient>
+    <linearGradient id="night" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0c1733"/>
+      <stop offset="0.55" stop-color="#204f70"/>
+      <stop offset="1" stop-color="#101321"/>
+    </linearGradient>
+    <linearGradient id="material" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f2f4ff" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#b8c7e7" stop-opacity="0.08"/>
+    </linearGradient>
+    <filter id="textShadow" x="-20%" y="-30%" width="140%" height="170%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity="0.62"/>
+    </filter>
+    <filter id="brightShadow" x="-20%" y="-30%" width="140%" height="170%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#fff" flood-opacity="0.75"/>
+    </filter>
+    <filter id="panelShadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="15" stdDeviation="24" flood-color="#000" flood-opacity="0.38"/>
+    </filter>
+    <pattern id="grain" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="3" cy="4" r="0.7" fill="#fff" opacity="0.06"/>
+      <circle cx="13" cy="15" r="0.7" fill="#fff" opacity="0.04"/>
+      <circle cx="18" cy="7" r="0.4" fill="#fff" opacity="0.08"/>
+    </pattern>
+    <style>
+      .sf { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Hiragino Sans", sans-serif; }
+      .eyebrow { fill:#b8c3e0; font-size:15px; letter-spacing:2.2px; font-weight:600; }
+      .title { fill:#f8f8fb; font-size:34px; font-weight:700; }
+      .copy { fill:#cad2e4; font-size:16px; }
+      .muted { fill:#a5b0c9; font-size:14px; }
+      .state { fill:#f8f9ff; font-size:17px; font-weight:700; letter-spacing:1px; }
+      .current { fill:#fff; font-size:30px; font-weight:700; }
+      .adjacent { fill:#fff; font-size:19px; font-weight:540; }
+      .ruby { fill:#e6dfff; font-size:11px; font-weight:600; }
+      .romaji { fill:#dbe0eb; font-size:13px; opacity:0.72; }
+      .tiny { fill:#8c99b7; font-size:12px; letter-spacing:.35px; }
+      .tool { fill:#e8ebf7; font-size:13px; }
+      .measure { fill:#aab5d2; font-size:12px; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1040" fill="url(#canvas)"/>
+  <rect width="1600" height="1040" fill="url(#grain)"/>
+  <text x="76" y="70" class="sf eyebrow">PHASE 2.3 · DESKTOP LYRICS PRESENTATION</text>
+  <text x="76" y="116" class="sf title">多行字幕：内容即界面</text>
+  <text x="76" y="147" class="sf copy">透明播放态默认不显示大面板；轻材质只包裹歌词内容；解锁 Hover 才出现控制。</text>
+
+  <!-- Transparent -->
+  <g transform="translate(76 205)">
+    <text x="0" y="0" class="sf state">TRANSPARENT / BORDERLESS</text>
+    <text x="0" y="27" class="sf muted">锁定或穿透 · 只显示歌词 · 阴影和对比度自适应</text>
+    <rect x="0" y="50" width="430" height="390" rx="24" fill="url(#night)"/>
+    <circle cx="350" cy="90" r="150" fill="#69d7ff" opacity="0.12"/>
+    <circle cx="110" cy="330" r="120" fill="#b04cff" opacity="0.12"/>
+    <rect x="0" y="50" width="430" height="390" rx="24" fill="url(#grain)"/>
+    <text x="24" y="84" class="sf tiny">心墙 · synchronized · line 18 / 42</text>
+    <g filter="url(#textShadow)">
+      <text x="30" y="173" class="sf adjacent" opacity="0.46">远处有灯光在闪</text>
+      <text x="30" y="202" class="sf romaji" opacity="0.46">tooi machi no akari o miteiru</text>
+      <text x="30" y="268" class="sf current">一个人眺望碧海和蓝天</text>
+      <text x="30" y="300" class="sf romaji">hitori de nagameru umi to aoten</text>
+      <text x="30" y="355" class="sf adjacent" opacity="0.46">在树上唱歌</text>
+      <text x="30" y="383" class="sf romaji" opacity="0.36">ki no ue de utau</text>
+    </g>
+    <text x="24" y="420" class="sf tiny">current 30–36pt · adjacent 18–22pt · no large background panel</text>
+  </g>
+
+  <!-- Light material -->
+  <g transform="translate(584 205)">
+    <text x="0" y="0" class="sf state">LIGHT MATERIAL / FALLBACK</text>
+    <text x="0" y="27" class="sf muted">复杂背景 · 原生材质 · 只包裹实际歌词内容</text>
+    <rect x="0" y="50" width="430" height="390" rx="24" fill="url(#sunset)"/>
+    <circle cx="90" cy="108" r="125" fill="#ffd17d" opacity="0.35"/>
+    <path d="M0 330C95 258 171 387 263 310s113-7 167-78v158H0z" fill="#321a48" opacity="0.5"/>
+    <rect x="36" y="126" width="358" height="248" rx="20" fill="url(#material)" stroke="#fff" stroke-opacity="0.18" filter="url(#panelShadow)"/>
+    <text x="60" y="158" class="sf tiny">complex wallpaper · contrast fallback</text>
+    <g filter="url(#textShadow)">
+      <text x="60" y="213" class="sf adjacent" opacity="0.42">忘れられない夜</text>
+      <text x="60" y="244" class="sf current">なんて受け止められない</text>
+      <text x="60" y="275" class="sf ruby">　　　う　　　う　　　</text>
+      <text x="60" y="302" class="sf romaji">nante uketomerarenai</text>
+      <text x="60" y="342" class="sf adjacent" opacity="0.42">だからもう一度愛してよ</text>
+    </g>
+    <text x="24" y="420" class="sf tiny">material opacity low · no gray empty area · shared typography</text>
+  </g>
+
+  <!-- Unlocked hover -->
+  <g transform="translate(1092 205)">
+    <text x="0" y="0" class="sf state">UNLOCKED / HOVER</text>
+    <text x="0" y="27" class="sf muted">Hover 才显示 · 工具不压住当前歌词</text>
+    <rect x="0" y="50" width="430" height="390" rx="24" fill="url(#canvas)"/>
+    <circle cx="320" cy="300" r="190" fill="#f28b4a" opacity="0.13"/>
+    <g filter="url(#textShadow)">
+      <text x="30" y="178" class="sf adjacent" opacity="0.42">言えなかった言葉だけ</text>
+      <text x="30" y="228" class="sf current">喉の奥つっかえたまま</text>
+      <text x="30" y="259" class="sf ruby">のど　おく</text>
+      <text x="30" y="288" class="sf romaji">nodo no oku tsukkaeta mama</text>
+      <text x="30" y="347" class="sf adjacent" opacity="0.42">違う日々　選んだのに</text>
+    </g>
+    <g transform="translate(22 70)">
+      <rect x="0" y="0" width="386" height="38" rx="14" fill="#151b2c" fill-opacity="0.62" stroke="#fff" stroke-opacity="0.22"/>
+      <text x="18" y="24" class="sf tool">⠿  拖动</text>
+      <text x="105" y="24" class="sf tool">锁定</text>
+      <text x="174" y="24" class="sf tool">穿透</text>
+      <text x="248" y="24" class="sf tool">样式</text>
+      <text x="334" y="24" class="sf tool">关闭</text>
+    </g>
+    <text x="24" y="420" class="sf tiny">unlock hover toolbar · lock hides controls · pass-through has external restore</text>
+  </g>
+
+  <!-- typography / motion strip -->
+  <g transform="translate(76 710)">
+    <rect x="0" y="0" width="1448" height="246" rx="24" fill="#0a1021" fill-opacity="0.62" stroke="#b3c0ed" stroke-opacity="0.12"/>
+    <text x="28" y="38" class="sf state">层级、读音与运动</text>
+    <g class="sf">
+      <text x="28" y="78" class="copy">当前行</text><text x="142" y="78" class="copy">28–36pt · Semibold/Bold · opacity 1.0 · 无 blur</text>
+      <text x="28" y="112" class="copy">相邻行</text><text x="142" y="112" class="copy">18–22pt · opacity 0.35–0.55 · 可读 · 只按距离弱化</text>
+      <text x="28" y="146" class="copy">辅助层</text><text x="142" y="146" class="copy">Ruby / romaji 只在启用且语言允许时显示；距离更远可逐级隐藏</text>
+      <text x="28" y="180" class="copy">正常动效</text><text x="142" y="180" class="copy">短 crossfade / 克制位移；不使用夸张缩放、弹簧或 3D</text>
+      <text x="28" y="214" class="copy">Reduce Motion</text><text x="142" y="214" class="copy">关闭弹簧、位移和 blur morph，只保留极短 opacity transition</text>
+    </g>
+  </g>
+</svg>
