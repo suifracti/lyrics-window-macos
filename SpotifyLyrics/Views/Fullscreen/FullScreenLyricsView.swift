@@ -80,7 +80,8 @@ struct FullScreenLyricsView: View {
         if let identity = state.currentTrackIdentity {
             AppleMusicImmersiveV3BackdropView(
                 track: state.currentTrack,
-                identity: identity
+                identity: identity,
+                settings: .shared
             )
         } else {
             Color.black

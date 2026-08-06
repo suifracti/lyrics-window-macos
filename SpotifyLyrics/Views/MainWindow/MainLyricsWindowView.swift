@@ -34,6 +34,7 @@ struct MainLyricsWindowView: View {
             if layoutStyle == .appleMusicImmersiveV3 {
                 AppleMusicImmersiveV3WindowView(
                     state: state,
+                    settings: settings,
                     layoutStyleRawValue: layoutStyleBinding
                 )
             } else if layoutStyle == .directionDV4 {

@@ -17,9 +17,9 @@ enum MainWindowResponsiveThresholds {
 /// separate layouts; this view owns only the V3 canvas and its transient tools.
 struct AppleMusicImmersiveV3WindowView: View {
     @ObservedObject var state: PlaybackState
+    @ObservedObject var settings: AppSettingsStore
     @Binding var layoutStyleRawValue: String
     @Environment(\.openWindow) private var openWindow
-    @EnvironmentObject private var settings: AppSettingsStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var isSearchPresented = false
@@ -632,8 +632,10 @@ struct AppleMusicImmersiveV3WindowView: View {
         }
         .buttonStyle(.plain)
         .popover(isPresented: $isVisualTuningPresented, arrowEdge: .top) {
-            V3VisualTuningPopoverView(layoutStyleRawValue: $layoutStyleRawValue)
-                .environmentObject(settings)
+            V3VisualTuningPopoverView(
+                settings: settings,
+                layoutStyleRawValue: $layoutStyleRawValue
+            )
         }
         .accessibilityLabel("V3 视觉与布局调节")
     }
@@ -1553,7 +1555,7 @@ private struct AppleMusicImmersiveV3LyricRow: View {
 }
 
 private struct V3VisualTuningPopoverView: View {
-    @EnvironmentObject private var settings: AppSettingsStore
+    @ObservedObject var settings: AppSettingsStore
     @Binding var layoutStyleRawValue: String
 
     private var blurPresetName: String {

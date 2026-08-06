@@ -24,7 +24,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
     let track: Track
     let identity: TrackIdentity?
     var isInstrumental: Bool = false
-    var settings: AppSettingsStore? = nil
+    @ObservedObject var settings: AppSettingsStore
 
     @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
     @State private var artworkImage: NSImage?
@@ -160,17 +160,17 @@ struct AppleMusicImmersiveV3BackdropView: View {
     }
 
     private var effectiveBlurRadius: Double {
-        if settings?.v3InstrumentalPureImmersion == true && isInstrumental {
+        if settings.v3InstrumentalPureImmersion && isInstrumental {
             return 8.0
         }
-        return settings?.v3BackdropBlurRadius ?? 36.0
+        return settings.v3BackdropBlurRadius
     }
 
     private var effectiveScreenBlurRadius: Double {
-        if settings?.v3InstrumentalPureImmersion == true && isInstrumental {
+        if settings.v3InstrumentalPureImmersion && isInstrumental {
             return 2.0
         }
-        return (settings?.v3BackdropBlurRadius ?? 36.0) * 0.3
+        return settings.v3BackdropBlurRadius * 0.3
     }
 
     @ViewBuilder
