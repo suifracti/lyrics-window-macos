@@ -48,6 +48,24 @@ struct JapaneseReadingContract {
         let particles = JapaneseReadingPipeline.analyze(originalText: "私は学校へ行く水を飲む")
         precondition(particles.kanaText == "わたしわがっこうえいくみずおのむ", "particle readings were not morphology-aware")
 
+        // These are the exact lines that previously lost ruby in the V3
+        // screenshots.  A line-level reading must be complete enough for the
+        // view to derive per-kanji ruby tokens, not merely return a partial
+        // morphology result.
+        let screenshotLines = [
+            "七回目のベルで受話器を取った君",
+            "名前を言わなくても声ですぐ分かってくれる",
+            "唇から自然とこぼれ落ちるメロディー"
+        ]
+        for text in screenshotLines {
+            let reading = JapaneseReadingPipeline.analyze(originalText: text)
+            precondition(reading.kanaText?.isEmpty == false, "screenshot line has no complete kana: \(text)")
+            let rubyTokens = reading.tokens.flatMap { token in
+                JapaneseReadingPipeline.rubyTokens(for: token)
+            }
+            precondition(rubyTokens.contains(where: { $0.ruby?.isEmpty == false }), "screenshot line has no kanji ruby tokens: \(text)")
+        }
+
         // Long vowels, sokuon, yoon, punctuation, latin and digits remain
         // deterministic and do not destroy the original script.
         let orthography = JapaneseReadingPipeline.analyze(originalText: "「きょう」コーヒー きって SNS １２３")

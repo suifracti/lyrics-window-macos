@@ -1348,6 +1348,8 @@ private struct AppleMusicImmersiveV3LyricRow: View {
         guard preferences.showOriginal,
               shouldShowRuby,
               let kana = displayKanaText,
+              let tokens = inlineRubyTokens,
+              !tokens.isEmpty,
               !kana.isEmpty else {
             return false
         }
