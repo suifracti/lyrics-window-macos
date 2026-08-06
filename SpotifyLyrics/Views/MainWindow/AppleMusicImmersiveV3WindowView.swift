@@ -293,23 +293,34 @@ struct AppleMusicImmersiveV3WindowView: View {
         let contentWidth = max(1, geometry.size.width - horizontalPadding * 2)
         let leftWidth = contentWidth * 0.4
         let rightWidth = contentWidth * 0.6
-        let coverSize = min(leftWidth * 0.76, geometry.size.height * 0.42)
+        let position = settings.v3ArtworkPosition
+        let scale = min(1.4, max(0.8, settings.v3ArtworkSizeScale))
+        let baseCoverSize = min(leftWidth * 0.76, geometry.size.height * 0.42)
+        let coverSize = max(180, baseCoverSize * scale)
 
-        return HStack(spacing: 0) {
-            trackColumn(
-                width: leftWidth,
-                availableHeight: geometry.size.height - verticalPadding * 2,
-                coverSize: max(190, coverSize),
-                alignment: .leading,
-                compact: true,
-                progressDensity: .medium
-            )
-            .frame(width: leftWidth)
+        let trackCol = trackColumn(
+            width: leftWidth,
+            availableHeight: geometry.size.height - verticalPadding * 2,
+            coverSize: coverSize,
+            alignment: position == "center" ? .center : .leading,
+            compact: true,
+            progressDensity: .medium
+        )
+        .frame(width: leftWidth)
+        .frame(maxHeight: .infinity)
+
+        let lyricsCol = lyricsColumn(width: rightWidth, compact: true)
+            .frame(width: rightWidth)
             .frame(maxHeight: .infinity)
 
-            lyricsColumn(width: rightWidth, compact: true)
-                .frame(width: rightWidth)
-                .frame(maxHeight: .infinity)
+        return HStack(spacing: 0) {
+            if position == "right" {
+                lyricsCol
+                trackCol
+            } else {
+                trackCol
+                lyricsCol
+            }
         }
         .frame(
             width: contentWidth,
@@ -1290,7 +1301,7 @@ private struct AppleMusicImmersiveV3LyricRow: View {
     }
 
     private var automaticReading: JapaneseReadingResult? {
-        guard effectiveOriginalText.count > 2,
+        guard !effectiveOriginalText.isEmpty,
               effectiveOriginalText.unicodeScalars.contains(where: { scalar in
                   let value = scalar.value
                   return (0x3400...0x4DBF).contains(value)
@@ -1343,7 +1354,10 @@ private struct AppleMusicImmersiveV3LyricRow: View {
     }
 
     private var inlineRubyTokens: [LyricRubyToken]? {
-        reliableRubyTokens ?? providerRubyTokens ?? automaticRubyTokens
+        // Prefer the local morphology result for the visual mapping. Provider
+        // kana can be line-level or carry a wrong particle reading; it remains
+        // a fallback for names and lines the local engine cannot resolve.
+        automaticRubyTokens ?? providerRubyTokens ?? reliableRubyTokens
     }
 
     private var shouldRenderInlineRuby: Bool {

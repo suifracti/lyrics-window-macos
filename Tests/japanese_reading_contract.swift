@@ -55,7 +55,9 @@ struct JapaneseReadingContract {
         let screenshotLines = [
             "七回目のベルで受話器を取った君",
             "名前を言わなくても声ですぐ分かってくれる",
-            "唇から自然とこぼれ落ちるメロディー"
+            "唇から自然とこぼれ落ちるメロディー",
+            "名前",
+            "君"
         ]
         for text in screenshotLines {
             let reading = JapaneseReadingPipeline.analyze(originalText: text)
