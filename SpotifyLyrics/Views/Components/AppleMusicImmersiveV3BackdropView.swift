@@ -191,95 +191,92 @@ struct AppleMusicImmersiveV3BackdropView: View {
         )
 
         // complete artwork plane scaledToFit()
-        // Layer 1: Base fluid color mesh generated from sampled album palette
+        // Pure Palette-Driven Fluid Ambient Mesh (Apple Music V3 Liquid Canvas)
         ZStack {
-            // Top-left primary ambient orb
-            RadialGradient(
-                colors: [
-                    color(palette.primary, saturation: saturation).opacity(0.85),
-                    .clear
-                ],
-                center: UnitPoint(x: 0.15, y: 0.25),
-                startRadius: 20,
-                endRadius: 650
-            )
+            // Background base color derived from artwork palette
+            color(palette.primary, saturation: saturation * 0.9)
 
-            // Bottom-right secondary color orb
+            // Top-Left Primary Color Orb
             RadialGradient(
                 colors: [
-                    color(palette.secondary, saturation: saturation).opacity(0.75),
+                    color(palette.primary, saturation: saturation * 1.2),
                     .clear
                 ],
-                center: UnitPoint(x: 0.85, y: 0.80),
-                startRadius: 40,
+                center: UnitPoint(x: 0.10, y: 0.15),
+                startRadius: 50,
                 endRadius: 750
             )
+            .scaleEffect(1.2)
 
-            // Center-top accent glow orb
+            // Bottom-Right Secondary Color Orb
             RadialGradient(
                 colors: [
-                    color(palette.glow, saturation: saturation).opacity(0.65),
+                    color(palette.secondary, saturation: saturation * 1.2),
                     .clear
                 ],
-                center: UnitPoint(x: 0.50, y: 0.20),
+                center: UnitPoint(x: 0.90, y: 0.85),
+                startRadius: 60,
+                endRadius: 850
+            )
+            .scaleEffect(1.3)
+
+            // Center-Left Highlight Glow Orb behind Artwork Card
+            RadialGradient(
+                colors: [
+                    color(palette.glow, saturation: saturation * 1.3),
+                    .clear
+                ],
+                center: UnitPoint(x: 0.22, y: 0.50),
+                startRadius: 40,
+                endRadius: 600
+            )
+
+            // Bottom-Left Accent Orb
+            RadialGradient(
+                colors: [
+                    color(palette.secondary, saturation: saturation * 1.1).opacity(0.8),
+                    .clear
+                ],
+                center: UnitPoint(x: 0.05, y: 0.90),
                 startRadius: 30,
-                endRadius: 550
+                endRadius: 500
             )
         }
+        .blur(radius: max(30.0, effectiveBlurRadius * 2.2))
 
-        // Layer 2: Blurred artwork texture plane (blended with organic color mesh)
-        Image(nsImage: image)
-            .resizable()
-            .scaledToFill()
-            .scaleEffect(style.artworkScale * 1.15)
-            .blur(radius: effectiveBlurRadius)
-            .opacity(min(1, style.artworkOpacity * style.textureIntensity * 0.85))
-
-        // Layer 3: Screen bloom pass for glassmorphic specular highlights
-        Image(nsImage: image)
-            .resizable()
-            .scaledToFill()
-            .scaleEffect(style.artworkScreenScale * 1.1)
-            .blur(radius: max(3, effectiveScreenBlurRadius))
-            .blendMode(.screen)
-            .opacity(0.35 * style.textureIntensity)
-
-        // Layer 4: Overlay blend gradient for rich color saturation
+        // Specular Bloom Light Pass
         LinearGradient(
             colors: [
-                color(palette.primary, saturation: saturation)
-                    .opacity(min(1, 0.35 * style.paletteOpacity)),
-                color(palette.secondary, saturation: saturation)
-                    .opacity(min(1, 0.28 * style.paletteOpacity)),
-                color(palette.glow, saturation: saturation)
-                    .opacity(min(1, 0.22 * style.paletteOpacity))
+                color(palette.glow, saturation: saturation).opacity(0.25),
+                .clear,
+                color(palette.primary, saturation: saturation).opacity(0.18)
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
-        .blendMode(.overlay)
+        .blendMode(.screen)
 
-        // Layer 5: Lyric readability trailing dark gradient scrim
-        let lyricVeilOpacity = min(0.32, max(0.10, palette.luminance * 0.25))
+        // Lyric Readability Dark Scrim (Trailing gradient over lyrics area)
+        let lyricVeilOpacity = min(0.30, max(0.08, palette.luminance * 0.22))
         LinearGradient(
             colors: [
                 .clear,
-                Color.black.opacity(lyricVeilOpacity * 0.35),
+                Color.black.opacity(lyricVeilOpacity * 0.3),
                 Color.black.opacity(lyricVeilOpacity)
             ],
             startPoint: .leading,
             endPoint: .trailing
         )
 
-        // Layer 6: Subtle vignette edge darkening
+        // Subtle Edge Vignette
         RadialGradient(
             colors: [
                 .clear,
-                Color.black.opacity(min(0.38, style.vignetteIntensity * 0.7))
+                Color.black.opacity(min(0.35, style.vignetteIntensity * 0.65))
             ],
             center: .center,
             startRadius: 160,
-            endRadius: 920
+            endRadius: 950
         )
 
         // noise layer
