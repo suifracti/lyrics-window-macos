@@ -166,16 +166,20 @@ struct AppleMusicImmersiveV3BackdropView: View {
 
     private var effectiveBlurRadius: Double {
         if settings.v3InstrumentalPureImmersion && isInstrumental {
-            return 8.0
+            return 4.0
         }
-        return settings.v3BackdropBlurRadius
+        // Map 0...100 slider linearly into the golden aesthetic blur window (0pt...35pt)
+        // so 0% is sharp, 50% is soft Apple Music blur, and 100% is rich ambient glow
+        let normalized = max(0, min(100, settings.v3BackdropBlurRadius)) / 100.0
+        return normalized * 35.0
     }
 
     private var effectiveScreenBlurRadius: Double {
         if settings.v3InstrumentalPureImmersion && isInstrumental {
-            return 2.0
+            return 1.2
         }
-        return settings.v3BackdropBlurRadius * 0.3
+        let normalized = max(0, min(100, settings.v3BackdropBlurRadius)) / 100.0
+        return normalized * 9.0
     }
 
     @ViewBuilder
