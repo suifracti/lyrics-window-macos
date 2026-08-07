@@ -71,7 +71,7 @@ Main.swift WindowGroup
 - 通过 `LineDisplayView` 和 `PlainLyricsListView` 形成另一套旧渲染器，和现行 `LyricLineView` 的 Ruby、三种假名模式、重复罗马音保护、响应式字号不一致。
 - 全屏显示固定 `fontSize: 32` 的临时 `DisplayPreferences`，没有真正复用字号、辅助字号、Ruby 大小、远处辅助层显隐等持久化设置。
 - 同步状态只显示单行，没有前后行 projection、前奏无当前行、seek 后定位、暂停动画停止、尾奏状态和候选/失败/加载等完整状态层级。
-- 无封面、背景、色板、噪点或 V3 异步缓存；当前运行证据 `ui-reference-audit-assets/spotifylyrics-fullscreen-xcode.png` 显示的是黑色覆盖层、单行蓝色罗马音和关闭按钮，不能作为正式视觉实现。
+- 无封面、背景、色板、噪点或 V3 异步缓存；当前运行证据 `docs/research/ui-reference-audit-assets/spotifylyrics-fullscreen-xcode.png` 显示的是黑色覆盖层、单行蓝色罗马音和关闭按钮，不能作为正式视觉实现。
 - 没有鼠标移动控件显隐、自动淡出、Esc 退出、主窗口/悬浮歌词/胶囊/编辑器入口或显式进度 Slider。
 - `PlaybackState.showFullScreen` 只是一个公开可变布尔值；`LyricsDisplayMode.fullScreen` 存在，但当前 toggle 没有统一更新 `currentMode`，因此两者不是可靠的全屏状态机。
 - 没有全屏专属测试；现有 `/Users/apple/backup/sptifylyrics/Tests/floating_window_behavior_contract.sh` 只要求旧 `FullScreenLyricsView` 保留，属于兼容性保护，不是全屏验收。

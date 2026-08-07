@@ -96,7 +96,7 @@ Expected: all contracts pass.
 ### Task 5: Real V3 acceptance and commit
 
 **Files:**
-- Modify: `task_plan.md`
+- Modify: `docs/archive/planning/task_plan.md`
 
 - [ ] **Step 1: Launch only the absolute DerivedData App and record its process path**
 
@@ -108,7 +108,7 @@ Capture `春を告げる / yama` at beginning/middle/end, `水曜日の約束 / 
 
 - [ ] **Step 3: Update acceptance evidence and verify signing**
 
-Record the absolute App path, `git diff --stat`, key diff summary, build result, `codesign --verify --deep --strict`, runtime logs and screenshots in `task_plan.md`.
+Record the absolute App path, `git diff --stat`, key diff summary, build result, `codesign --verify --deep --strict`, runtime logs and screenshots in `docs/archive/planning/task_plan.md`.
 
 - [ ] **Step 4: Commit only the approved V3 calibration changes**
 
@@ -116,6 +116,6 @@ Record the absolute App path, `git diff --stat`, key diff summary, build result,
 git add SpotifyLyrics/Design/BackdropPalette.swift \
   SpotifyLyrics/Views/Components/AppleMusicImmersiveV3BackdropView.swift \
   SpotifyLyrics/Views/MainWindow/AppleMusicImmersiveV3WindowView.swift \
-  Tests/apple_music_immersive_v3_contract.sh task_plan.md
+  Tests/apple_music_immersive_v3_contract.sh docs/archive/planning/task_plan.md
 git commit -m "Calibrate Apple Music immersive V3 depth"
 ```

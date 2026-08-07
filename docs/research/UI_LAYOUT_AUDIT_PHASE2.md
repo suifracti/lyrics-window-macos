@@ -100,7 +100,7 @@ WindowServer 只读记录到主窗口 1000×650，以及两个独立高层辅助
 - `SpotifyLyrics/Views/Components/LyricsCanvasView.swift` — 如需要仅抽取到 `LyricsViewport`，保持当前歌词状态和安全 seek 规则。
 - `SpotifyLyrics/Design/LyricsDesignTokens.swift` — 增加分栏比例、窄宽断点、间距和层级 token。
 - `SpotifyLyrics.xcodeproj/project.pbxproj` — 将新增 Swift 与合约文件加入 target；不修改产品功能或辅助窗口。
-- `task_plan.md`、`findings.md`、`progress.md` — 记录阶段状态和验证证据。
+- `docs/archive/planning/task_plan.md`、`docs/archive/planning/findings.md`、`docs/archive/planning/progress.md` — 记录阶段状态和验证证据。
 
 明确不修改：`SpotifyLyrics/Views/LyricsViews.swift`、Spotify Provider、歌词 Provider、SQLite、AI、MockData 的语义。
 

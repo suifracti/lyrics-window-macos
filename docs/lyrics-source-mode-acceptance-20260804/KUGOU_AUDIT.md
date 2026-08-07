@@ -11,7 +11,7 @@
 
 1. 在 `SpotifyLyrics/**/*.swift` 中搜索 `Kugou` / `KuGou` / `kugou`：**无匹配**。
 2. `LyricsProviderID` 仅包含：`localFiles`、`sqliteDatabase`、`lrclib`、`netEaseExperimental`、`qqExperimental`。
-3. 仓库文档（`SOURCE_PROVIDER_RESEARCH.md`）与第三方参考项目（LyricsX 等）提到酷狗，但本应用**未复制**其实现，也未持有密钥或私有凭证。
+3. 仓库文档（`docs/research/SOURCE_PROVIDER_RESEARCH.md`）与第三方参考项目（LyricsX 等）提到酷狗，但本应用**未复制**其实现，也未持有密钥或私有凭证。
 4. 合同测试 `Tests/lyrics_source_mode_contract.sh` 明确拒绝应用源中出现酷狗符号。
 
 ## 风险说明

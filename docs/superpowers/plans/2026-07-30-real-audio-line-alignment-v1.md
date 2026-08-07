@@ -242,7 +242,7 @@ public static func align(
 
 ## Task 7: Real audio acceptance, build and delivery gate
 
-**Files:** Create/update `docs/superpowers/specs/acceptance-2026-07-30-real-audio-line-alignment-v1/README.md`; update `task_plan.md`, `findings.md`, `progress.md` only after implementation and acceptance; no new Provider or visual redesign files.
+**Files:** Create/update `docs/superpowers/specs/acceptance-2026-07-30-real-audio-line-alignment-v1/README.md`; update `docs/archive/planning/task_plan.md`, `docs/archive/planning/findings.md`, `docs/archive/planning/progress.md` only after implementation and acceptance; no new Provider or visual redesign files.
 
 - [ ] **Step 1: Collect the user-provided audio precondition.**
   The file must be the complete vocal recording corresponding to the current TrackIdentity, not TTS, spoken reading, preview clip, instrumental, remix or another release. It must be locally readable, with measured duration within the configured tolerance of the Spotify duration; embedded title/artist, when present, must match, and the app must show the file hash prefix before processing.

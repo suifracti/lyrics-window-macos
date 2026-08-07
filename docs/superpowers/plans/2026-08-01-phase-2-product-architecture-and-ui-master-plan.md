@@ -18,7 +18,7 @@
 本规划的依据是：
 
 1. 当前 HEAD 的真实源码；
-2. UI_LAYOUT_AUDIT_PHASE2.md；
+2. docs/research/UI_LAYOUT_AUDIT_PHASE2.md；
 3. 已完成的窗口、歌词、翻译、编辑器和 v4 迁移规划；
 4. 用户消息给出的真实 12 项需求原始编号和语义。
 

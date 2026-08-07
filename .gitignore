@@ -48,6 +48,9 @@ docs/phase-2-5-validation/
 docs/phase-3/phase-3-4-visual-review/
 docs/superpowers/reports/
 
+## Local agent history kept outside the project baseline
+docs/archive/agent-history/
+
 # Read-only reference project; keep it local but never commit it to this repo.
 Lyricify-App-main/
 

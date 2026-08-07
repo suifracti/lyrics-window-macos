@@ -166,8 +166,8 @@
 ### Task 8: Runtime verification, screenshots, and handoff
 
 **Files:**
-- Create: `real-track-lyrics-assets/*.png`
-- Modify: `progress.md`, `findings.md`, `task_plan.md`
+- Create: `docs/evidence/real-track-lyrics/*.png`
+- Modify: `docs/archive/planning/progress.md`, `docs/archive/planning/findings.md`, `docs/archive/planning/task_plan.md`
 
 - [ ] Run `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project SpotifyLyrics.xcodeproj -scheme SpotifyLyrics -configuration Debug -derivedDataPath ./DerivedData CODE_SIGNING_ALLOWED=NO build` and capture `** BUILD SUCCEEDED **`.
 - [ ] Run the normal signed Debug build for Apple Events and launch `/Users/apple/backup/sptifylyrics/DerivedData/Build/Products/Debug/SpotifyLyrics.app`.
