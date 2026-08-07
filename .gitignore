@@ -80,3 +80,6 @@ docs/phase-2-11c-zero-operation-alignment/s4-repeated-sections/runs/
 docs/phase-2-11c-zero-operation-alignment/s4-repeated-sections/local-real-songs/
 docs/phase-2-11c-zero-operation-alignment/s4-5-real-song-gate/local-real-songs/
 docs/phase-2-11c-zero-operation-alignment/s4-5-real-song-gate/runs/
+
+# Local project backups, patches, and reference repositories; never commit.
+.local/
