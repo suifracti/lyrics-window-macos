@@ -166,16 +166,20 @@ struct AppleMusicImmersiveV3BackdropView: View {
 
     private var effectiveBlurRadius: Double {
         if settings.v3InstrumentalPureImmersion && isInstrumental {
-            return 8.0
+            return 3.0
         }
-        return settings.v3BackdropBlurRadius
+        // Non-linear power curve (pow(val/100, 2.2) * 20.0)
+        // Spreads out the visual dynamic range across the full 0...100 slider track
+        let normalized = max(0, min(1, settings.v3BackdropBlurRadius / 100.0))
+        return pow(normalized, 2.2) * 20.0
     }
 
     private var effectiveScreenBlurRadius: Double {
         if settings.v3InstrumentalPureImmersion && isInstrumental {
-            return 2.0
+            return 0.8
         }
-        return settings.v3BackdropBlurRadius * 0.3
+        let normalized = max(0, min(1, settings.v3BackdropBlurRadius / 100.0))
+        return pow(normalized, 2.2) * 5.0
     }
 
     @ViewBuilder
@@ -192,7 +196,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
             .resizable()
             .scaledToFill()
             .scaleEffect(style.artworkScreenScale)
-            .blur(radius: max(2, effectiveScreenBlurRadius))
+            .blur(radius: effectiveScreenBlurRadius)
             .blendMode(.screen)
             .opacity(min(1, style.artworkScreenOpacity * style.textureIntensity * 1.2))
 
@@ -200,7 +204,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
             .resizable()
             .scaledToFill()
             .scaleEffect(style.artworkScale)
-            .blur(radius: max(4, effectiveBlurRadius))
+            .blur(radius: effectiveBlurRadius)
             .opacity(min(1, style.artworkOpacity * style.textureIntensity * 1.1))
 
         LinearGradient(
