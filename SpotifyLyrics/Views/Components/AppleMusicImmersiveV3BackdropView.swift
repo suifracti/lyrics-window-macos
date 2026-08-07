@@ -166,16 +166,16 @@ struct AppleMusicImmersiveV3BackdropView: View {
 
     private var effectiveBlurRadius: Double {
         if settings.v3InstrumentalPureImmersion && isInstrumental {
-            return 8.0
+            return 12.0
         }
-        return settings.v3BackdropBlurRadius
+        return max(64.0, settings.v3BackdropBlurRadius * 1.8)
     }
 
     private var effectiveScreenBlurRadius: Double {
         if settings.v3InstrumentalPureImmersion && isInstrumental {
             return 2.0
         }
-        return settings.v3BackdropBlurRadius * 0.3
+        return settings.v3BackdropBlurRadius * 0.4
     }
 
     @ViewBuilder
@@ -191,26 +191,26 @@ struct AppleMusicImmersiveV3BackdropView: View {
         Image(nsImage: image)
             .resizable()
             .scaledToFill()
-            .scaleEffect(style.artworkScreenScale)
-            .blur(radius: max(2, effectiveScreenBlurRadius))
+            .scaleEffect(style.artworkScreenScale * 1.2)
+            .blur(radius: max(8, effectiveScreenBlurRadius))
             .blendMode(.screen)
             .opacity(min(1, style.artworkScreenOpacity * style.textureIntensity * 1.2))
 
         Image(nsImage: image)
             .resizable()
             .scaledToFill()
-            .scaleEffect(style.artworkScale)
-            .blur(radius: max(4, effectiveBlurRadius))
-            .opacity(min(1, style.artworkOpacity * style.textureIntensity * 1.1))
+            .scaleEffect(style.artworkScale * 1.35)
+            .blur(radius: max(55, effectiveBlurRadius))
+            .opacity(min(1, style.artworkOpacity * style.textureIntensity * 1.15))
 
         LinearGradient(
             colors: [
                 color(palette.primary, saturation: saturation)
-                    .opacity(min(1, 0.18 * style.paletteOpacity)),
+                    .opacity(min(1, 0.35 * style.paletteOpacity)),
                 color(palette.secondary, saturation: saturation)
-                    .opacity(min(1, 0.15 * style.paletteOpacity)),
+                    .opacity(min(1, 0.28 * style.paletteOpacity)),
                 color(palette.glow, saturation: saturation)
-                    .opacity(min(1, 0.12 * style.paletteOpacity))
+                    .opacity(min(1, 0.22 * style.paletteOpacity))
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
@@ -220,7 +220,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
         RadialGradient(
             colors: [
                 color(palette.glow, saturation: saturation)
-                    .opacity(min(1, style.glowIntensity * 0.5)),
+                    .opacity(min(1, style.glowIntensity * 0.65)),
                 .clear
             ],
             center: UnitPoint(x: 0.16, y: 0.52),
