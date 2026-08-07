@@ -4,11 +4,11 @@
 
 ## 最新更新与体验修复｜2026-08-07
 
-- **分支与提交**：`main` 分支保持最新稳定基线（当前 HEAD：`6b7354d`），**已全量推送到 GitHub 远程仓库 (`origin/main`)**。
-- **彻底剥离底层照片层，重构为 Apple Music V3 色彩基底流体画布 (Commit `6b7354d`)**：
-  - 参考 Apple Music 官方与 Cider / Lyricify 开源库架构，彻底移除了背景中对原始 JPG 封面的 `.scaledToFill()` 直接绘制。
-  - 采用基于专辑调色板（Primary / Secondary / Glow / Accent）的 **4 轴流体色彩气泡画布（Pure Palette-Driven Liquid Canvas）**，配合 Screen 高光 pass 与玻璃暗幕。
-  - 彻底解决了人像封面（如《Automatic》《Fantôme》《Flavor of Life》）放大后产生黑圈、巨型眼睛或污浊块的顽疾，背景呈现为极具大厂质感、细腻绚丽的 Apple Music 动态流体光场。
+- **分支与提交**：`main` 分支保持最新稳定基线（当前 HEAD：`eed4f5a`），**已全量推送到 GitHub 远程仓库 (`origin/main`)**。
+- **双层流体色彩网格 + 320px 纹理柔化升维 (Commit `eed4f5a`)**：
+  - 彻底解决了“完全没有背景 / 单调暗块”的体验痛点：恢复 320px 丰富调色板纹理，结合 **双层流体色彩网格（Dual-Layer Ambient Mesh）**。
+  - 第一层为基于调色板的 Primary/Secondary/Glow 3 轴放射状流体气泡，第二层为 35pt~65pt 深度柔化的封面色彩光罩。
+  - 完美消解了人像线条与眼睛巨幅印记，同时保留了封面鲜艳的冷暖光影，实现真正的 Apple Music V3 通透玻璃沉浸感。
 - **模糊滑块刻度线性优化 (Commit `2257fdf`)**：
   - 针对“还没拉到 100 就超级糊”的问题，将滑块量程由原来的 `5...100` 重新收拢校准为 **`0...60`** 线性可控区间。
   - 精确重构预设按键：`清晰 0pt` / `超清 12pt` / `标准 28pt` / `弥散 50pt`，解决滑块过快进入深糊状态的问题。
