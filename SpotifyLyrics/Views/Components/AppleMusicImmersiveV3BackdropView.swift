@@ -114,10 +114,9 @@ struct AppleMusicImmersiveV3BackdropView: View {
             palette.readabilityVeilOpacity * style.lyricVeilMultiplier
         )
 
-        // High luminance (light/white covers like "One Last Kiss") require
-        // a darker overlay veil so white lyrics remain readable.
-        let luminanceBoost = palette.luminance > 0.45 ? (palette.luminance - 0.45) * 0.75 : 0.0
-        let paletteVeil = min(0.82, baseVeil + luminanceBoost)
+        // Moderate luminance adjustment for bright covers to preserve artwork glow
+        let luminanceBoost = palette.luminance > 0.5 ? (palette.luminance - 0.5) * 0.32 : 0.0
+        let paletteVeil = min(0.38, baseVeil + luminanceBoost)
 
         if reduceTransparency {
             return min(0.90, max(0.62, paletteVeil + 0.18))
@@ -127,7 +126,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
             return min(0.88, paletteVeil + 0.14)
         }
 
-        return min(0.82, paletteVeil)
+        return min(0.42, paletteVeil)
     }
 
     private var artworkTransitionDuration: Double {
@@ -230,7 +229,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
         )
 
         // lyric readability layer: trailing dark gradient scrim over the lyrics area for high contrast
-        let lyricVeilOpacity = min(0.65, max(0.24, palette.luminance * 0.55))
+        let lyricVeilOpacity = min(0.35, max(0.12, palette.luminance * 0.30))
         LinearGradient(
             colors: [
                 .clear,
@@ -245,7 +244,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
         RadialGradient(
             colors: [
                 .clear,
-                Color.black.opacity(min(0.70, style.vignetteIntensity * (0.8 + palette.luminance * 0.5)))
+                Color.black.opacity(min(0.40, style.vignetteIntensity * 0.8))
             ],
             center: .center,
             startRadius: 150,

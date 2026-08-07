@@ -19,21 +19,25 @@ struct TrackMetadataView: View {
                 .lineLimit(2)
                 .multilineTextAlignment(alignment == .center ? .center : .leading)
 
-            HStack(spacing: 4) {
-                ForEach(Array(artistLinks.enumerated()), id: \.offset) { index, artist in
-                    if index > 0 {
-                        Text(",")
-                            .foregroundStyle(LyricsDesignTokens.mutedText)
+            HStack(spacing: 6) {
+                HStack(spacing: 4) {
+                    ForEach(Array(artistLinks.enumerated()), id: \.offset) { index, artist in
+                        if index > 0 {
+                            Text(",")
+                                .foregroundStyle(LyricsDesignTokens.mutedText)
+                        }
+                        artistButton(artist)
                     }
-                    artistButton(artist)
+                }
+
+                if !track.album.isEmpty {
+                    Text("·")
+                        .foregroundStyle(LyricsDesignTokens.mutedText.opacity(0.6))
+                    albumButton
                 }
             }
-            .font(.system(size: max(12, titleSize * 0.62), weight: .regular, design: .rounded))
+            .font(.system(size: max(12, titleSize * 0.58), weight: .medium, design: .rounded))
             .lineLimit(1)
-
-            if !track.album.isEmpty {
-                albumButton
-            }
         }
         .frame(maxWidth: .infinity, alignment: alignment == .center ? .center : .leading)
         .accessibilityElement(children: .combine)
