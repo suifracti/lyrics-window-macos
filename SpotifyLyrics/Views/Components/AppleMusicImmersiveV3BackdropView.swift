@@ -51,6 +51,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
             // The veil is intentionally independent of playback position.
             Color.black.opacity(readabilityVeilOpacity)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea()
         .allowsHitTesting(false)
         .accessibilityHidden(true)
@@ -108,10 +109,15 @@ struct AppleMusicImmersiveV3BackdropView: View {
 
     private var readabilityVeilOpacity: Double {
         let style = presentationStyle
-        let paletteVeil = max(
+        let baseVeil = max(
             style.minimumLyricVeil,
             palette.readabilityVeilOpacity * style.lyricVeilMultiplier
         )
+
+        // High luminance (light/white covers like "One Last Kiss") require
+        // a darker overlay veil so white lyrics remain readable.
+        let luminanceBoost = palette.luminance > 0.45 ? (palette.luminance - 0.45) * 0.75 : 0.0
+        let paletteVeil = min(0.82, baseVeil + luminanceBoost)
 
         if reduceTransparency {
             return min(0.90, max(0.62, paletteVeil + 0.18))
@@ -121,7 +127,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
             return min(0.88, paletteVeil + 0.14)
         }
 
-        return min(0.08, paletteVeil * 0.4)
+        return min(0.82, paletteVeil)
     }
 
     private var artworkTransitionDuration: Double {
@@ -181,9 +187,8 @@ struct AppleMusicImmersiveV3BackdropView: View {
             style.paletteSaturation * 1.35 + (increaseContrast ? 0.08 : 0)
         )
 
-        // Keep a second, lower-radius pass over the cached thumbnail so the
-        // cover contributes visible texture instead of collapsing into one
-        // uniformly blurred theme color.
+        // complete artwork plane scaledToFit()
+        // texture layer: lower-radius pass over cached thumbnail
         Image(nsImage: image)
             .resizable()
             .scaledToFill()
@@ -219,11 +224,35 @@ struct AppleMusicImmersiveV3BackdropView: View {
                     .opacity(min(1, style.glowIntensity * 0.5)),
                 .clear
             ],
-            center: .center,
+            center: UnitPoint(x: 0.16, y: 0.52),
             startRadius: 40,
             endRadius: 750
         )
 
+        // lyric readability layer: trailing dark gradient scrim over the lyrics area for high contrast
+        let lyricVeilOpacity = min(0.65, max(0.24, palette.luminance * 0.55))
+        LinearGradient(
+            colors: [
+                .clear,
+                Color.black.opacity(lyricVeilOpacity * 0.35),
+                Color.black.opacity(lyricVeilOpacity)
+            ],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+
+        // vignette layer: subtle edge darkening
+        RadialGradient(
+            colors: [
+                .clear,
+                Color.black.opacity(min(0.70, style.vignetteIntensity * (0.8 + palette.luminance * 0.5)))
+            ],
+            center: .center,
+            startRadius: 150,
+            endRadius: 920
+        )
+
+        // noise layer
         if let noiseImage {
             Image(nsImage: noiseImage)
                 .resizable(resizingMode: .tile)

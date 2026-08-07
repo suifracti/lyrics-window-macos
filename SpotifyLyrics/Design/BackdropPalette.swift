@@ -256,7 +256,7 @@ public enum BackdropPresentationID: String, CaseIterable, Sendable {
                 artworkBlur: 58,
                 artworkScreenScale: 1.20,
                 artworkScale: 1.44,
-                paletteSaturation: 1.0,
+                paletteSaturation: 1.35,
                 paletteOpacity: 1.35,
                 glowIntensity: 0.92,
                 lyricVeilMultiplier: 0.82,
