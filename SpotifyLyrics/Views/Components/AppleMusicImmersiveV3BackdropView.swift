@@ -389,7 +389,7 @@ public actor AppleMusicImmersiveV3BackdropCache {
         artworkData: Data,
         seed: UInt64
     ) -> AppleMusicImmersiveV3BackdropSnapshot {
-        let reducedArtwork = thumbnailData(from: artworkData, maxPixel: 320)
+        let reducedArtwork = thumbnailData(from: artworkData, maxPixel: 1024)
         let palette = BackdropPalette.from(imageData: reducedArtwork)
         let noise = makeNoiseData(seed: seed)
         return AppleMusicImmersiveV3BackdropSnapshot(
