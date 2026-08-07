@@ -166,16 +166,16 @@ struct AppleMusicImmersiveV3BackdropView: View {
 
     private var effectiveBlurRadius: Double {
         if settings.v3InstrumentalPureImmersion && isInstrumental {
-            return 10.0
+            return 8.0
         }
-        return max(42.0, settings.v3BackdropBlurRadius * 1.35)
+        return settings.v3BackdropBlurRadius
     }
 
     private var effectiveScreenBlurRadius: Double {
         if settings.v3InstrumentalPureImmersion && isInstrumental {
             return 2.0
         }
-        return settings.v3BackdropBlurRadius * 0.3
+        return settings.v3BackdropBlurRadius * 0.25
     }
 
     @ViewBuilder
@@ -186,24 +186,26 @@ struct AppleMusicImmersiveV3BackdropView: View {
             style.paletteSaturation * 1.35 + (increaseContrast ? 0.08 : 0)
         )
 
-        // Base blurred artwork plane
+        // Base artwork plane directly controlled by user settings blur slider
         // complete artwork plane scaledToFit()
         // texture layer: lower-radius pass over cached thumbnail
         Image(nsImage: image)
             .resizable()
             .scaledToFill()
-            .scaleEffect(style.artworkScale * 1.25)
-            .blur(radius: max(36, effectiveBlurRadius))
-            .opacity(min(1, style.artworkOpacity * style.textureIntensity * 1.15))
+            .scaleEffect(style.artworkScale)
+            .blur(radius: effectiveBlurRadius)
+            .opacity(min(1, style.artworkOpacity * style.textureIntensity * 1.1))
 
-        // Screen blend pass for vibrant light bloom & translucency
-        Image(nsImage: image)
-            .resizable()
-            .scaledToFill()
-            .scaleEffect(style.artworkScreenScale * 1.18)
-            .blur(radius: max(10, effectiveScreenBlurRadius))
-            .blendMode(.screen)
-            .opacity(0.42)
+        // Screen blend pass for vibrant light bloom
+        if effectiveScreenBlurRadius > 0 {
+            Image(nsImage: image)
+                .resizable()
+                .scaledToFill()
+                .scaleEffect(style.artworkScreenScale)
+                .blur(radius: effectiveScreenBlurRadius)
+                .blendMode(.screen)
+                .opacity(0.35)
+        }
 
         // Overlay blend color gradient for vivid color saturation
         LinearGradient(
