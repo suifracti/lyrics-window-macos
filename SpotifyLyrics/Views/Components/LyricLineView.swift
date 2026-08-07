@@ -89,7 +89,7 @@ struct LyricLineView: View {
     }
 
     private var rubyOpacity: Double {
-        min(0.85, effectiveOpacity * 0.82)
+        isActive ? min(0.95, effectiveOpacity * 0.90) : min(0.85, effectiveOpacity * 0.82)
     }
 
     private var auxiliaryTopSpacing: CGFloat { 7 }

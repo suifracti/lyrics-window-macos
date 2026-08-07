@@ -1273,7 +1273,8 @@ private struct AppleMusicImmersiveV3LyricRow: View {
     }
 
     private var rubySize: CGFloat {
-        max(compact ? 10 : 12, min(18, baseSize * 0.34 * preferences.rubyFontSize / 10))
+        // baseSize * 0.44 provides readable 15-17pt ruby annotations for active lines
+        max(compact ? 12 : 14, min(22, baseSize * 0.44 * preferences.rubyFontSize / 10))
     }
     private var auxiliarySize: CGFloat {
         min(compact ? 16 : 18, max(12, baseSize * 0.44 * preferences.assistantFontSize / 14))
@@ -1416,8 +1417,9 @@ private struct AppleMusicImmersiveV3LyricRow: View {
 
     private var rubyOpacity: Double {
         let factor = max(0.15, min(1, preferences.opacity / 0.85))
-        guard isSynchronized, distance == 1 else { return 0.62 * factor }
-        return 0.46 * factor
+        if isActive { return 0.88 * factor }
+        if !isSynchronized || distance <= 1 { return 0.68 * factor }
+        return 0.48 * factor
     }
 
     private var romajiOpacity: Double {
