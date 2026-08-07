@@ -4,15 +4,17 @@
 
 ## 最新更新与体验修复｜2026-08-07
 
-- **分支与提交**：`main` 分支保持最新稳定基线（当前 HEAD：`af5230d`）。
+- **分支与提交**：`main` 分支保持最新稳定基线（当前 HEAD：`803d84f`）。
+- **背景暗度适度放轻 (Commit `803d84f`)**：
+  - 针对此前背景偏暗的问题，适当放轻 `luminanceBoost` 与右侧渐变暗幕强度，保留封面原有的鲜艳色彩与通透感，同时保持歌词高对比度。
+- **歌手与专辑单行化 (Commit `803d84f`)**：
+  - 解决左侧元数据过度堆叠问题：将歌手与专辑合并为单行展示（如 `宇多田光 · One Last Kiss`），避免占用三行纵向空间，降低元数据整体高度。
 - **全白背景歌词可读性修复 (Commit `3b0336c`)**：
-  - 针对高亮度/浅色封面（如《One Last Kiss》），修复 `readabilityVeilOpacity` 被限制在 8% 的问题，实现基于封面 Luminance 的自适应暗色遮罩（最高可动态调至 45%~55%+）。
-  - 恢复并强化右侧歌词区域的渐变暗幕 (`LinearGradient` trailing scrim) 与边缘暗影，确保白色歌词字体高对比度清晰可见。
+  - 针对高亮度/浅色封面（如《One Last Kiss》），修复 `readabilityVeilOpacity` 被限制在 8% 的问题，实现基于封面 Luminance 的自适应暗色遮罩。
   - 契约测试通过：`v3_backdrop_contract.sh` 与 `phase_2_3d_background_contract.sh`。
 - **日文 Ruby 假名字号与清晰度调优 (Commit `af5230d`)**：
-  - 将汉字上方的假名字号比例从 `baseSize * 0.34` 提升至 `baseSize * 0.44`，高亮行假名字号由 11.5pt 提升至 15.5pt~17pt（解决《Automatic》中假名偏小挤缩问题）。
-  - 高亮行 Ruby 不透明度提升至 0.88（原 0.62），相邻行提升至 0.68，保证看清假名读音。
-  - 契约测试通过：`ruby_layout_contract.sh`。
+  - 将汉字上方的假名字号比例从 `baseSize * 0.34` 提升至 `baseSize * 0.44`，高亮行假名字号由 11.5pt 提升至 15.5pt~17pt。
+  - 高亮行 Ruby 不透明度提升至 0.88（原 0.62），相邻行提升至 0.68。
 - **最新构建与无打扰启动**：
   - 已关闭旧运行进程，使用后台静默模式（`open -g`）启动最新的 `/tmp/macos-lyrics-companion-deriveddata/Build/Products/Debug/SpotifyLyrics.app`。
   - 保持单实例运行，未抢占或挤掉用户当前的活动窗口。
