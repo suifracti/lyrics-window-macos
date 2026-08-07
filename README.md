@@ -23,3 +23,11 @@ bash Tests/v3_lyric_readability_contract.sh
 ## Repository hygiene
 
 Build products, local archives, credentials, model files, temporary audio, databases, and external reference checkouts are intentionally ignored. Runtime credentials belong in macOS Keychain or local ignored configuration and must not be committed.
+
+## Project workflow
+
+- AI agents and collaborators must read [`AGENTS.md`](AGENTS.md) first.
+- The full local build, archive, branch, and release workflow is in [`docs/DEVELOPMENT_WORKFLOW.md`](docs/DEVELOPMENT_WORKFLOW.md).
+- Check the current source version with `git status`, `git rev-parse HEAD`, `git rev-parse main`, and `git rev-parse origin/main`.
+- The standard Debug build is the command shown above; the documented core contract entry is `bash Tests/v3_lyric_readability_contract.sh`.
+- This repository currently has no formal Release or SemVer tag.
