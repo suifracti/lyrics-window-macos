@@ -166,16 +166,15 @@ struct AppleMusicImmersiveV3BackdropView: View {
 
     private var effectiveBlurRadius: Double {
         if settings.v3InstrumentalPureImmersion && isInstrumental {
-            return 8.0
+            return 2.5
         }
-        return settings.v3BackdropBlurRadius
+        // Normalize against the image-to-window scaling factor so the visual
+        // blur on screen matches the user's slider setting 1:1.
+        return settings.v3BackdropBlurRadius * 0.22
     }
 
     private var effectiveScreenBlurRadius: Double {
-        if settings.v3InstrumentalPureImmersion && isInstrumental {
-            return 2.0
-        }
-        return settings.v3BackdropBlurRadius * 0.25
+        0
     }
 
     @ViewBuilder
@@ -186,7 +185,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
             style.paletteSaturation * 1.35 + (increaseContrast ? 0.08 : 0)
         )
 
-        // Base artwork plane directly controlled by user settings blur slider
+        // Single primary artwork plane scaled to fill window with normalized blur
         // complete artwork plane scaledToFit()
         // texture layer: lower-radius pass over cached thumbnail
         Image(nsImage: image)
@@ -195,17 +194,6 @@ struct AppleMusicImmersiveV3BackdropView: View {
             .scaleEffect(style.artworkScale)
             .blur(radius: effectiveBlurRadius)
             .opacity(min(1, style.artworkOpacity * style.textureIntensity * 1.1))
-
-        // Screen blend pass for vibrant light bloom
-        if effectiveScreenBlurRadius > 0 {
-            Image(nsImage: image)
-                .resizable()
-                .scaledToFill()
-                .scaleEffect(style.artworkScreenScale)
-                .blur(radius: effectiveScreenBlurRadius)
-                .blendMode(.screen)
-                .opacity(0.35)
-        }
 
         // Overlay blend color gradient for vivid color saturation
         LinearGradient(

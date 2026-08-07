@@ -1577,8 +1577,8 @@ private struct V3VisualTuningPopoverView: View {
     private var blurPresetName: String {
         let r = settings.v3BackdropBlurRadius
         if r <= 2 { return "清晰" }
-        if r <= 15 { return "超清" }
-        if r <= 32 { return "标准" }
+        if r <= 20 { return "超清" }
+        if r <= 50 { return "标准" }
         return "弥散"
     }
 
@@ -1607,16 +1607,16 @@ private struct V3VisualTuningPopoverView: View {
                         .font(.system(size: 11, weight: .bold).monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
-                Slider(value: $settings.v3BackdropBlurRadius, in: 0...60, step: 1)
+                Slider(value: $settings.v3BackdropBlurRadius, in: 0...100, step: 1)
 
                 HStack(spacing: 0) {
                     blurPresetButton("清晰 0pt", val: 0)
                     Spacer()
-                    blurPresetButton("超清 12pt", val: 12)
+                    blurPresetButton("超清 15pt", val: 15)
                     Spacer()
-                    blurPresetButton("标准 28pt", val: 28)
+                    blurPresetButton("标准 35pt", val: 35)
                     Spacer()
-                    blurPresetButton("弥散 50pt", val: 50)
+                    blurPresetButton("弥散 70pt", val: 70)
                 }
             }
 
