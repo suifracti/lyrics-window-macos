@@ -166,20 +166,16 @@ struct AppleMusicImmersiveV3BackdropView: View {
 
     private var effectiveBlurRadius: Double {
         if settings.v3InstrumentalPureImmersion && isInstrumental {
-            return 3.0
+            return 8.0
         }
-        // Non-linear power curve (pow(val/100, 2.2) * 20.0)
-        // Spreads out the visual dynamic range across the full 0...100 slider track
-        let normalized = max(0, min(1, settings.v3BackdropBlurRadius / 100.0))
-        return pow(normalized, 2.2) * 20.0
+        return settings.v3BackdropBlurRadius
     }
 
     private var effectiveScreenBlurRadius: Double {
         if settings.v3InstrumentalPureImmersion && isInstrumental {
-            return 0.8
+            return 2.0
         }
-        let normalized = max(0, min(1, settings.v3BackdropBlurRadius / 100.0))
-        return pow(normalized, 2.2) * 5.0
+        return settings.v3BackdropBlurRadius * 0.3
     }
 
     @ViewBuilder
