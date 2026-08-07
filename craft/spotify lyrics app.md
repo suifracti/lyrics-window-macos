@@ -4,11 +4,11 @@
 
 ## 最新更新与体验修复｜2026-08-07
 
-- **分支与提交**：`main` 分支保持最新稳定基线（当前 HEAD：`f013eab`）。
-- **网络封面加载防卡死与缓存优化 (Commit `f013eab`)**：
-  - 针对网络波动导致封面加载缓慢甚至加载失败的问题，给 [`ArtworkImageLoader`](file:///Users/apple/backup/sptifylyrics/SpotifyLyrics/Providers/ArtworkImageLoader.swift) 增加了 8 秒请求超时限制、150MB 磁盘 `URLCache` 以及并发请求去重 (`inFlightTasks`)，防止死等网络或重复发起请求。
-- **背景重构：柔和高阶流体弥散 (Commit `f013eab`)**：
-  - 解决“单纯局部放大看清大脸/细节”的粗糙感：将背景高体模糊半径提升至 **64pt ~ 120pt**，配合 1.35x 放大与多重 `BackdropPalette` 氛围色调（Primary/Secondary/Glow），将原先的局部放大硬纹理融入柔和通透的 Apple Music 式流体氛围弥散场。
+- **分支与提交**：`main` 分支保持最新稳定基线（当前 HEAD：`ccf49c1`）。
+- **封面加载恢复与网络策略修复 (Commit `ccf49c1`)**：
+  - 修复此前缓存策略（`returnCacheDataElseLoad`）导致的未缓存封面加载失败问题，改用标准的 `.useProtocolCachePolicy` 结合 `Task.detached` 后台异步网络任务，确保封面图片与背景氛围图 100% 稳定可靠加载。
+- **背景弥散平衡调整 (Commit `ccf49c1`)**：
+  - 将背景模糊半径与放缩比例调整至最佳平衡（40pt ~ 80pt 柔和弥散），兼具 Apple Music 氛围光感与专辑原色的鲜艳度。
 - **背景暗度适度放轻 (Commit `803d84f`)**：
   - 针对此前背景偏暗的问题，适当放轻 `luminanceBoost` 与右侧渐变暗幕强度，保留封面原有的鲜艳色彩与通透感，同时保持歌词高对比度。
 - **歌手与专辑单行化 (Commit `803d84f`)**：
