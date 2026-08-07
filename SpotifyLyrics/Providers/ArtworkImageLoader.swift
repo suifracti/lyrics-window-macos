@@ -13,14 +13,15 @@ public final class ArtworkImageLoader {
     private init() {
         cache.countLimit = 128
         let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 8.0
-        config.timeoutIntervalForResource = 15.0
-        config.requestCachePolicy = .returnCacheDataElseLoad
-        config.urlCache = URLCache(
-            memoryCapacity: 30 * 1024 * 1024,
-            diskCapacity: 150 * 1024 * 1024,
+        config.timeoutIntervalForRequest = 15.0
+        config.timeoutIntervalForResource = 30.0
+        config.requestCachePolicy = .useProtocolCachePolicy
+        let urlCache = URLCache(
+            memoryCapacity: 50 * 1024 * 1024,
+            diskCapacity: 200 * 1024 * 1024,
             diskPath: "spotify_lyrics_artwork_cache"
         )
+        config.urlCache = urlCache
         self.session = URLSession(configuration: config)
     }
 
@@ -35,7 +36,7 @@ public final class ArtworkImageLoader {
             return await existingTask.value
         }
 
-        let task = Task<NSImage?, Never> {
+        let task = Task<NSImage?, Never>.detached { [session, cache] in
             do {
                 let (data, response) = try await session.data(from: url)
                 guard let httpResponse = response as? HTTPURLResponse,
@@ -43,7 +44,9 @@ public final class ArtworkImageLoader {
                       let image = NSImage(data: data) else {
                     return nil
                 }
-                cache.setObject(image, forKey: key)
+                await MainActor.run {
+                    cache.setObject(image, forKey: key)
+                }
                 return image
             } catch {
                 return nil
