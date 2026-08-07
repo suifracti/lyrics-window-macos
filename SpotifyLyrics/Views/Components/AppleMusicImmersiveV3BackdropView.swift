@@ -191,49 +191,76 @@ struct AppleMusicImmersiveV3BackdropView: View {
         )
 
         // complete artwork plane scaledToFit()
-        // texture layer: lower-radius pass over cached thumbnail
-        Image(nsImage: image)
-            .resizable()
-            .scaledToFill()
-            .scaleEffect(style.artworkScreenScale)
-            .blur(radius: effectiveScreenBlurRadius)
-            .blendMode(.screen)
-            .opacity(min(1, style.artworkScreenOpacity * style.textureIntensity * 1.2))
+        // Layer 1: Base fluid color mesh generated from sampled album palette
+        ZStack {
+            // Top-left primary ambient orb
+            RadialGradient(
+                colors: [
+                    color(palette.primary, saturation: saturation).opacity(0.85),
+                    .clear
+                ],
+                center: UnitPoint(x: 0.15, y: 0.25),
+                startRadius: 20,
+                endRadius: 650
+            )
 
+            // Bottom-right secondary color orb
+            RadialGradient(
+                colors: [
+                    color(palette.secondary, saturation: saturation).opacity(0.75),
+                    .clear
+                ],
+                center: UnitPoint(x: 0.85, y: 0.80),
+                startRadius: 40,
+                endRadius: 750
+            )
+
+            // Center-top accent glow orb
+            RadialGradient(
+                colors: [
+                    color(palette.glow, saturation: saturation).opacity(0.65),
+                    .clear
+                ],
+                center: UnitPoint(x: 0.50, y: 0.20),
+                startRadius: 30,
+                endRadius: 550
+            )
+        }
+
+        // Layer 2: Blurred artwork texture plane (blended with organic color mesh)
         Image(nsImage: image)
             .resizable()
             .scaledToFill()
-            .scaleEffect(style.artworkScale)
+            .scaleEffect(style.artworkScale * 1.15)
             .blur(radius: effectiveBlurRadius)
-            .opacity(min(1, style.artworkOpacity * style.textureIntensity * 1.1))
+            .opacity(min(1, style.artworkOpacity * style.textureIntensity * 0.85))
 
+        // Layer 3: Screen bloom pass for glassmorphic specular highlights
+        Image(nsImage: image)
+            .resizable()
+            .scaledToFill()
+            .scaleEffect(style.artworkScreenScale * 1.1)
+            .blur(radius: max(3, effectiveScreenBlurRadius))
+            .blendMode(.screen)
+            .opacity(0.35 * style.textureIntensity)
+
+        // Layer 4: Overlay blend gradient for rich color saturation
         LinearGradient(
             colors: [
                 color(palette.primary, saturation: saturation)
-                    .opacity(min(1, 0.28 * style.paletteOpacity)),
+                    .opacity(min(1, 0.35 * style.paletteOpacity)),
                 color(palette.secondary, saturation: saturation)
-                    .opacity(min(1, 0.22 * style.paletteOpacity)),
+                    .opacity(min(1, 0.28 * style.paletteOpacity)),
                 color(palette.glow, saturation: saturation)
-                    .opacity(min(1, 0.18 * style.paletteOpacity))
+                    .opacity(min(1, 0.22 * style.paletteOpacity))
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
+        .blendMode(.overlay)
 
-        // Symmetrical ambient radial glow centered on the artwork canvas
-        RadialGradient(
-            colors: [
-                color(palette.glow, saturation: saturation)
-                    .opacity(min(1, style.glowIntensity * 0.5)),
-                .clear
-            ],
-            center: UnitPoint(x: 0.16, y: 0.52),
-            startRadius: 40,
-            endRadius: 750
-        )
-
-        // lyric readability layer: trailing dark gradient scrim over the lyrics area for high contrast
-        let lyricVeilOpacity = min(0.35, max(0.12, palette.luminance * 0.30))
+        // Layer 5: Lyric readability trailing dark gradient scrim
+        let lyricVeilOpacity = min(0.32, max(0.10, palette.luminance * 0.25))
         LinearGradient(
             colors: [
                 .clear,
@@ -244,14 +271,14 @@ struct AppleMusicImmersiveV3BackdropView: View {
             endPoint: .trailing
         )
 
-        // vignette layer: subtle edge darkening
+        // Layer 6: Subtle vignette edge darkening
         RadialGradient(
             colors: [
                 .clear,
-                Color.black.opacity(min(0.40, style.vignetteIntensity * 0.8))
+                Color.black.opacity(min(0.38, style.vignetteIntensity * 0.7))
             ],
             center: .center,
-            startRadius: 150,
+            startRadius: 160,
             endRadius: 920
         )
 
