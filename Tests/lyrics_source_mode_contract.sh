@@ -23,7 +23,7 @@ grep -Eq 'allowsLyricsBody: false' "$PROVIDERS"
 # Single UserDefaults setting
 grep -Eq 'lyrics\.sourceMode' "$STORE"
 grep -Eq 'lyricsSourceModeRawValue|restoreDefaultLyricsSourceMode' "$STORE"
-grep -Eq 'LyricsSourceMode\.standardFree' "$STORE"
+grep -Eq 'LyricsSourceMode\.default' "$STORE"
 
 # Runtime chain rebuild on mode + configuration
 grep -Eq 'orderedEnabledIDs\(for: mode\)' "$PLAYBACK"

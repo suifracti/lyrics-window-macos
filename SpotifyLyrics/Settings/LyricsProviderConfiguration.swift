@@ -12,12 +12,17 @@ public enum LyricsSourceMode: String, CaseIterable, Codable, Identifiable, Senda
 
     public var id: String { rawValue }
 
-    public static let `default` = LyricsSourceMode.standardFree
+    /// This repository is currently a personal-use companion rather than a
+    /// commercial distribution build. Keep both maintained experimental
+    /// providers active by default so cold tracks actually benefit from the
+    /// NetEase/QQ coverage work. The standard mode remains available as an
+    /// explicit conservative choice.
+    public static let `default` = LyricsSourceMode.experimentalFree
 
     public var title: String {
         switch self {
-        case .standardFree: return "标准免费模式（推荐）"
-        case .experimentalFree: return "扩展免费实验模式"
+        case .standardFree: return "开放来源模式"
+        case .experimentalFree: return "扩展免费模式（个人使用推荐）"
         }
     }
 

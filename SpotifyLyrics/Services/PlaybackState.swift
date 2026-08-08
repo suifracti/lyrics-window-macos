@@ -234,7 +234,7 @@ public final class PlaybackState: ObservableObject {
                 guard let self, self.usesConfiguredLyricsProviders else { return }
                 // Use the emitted raw value — not a re-read that can race with
                 // batched settings updates during acceptance / UI toggles.
-                let mode = LyricsSourceMode(rawValue: rawValue) ?? .standardFree
+                let mode = LyricsSourceMode(rawValue: rawValue) ?? .default
                 self.applyLyricsProviderConfiguration(
                     resolvedSettings.lyricsProviderConfiguration,
                     mode: mode
@@ -269,7 +269,7 @@ public final class PlaybackState: ObservableObject {
     private static func makeDefaultLyricsProviders(
         index: LocalLyricsIndex,
         configuration: LyricsProviderConfiguration,
-        mode: LyricsSourceMode = .standardFree
+        mode: LyricsSourceMode = .default
     ) -> [LyricsProvider] {
         var providers: [LyricsProvider] = []
         // Mode is the hard gate: experimental IDs never enter the chain under

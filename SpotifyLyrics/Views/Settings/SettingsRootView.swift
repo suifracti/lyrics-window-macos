@@ -405,7 +405,7 @@ private struct LyricsSourcesSettingsView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                Button("恢复默认模式（标准免费）") {
+                Button("恢复默认模式（扩展免费）") {
                     settings.restoreDefaultLyricsSourceMode()
                 }
                 .accessibilityIdentifier("lyricsSourceMode.restoreDefault")

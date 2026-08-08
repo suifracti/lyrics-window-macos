@@ -18,7 +18,7 @@ struct LyricsSourceModeContract {
             LyricsSourceMode.experimentalFree.rawValue == "lyricsSourceMode.experimentalFree.v1",
             "experimental free stable id"
         )
-        require(LyricsSourceMode.default == .standardFree, "default mode is standard free")
+        require(LyricsSourceMode.default == .experimentalFree, "personal-use default enables maintained experimental sources")
         require(!LyricsSourceMode.standardFree.allowsExperimentalProviders, "A blocks experimental")
         require(LyricsSourceMode.experimentalFree.allowsExperimentalProviders, "B allows experimental")
 

@@ -262,7 +262,7 @@ public final class AppSettingsStore: ObservableObject {
     }
 
     public var lyricsSourceMode: LyricsSourceMode {
-        get { LyricsSourceMode(rawValue: lyricsSourceModeRawValue) ?? .standardFree }
+        get { LyricsSourceMode(rawValue: lyricsSourceModeRawValue) ?? .default }
         set { lyricsSourceModeRawValue = newValue.rawValue }
     }
 
@@ -404,7 +404,7 @@ public final class AppSettingsStore: ObservableObject {
         readingPreferences = Self.loadReadingPreferences(defaults: defaults)
         lyricsProviderConfiguration = Self.loadProviderConfiguration(defaults: defaults)
         lyricsSourceModeRawValue = defaults.string(forKey: Key.lyricsSourceMode)
-            ?? LyricsSourceMode.standardFree.rawValue
+            ?? LyricsSourceMode.default.rawValue
         aiTranslationConfiguration = Self.loadAITranslationConfiguration(defaults: defaults)
         aiTranslationAPIKeyConfigured = defaults.object(forKey: Key.aiAPIKeyConfigured) as? Bool ?? false
         let cachedModels = Self.loadCachedModels(defaults: defaults)
@@ -674,10 +674,10 @@ public final class AppSettingsStore: ObservableObject {
         lyricsProviderConfiguration = configuration
     }
 
-    /// Restores the recommended free mode (standard). Does not wipe SQLite,
+    /// Restores the recommended personal-use mode. Does not wipe SQLite,
     /// provider order, or individual enable flags.
     public func restoreDefaultLyricsSourceMode() {
-        lyricsSourceMode = .standardFree
+        lyricsSourceMode = .default
     }
 
     public func resetWindowState() {
