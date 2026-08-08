@@ -27,5 +27,25 @@ grep -q 'case .stage' "$BACKDROP"
 grep -q 'Picker("背景构图"' "$WINDOW"
 grep -q 'V3ArtworkPresentation.allCases' "$WINDOW"
 grep -q 'showsForegroundArtwork' "$WINDOW"
+grep -q 'blurControlTitle' "$SETTINGS" || {
+  echo "V3 presentations must expose mode-specific blur semantics" >&2
+  exit 1
+}
+grep -q 'artworkSizeControlTitle' "$SETTINGS" || {
+  echo "V3 presentations must expose mode-specific size semantics" >&2
+  exit 1
+}
+grep -q 'artworkPositionControlTitle' "$SETTINGS" || {
+  echo "V3 presentations must expose mode-specific position semantics" >&2
+  exit 1
+}
+grep -q 'min(1.4, max(0.8, settings.v3ArtworkSizeScale))' "$BACKDROP" || {
+  echo "Stage backdrop must honor the full 80–140% scale range" >&2
+  exit 1
+}
+grep -q 'classicArtworkOffset' "$BACKDROP" || {
+  echo "Classic backdrop must visibly react to crop position" >&2
+  exit 1
+}
 
 echo "V3 artwork presentation contract passed"

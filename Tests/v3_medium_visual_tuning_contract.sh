@@ -9,8 +9,8 @@ awk '/private func mediumLayout\(/,/^    private func smallLayout\(/' "$VIEW" | 
   exit 1
 }
 
-awk '/private func mediumLayout\(/,/^    private func smallLayout\(/' "$VIEW" | grep -q 'settings.v3ArtworkSizeScale' || {
-  echo 'FAIL: V3 medium layout ignores the cover size setting' >&2
+awk '/private func mediumLayout\(/,/^    private func smallLayout\(/' "$VIEW" | grep -q 'foregroundArtworkScale' || {
+  echo 'FAIL: V3 medium layout does not use mode-aware foreground artwork scale' >&2
   exit 1
 }
 

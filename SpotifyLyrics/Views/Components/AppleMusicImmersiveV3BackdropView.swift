@@ -246,8 +246,10 @@ struct AppleMusicImmersiveV3BackdropView: View {
         // One recognisable, aspect-fitted artwork plane dissolves into the
         // colour field. There is no foreground cover card in Stage mode.
         GeometryReader { geometry in
-            let scale = min(1.16, max(0.86, settings.v3ArtworkSizeScale))
-            let planeSize = min(geometry.size.height * 1.02, geometry.size.width * 0.72) * scale
+            let scale = min(1.4, max(0.8, settings.v3ArtworkSizeScale))
+            // At 100% the complete square remains inside the canvas. Larger
+            // presets intentionally become increasingly cinematic crops.
+            let planeSize = min(geometry.size.height * 0.88, geometry.size.width * 0.64) * scale
             let x: CGFloat = {
                 switch settings.v3ArtworkPosition {
                 case "right": return geometry.size.width * 0.73
@@ -472,43 +474,55 @@ struct AppleMusicImmersiveV3BackdropView: View {
         }
         .opacity(0.35 + 0.65 * normalizedBlur)
 
-        // Layer 2: Main Scaled Cover Artwork Background Substrate (100% frozen blur logic, with Left-layout non-linear mask)
-        let mainSubstrateImage = Image(nsImage: image)
-            .resizable()
-            .scaledToFill()
-            .scaleEffect(style.artworkScale * 1.15)
-            .blur(radius: effectiveBlurRadius)
-            .opacity(min(1, style.artworkOpacity * style.textureIntensity))
+        // Layer 2: Main scaled cover substrate. Unlike the old implementation,
+        // both the full 80–140% range and crop position now affect this image.
+        GeometryReader { geometry in
+            let scale = min(1.4, max(0.8, settings.v3ArtworkSizeScale))
+            let mainSubstrateImage = Image(nsImage: image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: geometry.size.width, height: geometry.size.height)
+                .scaleEffect(style.artworkScale * scale)
+                .offset(x: classicArtworkOffset(for: geometry.size.width))
+                .blur(radius: effectiveBlurRadius)
+                .opacity(min(1, style.artworkOpacity * style.textureIntensity))
 
-        if settings.v3ArtworkPosition == "left" {
-            mainSubstrateImage
-                .mask(
-                    LinearGradient(
-                        stops: [
-                            .init(color: .black, location: 0.00),
-                            .init(color: .black, location: 0.28),
-                            .init(color: .black.opacity(0.85), location: 0.45),
-                            .init(color: .black.opacity(0.40), location: 0.62),
-                            .init(color: .black.opacity(0.12), location: 0.78),
-                            .init(color: .clear, location: 0.92)
-                        ],
-                        startPoint: .leading,
-                        endPoint: .trailing
+            if settings.v3ArtworkPosition == "left" {
+                mainSubstrateImage
+                    .mask(
+                        LinearGradient(
+                            stops: [
+                                .init(color: .black, location: 0.00),
+                                .init(color: .black, location: 0.28),
+                                .init(color: .black.opacity(0.85), location: 0.45),
+                                .init(color: .black.opacity(0.40), location: 0.62),
+                                .init(color: .black.opacity(0.12), location: 0.78),
+                                .init(color: .clear, location: 0.92)
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
                     )
-                )
-        } else {
-            mainSubstrateImage
+            } else {
+                mainSubstrateImage
+            }
         }
 
         // Layer 3: Specular Screen Light Bloom Pass (Only active when blur > 0 to avoid obscuring 0% clear artwork)
         if effectiveScreenBlurRadius > 0 {
-            Image(nsImage: image)
-                .resizable()
-                .scaledToFill()
-                .scaleEffect(style.artworkScreenScale * 1.1)
-                .blur(radius: effectiveScreenBlurRadius)
-                .blendMode(.screen)
-                .opacity(0.35 * style.textureIntensity * normalizedBlur)
+            GeometryReader { geometry in
+                let scale = min(1.4, max(0.8, settings.v3ArtworkSizeScale))
+
+                Image(nsImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    .scaleEffect(style.artworkScreenScale * scale)
+                    .offset(x: classicArtworkOffset(for: geometry.size.width))
+                    .blur(radius: effectiveScreenBlurRadius)
+                    .blendMode(.screen)
+                    .opacity(0.35 * style.textureIntensity * normalizedBlur)
+            }
         }
 
         // Layer 4: Overlay blend color gradient for vivid color saturation
@@ -555,6 +569,14 @@ struct AppleMusicImmersiveV3BackdropView: View {
                 .resizable(resizingMode: .tile)
                 .blendMode(.overlay)
                 .opacity(style.noiseIntensity * 0.8)
+        }
+    }
+
+    private func classicArtworkOffset(for width: CGFloat) -> CGFloat {
+        switch settings.v3ArtworkPosition {
+        case "right": return width * 0.10
+        case "center": return 0
+        default: return width * -0.10
         }
     }
 

@@ -36,6 +36,15 @@ struct AppleMusicImmersiveV3WindowView: View {
         settings.v3ArtworkPresentation != .stage
     }
 
+    /// Stage has no foreground cover, so its size slider is consumed only by
+    /// the backdrop. Ambient and Classic keep the complete foreground cover
+    /// responsive to the same user control.
+    private var foregroundArtworkScale: CGFloat {
+        settings.v3ArtworkPresentation == .stage
+            ? 1.0
+            : min(1.4, max(0.8, settings.v3ArtworkSizeScale))
+    }
+
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .topTrailing) {
@@ -175,7 +184,7 @@ struct AppleMusicImmersiveV3WindowView: View {
         let availableHeight = max(1, geometry.size.height - verticalPadding * 2)
 
         let position = settings.v3ArtworkPosition // "left", "center", "right"
-        let scale = min(1.4, max(0.8, settings.v3ArtworkSizeScale))
+        let scale = foregroundArtworkScale
 
         if position == "center" && showsForegroundArtwork {
             let baseSize = min(contentWidth * 0.38, availableHeight * 0.48)
@@ -254,7 +263,7 @@ struct AppleMusicImmersiveV3WindowView: View {
 
     private func instrumentalPosterLayout(in geometry: GeometryProxy) -> some View {
         let availableHeight = max(1, geometry.size.height - 60)
-        let coverSize = max(180, min(geometry.size.width * 0.38, availableHeight * 0.46)) * min(1.3, max(0.8, settings.v3ArtworkSizeScale))
+        let coverSize = max(180, min(geometry.size.width * 0.38, availableHeight * 0.46)) * min(1.3, foregroundArtworkScale)
 
         return ScrollView(.vertical) {
             VStack(alignment: .center, spacing: 14) {
@@ -299,7 +308,7 @@ struct AppleMusicImmersiveV3WindowView: View {
         let leftWidth = contentWidth * 0.4
         let rightWidth = contentWidth * 0.6
         let position = settings.v3ArtworkPosition
-        let scale = min(1.4, max(0.8, settings.v3ArtworkSizeScale))
+        let scale = foregroundArtworkScale
         let baseCoverSize = min(leftWidth * 0.76, geometry.size.height * 0.42)
         let coverSize = max(180, baseCoverSize * scale)
 
@@ -1731,7 +1740,7 @@ private struct V3VisualTuningPopoverView: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text("背景高斯模糊度")
+                    Text(settings.v3ArtworkPresentation.blurControlTitle)
                         .font(.system(size: 12, weight: .medium))
                     Spacer()
                     Text("\(blurPresetName) · \(Int(settings.v3BackdropBlurRadius))%")
@@ -1753,7 +1762,7 @@ private struct V3VisualTuningPopoverView: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text("封面显示尺寸")
+                    Text(settings.v3ArtworkPresentation.artworkSizeControlTitle)
                         .font(.system(size: 12, weight: .medium))
                     Spacer()
                     Text("\(sizePresetName) · \(Int(settings.v3ArtworkSizeScale * 100))%")
@@ -1774,7 +1783,7 @@ private struct V3VisualTuningPopoverView: View {
             }
 
             VStack(alignment: .leading, spacing: 5) {
-                Text("封面排布位置")
+                Text(settings.v3ArtworkPresentation.artworkPositionControlTitle)
                     .font(.system(size: 12, weight: .medium))
                 Picker("", selection: $settings.v3ArtworkPosition) {
                     Text("居左 (分栏)").tag("left")

@@ -51,6 +51,30 @@ public enum V3ArtworkPresentation: String, CaseIterable, Codable, Identifiable, 
         case .classic: return "保留原来的局部放大封面背景"
         }
     }
+
+    public var blurControlTitle: String {
+        switch self {
+        case .ambient: return "环境扩散程度"
+        case .stage: return "封面柔化程度"
+        case .classic: return "背景高斯模糊度"
+        }
+    }
+
+    public var artworkSizeControlTitle: String {
+        switch self {
+        case .ambient: return "前景封面尺寸"
+        case .stage: return "舞台封面尺寸"
+        case .classic: return "封面与背景倍率"
+        }
+    }
+
+    public var artworkPositionControlTitle: String {
+        switch self {
+        case .ambient: return "封面与光源位置"
+        case .stage: return "舞台封面位置"
+        case .classic: return "封面与裁切位置"
+        }
+    }
 }
 
 /// The single UserDefaults boundary for user-facing configuration. Views bind
