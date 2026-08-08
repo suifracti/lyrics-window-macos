@@ -204,6 +204,16 @@ struct AppleMusicImmersiveV3BackdropView: View {
         )
 
         // complete artwork plane scaledToFit()
+        // Layer 0: Static Album Ambient Base (Dark-neutral album color transition, 100% independent of Blur slider)
+        LinearGradient(
+            colors: [
+                color(palette.primary, saturation: saturation * 0.35).opacity(0.80),
+                color(palette.secondary, saturation: saturation * 0.25).opacity(0.60)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+
         // Layer 1: Restrained Cover Ambient Light Source (Dynamic anchor emitting from physical album cover)
         ZStack {
             color(palette.primary, saturation: saturation)
@@ -231,13 +241,33 @@ struct AppleMusicImmersiveV3BackdropView: View {
         }
         .opacity(0.35 + 0.65 * normalizedBlur)
 
-        // Layer 2: Main Scaled Cover Artwork Background Substrate (100% frozen blur logic)
-        Image(nsImage: image)
+        // Layer 2: Main Scaled Cover Artwork Background Substrate (100% frozen blur logic, with Left-layout non-linear mask)
+        let mainSubstrateImage = Image(nsImage: image)
             .resizable()
             .scaledToFill()
             .scaleEffect(style.artworkScale * 1.15)
             .blur(radius: effectiveBlurRadius)
             .opacity(min(1, style.artworkOpacity * style.textureIntensity))
+
+        if settings.v3ArtworkPosition == "left" {
+            mainSubstrateImage
+                .mask(
+                    LinearGradient(
+                        stops: [
+                            .init(color: .black, location: 0.00),
+                            .init(color: .black, location: 0.28),
+                            .init(color: .black.opacity(0.85), location: 0.45),
+                            .init(color: .black.opacity(0.40), location: 0.62),
+                            .init(color: .black.opacity(0.12), location: 0.78),
+                            .init(color: .clear, location: 0.92)
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+        } else {
+            mainSubstrateImage
+        }
 
         // Layer 3: Specular Screen Light Bloom Pass (Only active when blur > 0 to avoid obscuring 0% clear artwork)
         if effectiveScreenBlurRadius > 0 {
