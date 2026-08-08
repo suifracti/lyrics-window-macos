@@ -15,6 +15,9 @@ Scripts/                       Repeatable project scripts
 docs/                          Current documentation, evidence, research, and archive
 README.md                      Short project entry point
 AGENTS.md                      AI handoff rules
+LICENSE                        Repository usage rights
+docs/STATUS.md                 Honest implementation and maturity snapshot
+docs/SUBMISSION_BASELINE.md    Commit and handoff verification checklist
 generate_xcodeproj.py          Legacy generator; do not run without explicit authorization
 ```
 
@@ -42,7 +45,7 @@ DerivedData is temporary and belongs under `/tmp`, never in the project root or 
 xcodebuild -project SpotifyLyrics.xcodeproj \
   -scheme SpotifyLyrics \
   -configuration Debug \
-  -derivedDataPath /tmp/macos-lyrics-companion-deriveddata \
+  -derivedDataPath /tmp/lyrics-window-macos-deriveddata \
   CODE_SIGNING_ALLOWED=NO build
 ```
 
