@@ -49,6 +49,37 @@ struct ReadingEnginesContract {
         precondition(contextual.engineID == .japaneseContextual)
         precondition(contextual.contextHash != dictionary.contextHash)
 
+        let scopedCorrection = ReadingDictionaryEntry(
+            surface: "満",
+            reading: "まん",
+            language: .japanese,
+            trackStableKey: "spotify:track:scope-a",
+            priority: 100
+        )
+        let corrected = try await JapaneseContextualReadingEngine(
+            userEntries: [scopedCorrection]
+        ).generate(
+            ReadingGenerationRequest(
+                lyricsVersionID: UUID(),
+                sourceContentHash: "scoped-correction",
+                lines: [ReadingInputLine(lineIndex: 0, originalText: "満の声")],
+                languageHint: "ja",
+                trackStableKey: "spotify:track:scope-a",
+                artistDisplay: "fixture",
+                representationID: .kana
+            )
+        )
+        let correctedLine = corrected.lines[0]
+        precondition(correctedLine.originalText == "満の声")
+        precondition(
+            correctedLine.tokens.first(where: { $0.surface == "満" })?.reading == "まん",
+            "scoped correction did not replace the matching token"
+        )
+        precondition(
+            correctedLine.tokens.allSatisfy { $0.surface != "満の声" },
+            "a token correction must not collapse the full lyric into one ruby token"
+        )
+
         let romajiRequest = ReadingGenerationRequest(
             lyricsVersionID: UUID(), sourceContentHash: "fixture", lines: japaneseLines,
             languageHint: "ja", representationID: .romaji

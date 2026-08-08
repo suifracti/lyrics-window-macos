@@ -642,7 +642,7 @@ public enum JapaneseReadingPipeline {
         return "名詞-一般"
     }
 
-    private static func buildRomajiText(from tokens: [JapaneseReadingToken]) -> String {
+    static func buildRomajiText(from tokens: [JapaneseReadingToken]) -> String {
         var result = ""
         var previous: JapaneseReadingToken?
 

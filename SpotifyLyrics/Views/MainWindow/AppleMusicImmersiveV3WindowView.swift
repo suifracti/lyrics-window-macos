@@ -1240,7 +1240,9 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
             availableWidth: availableWidth,
             compact: compact,
             preferences: state.preferences,
-            language: state.liveLyricsLanguage
+            language: state.liveLyricsLanguage,
+            trackStableKey: state.currentTrackIdentity?.stableKey,
+            artistDisplay: state.currentTrack.artist
         )
         .environmentObject(settings)
         if let timestamp = LyricsTimeline.validSeekTimestamp(
@@ -1286,10 +1288,32 @@ private enum V3JapaneseReadingCache {
     private static let lock = NSLock()
     private static var values: [String: JapaneseReadingResult] = [:]
 
-    static func reading(for text: String, engineID: ReadingEngineID) -> JapaneseReadingResult? {
+    static func reading(
+        for text: String,
+        userEntries: [ReadingDictionaryEntry],
+        trackStableKey: String?,
+        artistDisplay: String?
+    ) -> JapaneseReadingResult? {
         let normalizedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalizedText.isEmpty else { return nil }
-        let key = engineID.rawValue + "|" + normalizedText
+        let applicableEntries = ReadingEngineSupport.applicableUserEntries(
+            userEntries,
+            trackStableKey: trackStableKey,
+            artistDisplay: artistDisplay
+        )
+        let correctionSignature = applicableEntries.map {
+            [
+                $0.id.uuidString,
+                $0.surface,
+                $0.reading,
+                String($0.priority),
+                $0.trackStableKey ?? "",
+                $0.artistScope ?? ""
+            ].joined(separator: "|")
+        }
+        let key = ReadingEngineSupport.hashContext(
+            [normalizedText, trackStableKey ?? "", artistDisplay ?? ""] + correctionSignature
+        )
 
         lock.lock()
         if let cached = values[key] {
@@ -1298,13 +1322,12 @@ private enum V3JapaneseReadingCache {
         }
         lock.unlock()
 
-        let result: JapaneseReadingResult
-        switch engineID {
-        case .japaneseContextual:
-            result = JapaneseReadingPipeline.analyzeContextually(originalText: normalizedText)
-        case .japaneseDictionary, .chinesePinyin:
-            result = JapaneseReadingPipeline.analyze(originalText: normalizedText)
-        }
+        let result = JapaneseContextualReadingEngine.analyze(
+            text: normalizedText,
+            userEntries: applicableEntries,
+            trackStableKey: trackStableKey,
+            artistDisplay: artistDisplay
+        )
 
         lock.lock()
         values[key] = result
@@ -1325,6 +1348,8 @@ private struct AppleMusicImmersiveV3LyricRow: View {
     let compact: Bool
     let preferences: DisplayPreferences
     let language: String?
+    let trackStableKey: String?
+    let artistDisplay: String?
     @EnvironmentObject private var settings: AppSettingsStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -1394,12 +1419,11 @@ private struct AppleMusicImmersiveV3LyricRow: View {
               }) else {
             return nil
         }
-        let engineID = ReadingEngineID(
-            rawValue: settings.readingPreferences.japaneseEngineID
-        ) ?? .japaneseContextual
         return V3JapaneseReadingCache.reading(
             for: effectiveOriginalText,
-            engineID: engineID
+            userEntries: settings.readingUserDictionary.load(),
+            trackStableKey: trackStableKey,
+            artistDisplay: artistDisplay
         )
     }
 

@@ -74,6 +74,13 @@ struct JapaneseReadingContract {
         }
         precondition(contextualRuby.first(where: { $0.surface == "満" })?.ruby == "まん")
         precondition(contextualRuby.allSatisfy { $0.ruby != "まんおじして" })
+        let contextualMixedLine = JapaneseReadingPipeline.analyzeContextually(
+            originalText: "満を持して 衝動にFeeling Feeling Yeah"
+        )
+        precondition(
+            contextualMixedLine.tokens.first(where: { $0.originalText == "満" })?.kana == "まん",
+            "context phrase stopped working when followed by mixed-script lyrics"
+        )
 
         // These are the exact lines that previously lost ruby in the V3
         // screenshots.  A line-level reading must be complete enough for the

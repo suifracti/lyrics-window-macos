@@ -118,6 +118,25 @@ public struct JapaneseContextualReadingEngine: ReadingEngine, Sendable {
         self.dictionary = JapaneseDictionaryReadingEngine(userEntries: userEntries)
     }
 
+    public static func analyze(
+        text: String,
+        userEntries: [ReadingDictionaryEntry] = [],
+        trackStableKey: String? = nil,
+        artistDisplay: String? = nil
+    ) -> JapaneseReadingResult {
+        let scopedEntries = ReadingEngineSupport.applicableUserEntries(
+            userEntries,
+            trackStableKey: trackStableKey,
+            artistDisplay: artistDisplay
+        )
+        return JapaneseReadingSupport.analyze(
+            text: text,
+            userEntries: scopedEntries,
+            contextual: true,
+            contextHash: ReadingEngineSupport.hashContext([text, trackStableKey ?? "", artistDisplay ?? ""])
+        )
+    }
+
     public func generate(_ request: ReadingGenerationRequest) async throws -> ReadingGenerationResult {
         let contextHash = ReadingEngineSupport.hashContext(request.nearbyContext + request.lines.map(\.originalText))
         let scopedEntries = ReadingEngineSupport.applicableUserEntries(
@@ -218,34 +237,11 @@ private enum JapaneseReadingSupport {
                 if $0.priority != $1.priority { return $0.priority > $1.priority }
                 return $0.surface.count > $1.surface.count
             }
-        if let entry = normalizedEntries.first(where: { text.contains($0.surface) }),
-           let replaced = replacingSurface(text, entry: entry) {
-            let kana = JapaneseRomanizer.toHiraganaPreservingLatin(replaced)
-            let token = JapaneseReadingToken(
-                id: 0,
-                originalText: text,
-                lemma: nil,
-                kana: kana,
-                romaji: JapaneseRomanizer.romanizeConfirmedKana(kana),
-                source: .userCorrection,
-                confidence: 1,
-                startOffset: 0,
-                endOffset: text.count
-            )
-            return JapaneseReadingResult(
-                originalText: text,
-                tokens: [token],
-                kanaText: kana,
-                romajiText: token.romaji,
-                source: .userCorrection,
-                confidence: 1
-            )
-        }
-
         let pipeline = contextual
             ? JapaneseReadingPipeline.analyzeContextually(originalText: text)
             : JapaneseReadingPipeline.analyze(originalText: text)
-        if !pipeline.containsUnknown { return pipeline }
+        let corrected = applyingExactTokenCorrections(normalizedEntries, to: pipeline)
+        if !corrected.containsUnknown { return corrected }
 
         // This small deterministic fallback covers the synthetic acceptance
         // vocabulary when a machine has no IPADIC installation. It is not a
@@ -262,7 +258,7 @@ private enum JapaneseReadingSupport {
             kana = kana.replacingOccurrences(of: surface, with: reading)
         }
         let stillHasKanji = JapaneseKanaGenerator.hasKanji(kana)
-        guard !stillHasKanji else { return pipeline }
+        guard !stillHasKanji else { return corrected }
         let source: JapaneseReadingSource = contextual ? .mixed : .mecabIPADIC
         let confidence = contextual ? 0.92 : 0.88
         let token = JapaneseReadingToken(
@@ -287,9 +283,50 @@ private enum JapaneseReadingSupport {
         )
     }
 
-    private static func replacingSurface(_ text: String, entry: ReadingDictionaryEntry) -> String? {
-        guard text.contains(entry.surface) else { return nil }
-        return text.replacingOccurrences(of: entry.surface, with: entry.reading)
+    private static func applyingExactTokenCorrections(
+        _ entries: [ReadingDictionaryEntry],
+        to result: JapaneseReadingResult
+    ) -> JapaneseReadingResult {
+        var didCorrect = false
+        let tokens = result.tokens.map { token in
+            guard let entry = entries.first(where: { $0.surface == token.originalText }) else {
+                return token
+            }
+            didCorrect = true
+            let kana = JapaneseRomanizer.toHiraganaPreservingLatin(entry.reading)
+            return JapaneseReadingToken(
+                id: token.id,
+                originalText: token.originalText,
+                lemma: token.lemma,
+                kana: kana,
+                romaji: JapaneseRomanizer.romanizeConfirmedKana(kana),
+                source: .userCorrection,
+                confidence: 1,
+                partOfSpeech: token.partOfSpeech,
+                startOffset: token.startOffset,
+                endOffset: token.endOffset
+            )
+        }
+        guard didCorrect else { return result }
+
+        let kanaText = tokens.allSatisfy { $0.kana != nil }
+            ? tokens.compactMap(\.kana).joined()
+            : nil
+        let romajiText = tokens.allSatisfy { $0.romaji != nil }
+            ? JapaneseReadingPipeline.buildRomajiText(from: tokens)
+            : nil
+        let sources = Set(tokens.map(\.source))
+        let source: JapaneseReadingSource = sources.count == 1
+            ? (sources.first ?? .unknown)
+            : .mixed
+        return JapaneseReadingResult(
+            originalText: result.originalText,
+            tokens: tokens,
+            kanaText: kanaText,
+            romajiText: romajiText,
+            source: source,
+            confidence: tokens.map(\.confidence).min() ?? 0
+        )
     }
 }
 
