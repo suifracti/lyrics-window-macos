@@ -152,7 +152,11 @@ public final class NetEaseExperimentalLyricsProvider: LyricsProvider, @unchecked
             identity: identity,
             source: .neteaseExperimental
         ) {
-            let lines = mergeTranslation(lines: synced.lines, tlyric: lyric.tlyric)
+            let lines = TimedLyricsCompanionMerger.merge(
+                lyric.tlyric,
+                into: synced.lines,
+                layer: .translation
+            )
             return LyricsDocument(
                 identity: identity,
                 title: song.name,
@@ -185,46 +189,6 @@ public final class NetEaseExperimentalLyricsProvider: LyricsProvider, @unchecked
             confidence: score(song: song, track: track),
             providerSourceID: "netease:\(song.id)"
         )
-    }
-
-    private func mergeTranslation(lines: [LyricLine], tlyric: String?) -> [LyricLine] {
-        guard let tlyric, !tlyric.isEmpty else { return lines }
-        // Map timestamp -> translation text from tlyric LRC
-        var map: [String: String] = [:]
-        let pattern = try? NSRegularExpression(pattern: #"\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\](.*)"#)
-        for raw in tlyric.components(separatedBy: .newlines) {
-            let line = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard let pattern,
-                  let match = pattern.firstMatch(in: line, range: NSRange(line.startIndex..., in: line)),
-                  let minR = Range(match.range(at: 1), in: line),
-                  let secR = Range(match.range(at: 2), in: line),
-                  let textR = Range(match.range(at: 4), in: line)
-            else { continue }
-            let min = Double(line[minR]) ?? 0
-            let sec = Double(line[secR]) ?? 0
-            var frac = 0.0
-            if match.range(at: 3).location != NSNotFound, let fr = Range(match.range(at: 3), in: line) {
-                let f = String(line[fr])
-                frac = (Double(f) ?? 0) / pow(10.0, Double(f.count))
-            }
-            let ts = min * 60 + sec + frac
-            let key = String(format: "%.2f", ts)
-            let text = String(line[textR]).trimmingCharacters(in: .whitespacesAndNewlines)
-            if !text.isEmpty { map[key] = text }
-        }
-        return lines.map { line in
-            let key = String(format: "%.2f", line.timestamp)
-            guard let tr = map[key] else { return line }
-            return LyricLine(
-                id: line.id,
-                timestamp: line.timestamp,
-                originalText: line.originalText,
-                translationText: tr,
-                romajiText: line.romajiText,
-                kanaText: line.kanaText,
-                rubyTokens: line.rubyTokens
-            )
-        }
     }
 
     private func score(song: NetEaseSong, track: Track) -> Double {

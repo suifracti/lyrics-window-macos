@@ -107,4 +107,72 @@ public enum LRCParser {
         }
         return minutes * 60 + seconds
     }
+
+    fileprivate static func timedTextLines(in content: String) -> [(timestamp: TimeInterval, text: String)] {
+        var result: [(timestamp: TimeInterval, text: String)] = []
+        for rawLine in content.components(separatedBy: .newlines) {
+            let line = rawLine.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !line.isEmpty else { continue }
+            let fullRange = NSRange(line.startIndex..<line.endIndex, in: line)
+            let matches = timestampExpression.matches(in: line, range: fullRange)
+            guard !matches.isEmpty else { continue }
+            let text = timestampExpression.stringByReplacingMatches(
+                in: line,
+                range: fullRange,
+                withTemplate: ""
+            ).trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !text.isEmpty else { continue }
+            for match in matches {
+                guard let timestamp = timestamp(from: match, in: line) else { continue }
+                result.append((timestamp, text))
+            }
+        }
+        return result.sorted { $0.timestamp < $1.timestamp }
+    }
+}
+
+public enum TimedLyricsCompanionLayer: Sendable {
+    case translation
+    case romaji
+}
+
+/// Attaches independently timed translation or romanization lines without
+/// replacing the provider's original lyric text. Companion feeds frequently
+/// differ from the primary LRC by a few hundredths of a second, so exact
+/// timestamp dictionaries are too brittle.
+public enum TimedLyricsCompanionMerger {
+    public static func merge(
+        _ content: String?,
+        into lines: [LyricLine],
+        layer: TimedLyricsCompanionLayer,
+        tolerance: TimeInterval = 0.35
+    ) -> [LyricLine] {
+        guard let content, !content.isEmpty, tolerance >= 0 else { return lines }
+        let companions = LRCParser.timedTextLines(in: content)
+        guard !companions.isEmpty else { return lines }
+
+        var consumed = Set<Int>()
+        return lines.map { source in
+            var bestIndex: Int?
+            var bestDistance = TimeInterval.greatestFiniteMagnitude
+            for index in companions.indices where !consumed.contains(index) {
+                let distance = abs(companions[index].timestamp - source.timestamp)
+                guard distance <= tolerance else { continue }
+                if distance < bestDistance {
+                    bestIndex = index
+                    bestDistance = distance
+                }
+            }
+            guard let bestIndex else { return source }
+            consumed.insert(bestIndex)
+            var merged = source
+            switch layer {
+            case .translation:
+                merged.translationText = companions[bestIndex].text
+            case .romaji:
+                merged.romajiText = companions[bestIndex].text
+            }
+            return merged
+        }
+    }
 }

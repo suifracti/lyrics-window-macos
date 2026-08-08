@@ -35,7 +35,7 @@ public final class QQExperimentalLyricsProvider: LyricsProvider, @unchecked Send
             var candidates: [LyricsCandidate] = []
             for song in songs.prefix(6) {
                 if Task.isCancelled { return .failed(.cancelled) }
-                guard let text = try await fetchLyric(songmid: song.songmid), !text.isEmpty else {
+                guard let lyric = try await fetchLyric(songmid: song.songmid), !lyric.original.isEmpty else {
                     continue
                 }
                 let conf = score(song: song, track: track)
@@ -44,11 +44,20 @@ public final class QQExperimentalLyricsProvider: LyricsProvider, @unchecked Send
 
                 let lines: [LyricLine]
                 let synced: Bool
-                if let doc = LRCParser.parse(text, identity: identity, source: .qqExperimental), !doc.lines.isEmpty {
-                    lines = doc.lines
+                if let doc = LRCParser.parse(lyric.original, identity: identity, source: .qqExperimental), !doc.lines.isEmpty {
+                    let translated = TimedLyricsCompanionMerger.merge(
+                        lyric.translation,
+                        into: doc.lines,
+                        layer: .translation
+                    )
+                    lines = TimedLyricsCompanionMerger.merge(
+                        lyric.romaji,
+                        into: translated,
+                        layer: .romaji
+                    )
                     synced = doc.isSynchronized
                 } else {
-                    lines = text
+                    lines = lyric.original
                         .components(separatedBy: .newlines)
                         .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                         .filter { !$0.isEmpty }
@@ -138,7 +147,7 @@ public final class QQExperimentalLyricsProvider: LyricsProvider, @unchecked Send
         return (decoded.data?.song?.list ?? []).compactMap { $0.asSong }
     }
 
-    private func fetchLyric(songmid: String) async throws -> String? {
+    private func fetchLyric(songmid: String) async throws -> QQLyricPayload? {
         var components = URLComponents(string: "https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg")!
         components.queryItems = [
             URLQueryItem(name: "songmid", value: songmid),
@@ -158,16 +167,25 @@ public final class QQExperimentalLyricsProvider: LyricsProvider, @unchecked Send
             // -1310/-1901 often mean login/anti-abuse or missing lyric
             return nil
         }
-        var lyric = (decoded.lyric ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        if lyric.isEmpty { return nil }
-        // Some payloads still return base64 despite nobase64=1
-        if !lyric.contains("\n"), !lyric.hasPrefix("["), lyric.count > 40,
-           let data = Data(base64Encoded: lyric),
-           let decodedText = String(data: data, encoding: .utf8),
-           !decodedText.isEmpty {
-            lyric = decodedText
+        guard let original = decodedLyricsField(decoded.lyric), !original.isEmpty else { return nil }
+        return QQLyricPayload(
+            original: original,
+            translation: decodedLyricsField(decoded.trans),
+            romaji: decodedLyricsField(decoded.roma)
+        )
+    }
+
+    private func decodedLyricsField(_ raw: String?) -> String? {
+        guard let raw else { return nil }
+        let value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty else { return nil }
+        if !value.contains("[") && !value.contains("\n"),
+           let data = Data(base64Encoded: value),
+           let decoded = String(data: data, encoding: .utf8),
+           decoded.contains("[") || decoded.contains("\n") {
+            return decoded.trimmingCharacters(in: .whitespacesAndNewlines)
         }
-        return lyric
+        return value
     }
 
     private func score(song: QQSong, track: Track) -> Double {
@@ -209,6 +227,12 @@ private struct QQSong {
     let duration: TimeInterval
 }
 
+private struct QQLyricPayload {
+    let original: String
+    let translation: String?
+    let romaji: String?
+}
+
 private struct QQSearchResponse: Decodable {
     let data: QQSearchData?
 }
@@ -248,4 +272,6 @@ private struct QQLyricResponse: Decodable {
     let retcode: Int?
     let code: Int?
     let lyric: String?
+    let trans: String?
+    let roma: String?
 }
