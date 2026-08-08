@@ -29,6 +29,8 @@ struct AppleMusicImmersiveV3BackdropView: View {
     @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
     @State private var artworkImage: NSImage?
     @State private var outgoingArtworkImage: NSImage?
+    @State private var ambientArtworkImage: NSImage?
+    @State private var outgoingAmbientArtworkImage: NSImage?
     @State private var noiseImage: NSImage?
     @State private var palette = BackdropPalette.neutral
     @State private var accessibilityDisplayRevision = 0
@@ -38,13 +40,16 @@ struct AppleMusicImmersiveV3BackdropView: View {
             neutralBackground
 
             if let outgoingArtworkImage {
-                artworkLayers(image: outgoingArtworkImage)
+                artworkLayers(
+                    image: outgoingArtworkImage,
+                    ambientImage: outgoingAmbientArtworkImage
+                )
                     .opacity(0.28)
                     .transition(.opacity)
             }
 
             if let artworkImage {
-                artworkLayers(image: artworkImage)
+                artworkLayers(image: artworkImage, ambientImage: ambientArtworkImage)
                     .transition(.opacity)
             }
 
@@ -196,7 +201,109 @@ struct AppleMusicImmersiveV3BackdropView: View {
     }
 
     @ViewBuilder
-    private func artworkLayers(image: NSImage) -> some View {
+    private func artworkLayers(image: NSImage, ambientImage: NSImage?) -> some View {
+        if settings.v3AmbientBackdropEnabled {
+            ambientArtworkLayers(image: ambientImage)
+        } else {
+            legacyArtworkLayers(image: image)
+        }
+    }
+
+    @ViewBuilder
+    private func ambientArtworkLayers(image: NSImage?) -> some View {
+        let style = presentationStyle
+        let saturation = min(
+            1.3,
+            style.paletteSaturation * 1.18 + (increaseContrast ? 0.06 : 0)
+        )
+        let diffusionRadius = 14.0 + normalizedBlur * 52.0
+
+        // A luminance-clamped album field keeps very bright artwork legible
+        // without falling back to an unrelated black canvas.
+        LinearGradient(
+            colors: [
+                ambientColor(palette.primary, saturation: saturation, maximumLuminance: 0.42),
+                ambientColor(palette.secondary, saturation: saturation * 0.90, maximumLuminance: 0.30),
+                Color(red: 0.055, green: 0.060, blue: 0.072)
+            ],
+            startPoint: coverLightCenter,
+            endPoint: settings.v3ArtworkPosition == "right" ? .topLeading : .bottomTrailing
+        )
+
+        // This is a 48px low-frequency derivative, never the readable cover.
+        // The minimum diffusion remains non-zero even when the slider is at 0.
+        if let image {
+            Image(nsImage: image)
+                .resizable()
+                .interpolation(.high)
+                .scaledToFill()
+                .scaleEffect(1.12)
+                .blur(radius: diffusionRadius, opaque: true)
+                .saturation(saturation)
+                .brightness(-0.10)
+                .opacity(0.34 + (1.0 - normalizedBlur) * 0.14)
+        }
+
+        RadialGradient(
+            colors: [
+                ambientColor(palette.glow, saturation: saturation, maximumLuminance: 0.58)
+                    .opacity(0.34),
+                ambientColor(palette.primary, saturation: saturation, maximumLuminance: 0.40)
+                    .opacity(0.12),
+                .clear
+            ],
+            center: coverLightCenter,
+            startRadius: 18,
+            endRadius: 680 + normalizedBlur * 220
+        )
+        .blendMode(.screen)
+
+        ambientReadingVeil
+
+        RadialGradient(
+            colors: [
+                .clear,
+                Color.black.opacity(min(0.36, style.vignetteIntensity * 0.72))
+            ],
+            center: coverLightCenter,
+            startRadius: 180,
+            endRadius: 980
+        )
+
+        if let noiseImage {
+            Image(nsImage: noiseImage)
+                .resizable(resizingMode: .tile)
+                .blendMode(.softLight)
+                .opacity(min(0.055, style.noiseIntensity))
+        }
+    }
+
+    @ViewBuilder
+    private var ambientReadingVeil: some View {
+        if settings.v3ArtworkPosition == "right" {
+            LinearGradient(
+                colors: [Color.black.opacity(0.42), Color.black.opacity(0.18), .clear],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        } else if settings.v3ArtworkPosition == "center" {
+            RadialGradient(
+                colors: [.clear, Color.black.opacity(0.34)],
+                center: .center,
+                startRadius: 160,
+                endRadius: 920
+            )
+        } else {
+            LinearGradient(
+                colors: [.clear, Color.black.opacity(0.16), Color.black.opacity(0.46)],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        }
+    }
+
+    @ViewBuilder
+    private func legacyArtworkLayers(image: NSImage) -> some View {
         let style = presentationStyle
         let saturation = min(
             1.4,
@@ -330,7 +437,9 @@ struct AppleMusicImmersiveV3BackdropView: View {
     @MainActor
     private func loadSnapshot(for key: String) async {
         outgoingArtworkImage = artworkImage
+        outgoingAmbientArtworkImage = ambientArtworkImage
         artworkImage = nil
+        ambientArtworkImage = nil
         noiseImage = nil
         // A track without artwork must not inherit the previous track's
         // palette while its new snapshot is being resolved.
@@ -356,10 +465,12 @@ struct AppleMusicImmersiveV3BackdropView: View {
         guard key == requestKey, !Task.isCancelled else { return }
 
         let nextArtwork = NSImage(data: snapshot.artworkData)
+        let nextAmbientArtwork = NSImage(data: snapshot.ambientArtworkData)
         let nextNoise = NSImage(data: snapshot.noiseData)
         withAnimation(.easeInOut(duration: artworkTransitionDuration)) {
             palette = snapshot.palette
             artworkImage = nextArtwork
+            ambientArtworkImage = nextAmbientArtwork
             noiseImage = nextNoise
         }
 
@@ -369,6 +480,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
         guard key == requestKey, !Task.isCancelled else { return }
         withAnimation(.easeOut(duration: outgoingTransitionDuration)) {
             outgoingArtworkImage = nil
+            outgoingAmbientArtworkImage = nil
         }
     }
 
@@ -383,10 +495,33 @@ struct AppleMusicImmersiveV3BackdropView: View {
             blue: luminance + (value.blue - luminance) * amount
         )
     }
+
+    private func ambientColor(
+        _ value: BackdropColor,
+        saturation: Double,
+        maximumLuminance: Double
+    ) -> Color {
+        let sourceLuminance = max(
+            0.001,
+            (value.red * 0.2126) + (value.green * 0.7152) + (value.blue * 0.0722)
+        )
+        let scale = min(1, maximumLuminance / sourceLuminance)
+        let red = value.red * scale
+        let green = value.green * scale
+        let blue = value.blue * scale
+        let clampedLuminance = (red * 0.2126) + (green * 0.7152) + (blue * 0.0722)
+        let amount = min(1, max(0, saturation))
+        return Color(
+            red: clampedLuminance + (red - clampedLuminance) * amount,
+            green: clampedLuminance + (green - clampedLuminance) * amount,
+            blue: clampedLuminance + (blue - clampedLuminance) * amount
+        )
+    }
 }
 
 public struct AppleMusicImmersiveV3BackdropSnapshot: Sendable {
     public let artworkData: Data
+    public let ambientArtworkData: Data
     public let noiseData: Data
     public let palette: BackdropPalette
 
@@ -397,8 +532,14 @@ public struct AppleMusicImmersiveV3BackdropSnapshot: Sendable {
     public var saturation: Double { palette.saturation }
     public var readabilityVeilOpacity: Double { palette.readabilityVeilOpacity }
 
-    public init(artworkData: Data, noiseData: Data, palette: BackdropPalette) {
+    public init(
+        artworkData: Data,
+        ambientArtworkData: Data,
+        noiseData: Data,
+        palette: BackdropPalette
+    ) {
         self.artworkData = artworkData
+        self.ambientArtworkData = ambientArtworkData
         self.noiseData = noiseData
         self.palette = palette
     }
@@ -450,10 +591,12 @@ public actor AppleMusicImmersiveV3BackdropCache {
         seed: UInt64
     ) -> AppleMusicImmersiveV3BackdropSnapshot {
         let reducedArtwork = thumbnailData(from: artworkData, maxPixel: 320)
+        let ambientArtwork = thumbnailData(from: artworkData, maxPixel: 48)
         let palette = BackdropPalette.from(imageData: reducedArtwork)
         let noise = makeNoiseData(seed: seed)
         return AppleMusicImmersiveV3BackdropSnapshot(
             artworkData: reducedArtwork,
+            ambientArtworkData: ambientArtwork,
             noiseData: noise,
             palette: palette
         )

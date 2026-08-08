@@ -90,6 +90,7 @@ public final class AppSettingsStore: ObservableObject {
         public static let settingsCenterPresentation = "settings.centerPresentation"
         public static let readingPreferences = "reading.preferences.v1"
         public static let v3BackdropBlurRadius = "v3.backdropBlurRadius"
+        public static let v3AmbientBackdropEnabled = "v3.ambientBackdropEnabled"
         public static let v3ArtworkPosition = "v3.artworkPosition"
         public static let v3ArtworkSizeScale = "v3.artworkSizeScale"
         public static let v3InstrumentalPureImmersion = "v3.instrumentalPureImmersion"
@@ -222,6 +223,10 @@ public final class AppSettingsStore: ObservableObject {
         didSet { defaults.set(v3BackdropBlurRadius, forKey: Key.v3BackdropBlurRadius) }
     }
 
+    @Published public var v3AmbientBackdropEnabled: Bool {
+        didSet { defaults.set(v3AmbientBackdropEnabled, forKey: Key.v3AmbientBackdropEnabled) }
+    }
+
     @Published public var v3ArtworkPosition: String {
         didSet { defaults.set(v3ArtworkPosition, forKey: Key.v3ArtworkPosition) }
     }
@@ -242,6 +247,7 @@ public final class AppSettingsStore: ObservableObject {
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         self.v3BackdropBlurRadius = defaults.object(forKey: Key.v3BackdropBlurRadius) as? Double ?? 36.0
+        self.v3AmbientBackdropEnabled = defaults.object(forKey: Key.v3AmbientBackdropEnabled) as? Bool ?? true
         self.v3ArtworkPosition = defaults.string(forKey: Key.v3ArtworkPosition) ?? "left"
         self.v3ArtworkSizeScale = defaults.object(forKey: Key.v3ArtworkSizeScale) as? Double ?? 1.0
         self.v3InstrumentalPureImmersion = defaults.object(forKey: Key.v3InstrumentalPureImmersion) as? Bool ?? true

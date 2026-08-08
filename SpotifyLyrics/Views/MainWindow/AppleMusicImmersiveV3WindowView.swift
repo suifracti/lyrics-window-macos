@@ -1598,6 +1598,17 @@ private struct V3VisualTuningPopoverView: View {
 
             Divider()
 
+            VStack(alignment: .leading, spacing: 4) {
+                Toggle("专辑环境光背景", isOn: $settings.v3AmbientBackdropEnabled)
+                    .font(.system(size: 12, weight: .medium))
+                Text(settings.v3AmbientBackdropEnabled
+                    ? "抽取封面色彩与柔光，不放大显示人物或文字"
+                    : "经典模式：使用放大的封面作为背景")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text("背景高斯模糊度")
