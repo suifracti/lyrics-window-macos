@@ -29,6 +29,7 @@
 		110000152D83400100000001 /* LyricsMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000152D83400100000000 /* LyricsMatcher.swift */; };
 		110000162D83400100000001 /* LocalLyricsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000162D83400100000000 /* LocalLyricsProvider.swift */; };
 		110000172D83400100000001 /* LRCLIBLyricsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000172D83400100000000 /* LRCLIBLyricsProvider.swift */; };
+		120000012D83400100000001 /* AMLLLyricsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120000012D83400100000000 /* AMLLLyricsProvider.swift */; };
 		110000182D83400100000001 /* CompositeLyricsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000182D83400100000000 /* CompositeLyricsProvider.swift */; };
 		110000192D83400100000001 /* LyricsSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000192D83400100000000 /* LyricsSessionController.swift */; };
 		1100001A2D83400100000001 /* TrackBackdropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100001A2D83400100000000 /* TrackBackdropView.swift */; };
@@ -218,6 +219,7 @@
 		110000152D83400100000000 /* LyricsMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsMatcher.swift; sourceTree = "<group>"; };
 		110000162D83400100000000 /* LocalLyricsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLyricsProvider.swift; sourceTree = "<group>"; };
 		110000172D83400100000000 /* LRCLIBLyricsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LRCLIBLyricsProvider.swift; sourceTree = "<group>"; };
+		120000012D83400100000000 /* AMLLLyricsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AMLLLyricsProvider.swift; sourceTree = "<group>"; };
 		110000182D83400100000000 /* CompositeLyricsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompositeLyricsProvider.swift; sourceTree = "<group>"; };
 		110000192D83400100000000 /* LyricsSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LyricsSessionController.swift; sourceTree = "<group>"; };
 		1100001A2D83400100000000 /* TrackBackdropView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackBackdropView.swift; sourceTree = "<group>"; };
@@ -597,6 +599,7 @@
 				110000142D83400100000000 /* LRCParser.swift */,
 				110000152D83400100000000 /* LyricsMatcher.swift */,
 				110000162D83400100000000 /* LocalLyricsProvider.swift */,
+				120000012D83400100000000 /* AMLLLyricsProvider.swift */,
 				110000172D83400100000000 /* LRCLIBLyricsProvider.swift */,
 				110000182D83400100000000 /* CompositeLyricsProvider.swift */,
 				1100002F2D83400100000000 /* LyricsSearchManager.swift */,
@@ -828,6 +831,7 @@
 				110000142D83400100000001 /* LRCParser.swift in Sources */,
 				110000152D83400100000001 /* LyricsMatcher.swift in Sources */,
 				110000162D83400100000001 /* LocalLyricsProvider.swift in Sources */,
+				120000012D83400100000001 /* AMLLLyricsProvider.swift in Sources */,
 				110000172D83400100000001 /* LRCLIBLyricsProvider.swift in Sources */,
 				110000182D83400100000001 /* CompositeLyricsProvider.swift in Sources */,
 				110000192D83400100000001 /* LyricsSessionController.swift in Sources */,

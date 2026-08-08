@@ -202,10 +202,134 @@ struct AppleMusicImmersiveV3BackdropView: View {
 
     @ViewBuilder
     private func artworkLayers(image: NSImage, ambientImage: NSImage?) -> some View {
-        if settings.v3AmbientBackdropEnabled {
+        switch settings.v3ArtworkPresentation {
+        case .ambient:
             ambientArtworkLayers(image: ambientImage)
-        } else {
+        case .stage:
+            stageArtworkLayers(image: image, ambientImage: ambientImage)
+        case .classic:
             legacyArtworkLayers(image: image)
+        }
+    }
+
+    @ViewBuilder
+    private func stageArtworkLayers(image: NSImage, ambientImage: NSImage?) -> some View {
+        let saturation = min(
+            1.32,
+            presentationStyle.paletteSaturation * 1.20 + (increaseContrast ? 0.06 : 0)
+        )
+
+        // Extend album colour beyond the aspect-fitted artwork without using
+        // an arbitrary readable crop as the whole window.
+        LinearGradient(
+            colors: [
+                ambientColor(palette.primary, saturation: saturation, maximumLuminance: 0.36),
+                ambientColor(palette.secondary, saturation: saturation, maximumLuminance: 0.24),
+                Color(red: 0.045, green: 0.048, blue: 0.058)
+            ],
+            startPoint: coverLightCenter,
+            endPoint: settings.v3ArtworkPosition == "right" ? .topLeading : .bottomTrailing
+        )
+
+        if let ambientImage {
+            Image(nsImage: ambientImage)
+                .resizable()
+                .interpolation(.high)
+                .scaledToFill()
+                .scaleEffect(1.18)
+                .blur(radius: 24 + normalizedBlur * 44, opaque: true)
+                .saturation(saturation)
+                .brightness(-0.12)
+                .opacity(0.42)
+        }
+
+        // One recognisable, aspect-fitted artwork plane dissolves into the
+        // colour field. There is no foreground cover card in Stage mode.
+        GeometryReader { geometry in
+            let scale = min(1.16, max(0.86, settings.v3ArtworkSizeScale))
+            let planeSize = min(geometry.size.height * 1.02, geometry.size.width * 0.72) * scale
+            let x: CGFloat = {
+                switch settings.v3ArtworkPosition {
+                case "right": return geometry.size.width * 0.73
+                case "center": return geometry.size.width * 0.50
+                default: return geometry.size.width * 0.27
+                }
+            }()
+
+            Image(nsImage: image)
+                .resizable()
+                .interpolation(.high)
+                .scaledToFit()
+                .frame(width: planeSize, height: planeSize)
+                .position(x: x, y: geometry.size.height * 0.49)
+                .blur(radius: normalizedBlur * 7.5)
+                .saturation(saturation)
+                .brightness(-0.04 - normalizedBlur * 0.04)
+                .opacity(0.92 - normalizedBlur * 0.16)
+                .mask(
+                    RadialGradient(
+                        stops: [
+                            .init(color: .white, location: 0.00),
+                            .init(color: .white, location: 0.46),
+                            .init(color: .white.opacity(0.74), location: 0.66),
+                            .init(color: .white.opacity(0.16), location: 0.84),
+                            .init(color: .clear, location: 1.00)
+                        ],
+                        center: UnitPoint(x: x / max(1, geometry.size.width), y: 0.49),
+                        startRadius: planeSize * 0.08,
+                        endRadius: planeSize * 0.58
+                    )
+                )
+        }
+
+        stageReadingVeil
+
+        RadialGradient(
+            colors: [
+                .clear,
+                Color.black.opacity(min(0.38, presentationStyle.vignetteIntensity * 0.70))
+            ],
+            center: coverLightCenter,
+            startRadius: 220,
+            endRadius: 980
+        )
+
+        if let noiseImage {
+            Image(nsImage: noiseImage)
+                .resizable(resizingMode: .tile)
+                .blendMode(.softLight)
+                .opacity(min(0.045, presentationStyle.noiseIntensity))
+        }
+    }
+
+    @ViewBuilder
+    private var stageReadingVeil: some View {
+        if settings.v3ArtworkPosition == "right" {
+            LinearGradient(
+                stops: [
+                    .init(color: Color.black.opacity(0.54), location: 0),
+                    .init(color: Color.black.opacity(0.24), location: 0.46),
+                    .init(color: .clear, location: 0.78)
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        } else if settings.v3ArtworkPosition == "center" {
+            LinearGradient(
+                colors: [Color.black.opacity(0.14), Color.black.opacity(0.30)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        } else {
+            LinearGradient(
+                stops: [
+                    .init(color: .clear, location: 0.18),
+                    .init(color: Color.black.opacity(0.16), location: 0.48),
+                    .init(color: Color.black.opacity(0.58), location: 1)
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
         }
     }
 
@@ -590,7 +714,7 @@ public actor AppleMusicImmersiveV3BackdropCache {
         artworkData: Data,
         seed: UInt64
     ) -> AppleMusicImmersiveV3BackdropSnapshot {
-        let reducedArtwork = thumbnailData(from: artworkData, maxPixel: 320)
+        let reducedArtwork = thumbnailData(from: artworkData, maxPixel: 640)
         let ambientArtwork = thumbnailData(from: artworkData, maxPixel: 48)
         let palette = BackdropPalette.from(imageData: reducedArtwork)
         let noise = makeNoiseData(seed: seed)

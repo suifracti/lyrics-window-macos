@@ -5,7 +5,7 @@ import Foundation
 /// User-selectable free lyrics source policy. One setting value drives which
 /// online providers may run; it does not create a second search stack.
 public enum LyricsSourceMode: String, CaseIterable, Codable, Identifiable, Sendable {
-    /// Local + SQLite + LRCLIB + user import/create. No experimental probes.
+    /// Local + SQLite + AMLL + LRCLIB + user import/create. No experimental probes.
     case standardFree = "lyricsSourceMode.standardFree.v1"
     /// Standard free plus NetEase/QQ experimental providers. Not for commercial shipping.
     case experimentalFree = "lyricsSourceMode.experimentalFree.v1"
@@ -31,7 +31,7 @@ public enum LyricsSourceMode: String, CaseIterable, Codable, Identifiable, Senda
     public var detail: String {
         switch self {
         case .standardFree:
-            return "仅使用本地歌词、已保存版本、LRCLIB 与用户导入/创建。不调用网易或 QQ 实验接口。"
+            return "使用本地歌词、已保存版本、AMLL、LRCLIB 与用户导入/创建。不调用网易或 QQ 实验接口。"
         case .experimentalFree:
             return "在标准免费能力之上，额外尝试网易云与 QQ 音乐实验源。可能失效，不保证覆盖率，不建议正式商业发行。"
         }
@@ -102,6 +102,7 @@ public struct LyricsProviderPolicy: Equatable, Sendable {
 public enum LyricsProviderID: String, CaseIterable, Codable, Hashable, Identifiable, Sendable {
     case localFiles
     case sqliteDatabase
+    case amll
     case lrclib
     case netEaseExperimental
     case qqExperimental
@@ -112,6 +113,7 @@ public enum LyricsProviderID: String, CaseIterable, Codable, Hashable, Identifia
         switch self {
         case .localFiles: return "本地歌词"
         case .sqliteDatabase: return "SQLite 本地数据库"
+        case .amll: return "AMLL 社区排轴"
         case .lrclib: return "LRCLIB"
         case .netEaseExperimental: return "网易云实验源"
         case .qqExperimental: return "QQ 音乐实验源"
@@ -122,6 +124,7 @@ public enum LyricsProviderID: String, CaseIterable, Codable, Hashable, Identifia
         switch self {
         case .localFiles: return "doc.text"
         case .sqliteDatabase: return "internaldrive"
+        case .amll: return "waveform.path.ecg"
         case .lrclib: return "network"
         case .netEaseExperimental: return "globe.asia.australia"
         case .qqExperimental: return "bubble.left.and.bubble.right"
@@ -139,7 +142,7 @@ public enum LyricsProviderID: String, CaseIterable, Codable, Hashable, Identifia
     public var stabilityLabel: String {
         switch self {
         case .localFiles, .sqliteDatabase: return "稳定"
-        case .lrclib: return "在线"
+        case .amll, .lrclib: return "在线"
         case .netEaseExperimental, .qqExperimental: return "实验"
         }
     }
@@ -150,6 +153,8 @@ public enum LyricsProviderID: String, CaseIterable, Codable, Hashable, Identifia
             return "只读扫描用户歌词目录，不修改文件"
         case .sqliteDatabase:
             return "优先恢复已采用的本地歌词版本"
+        case .amll:
+            return "按 Spotify 曲目 ID 精确读取 AMLL 社区排轴，不进行模糊匹配"
         case .lrclib:
             return "公共在线歌词源，网络失败会隔离"
         case .netEaseExperimental:
@@ -183,7 +188,7 @@ public enum LyricsProviderID: String, CaseIterable, Codable, Hashable, Identifia
                 allowedInStandardFree: true,
                 allowedInExperimentalFree: true
             )
-        case .lrclib:
+        case .amll, .lrclib:
             return LyricsProviderPolicy(
                 capabilityClass: .openFree,
                 allowsAutomaticSearch: true,
@@ -295,6 +300,7 @@ public struct LyricsProviderConfiguration: Equatable, Sendable {
         order: [
             .localFiles,
             .sqliteDatabase,
+            .amll,
             .lrclib,
             .netEaseExperimental,
             .qqExperimental
@@ -311,6 +317,17 @@ public struct LyricsProviderConfiguration: Equatable, Sendable {
     }
 
     public mutating func normalize() {
+        let knewAMLL = order.contains(.amll) || enabled.contains(.amll)
+        if !knewAMLL {
+            // Migrate configurations saved before the open AMLL provider was
+            // introduced. A later explicit user disable remains respected.
+            enabled.insert(.amll)
+            if let lrclibIndex = order.firstIndex(of: .lrclib) {
+                order.insert(.amll, at: lrclibIndex)
+            } else {
+                order.append(.amll)
+            }
+        }
         let all = Set(LyricsProviderID.allCases)
         enabled.formUnion([.localFiles, .sqliteDatabase])
         enabled = enabled.intersection(all)

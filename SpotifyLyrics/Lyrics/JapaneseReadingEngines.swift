@@ -242,7 +242,9 @@ private enum JapaneseReadingSupport {
             )
         }
 
-        let pipeline = JapaneseReadingPipeline.analyze(originalText: text)
+        let pipeline = contextual
+            ? JapaneseReadingPipeline.analyzeContextually(originalText: text)
+            : JapaneseReadingPipeline.analyze(originalText: text)
         if !pipeline.containsUnknown { return pipeline }
 
         // This small deterministic fallback covers the synthetic acceptance

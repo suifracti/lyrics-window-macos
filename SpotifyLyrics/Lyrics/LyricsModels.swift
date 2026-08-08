@@ -2,6 +2,7 @@ import Foundation
 
 public enum LyricsSource: String, CaseIterable, Codable, Sendable {
     case local
+    case amll
     case lrclib
     case neteaseExperimental
     case qqExperimental
@@ -15,6 +16,7 @@ public enum LyricsSource: String, CaseIterable, Codable, Sendable {
     public var displayName: String {
         switch self {
         case .local: return "本地 LRC"
+        case .amll: return "AMLL 社区排轴"
         case .lrclib: return "LRCLIB"
         case .neteaseExperimental: return "网易云（实验）"
         case .qqExperimental: return "QQ音乐（实验）"

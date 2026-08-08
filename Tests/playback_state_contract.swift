@@ -1,5 +1,18 @@
 import Foundation
 
+/// The playback slice contract does not compile the capture/alignment graph.
+/// Keep a protocol-shaped stand-in so PlaybackState can still be tested in
+/// isolation when it notifies the product controller.
+@MainActor
+final class AutomaticAlignmentJobController {
+    static let shared = AutomaticAlignmentJobController()
+
+    func bind(playback: PlaybackState) {}
+    func notePlaybackContextChanged() {}
+    func notifySeek(from: TimeInterval, to: TimeInterval) {}
+    func notifyTrackChanged(previousKey: String?, nextKey: String) {}
+}
+
 @MainActor
 private final class ScriptedPlaybackProvider: PlaybackProvider {
     let displayName = "scripted-playback"

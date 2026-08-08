@@ -303,10 +303,11 @@ public enum JapaneseReadingPipeline {
         originalText: String,
         providerKana: String? = nil
     ) -> JapaneseReadingResult {
-        analyze(
+        analyzeInternal(
             originalText: originalText,
             providerKana: providerKana,
-            engine: JapaneseMeCabEngine()
+            engine: JapaneseMeCabEngine(),
+            contextual: false
         )
     }
 
@@ -314,6 +315,37 @@ public enum JapaneseReadingPipeline {
         originalText: String,
         providerKana: String? = nil,
         engine: any JapaneseMorphologyEngine
+    ) -> JapaneseReadingResult {
+        analyzeInternal(
+            originalText: originalText,
+            providerKana: providerKana,
+            engine: engine,
+            contextual: false
+        )
+    }
+
+    /// Context v2 keeps the same local morphology baseline, then applies a
+    /// small deterministic phrase resolver before ruby tokens are built.
+    /// This deliberately remains local and inspectable; AI suggestions are
+    /// handled by the explicit correction workflow, not during playback.
+    public static func analyzeContextually(
+        originalText: String,
+        providerKana: String? = nil,
+        engine: any JapaneseMorphologyEngine = JapaneseMeCabEngine()
+    ) -> JapaneseReadingResult {
+        analyzeInternal(
+            originalText: originalText,
+            providerKana: providerKana,
+            engine: engine,
+            contextual: true
+        )
+    }
+
+    private static func analyzeInternal(
+        originalText: String,
+        providerKana: String?,
+        engine: any JapaneseMorphologyEngine,
+        contextual: Bool
     ) -> JapaneseReadingResult {
         let provider = providerKana?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let provider, !provider.isEmpty, isValidProviderKana(provider) {
@@ -367,7 +399,10 @@ public enum JapaneseReadingPipeline {
             return Self.unknownResult(originalText)
         }
 
-        let morphology = normalizeRepeatedSuffixReadings(rawMorphology)
+        let repeatedNormalized = normalizeRepeatedSuffixReadings(rawMorphology)
+        let morphology = contextual
+            ? applyContextualPhraseReadings(repeatedNormalized)
+            : repeatedNormalized
 
         var offset = 0
         let tokens = morphology.enumerated().map { index, token in
@@ -556,6 +591,55 @@ public enum JapaneseReadingPipeline {
         }
 
         return normalized
+    }
+
+    private struct ContextualPhraseRule {
+        let surfaces: [String]
+        let replacementReadings: [Int: String]
+    }
+
+    /// Phrase rules correct morphology ambiguity while preserving token
+    /// boundaries, so ruby remains attached only to the corresponding Han
+    /// span. Add rules here only when the surrounding phrase is unambiguous.
+    private static let contextualPhraseRules: [ContextualPhraseRule] = [
+        ContextualPhraseRule(
+            surfaces: ["満", "を", "持", "し", "て"],
+            replacementReadings: [0: "マン"]
+        )
+    ]
+
+    private static func applyContextualPhraseReadings(
+        _ tokens: [JapaneseMorphologyToken]
+    ) -> [JapaneseMorphologyToken] {
+        guard !tokens.isEmpty else { return tokens }
+        var resolved = tokens
+
+        for rule in contextualPhraseRules where tokens.count >= rule.surfaces.count {
+            for start in 0...(tokens.count - rule.surfaces.count) {
+                let end = start + rule.surfaces.count
+                let actual = tokens[start..<end].map(\.originalText)
+                guard actual == rule.surfaces else { continue }
+
+                for (relativeIndex, reading) in rule.replacementReadings {
+                    let index = start + relativeIndex
+                    let token = resolved[index]
+                    resolved[index] = JapaneseMorphologyToken(
+                        originalText: token.originalText,
+                        readingKatakana: reading,
+                        lemma: token.lemma,
+                        partOfSpeech: contextualPartOfSpeech(token.partOfSpeech),
+                        conjugationType: token.conjugationType,
+                        conjugationForm: token.conjugationForm
+                    )
+                }
+            }
+        }
+        return resolved
+    }
+
+    private static func contextualPartOfSpeech(_ value: String?) -> String? {
+        guard let value, value.contains("固有名詞") else { return value }
+        return "名詞-一般"
     }
 
     private static func buildRomajiText(from tokens: [JapaneseReadingToken]) -> String {

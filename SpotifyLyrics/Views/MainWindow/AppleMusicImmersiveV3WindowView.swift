@@ -32,6 +32,10 @@ struct AppleMusicImmersiveV3WindowView: View {
     @State private var isAlignmentDetailsPresented = false
     @State private var isCurrentSongOperationsPresented = false
 
+    private var showsForegroundArtwork: Bool {
+        settings.v3ArtworkPresentation != .stage
+    }
+
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .topTrailing) {
@@ -173,7 +177,7 @@ struct AppleMusicImmersiveV3WindowView: View {
         let position = settings.v3ArtworkPosition // "left", "center", "right"
         let scale = min(1.4, max(0.8, settings.v3ArtworkSizeScale))
 
-        if position == "center" {
+        if position == "center" && showsForegroundArtwork {
             let baseSize = min(contentWidth * 0.38, availableHeight * 0.48)
             let coverSize = max(180, baseSize * scale)
 
@@ -340,7 +344,7 @@ struct AppleMusicImmersiveV3WindowView: View {
             VStack(alignment: .center, spacing: LyricsDesignTokens.Spacing.lg) {
                 trackColumn(
                     width: geometry.size.width - horizontalPadding * 2,
-                    availableHeight: coverSize + 190,
+                    availableHeight: showsForegroundArtwork ? coverSize + 190 : 210,
                     coverSize: max(180, coverSize),
                     alignment: .center,
                     compact: true,
@@ -369,35 +373,67 @@ struct AppleMusicImmersiveV3WindowView: View {
         progressDensity: AppleMusicImmersiveV3ProgressDensity
     ) -> some View {
         VStack(alignment: alignment, spacing: 0) {
-            ArtworkView(
-                track: state.currentTrack,
-                size: coverSize,
-                showsAlbumLabel: false,
-                cornerRadiusRatio: 0.06
-            )
-            .frame(maxWidth: width, alignment: alignment == .center ? .center : .leading)
+            if showsForegroundArtwork {
+                ArtworkView(
+                    track: state.currentTrack,
+                    size: coverSize,
+                    showsAlbumLabel: false,
+                    cornerRadiusRatio: 0.06
+                )
+                .frame(maxWidth: width, alignment: alignment == .center ? .center : .leading)
 
-            Spacer().frame(height: compact ? LyricsDesignTokens.Spacing.lg - 2 : LyricsDesignTokens.Spacing.xl)
+                Spacer().frame(height: compact ? LyricsDesignTokens.Spacing.lg - 2 : LyricsDesignTokens.Spacing.xl)
 
-            TrackMetadataView(
-                track: state.currentTrack,
-                titleSize: min(compact ? 26 : 30, max(compact ? 18 : 22, coverSize * 0.075)),
-                alignment: alignment,
-                presentation: .v3Immersive
-            )
-            .frame(maxWidth: width, alignment: alignment == .center ? .center : .leading)
+                TrackMetadataView(
+                    track: state.currentTrack,
+                    titleSize: min(compact ? 26 : 30, max(compact ? 18 : 22, coverSize * 0.075)),
+                    alignment: alignment,
+                    presentation: .v3Immersive
+                )
+                .frame(maxWidth: width, alignment: alignment == .center ? .center : .leading)
 
-            Spacer().frame(height: compact ? LyricsDesignTokens.Spacing.md + 2 : LyricsDesignTokens.Spacing.lg)
+                Spacer().frame(height: compact ? LyricsDesignTokens.Spacing.md + 2 : LyricsDesignTokens.Spacing.lg)
 
-            AppleMusicImmersiveV3TransportControls(
-                state: state,
-                alignment: alignment,
-                progressDensity: progressDensity,
-                progressMaxWidth: progressDensity == .small
-                    ? min(width, LyricsDesignTokens.Progress.smallMaxWidth)
-                    : nil
-            )
-            .frame(maxWidth: width, alignment: alignment == .center ? .center : .leading)
+                AppleMusicImmersiveV3TransportControls(
+                    state: state,
+                    alignment: alignment,
+                    progressDensity: progressDensity,
+                    progressMaxWidth: progressDensity == .small
+                        ? min(width, LyricsDesignTokens.Progress.smallMaxWidth)
+                        : nil
+                )
+                .frame(maxWidth: width, alignment: alignment == .center ? .center : .leading)
+            } else {
+                Spacer(minLength: 0)
+
+                VStack(alignment: alignment, spacing: compact ? 10 : 14) {
+                    TrackMetadataView(
+                        track: state.currentTrack,
+                        titleSize: compact ? 22 : 26,
+                        alignment: alignment,
+                        presentation: .v3Immersive
+                    )
+
+                    AppleMusicImmersiveV3TransportControls(
+                        state: state,
+                        alignment: alignment,
+                        progressDensity: progressDensity,
+                        progressMaxWidth: progressDensity == .small
+                            ? min(width, LyricsDesignTokens.Progress.smallMaxWidth)
+                            : nil
+                    )
+                }
+                .padding(.horizontal, compact ? 14 : 18)
+                .padding(.vertical, compact ? 12 : 16)
+                .frame(maxWidth: width, alignment: alignment == .center ? .center : .leading)
+                .background(.ultraThinMaterial.opacity(0.72))
+                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(Color.white.opacity(0.14), lineWidth: 0.8)
+                )
+                .shadow(color: Color.black.opacity(0.16), radius: 16, x: 0, y: 8)
+            }
         }
         // Give the column the actual content height. Without an explicit
         // proposal, the two flexible spacers can resolve against the
@@ -1250,9 +1286,10 @@ private enum V3JapaneseReadingCache {
     private static let lock = NSLock()
     private static var values: [String: JapaneseReadingResult] = [:]
 
-    static func reading(for text: String) -> JapaneseReadingResult? {
-        let key = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !key.isEmpty else { return nil }
+    static func reading(for text: String, engineID: ReadingEngineID) -> JapaneseReadingResult? {
+        let normalizedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalizedText.isEmpty else { return nil }
+        let key = engineID.rawValue + "|" + normalizedText
 
         lock.lock()
         if let cached = values[key] {
@@ -1261,7 +1298,13 @@ private enum V3JapaneseReadingCache {
         }
         lock.unlock()
 
-        let result = JapaneseReadingPipeline.analyze(originalText: key)
+        let result: JapaneseReadingResult
+        switch engineID {
+        case .japaneseContextual:
+            result = JapaneseReadingPipeline.analyzeContextually(originalText: normalizedText)
+        case .japaneseDictionary, .chinesePinyin:
+            result = JapaneseReadingPipeline.analyze(originalText: normalizedText)
+        }
 
         lock.lock()
         values[key] = result
@@ -1351,7 +1394,13 @@ private struct AppleMusicImmersiveV3LyricRow: View {
               }) else {
             return nil
         }
-        return V3JapaneseReadingCache.reading(for: effectiveOriginalText)
+        let engineID = ReadingEngineID(
+            rawValue: settings.readingPreferences.japaneseEngineID
+        ) ?? .japaneseContextual
+        return V3JapaneseReadingCache.reading(
+            for: effectiveOriginalText,
+            engineID: engineID
+        )
     }
 
     private var displayKanaText: String? {
@@ -1638,12 +1687,19 @@ private struct V3VisualTuningPopoverView: View {
 
             Divider()
 
-            VStack(alignment: .leading, spacing: 4) {
-                Toggle("专辑环境光背景", isOn: $settings.v3AmbientBackdropEnabled)
-                    .font(.system(size: 12, weight: .medium))
-                Text(settings.v3AmbientBackdropEnabled
-                    ? "抽取封面色彩与柔光，不放大显示人物或文字"
-                    : "经典模式：使用放大的封面作为背景")
+            VStack(alignment: .leading, spacing: 6) {
+                Picker("背景构图", selection: Binding(
+                    get: { settings.v3ArtworkPresentation },
+                    set: { settings.v3ArtworkPresentation = $0 }
+                )) {
+                    ForEach(V3ArtworkPresentation.allCases) { presentation in
+                        Text(presentation.title).tag(presentation)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .font(.system(size: 12, weight: .medium))
+
+                Text(settings.v3ArtworkPresentation.detail)
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -1721,7 +1777,7 @@ private struct V3VisualTuningPopoverView: View {
             }
         }
         .padding(14)
-        .frame(width: 275)
+        .frame(width: 310)
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(

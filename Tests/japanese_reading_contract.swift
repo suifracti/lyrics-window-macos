@@ -61,6 +61,20 @@ struct JapaneseReadingContract {
         precondition(repeatedHandRuby.map(\.surface) == ["手", "手", "手", "手"])
         precondition(repeatedHandRuby.map(\.ruby) == ["て", "て", "て", "て"])
 
+        // IPADIC may analyze 満 as the given name "みつる" in isolation.
+        // Context v2 must resolve the fixed phrase without placing a whole
+        // sentence reading under the line or changing unrelated tokens.
+        let rawMan = JapaneseReadingPipeline.analyze(originalText: "満を持して")
+        let contextualMan = JapaneseReadingPipeline.analyzeContextually(originalText: "満を持して")
+        precondition(rawMan.tokens.first?.kana == "みつる", "dictionary v1 baseline unexpectedly changed")
+        precondition(contextualMan.tokens.first?.originalText == "満")
+        precondition(contextualMan.tokens.first?.kana == "まん", "context v2 did not resolve 満を持して")
+        let contextualRuby = contextualMan.tokens.flatMap {
+            JapaneseReadingPipeline.rubyTokens(for: $0)
+        }
+        precondition(contextualRuby.first(where: { $0.surface == "満" })?.ruby == "まん")
+        precondition(contextualRuby.allSatisfy { $0.ruby != "まんおじして" })
+
         // These are the exact lines that previously lost ruby in the V3
         // screenshots.  A line-level reading must be complete enough for the
         // view to derive per-kanji ruby tokens, not merely return a partial

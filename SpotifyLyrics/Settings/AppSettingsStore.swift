@@ -27,6 +27,32 @@ public enum FloatingLyricsInteractionMode: String, CaseIterable, Codable, Sendab
     }
 }
 
+/// Stable V3 artwork compositions. These are presentation choices only and
+/// do not create separate playback or lyrics runtimes.
+public enum V3ArtworkPresentation: String, CaseIterable, Codable, Identifiable, Sendable {
+    case ambient = "v3ArtworkPresentation.ambient.v1"
+    case stage = "v3ArtworkPresentation.stage.v1"
+    case classic = "v3ArtworkPresentation.classic.v1"
+
+    public var id: String { rawValue }
+
+    public var title: String {
+        switch self {
+        case .ambient: return "环境光"
+        case .stage: return "封面舞台"
+        case .classic: return "经典放大"
+        }
+    }
+
+    public var detail: String {
+        switch self {
+        case .ambient: return "抽取封面的低频色彩，前景保留完整封面"
+        case .stage: return "完整封面融入背景，不再重复显示前景封面"
+        case .classic: return "保留原来的局部放大封面背景"
+        }
+    }
+}
+
 /// The single UserDefaults boundary for user-facing configuration. Views bind
 /// to this object; PlaybackState mirrors the display value and turns provider
 /// IDs into the existing provider instances.
@@ -90,6 +116,8 @@ public final class AppSettingsStore: ObservableObject {
         public static let settingsCenterPresentation = "settings.centerPresentation"
         public static let readingPreferences = "reading.preferences.v1"
         public static let v3BackdropBlurRadius = "v3.backdropBlurRadius"
+        public static let v3ArtworkPresentation = "v3.artworkPresentation.v1"
+        /// Legacy migration input. Do not use as the current presentation state.
         public static let v3AmbientBackdropEnabled = "v3.ambientBackdropEnabled"
         public static let v3ArtworkPosition = "v3.artworkPosition"
         public static let v3ArtworkSizeScale = "v3.artworkSizeScale"
@@ -223,8 +251,13 @@ public final class AppSettingsStore: ObservableObject {
         didSet { defaults.set(v3BackdropBlurRadius, forKey: Key.v3BackdropBlurRadius) }
     }
 
-    @Published public var v3AmbientBackdropEnabled: Bool {
-        didSet { defaults.set(v3AmbientBackdropEnabled, forKey: Key.v3AmbientBackdropEnabled) }
+    @Published public var v3ArtworkPresentationRawValue: String {
+        didSet { defaults.set(v3ArtworkPresentationRawValue, forKey: Key.v3ArtworkPresentation) }
+    }
+
+    public var v3ArtworkPresentation: V3ArtworkPresentation {
+        get { V3ArtworkPresentation(rawValue: v3ArtworkPresentationRawValue) ?? .ambient }
+        set { v3ArtworkPresentationRawValue = newValue.rawValue }
     }
 
     @Published public var v3ArtworkPosition: String {
@@ -247,7 +280,15 @@ public final class AppSettingsStore: ObservableObject {
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         self.v3BackdropBlurRadius = defaults.object(forKey: Key.v3BackdropBlurRadius) as? Double ?? 36.0
-        self.v3AmbientBackdropEnabled = defaults.object(forKey: Key.v3AmbientBackdropEnabled) as? Bool ?? true
+        if let storedPresentation = defaults.string(forKey: Key.v3ArtworkPresentation),
+           V3ArtworkPresentation(rawValue: storedPresentation) != nil {
+            self.v3ArtworkPresentationRawValue = storedPresentation
+        } else {
+            let legacyAmbient = defaults.object(forKey: Key.v3AmbientBackdropEnabled) as? Bool ?? true
+            self.v3ArtworkPresentationRawValue = legacyAmbient
+                ? V3ArtworkPresentation.ambient.rawValue
+                : V3ArtworkPresentation.classic.rawValue
+        }
         self.v3ArtworkPosition = defaults.string(forKey: Key.v3ArtworkPosition) ?? "left"
         self.v3ArtworkSizeScale = defaults.object(forKey: Key.v3ArtworkSizeScale) as? Double ?? 1.0
         self.v3InstrumentalPureImmersion = defaults.object(forKey: Key.v3InstrumentalPureImmersion) as? Bool ?? true

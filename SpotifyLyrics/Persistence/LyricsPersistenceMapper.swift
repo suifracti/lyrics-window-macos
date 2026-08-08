@@ -5,6 +5,7 @@ public enum DatabaseSourceIdentifier {
     public static func identifier(for source: LyricsSource) -> String {
         switch source {
         case .local: return "localLRC"
+        case .amll: return "amll"
         case .lrclib: return "lrclib"
         case .neteaseExperimental: return "netEaseExperimental"
         case .qqExperimental: return "qqExperimental"
@@ -20,6 +21,7 @@ public enum DatabaseSourceIdentifier {
     public static func source(for identifier: String) -> LyricsSource {
         switch identifier {
         case "localLRC", "localDatabase": return .local
+        case "amll": return .amll
         case "lrclib": return .lrclib
         case "netEaseExperimental": return .neteaseExperimental
         case "qqExperimental": return .qqExperimental

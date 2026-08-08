@@ -117,7 +117,7 @@ struct LyricsCanvasView: View {
                 .frame(maxHeight: 160)
             }
         case .loading:
-            statusView(icon: "magnifyingglass", message: "正在自动补全歌词…", detail: "Local → LRCLIB → 网易云/QQ（实验）多别名查询中")
+            statusView(icon: "magnifyingglass", message: "正在自动补全歌词…", detail: "Local → AMLL → LRCLIB → 网易云/QQ（实验）查询中")
         case .noLyrics:
             statusView(icon: "text.magnifyingglass", message: "暂未找到歌词", detail: "来源返回无词（例如纯音乐）。可导入本地音频做 ASR 草稿。") {
                 VStack(spacing: 8) {

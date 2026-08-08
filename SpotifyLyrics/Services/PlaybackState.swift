@@ -282,6 +282,12 @@ public final class PlaybackState: ObservableObject {
                 // SQLite is consulted by LyricsSessionController before this
                 // manager; it is kept in the order model for clear UI state.
                 continue
+            case .amll:
+                guard ProcessInfo.processInfo.environment["SPOTIFYLYRICS_DISABLE_AMLL"] != "1" else {
+                    LyricsE2ELog.log("Lyrics provider disabled by environment: AMLL")
+                    continue
+                }
+                providers.append(AMLLLyricsProvider())
             case .lrclib:
                 guard ProcessInfo.processInfo.environment["SPOTIFYLYRICS_DISABLE_LRCLIB"] != "1" else {
                     LyricsE2ELog.log("Lyrics provider disabled by environment: LRCLIB")

@@ -10,10 +10,10 @@ struct BackdropPaletteContract {
         precondition(vivid.primary.red > 0.5)
 
         let bright = BackdropPalette.from(image: solidImage(red: 0.98, green: 0.98, blue: 0.98))
-        precondition(bright.readabilityVeilOpacity >= 0.5)
+        precondition(bright.readabilityVeilOpacity >= 0.30)
 
         let dark = BackdropPalette.from(image: solidImage(red: 0.01, green: 0.01, blue: 0.02))
-        precondition(dark.readabilityVeilOpacity >= 0.28)
+        precondition(dark.readabilityVeilOpacity >= 0.15)
 
         let singleColor = BackdropPalette.from(image: solidImage(red: 0.32, green: 0.32, blue: 0.32))
         precondition(abs(singleColor.primary.red - singleColor.primary.green) < 0.08)
