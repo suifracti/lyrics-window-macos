@@ -24,6 +24,7 @@ struct TrackMetadataView: View {
                 .foregroundStyle(.white)
                 .lineLimit(2)
                 .multilineTextAlignment(alignment == .center ? .center : .leading)
+                .shadow(color: Color.black.opacity(presentation == .v3Immersive ? 0.22 : 0), radius: 7, y: 2)
 
             HStack(spacing: 6) {
                 HStack(spacing: 4) {
@@ -90,19 +91,19 @@ struct TrackMetadataView: View {
 
     private var artistColor: Color {
         presentation == .v3Immersive
-            ? Color.white.opacity(0.86)
+            ? Color.white.opacity(0.90)
             : LyricsDesignTokens.secondaryText
     }
 
     private var albumColor: Color {
         presentation == .v3Immersive
-            ? Color.white.opacity(0.64)
+            ? Color.white.opacity(0.72)
             : LyricsDesignTokens.mutedText
     }
 
     private var separatorColor: Color {
         presentation == .v3Immersive
-            ? Color.white.opacity(0.38)
+            ? Color.white.opacity(0.46)
             : LyricsDesignTokens.mutedText.opacity(0.6)
     }
 }

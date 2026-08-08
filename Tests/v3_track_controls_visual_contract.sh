@@ -11,8 +11,8 @@ grep -q 'presentation: .v3Immersive' "$WINDOW" || {
 }
 
 grep -q 'case v3Immersive' "$METADATA" \
-  && grep -q 'Color.white.opacity(0.86)' "$METADATA" \
-  && grep -q 'Color.white.opacity(0.64)' "$METADATA" || {
+  && grep -q 'Color.white.opacity(0.90)' "$METADATA" \
+  && grep -q 'Color.white.opacity(0.72)' "$METADATA" || {
   echo 'FAIL: artist and album do not have a V3-specific white hierarchy' >&2
   exit 1
 }
@@ -25,8 +25,14 @@ grep -q 'max(0, width \* progressFraction)' "$WINDOW" \
 
 grep -q 'struct V3TransportIconButton' "$WINDOW" \
   && grep -q '\.background(.thinMaterial, in: Circle())' "$WINDOW" \
+  && grep -q 'restingFillOpacity' "$WINDOW" \
   && grep -q '\.help(label)' "$WINDOW" || {
   echo 'FAIL: transport controls lack native material hierarchy or hover help' >&2
+  exit 1
+}
+
+grep -q 'progressActiveGradient' "$WINDOW" || {
+  echo 'FAIL: V3 progress does not expose a legible active hierarchy' >&2
   exit 1
 }
 

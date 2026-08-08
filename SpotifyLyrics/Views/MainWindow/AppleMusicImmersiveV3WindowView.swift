@@ -776,6 +776,17 @@ private struct AppleMusicImmersiveV3PlaybackProgress: View {
 
     private var isEmphasized: Bool { isHovered || isEditing }
 
+    private var progressActiveGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color.white.opacity(isEmphasized ? 0.96 : 0.86),
+                Color.white.opacity(isEmphasized ? 0.82 : 0.68)
+            ],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+    }
+
     var body: some View {
         GeometryReader { geometry in
             let width = max(1, geometry.size.width)
@@ -794,12 +805,12 @@ private struct AppleMusicImmersiveV3PlaybackProgress: View {
                     .frame(height: trackHeight)
 
                 Capsule()
-                    .fill(Color.white.opacity(
-                        isEmphasized
-                            ? LyricsDesignTokens.Progress.hoverActiveOpacity
-                            : LyricsDesignTokens.Progress.activeOpacity
-                    ))
+                    .fill(progressActiveGradient)
                     .frame(width: activeWidth, height: trackHeight)
+                    .shadow(
+                        color: Color.white.opacity(isEmphasized ? 0.18 : 0),
+                        radius: 3
+                    )
 
                 if isEmphasized {
                     Circle()
@@ -881,7 +892,7 @@ private struct AppleMusicImmersiveV3TransportControls: View {
                 Text(formatTime(state.currentTrack.duration))
             }
             .font(.system(size: 11, weight: .medium, design: .rounded).monospacedDigit())
-            .foregroundStyle(.white.opacity(0.68))
+            .foregroundStyle(.white.opacity(0.72))
             .frame(maxWidth: progressMaxWidth ?? .infinity)
             .padding(.horizontal, 2)
 
@@ -943,6 +954,10 @@ private struct V3TransportIconButton: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isHovered = false
 
+    private var restingFillOpacity: Double {
+        enabled ? 0.055 : 0.025
+    }
+
     var body: some View {
         Button(action: action) {
             Image(systemName: systemImage)
@@ -950,6 +965,9 @@ private struct V3TransportIconButton: View {
                 .foregroundStyle(.white.opacity(enabled ? 0.90 : 0.35))
                 .frame(width: 36, height: 36)
                 .background {
+                    Circle()
+                        .fill(Color.white.opacity(restingFillOpacity))
+
                     if isHovered && enabled {
                         Circle()
                             .fill(.thinMaterial)

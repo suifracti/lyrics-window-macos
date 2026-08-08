@@ -647,14 +647,27 @@ struct AppleMusicImmersiveV3BackdropView: View {
         saturation: Double,
         maximumLuminance: Double
     ) -> Color {
+        // Near-monochrome and white artwork otherwise collapses into flat
+        // cement gray. Blend only a restrained midnight-blue anchor into
+        // those palettes; colorful covers remain entirely album-derived.
+        let lowChromaAnchorAmount = min(
+            0.30,
+            max(0, (0.16 - palette.saturation) / 0.16) * 0.30
+        )
+        let anchor = BackdropColor(red: 0.08, green: 0.12, blue: 0.18)
+        let anchored = BackdropColor(
+            red: value.red + (anchor.red - value.red) * lowChromaAnchorAmount,
+            green: value.green + (anchor.green - value.green) * lowChromaAnchorAmount,
+            blue: value.blue + (anchor.blue - value.blue) * lowChromaAnchorAmount
+        )
         let sourceLuminance = max(
             0.001,
-            (value.red * 0.2126) + (value.green * 0.7152) + (value.blue * 0.0722)
+            (anchored.red * 0.2126) + (anchored.green * 0.7152) + (anchored.blue * 0.0722)
         )
         let scale = min(1, maximumLuminance / sourceLuminance)
-        let red = value.red * scale
-        let green = value.green * scale
-        let blue = value.blue * scale
+        let red = anchored.red * scale
+        let green = anchored.green * scale
+        let blue = anchored.blue * scale
         let clampedLuminance = (red * 0.2126) + (green * 0.7152) + (blue * 0.0722)
         let amount = min(1, max(0, saturation))
         return Color(

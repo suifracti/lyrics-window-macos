@@ -39,6 +39,11 @@ grep -q 'ambientArtworkData' "$BACKDROP" \
   exit 1
 }
 
+grep -q 'lowChromaAnchorAmount' "$BACKDROP" || {
+  echo 'FAIL: monochrome and white artwork have no restrained neutral color anchor' >&2
+  exit 1
+}
+
 if sed -n '/enum AppleMusicImmersiveV3BackdropKey/,/^}/p' "$BACKDROP" | grep -Eq 'currentTime|playbackTime|progress'; then
   echo 'FAIL: backdrop request key depends on playback time' >&2
   exit 1
