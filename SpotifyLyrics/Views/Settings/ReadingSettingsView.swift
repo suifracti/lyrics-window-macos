@@ -23,10 +23,13 @@ struct ReadingSettingsView: View {
             .padding(.bottom, 10)
 
             Section("日语") {
-                Picker("读音引擎", selection: readingBinding(\.japaneseEngineID)) {
-                    Text("上下文读音 v2").tag(ReadingEngineID.japaneseContextual.rawValue)
-                    Text("词典读音 v1").tag(ReadingEngineID.japaneseDictionary.rawValue)
+                LabeledContent("读音引擎") {
+                    Text("上下文读音")
+                        .foregroundStyle(.secondary)
                 }
+                Text("结合本地词典、上下文短语与人工纠错；旧词典模式已自动迁移。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 Picker("默认读音层", selection: readingBinding(\.japaneseRepresentationID)) {
                     Text("假名").tag(ReadingRepresentationID.kana.rawValue)
                     Text("罗马音").tag(ReadingRepresentationID.romaji.rawValue)

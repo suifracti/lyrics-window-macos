@@ -655,7 +655,12 @@ public final class AppSettingsStore: ObservableObject {
               let value = try? JSONDecoder().decode(ReadingPreferences.self, from: data) else {
             return ReadingPreferences()
         }
-        return value
+        let normalized = value.normalizedForCurrentEngines()
+        if normalized != value,
+           let normalizedData = try? JSONEncoder().encode(normalized) {
+            defaults.set(normalizedData, forKey: Key.readingPreferences)
+        }
+        return normalized
     }
 
     private func persistReadingPreferences(_ preferences: ReadingPreferences) {

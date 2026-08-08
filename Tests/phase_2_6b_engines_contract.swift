@@ -25,6 +25,25 @@ struct ReadingEnginesContract {
         precondition(dictionary.lines[4].originalText == "Love 生ビール")
         precondition(ReadingEngineRegistry.make(.japaneseDictionary).stableID == .japaneseDictionary)
         precondition(ReadingEngineRegistry.make(stableID: "unknown.engine").stableID == .japaneseContextual)
+        precondition(
+            ReadingEngineRegistry.userSelectableJapaneseIDs == [.japaneseContextual],
+            "legacy Japanese engines must not remain user-selectable"
+        )
+
+        let legacyPreferences = ReadingPreferences(
+            japaneseEngineID: ReadingEngineID.japaneseDictionary.rawValue
+        )
+        precondition(
+            legacyPreferences.normalizedForCurrentEngines().japaneseEngineID
+                == ReadingEngineID.japaneseContextual.rawValue,
+            "legacy Japanese engine preference was not migrated"
+        )
+        let unknownPreferences = ReadingPreferences(japaneseEngineID: "readingEngine.removed.v9")
+        precondition(
+            unknownPreferences.normalizedForCurrentEngines().japaneseEngineID
+                == ReadingEngineID.japaneseContextual.rawValue,
+            "unknown Japanese engine preference was not migrated"
+        )
 
         let contextual = try await JapaneseContextualReadingEngine().generate(request)
         precondition(contextual.engineID == .japaneseContextual)

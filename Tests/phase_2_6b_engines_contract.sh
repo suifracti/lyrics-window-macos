@@ -9,6 +9,7 @@ swiftc -parse-as-library \
   "$ROOT_DIR/SpotifyLyrics/Models/Models.swift" \
   "$ROOT_DIR/SpotifyLyrics/Lyrics/TrackIdentity.swift" \
   "$ROOT_DIR/SpotifyLyrics/Lyrics/ReadingModels.swift" \
+  "$ROOT_DIR/SpotifyLyrics/Lyrics/ReadingSettings.swift" \
   "$ROOT_DIR/SpotifyLyrics/Lyrics/ReadingLanguageGate.swift" \
   "$ROOT_DIR/SpotifyLyrics/Lyrics/LyricsModels.swift" \
   "$ROOT_DIR/SpotifyLyrics/Lyrics/AlignmentModels.swift" \

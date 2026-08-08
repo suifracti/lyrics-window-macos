@@ -53,4 +53,17 @@ public struct ReadingPreferences: Codable, Equatable, Sendable {
     public var scriptConversion: ScriptConversionID {
         ScriptConversionID(rawValue: scriptConversionID) ?? .none
     }
+
+    /// Old and unknown Japanese engine IDs remain decodable so existing
+    /// settings never fail to load, but the current product has one supported
+    /// Japanese path. Normalize only that field and preserve every other
+    /// reading preference verbatim.
+    public func normalizedForCurrentEngines() -> ReadingPreferences {
+        guard japaneseEngineID != ReadingEngineID.japaneseContextual.rawValue else {
+            return self
+        }
+        var normalized = self
+        normalized.japaneseEngineID = ReadingEngineID.japaneseContextual.rawValue
+        return normalized
+    }
 }

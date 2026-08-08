@@ -3,6 +3,10 @@ import Foundation
 /// The single routing table for local reading engines. It contains no
 /// playback/session state and deliberately does not create an AI client.
 public enum ReadingEngineRegistry {
+    public static let userSelectableJapaneseIDs: [ReadingEngineID] = [
+        .japaneseContextual
+    ]
+
     public static let stableIDs: [ReadingEngineID] = [
         .japaneseDictionary,
         .japaneseContextual,
