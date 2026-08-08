@@ -1,4 +1,0 @@
-TEMP_DB=/tmp/spotifylyrics-mvp1-temp/SpotifyLyrics.sqlite3
-temp_sha=ff2ce409675da2c4a5251992f416e2b0172935cd9178ba9b5f584a98d0037586
-formal_db_opened=NO
-formal_sha=d6d5f121152057908ccd70cf4b83d8c76d86b9f4b9c9929326c45a60eb5f420b

@@ -1,8 +1,0 @@
-win_buttons=3
-btn1 desc=close button help=missing value name=missing value
-btn2 desc=full screen button help=this button also has an action to zoom the window name=missing value
-btn3 desc=minimize button help=missing value name=missing value
-group1_buttons=3
-g1btn1 desc=button help=missing value
-g1btn2 desc=button help=missing value
-g1btn3 desc=button help=missing value

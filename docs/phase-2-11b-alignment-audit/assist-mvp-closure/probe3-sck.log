@@ -1,5 +1,0 @@
-[2026-08-04T13:36:08Z] LOG_RESET
-[2026-08-04T13:36:08Z] SPIKE start formal_db_opened=NO (spike never opens SQLite)
-[2026-08-04T13:36:08Z] SPIKE policy=spotify-app-audio-only no-mic no-screen-save no-asr no-align
-[2026-08-04T13:36:08Z] SPIKE failed error=用户拒绝了应用程序、窗口、显示器捕捉的TCC
-[2026-08-04T13:36:08Z] S2 failed to start underlying spike error=用户拒绝了应用程序、窗口、显示器捕捉的TCC

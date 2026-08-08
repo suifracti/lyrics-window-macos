@@ -1,2 +1,0 @@
-[2026-08-04T14:11:33Z] TEMP cleanup path=/var/folders/kq/dz44fm994nz94zw2dfqnz_g00000gn/T/SpotifyLyricsCapture/4B07A148-D03E-40CF-BA39-A8B568D0EA85 exists_after=false
-wav_remaining=0 capture_subdirs=0

@@ -1,6 +1,0 @@
-Identifier=com.spotifylyrics.app
-CandidateCDHash sha256=7ef7afedd7aeed6ddbc7f2791f96214e2406f461
-CandidateCDHashFull sha256=7ef7afedd7aeed6ddbc7f2791f96214e2406f461adb101298a59a1ba17a310ae
-CDHash=7ef7afedd7aeed6ddbc7f2791f96214e2406f461
-Signature=adhoc
-TeamIdentifier=not set

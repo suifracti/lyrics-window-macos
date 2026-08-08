@@ -1,4 +1,0 @@
-1080:    public func invalidateAssistOnTrackChange(previousKey: String?, nextKey: String?) {
-1088:                await LiveCaptureCoordinator.shared.stop(reason: .trackChanged)
-1097:        LyricsE2ELog.log("ASSIST invalidate trackChanged prev=\(prev.prefix(24)) next=\(next.prefix(24))")
-1563:            invalidateAssistOnTrackChange(previousKey: previousKey, nextKey: nextIdentity.stableKey)

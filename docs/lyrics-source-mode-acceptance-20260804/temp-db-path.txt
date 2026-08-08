@@ -1,1 +1,0 @@
-TMP_DB: /tmp/spotifylyrics-mode-accept-20260804183003.sqlite3

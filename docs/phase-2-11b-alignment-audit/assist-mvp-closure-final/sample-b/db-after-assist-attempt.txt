@@ -1,5 +1,0 @@
-versions_after 1
-id=8FB163CB source=lrclib synced=1 timed=151
-synced_timed 151
-B_SYNCED_INTACT True
-B_NO_CLOBBER True

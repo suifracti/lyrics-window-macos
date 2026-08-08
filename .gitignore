@@ -39,6 +39,10 @@ antigravity/
 
 ## Historical validation media and local experiment evidence
 docs/design/
+docs/*.png
+docs/lyrics-source-mode-acceptance-*/*.png
+docs/lyrics-source-mode-acceptance-*/*.txt
+docs/lyrics-source-mode-acceptance-*/*.sha
 docs/phase-2-11a-runtime-closeout-20260804/
 docs/phase-2-11a-validation/
 docs/phase-2-11b-alignment-audit/
@@ -50,6 +54,7 @@ docs/superpowers/reports/
 
 ## Local agent history kept outside the project baseline
 docs/archive/agent-history/
+craft/
 
 # Read-only reference project; keep it local but never commit it to this repo.
 Lyricify-App-main/

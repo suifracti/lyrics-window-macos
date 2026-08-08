@@ -1,1 +1,0 @@
-TEMP DB path policy: App uses temporary SQLite when SPOTIFYLYRICS_TEMP_DB=1 / Debug safety; formal not opened this phase

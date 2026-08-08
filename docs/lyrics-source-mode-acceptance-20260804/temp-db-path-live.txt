@@ -1,1 +1,0 @@
-/tmp/spotifylyrics-mode-live2-20260804185213.sqlite3

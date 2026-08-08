@@ -1,1 +1,0 @@
-/tmp/spotifylyrics-mode-closeout-20260804184032.sqlite3

@@ -1,2 +1,0 @@
-[2026-08-05T05:23:26Z] PlaybackState init providers=Local LRC,LRCLIB,NetEase Experimental,QQ Music Experimental
-[2026-08-05T05:23:27Z] PERSISTENCE startup ready

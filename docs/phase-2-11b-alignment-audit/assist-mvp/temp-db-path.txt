@@ -1,1 +1,0 @@
-/tmp/spotifylyrics-assist-20260804210912.sqlite3
