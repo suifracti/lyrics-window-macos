@@ -1112,27 +1112,48 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
+        // PlaybackState publishes time at a high cadence. Resolve the live
+        // document once for this render pass instead of asking each status /
+        // scroll layer to repeat track-identity validation independently.
+        let lines = state.liveLyrics
+        let synchronized = state.liveLyricsAreSynchronized
+        let currentIndex = LyricsTimeline.activeLineIndex(
+            lines: lines,
+            time: state.currentTime,
+            isSynchronized: synchronized
+        )
+        let language = state.liveLyricsLanguage
+        let trackStableKey = state.currentTrackIdentity?.stableKey
+        let artistDisplay = state.currentTrack.artist
+
         VStack(alignment: .leading, spacing: LyricsDesignTokens.Spacing.xs) {
-            if !state.liveLyrics.isEmpty {
-                let isInst = state.liveLyrics.first?.originalText.contains("纯音乐") == true
-                    || state.liveLyrics.first?.originalText.contains("没有填词") == true
+            if !lines.isEmpty {
+                let isInst = lines.first?.originalText.contains("纯音乐") == true
+                    || lines.first?.originalText.contains("没有填词") == true
                 AppleMusicImmersiveV3LyricProgressStatus(
-                    mode: state.liveLyricsAreSynchronized ? .synchronized : .plainText,
-                    currentIndex: state.liveLyricsAreSynchronized ? state.liveCurrentLineIndex : nil,
+                    mode: synchronized ? .synchronized : .plainText,
+                    currentIndex: synchronized ? currentIndex : nil,
                     isInstrumental: isInst,
                     pureImmersion: settings.v3InstrumentalPureImmersion
                 )
                 .padding(.leading, 2)
             }
 
-            if state.liveLyrics.isEmpty {
+            if lines.isEmpty {
                 if lyricsFocus {
                     focusEmptyState
                 } else {
                     emptyState
                 }
             } else {
-                lyricsScroll
+                lyricsScroll(
+                    lines: lines,
+                    synchronized: synchronized,
+                    currentIndex: currentIndex,
+                    language: language,
+                    trackStableKey: trackStableKey,
+                    artistDisplay: artistDisplay
+                )
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -1177,10 +1198,16 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
         }
     }
 
-    private var lyricsScroll: some View {
+    private func lyricsScroll(
+        lines: [LyricLine],
+        synchronized: Bool,
+        currentIndex: Int?,
+        language: String?,
+        trackStableKey: String?,
+        artistDisplay: String
+    ) -> some View {
         GeometryReader { geometry in
             ScrollViewReader { proxy in
-                let synchronized = state.liveLyricsAreSynchronized
                 let verticalPadding = synchronized
                     ? max(120, geometry.size.height * 0.47)
                     : 28.0
@@ -1191,9 +1218,17 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
                     // reflow (observed as a permanent 100% CPU hang). A song
                     // is a small, bounded document, so eager placement is the
                     // safer tradeoff for this primary reading surface.
-                    VStack(alignment: .leading, spacing: rowSpacing) {
-                        ForEach(Array(state.liveLyrics.enumerated()), id: \.element.id) { index, line in
-                            row(for: line, index: index)
+                    VStack(alignment: .leading, spacing: rowSpacing(synchronized: synchronized)) {
+                        ForEach(Array(lines.enumerated()), id: \.element.id) { index, line in
+                            row(
+                                for: line,
+                                index: index,
+                                currentIndex: currentIndex,
+                                synchronized: synchronized,
+                                language: language,
+                                trackStableKey: trackStableKey,
+                                artistDisplay: artistDisplay
+                            )
                                 .id(line.id)
                         }
                     }
@@ -1203,7 +1238,7 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
                     .padding(.trailing, compact ? 10 : 18)
                     .animation(
                         LyricsTransitionPolicy.animation(reduceMotion: reduceMotion),
-                        value: rowSpacing
+                        value: rowSpacing(synchronized: synchronized)
                     )
                     .animation(
                         LyricsTransitionPolicy.animation(reduceMotion: reduceMotion),
@@ -1236,34 +1271,64 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
                     }
                 }
                 .onAppear {
-                    scrollToCurrentLine(using: proxy, animated: false)
+                    scrollToCurrentLine(
+                        using: proxy,
+                        lines: lines,
+                        currentIndex: currentIndex,
+                        synchronized: synchronized,
+                        animated: false
+                    )
                 }
-                .onChange(of: state.liveCurrentLineIndex) { _, _ in
-                    scrollToCurrentLine(using: proxy, animated: true)
+                .onChange(of: currentIndex) { _, newIndex in
+                    scrollToCurrentLine(
+                        using: proxy,
+                        lines: lines,
+                        currentIndex: newIndex,
+                        synchronized: synchronized,
+                        animated: true
+                    )
                 }
                 .onChange(of: state.liveLyricsSessionRevision) { _, _ in
-                    scrollToCurrentLine(using: proxy, animated: false)
+                    scrollToCurrentLine(
+                        using: proxy,
+                        lines: lines,
+                        currentIndex: currentIndex,
+                        synchronized: synchronized,
+                        animated: false
+                    )
                 }
                 .onChange(of: state.preferences) { _, _ in
-                    scrollToCurrentLine(using: proxy, animated: true)
+                    scrollToCurrentLine(
+                        using: proxy,
+                        lines: lines,
+                        currentIndex: currentIndex,
+                        synchronized: synchronized,
+                        animated: true
+                    )
                 }
             }
         }
     }
 
-    private var rowSpacing: CGFloat {
+    private func rowSpacing(synchronized: Bool) -> CGFloat {
         let layerCount = (state.preferences.showRomaji ? 1 : 0)
             + (state.preferences.showTranslation ? 1 : 0)
-        if !state.liveLyricsAreSynchronized {
+        if !synchronized {
             return max(18, (compact ? 21 : 24) - CGFloat(max(0, layerCount - 1)))
         }
         return max(20, (compact ? 24 : 28) - CGFloat(max(0, layerCount - 1)) * 2)
     }
 
     @ViewBuilder
-    private func row(for line: LyricLine, index: Int) -> some View {
-        let currentIndex = state.liveCurrentLineIndex
-        let synchronized = state.liveLyricsAreSynchronized
+    private func row(
+        for line: LyricLine,
+        index: Int,
+        currentIndex: Int?,
+        synchronized: Bool,
+        language: String?,
+        trackStableKey: String?,
+        artistDisplay: String
+    ) -> some View {
         let isActive = synchronized && currentIndex == index
         let distance = synchronized && currentIndex != nil
             ? abs(index - (currentIndex ?? index))
@@ -1276,9 +1341,9 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
             availableWidth: availableWidth,
             compact: compact,
             preferences: state.preferences,
-            language: state.liveLyricsLanguage,
-            trackStableKey: state.currentTrackIdentity?.stableKey,
-            artistDisplay: state.currentTrack.artist
+            language: language,
+            trackStableKey: trackStableKey,
+            artistDisplay: artistDisplay
         )
         .environmentObject(settings)
         if let timestamp = LyricsTimeline.validSeekTimestamp(
@@ -1301,13 +1366,19 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
         }
     }
 
-    private func scrollToCurrentLine(using proxy: ScrollViewProxy, animated: Bool) {
-        guard state.liveLyricsAreSynchronized,
-              let currentIndex = state.liveCurrentLineIndex,
-              state.liveLyrics.indices.contains(currentIndex) else {
+    private func scrollToCurrentLine(
+        using proxy: ScrollViewProxy,
+        lines: [LyricLine],
+        currentIndex: Int?,
+        synchronized: Bool,
+        animated: Bool
+    ) {
+        guard synchronized,
+              let currentIndex,
+              lines.indices.contains(currentIndex) else {
             return
         }
-        let id = state.liveLyrics[currentIndex].id
+        let id = lines[currentIndex].id
         let action = { proxy.scrollTo(id, anchor: UnitPoint(x: 0.5, y: 0.47)) }
         if animated {
             LyricsTransitionPolicy.perform(reduceMotion: reduceMotion, action)

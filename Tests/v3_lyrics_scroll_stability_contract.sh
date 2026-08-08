@@ -19,15 +19,30 @@ if grep -Eq '^[[:space:]]*LazyVStack' <<<"$viewport"; then
   exit 1
 fi
 
-grep -q 'VStack(alignment: .leading, spacing: rowSpacing)' <<<"$viewport" || {
+grep -q 'VStack(alignment: .leading, spacing: rowSpacing(synchronized: synchronized))' <<<"$viewport" || {
   echo 'FAIL: V3 lyric viewport must use the stable eager stack' >&2
   exit 1
 }
 
-grep -q 'onChange(of: state.liveCurrentLineIndex)' <<<"$viewport" || {
+grep -q 'onChange(of: currentIndex)' <<<"$viewport" || {
   echo 'FAIL: V3 scrolling must be driven by line changes, not playback ticks' >&2
   exit 1
 }
+
+grep -q 'let lines = state.liveLyrics' <<<"$viewport" || {
+  echo 'FAIL: V3 does not snapshot the lyric projection once per refresh' >&2
+  exit 1
+}
+
+grep -q 'trackStableKey: trackStableKey' <<<"$viewport" || {
+  echo 'FAIL: V3 rows still recompute TrackIdentity independently' >&2
+  exit 1
+}
+
+if grep -q 'state.liveCurrentLineIndex' <<<"$viewport"; then
+  echo 'FAIL: V3 viewport must derive the current row from its shared lyric snapshot' >&2
+  exit 1
+fi
 
 if grep -q 'onChange(of: state.currentTime)' <<<"$viewport"; then
   echo 'FAIL: V3 scrolling must not react to every playback tick' >&2

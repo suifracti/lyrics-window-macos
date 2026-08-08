@@ -140,6 +140,9 @@ public final class AppSettingsStore: ObservableObject {
         public static let settingsCenterPresentation = "settings.centerPresentation"
         public static let readingPreferences = "reading.preferences.v1"
         public static let v3BackdropBlurRadius = "v3.backdropBlurRadius"
+        public static let v3BackdropBlurAmbient = "v3.backdropBlur.ambient.v1"
+        public static let v3BackdropBlurStage = "v3.backdropBlur.stage.v1"
+        public static let v3BackdropBlurClassic = "v3.backdropBlur.classic.v1"
         public static let v3ArtworkPresentation = "v3.artworkPresentation.v1"
         /// Legacy migration input. Do not use as the current presentation state.
         public static let v3AmbientBackdropEnabled = "v3.ambientBackdropEnabled"
@@ -151,6 +154,8 @@ public final class AppSettingsStore: ObservableObject {
     public static let currentSettingsVersion = 1
 
     private let defaults: UserDefaults
+    private var v3BlurByPresentation: [V3ArtworkPresentation: Double] = [:]
+    private var isApplyingStoredV3Blur = false
 
     /// Presentation choices share this UserDefaults boundary with the rest
     /// of the settings store. The selection object is metadata/selection
@@ -272,16 +277,40 @@ public final class AppSettingsStore: ObservableObject {
     }
 
     @Published public var v3BackdropBlurRadius: Double {
-        didSet { defaults.set(v3BackdropBlurRadius, forKey: Key.v3BackdropBlurRadius) }
+        didSet {
+            defaults.set(v3BackdropBlurRadius, forKey: Key.v3BackdropBlurRadius)
+            guard !isApplyingStoredV3Blur else { return }
+            let presentation = V3ArtworkPresentation(rawValue: v3ArtworkPresentationRawValue) ?? .ambient
+            v3BlurByPresentation[presentation] = v3BackdropBlurRadius
+            defaults.set(v3BackdropBlurRadius, forKey: Self.v3BlurDefaultsKey(for: presentation))
+        }
     }
 
     @Published public var v3ArtworkPresentationRawValue: String {
-        didSet { defaults.set(v3ArtworkPresentationRawValue, forKey: Key.v3ArtworkPresentation) }
+        didSet {
+            defaults.set(v3ArtworkPresentationRawValue, forKey: Key.v3ArtworkPresentation)
+            guard let presentation = V3ArtworkPresentation(rawValue: v3ArtworkPresentationRawValue),
+                  let rememberedBlur = v3BlurByPresentation[presentation],
+                  abs(rememberedBlur - v3BackdropBlurRadius) > 0.001 else {
+                return
+            }
+            isApplyingStoredV3Blur = true
+            v3BackdropBlurRadius = rememberedBlur
+            isApplyingStoredV3Blur = false
+        }
     }
 
     public var v3ArtworkPresentation: V3ArtworkPresentation {
         get { V3ArtworkPresentation(rawValue: v3ArtworkPresentationRawValue) ?? .ambient }
         set { v3ArtworkPresentationRawValue = newValue.rawValue }
+    }
+
+    private static func v3BlurDefaultsKey(for presentation: V3ArtworkPresentation) -> String {
+        switch presentation {
+        case .ambient: return Key.v3BackdropBlurAmbient
+        case .stage: return Key.v3BackdropBlurStage
+        case .classic: return Key.v3BackdropBlurClassic
+        }
     }
 
     @Published public var v3ArtworkPosition: String {
@@ -303,16 +332,28 @@ public final class AppSettingsStore: ObservableObject {
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        self.v3BackdropBlurRadius = defaults.object(forKey: Key.v3BackdropBlurRadius) as? Double ?? 36.0
+        let legacyBlur = defaults.object(forKey: Key.v3BackdropBlurRadius) as? Double ?? 36.0
+        let selectedPresentation: V3ArtworkPresentation
         if let storedPresentation = defaults.string(forKey: Key.v3ArtworkPresentation),
-           V3ArtworkPresentation(rawValue: storedPresentation) != nil {
+           let presentation = V3ArtworkPresentation(rawValue: storedPresentation) {
             self.v3ArtworkPresentationRawValue = storedPresentation
+            selectedPresentation = presentation
         } else {
             let legacyAmbient = defaults.object(forKey: Key.v3AmbientBackdropEnabled) as? Bool ?? true
-            self.v3ArtworkPresentationRawValue = legacyAmbient
-                ? V3ArtworkPresentation.ambient.rawValue
-                : V3ArtworkPresentation.classic.rawValue
+            selectedPresentation = legacyAmbient ? .ambient : .classic
+            self.v3ArtworkPresentationRawValue = selectedPresentation.rawValue
         }
+        let blurDefaults: [V3ArtworkPresentation: Double] = [
+            .ambient: 58.0,
+            .stage: 12.0,
+            .classic: 36.0
+        ]
+        for presentation in V3ArtworkPresentation.allCases {
+            let stored = defaults.object(forKey: Self.v3BlurDefaultsKey(for: presentation)) as? Double
+            self.v3BlurByPresentation[presentation] = stored
+                ?? (presentation == selectedPresentation ? legacyBlur : blurDefaults[presentation] ?? legacyBlur)
+        }
+        self.v3BackdropBlurRadius = self.v3BlurByPresentation[selectedPresentation] ?? legacyBlur
         self.v3ArtworkPosition = defaults.string(forKey: Key.v3ArtworkPosition) ?? "left"
         self.v3ArtworkSizeScale = defaults.object(forKey: Key.v3ArtworkSizeScale) as? Double ?? 1.0
         self.v3InstrumentalPureImmersion = defaults.object(forKey: Key.v3InstrumentalPureImmersion) as? Bool ?? true

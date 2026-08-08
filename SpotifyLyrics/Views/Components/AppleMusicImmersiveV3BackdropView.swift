@@ -204,7 +204,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
     private func artworkLayers(image: NSImage, ambientImage: NSImage?) -> some View {
         switch settings.v3ArtworkPresentation {
         case .ambient:
-            ambientArtworkLayers(image: ambientImage)
+            ambientArtworkLayers(ambientImage: ambientImage)
         case .stage:
             stageArtworkLayers(image: image, ambientImage: ambientImage)
         case .classic:
@@ -243,20 +243,18 @@ struct AppleMusicImmersiveV3BackdropView: View {
                 .opacity(0.42)
         }
 
-        // One recognisable, aspect-fitted artwork plane dissolves into the
-        // colour field. There is no foreground cover card in Stage mode.
+        // One recognisable, aspect-fitted artwork plane sits inside the
+        // colour field. There is no duplicate foreground cover card.
         GeometryReader { geometry in
             let scale = min(1.4, max(0.8, settings.v3ArtworkSizeScale))
-            // At 100% the complete square remains inside the canvas. Larger
-            // presets intentionally become increasingly cinematic crops.
-            let planeSize = min(geometry.size.height * 0.88, geometry.size.width * 0.64) * scale
-            let x: CGFloat = {
-                switch settings.v3ArtworkPosition {
-                case "right": return geometry.size.width * 0.73
-                case "center": return geometry.size.width * 0.50
-                default: return geometry.size.width * 0.27
-                }
-            }()
+            let planeSize = stageArtworkPlaneSize(
+                canvas: geometry.size,
+                requestedScale: scale
+            )
+            let x = stageArtworkCenterX(
+                canvasWidth: geometry.size.width,
+                planeSize: planeSize
+            )
 
             Image(nsImage: image)
                 .resizable()
@@ -264,23 +262,15 @@ struct AppleMusicImmersiveV3BackdropView: View {
                 .scaledToFit()
                 .frame(width: planeSize, height: planeSize)
                 .position(x: x, y: geometry.size.height * 0.49)
-                .blur(radius: normalizedBlur * 7.5)
+                .blur(radius: normalizedBlur * 10.0)
                 .saturation(saturation)
                 .brightness(-0.04 - normalizedBlur * 0.04)
-                .opacity(0.92 - normalizedBlur * 0.16)
-                .mask(
-                    RadialGradient(
-                        stops: [
-                            .init(color: .white, location: 0.00),
-                            .init(color: .white, location: 0.46),
-                            .init(color: .white.opacity(0.74), location: 0.66),
-                            .init(color: .white.opacity(0.16), location: 0.84),
-                            .init(color: .clear, location: 1.00)
-                        ],
-                        center: UnitPoint(x: x / max(1, geometry.size.width), y: 0.49),
-                        startRadius: planeSize * 0.08,
-                        endRadius: planeSize * 0.58
-                    )
+                .opacity(0.96 - normalizedBlur * 0.12)
+                .shadow(
+                    color: Color.black.opacity(0.20 + normalizedBlur * 0.10),
+                    radius: 28,
+                    x: 0,
+                    y: 10
                 )
         }
 
@@ -302,6 +292,36 @@ struct AppleMusicImmersiveV3BackdropView: View {
                 .blendMode(.softLight)
                 .opacity(min(0.045, presentationStyle.noiseIntensity))
         }
+    }
+
+    /// Stage is the only complete-cover backdrop. The user size range changes
+    /// how much of the canvas it occupies, but never lets the square exceed
+    /// the available window and silently turn back into a cropped wallpaper.
+    private func stageArtworkPlaneSize(
+        canvas: CGSize,
+        requestedScale: CGFloat
+    ) -> CGFloat {
+        let maximum = max(1, min(canvas.height * 0.90, canvas.width * 0.90))
+        let normalizedScale = min(1, max(0, (requestedScale - 0.8) / 0.6))
+        return maximum * (0.70 + normalizedScale * 0.30)
+    }
+
+    private func stageArtworkCenterX(
+        canvasWidth: CGFloat,
+        planeSize: CGFloat
+    ) -> CGFloat {
+        let preferred: CGFloat
+        switch settings.v3ArtworkPosition {
+        case "right": preferred = canvasWidth * 0.72
+        case "center": preferred = canvasWidth * 0.50
+        default: preferred = canvasWidth * 0.28
+        }
+
+        let margin: CGFloat = 18
+        let half = planeSize * 0.5
+        let minimum = half + margin
+        let maximum = max(minimum, canvasWidth - half - margin)
+        return min(maximum, max(minimum, preferred))
     }
 
     @ViewBuilder
@@ -336,7 +356,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
     }
 
     @ViewBuilder
-    private func ambientArtworkLayers(image: NSImage?) -> some View {
+    private func ambientArtworkLayers(ambientImage: NSImage?) -> some View {
         let style = presentationStyle
         let saturation = min(
             1.3,
@@ -358,8 +378,8 @@ struct AppleMusicImmersiveV3BackdropView: View {
 
         // This is a 48px low-frequency derivative, never the readable cover.
         // The minimum diffusion remains non-zero even when the slider is at 0.
-        if let image {
-            Image(nsImage: image)
+        if let ambientImage {
+            Image(nsImage: ambientImage)
                 .resizable()
                 .interpolation(.high)
                 .scaledToFill()
