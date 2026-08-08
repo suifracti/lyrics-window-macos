@@ -172,16 +172,16 @@ struct AppleMusicImmersiveV3BackdropView: View {
         if settings.v3InstrumentalPureImmersion && isInstrumental {
             return 4.0
         }
-        // Direct continuous linear mapping (0% = 0.0pt, 25% = 16.25pt, 60% = 39.0pt, 100% = 65.0pt)
-        // 0% has ZERO minimum blur floor (100% clear artwork image)
-        return normalizedBlur * 65.0
+        // Crisp continuous linear mapping (0% = 0.0pt, 25% = 7.0pt, 60% = 16.8pt, 100% = 28.0pt)
+        // 0% is 100% clear artwork image, 100% maxes out at a soft 28pt blur instead of heavy mush
+        return normalizedBlur * 28.0
     }
 
     private var effectiveScreenBlurRadius: Double {
         if settings.v3InstrumentalPureImmersion && isInstrumental {
             return 1.2
         }
-        return normalizedBlur * 35.0
+        return normalizedBlur * 14.0
     }
 
     @ViewBuilder
