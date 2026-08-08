@@ -418,6 +418,7 @@ public final class PlaybackState: ObservableObject {
     public var translationVersions: [StoredTranslationVersion] { translationSession.availableVersions }
     public var selectedTranslation: StoredTranslationVersion? { translationSession.selectedVersion }
     public var translationSessionPendingCandidate: StoredTranslationVersion? { translationSession.pendingCandidate }
+    public var translationProgressMessage: String { translationSession.progressMessage }
     public var isTranslationSelectionEmpty: Bool { translationSession.isNoSelection }
     public var readingProjection: ReadingProjection { readingSession.projection }
     public var readingVersions: [StoredReadingVersion] { readingSession.availableVersions }

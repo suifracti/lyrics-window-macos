@@ -91,7 +91,20 @@ struct CurrentSongOperationsView: View {
         }
         .sheet(isPresented: $showCandidatePreview) {
             if let candidate = state.translationSessionPendingCandidate {
-                TranslationCandidatePreviewView(candidate: candidate)
+                TranslationCandidatePreviewView(
+                    candidate: candidate,
+                    evidence: TranslationCandidatePreviewEvidence.build(
+                        sourceLines: state.liveLyrics,
+                        translations: candidate.lines.map {
+                            IndexedTranslationPreview(lineIndex: $0.lineIndex, text: $0.translatedText)
+                        },
+                        isSynchronized: state.liveLyricsAreSynchronized
+                    ),
+                    onAdopt: {
+                        state.adoptTranslation(versionID: candidate.record.id)
+                        showCandidatePreview = false
+                    }
+                )
             }
         }
         .sheet(isPresented: $showReadingEditor) {
@@ -305,6 +318,12 @@ struct CurrentSongOperationsView: View {
                 Text("模型：\(settings.aiTranslationConfiguration.model.isEmpty ? "手动输入" : settings.aiTranslationConfiguration.model)")
                     .font(.system(size: 10, design: .rounded))
                     .foregroundStyle(.secondary)
+                if !state.translationProgressMessage.isEmpty {
+                    Label(state.translationProgressMessage, systemImage: translationStatusIcon)
+                        .font(.system(size: 10, design: .rounded))
+                        .foregroundStyle(translationStatusColor)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             if let candidate = state.translationSessionPendingCandidate {
                 HStack(spacing: 8) {
@@ -709,6 +728,18 @@ struct CurrentSongOperationsView: View {
         return version.record.isLocked ? "🔒 \(model)" : model
     }
 
+    private var translationStatusIcon: String {
+        if case .failed = state.translationState { return "exclamationmark.triangle" }
+        if case .candidateReady = state.translationState { return "checkmark.circle" }
+        return "arrow.triangle.2.circlepath"
+    }
+
+    private var translationStatusColor: Color {
+        if case .failed = state.translationState { return .orange }
+        if case .candidateReady = state.translationState { return .green }
+        return .secondary
+    }
+
     private func configurationStringBinding(_ keyPath: WritableKeyPath<AITranslationConfiguration, String>) -> Binding<String> {
         Binding(
             get: { settings.aiTranslationConfiguration[keyPath: keyPath] },
@@ -745,6 +776,8 @@ struct CurrentSongOperationsView: View {
 
 private struct TranslationCandidatePreviewView: View {
     let candidate: StoredTranslationVersion
+    let evidence: [TranslationCandidatePreviewLineEvidence]
+    let onAdopt: () -> Void
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -754,25 +787,55 @@ private struct TranslationCandidatePreviewView: View {
                 Spacer()
                 Button("关闭") { dismiss() }
             }
-            Text("候选不会覆盖当前翻译，确认后再采用。")
+            HStack(spacing: 8) {
+                Label(candidate.record.model.isEmpty ? "Apple 系统翻译" : candidate.record.model, systemImage: "character.book.closed")
+                Text("·")
+                Text(candidate.record.targetLanguage)
+                Text("·")
+                Text(evidence.first?.hasTiming == true ? "保留时间轴" : "纯文本行序")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            Text("逐行对照原文与候选译文；确认前不会替换当前翻译。")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 8) {
-                    ForEach(candidate.lines, id: \.lineIndex) { line in
+                LazyVStack(alignment: .leading, spacing: 10) {
+                    ForEach(evidence, id: \.lineIndex) { line in
                         HStack(alignment: .top, spacing: 12) {
-                            Text("\(line.lineIndex + 1)")
+                            Text(previewTimeLabel(line))
                                 .font(.caption.monospacedDigit())
                                 .foregroundStyle(.secondary)
-                                .frame(width: 28, alignment: .trailing)
-                            Text(line.translatedText.isEmpty ? "（空白行）" : line.translatedText)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .frame(width: 48, alignment: .trailing)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(line.originalText.isEmpty ? "（空白原文）" : line.originalText)
+                                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                                    .foregroundStyle(.primary)
+                                Text(line.translatedText.isEmpty ? "（空白译文）" : line.translatedText)
+                                    .font(.system(size: 13, design: .rounded))
+                                    .foregroundStyle(.secondary)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
+                        .padding(10)
+                        .background(.quaternary.opacity(0.28), in: RoundedRectangle(cornerRadius: 10))
                     }
                 }
             }
+            HStack {
+                Spacer()
+                Button("取消") { dismiss() }
+                Button("采用此翻译", action: onAdopt)
+                    .buttonStyle(.borderedProminent)
+            }
         }
         .padding(20)
-        .frame(width: 520, height: 520)
+        .frame(width: 620, height: 620)
+    }
+
+    private func previewTimeLabel(_ line: TranslationCandidatePreviewLineEvidence) -> String {
+        guard let timestamp = line.timestamp else { return "#\(line.lineIndex + 1)" }
+        let seconds = max(0, Int(timestamp.rounded(.down)))
+        return String(format: "%02d:%02d", seconds / 60, seconds % 60)
     }
 }

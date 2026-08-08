@@ -56,6 +56,29 @@ struct CurrentSongOperationsContract {
         require(loaded.primaryLyricsAction == .edit, "loaded lyrics should expose edit")
         require(loaded.translationStatusLabel == "已选择翻译", "selected translation should differ from no version")
 
+        let preview = TranslationCandidatePreviewEvidence.build(
+            sourceLines: [
+                LyricLine(timestamp: 12.5, originalText: "夜の窓に雨が落ちる"),
+                LyricLine(timestamp: 28, originalText: "遠い街の灯りを見ている")
+            ],
+            translations: [
+                IndexedTranslationPreview(lineIndex: 1, text: "望着远方城市的灯火"),
+                IndexedTranslationPreview(lineIndex: 0, text: "雨落在夜晚的窗边")
+            ],
+            isSynchronized: true
+        )
+        require(preview.count == 2, "translation preview must preserve every source line")
+        require(preview[0].lineIndex == 0, "translation preview must follow source order")
+        require(preview[0].originalText == "夜の窓に雨が落ちる", "translation preview lost original evidence")
+        require(preview[0].translatedText == "雨落在夜晚的窗边", "translation preview mapped the wrong translated line")
+        require(preview[0].timestamp == 12.5, "translation preview lost timeline evidence")
+        require(preview[0].hasTiming, "synchronized preview must expose timing")
+
+        let recoveryQuery = LyricsRecoveryPresentation.primaryWebQuery(
+            track: Track(title: "  One Last Kiss  ", artist: " 宇多田ヒカル ", album: "", duration: 0)
+        )
+        require(recoveryQuery == "One Last Kiss 宇多田ヒカル", "web recovery query must be ready to copy or open")
+
         print("current song operations contract: PASS")
     }
 }

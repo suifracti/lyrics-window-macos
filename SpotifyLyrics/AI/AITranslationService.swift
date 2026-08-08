@@ -157,6 +157,11 @@ public struct AppleSystemTranslationEngine: TranslationEngine, Sendable {
         }
         let nonBlank = context.lines.filter { !$0.original.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
         let session = TranslationSession(installedSource: source, target: target)
+        // `supported` does not imply that the language assets are installed.
+        // Preparing here lets the framework request/download what it needs
+        // before the batch call instead of failing as if translation did
+        // nothing. The UI exposes this preparation through the shared session.
+        try await session.prepareTranslation()
         let responses = try await session.translations(from: nonBlank.map { TranslationSession.Request(sourceText: $0.original) })
         guard responses.count == nonBlank.count else {
             throw AITranslationError.invalidResponse("Apple 系统翻译返回行数不匹配")

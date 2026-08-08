@@ -579,6 +579,9 @@ struct AppleMusicImmersiveV3WindowView: View {
     private var translationMenuContent: some View {
         if !state.liveLyrics.isEmpty {
             Divider()
+            if !state.translationProgressMessage.isEmpty {
+                Text(state.translationProgressMessage)
+            }
             switch state.translationState {
             case .loading:
                 Text("翻译：正在翻译整首歌词…")

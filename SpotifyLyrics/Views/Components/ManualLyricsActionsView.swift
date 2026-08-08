@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 /// Recovery actions deliberately live beside no-lyrics/no-match states rather
 /// than in Settings.  They only prepare the shared editor session; SQLite is
@@ -32,7 +33,7 @@ struct ManualLyricsActionsView: View {
 
     @ViewBuilder
     private var actions: some View {
-        Button("粘贴歌词", systemImage: "doc.on.clipboard") {
+        Button("直接粘贴", systemImage: "doc.on.clipboard") {
             if state.prepareManualLyricsFromClipboard() {
                 openWindow(id: "lyrics-editor")
             }
@@ -50,6 +51,24 @@ struct ManualLyricsActionsView: View {
         Button("导入 LRC", systemImage: "waveform.badge.plus") {
             if state.prepareManualLyricsFromLRC() {
                 openWindow(id: "lyrics-editor")
+            }
+        }
+        Menu("网页查找", systemImage: "safari") {
+            Button("复制检索词", systemImage: "doc.on.doc") {
+                let query = LyricsRecoveryPresentation.primaryWebQuery(track: state.currentTrack)
+                guard !query.isEmpty else { return }
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(query, forType: .string)
+            }
+            Divider()
+            ForEach(LyricsDiscoverySite.allCases) { site in
+                Button(site.title) {
+                    let query = LyricsRecoveryPresentation.primaryWebQuery(track: state.currentTrack)
+                    if let url = site.browserURL(query: query) {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+                .help(site.detail)
             }
         }
     }

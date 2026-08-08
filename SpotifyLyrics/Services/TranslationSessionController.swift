@@ -30,6 +30,7 @@ public final class TranslationSessionController: ObservableObject {
     @Published public private(set) var selectedVersion: StoredTranslationVersion?
     @Published public private(set) var availableVersions: [StoredTranslationVersion] = []
     @Published public private(set) var errorMessage: String?
+    @Published public private(set) var progressMessage = ""
     /// Distinguishes an explicit session-level “无翻译版本” choice from a
     /// hidden translation layer or a context that has not loaded yet.
     @Published public private(set) var isNoSelection = false
@@ -126,6 +127,7 @@ public final class TranslationSessionController: ObservableObject {
         availableVersions = []
         pendingCandidate = nil
         errorMessage = nil
+        progressMessage = ""
         isNoSelection = manualNoSelection.contains(next.key)
         state = .idle
         loadExistingOrAutoTranslate(next)
@@ -137,6 +139,7 @@ public final class TranslationSessionController: ObservableObject {
         inFlightKey = nil
         requestGeneration &+= 1
         state = .idle
+        progressMessage = ""
     }
 
     public func setEngine(_ engine: any TranslationEngine) {
@@ -159,6 +162,7 @@ public final class TranslationSessionController: ObservableObject {
         selectedVersion = nil
         availableVersions = []
         errorMessage = nil
+        progressMessage = ""
         isNoSelection = false
         pendingCandidate = nil
         state = .idle
@@ -188,6 +192,7 @@ public final class TranslationSessionController: ObservableObject {
         isNoSelection = true
         errorMessage = nil
         state = .idle
+        progressMessage = ""
     }
 
     public func restoreRecommended() {
@@ -196,6 +201,7 @@ public final class TranslationSessionController: ObservableObject {
         manualNoSelection.remove(context.key)
         isNoSelection = false
         pendingCandidate = nil
+        progressMessage = ""
         loadExistingOrAutoTranslate(context)
     }
 
@@ -217,6 +223,7 @@ public final class TranslationSessionController: ObservableObject {
         selectedVersion = version
         state = .loaded(version.record.id)
         errorMessage = nil
+        progressMessage = ""
     }
 
     /// Generated translations are candidates until the user explicitly
@@ -357,6 +364,7 @@ public final class TranslationSessionController: ObservableObject {
         requestTask?.cancel()
         requestTask = nil
         inFlightKey = nil
+        progressMessage = ""
         requestGeneration &+= 1
         let loadGeneration = requestGeneration
         let key = context.key
@@ -446,6 +454,9 @@ public final class TranslationSessionController: ObservableObject {
         inFlightKey = key
         state = .loading
         errorMessage = nil
+        progressMessage = engine?.metadata.stableID == TranslationEngineID.appleSystem.rawValue
+            ? "正在检查 Apple 语言支持并准备系统翻译…"
+            : "正在请求整首歌词翻译…"
         let originalLines = context.document.lines.map(\.originalText)
         let engine = self.engine
         requestTask = Task { [weak self, repository] in
@@ -480,6 +491,12 @@ public final class TranslationSessionController: ObservableObject {
                           engine.metadata.stableID == TranslationEngineID.openAICompatible.rawValue else {
                         throw error
                     }
+                    await MainActor.run { [weak self] in
+                        guard let self,
+                              self.context?.key == key,
+                              self.requestGeneration == translationGeneration else { return }
+                        self.progressMessage = "兼容接口失败，正在准备 Apple 系统翻译…"
+                    }
                     draft = try await AppleSystemTranslationEngine().translate(
                         context: aiContext,
                         sourceContentHash: context.sourceContentHash,
@@ -503,6 +520,7 @@ public final class TranslationSessionController: ObservableObject {
                     self.availableVersions.insert(saved, at: 0)
                     self.pendingCandidate = saved
                     self.state = .candidateReady(saved.record.id)
+                    self.progressMessage = "翻译候选已生成，确认后再采用"
                 }
             } catch is CancellationError {
                 await MainActor.run { [weak self] in
@@ -511,6 +529,7 @@ public final class TranslationSessionController: ObservableObject {
                           self.requestGeneration == translationGeneration else { return }
                     self.inFlightKey = nil
                     self.state = .idle
+                    self.progressMessage = ""
                 }
             } catch let error as AITranslationError {
                 await MainActor.run { [weak self] in
@@ -520,6 +539,7 @@ public final class TranslationSessionController: ObservableObject {
                     self.inFlightKey = nil
                     self.state = .failed(error.localizedDescription)
                     self.errorMessage = error.localizedDescription
+                    self.progressMessage = "翻译失败：\(error.localizedDescription)"
                 }
             } catch {
                 await MainActor.run { [weak self] in
@@ -529,6 +549,7 @@ public final class TranslationSessionController: ObservableObject {
                     self.inFlightKey = nil
                     self.state = .failed(error.localizedDescription)
                     self.errorMessage = error.localizedDescription
+                    self.progressMessage = "翻译失败：\(error.localizedDescription)"
                 }
             }
         }

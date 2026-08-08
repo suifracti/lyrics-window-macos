@@ -10,6 +10,55 @@ public enum CurrentSongPrimaryAction: String, Sendable {
     case importOrCreate
 }
 
+public struct IndexedTranslationPreview: Equatable, Sendable {
+    public let lineIndex: Int
+    public let text: String
+
+    public init(lineIndex: Int, text: String) {
+        self.lineIndex = lineIndex
+        self.text = text
+    }
+}
+
+public struct TranslationCandidatePreviewLineEvidence: Equatable, Sendable {
+    public let lineIndex: Int
+    public let timestamp: TimeInterval?
+    public let originalText: String
+    public let translatedText: String
+
+    public var hasTiming: Bool { timestamp != nil }
+}
+
+public enum TranslationCandidatePreviewEvidence {
+    public static func build(
+        sourceLines: [LyricLine],
+        translations: [IndexedTranslationPreview],
+        isSynchronized: Bool
+    ) -> [TranslationCandidatePreviewLineEvidence] {
+        let translatedByIndex = Dictionary(
+            translations.map { ($0.lineIndex, $0.text) },
+            uniquingKeysWith: { _, latest in latest }
+        )
+        return sourceLines.enumerated().map { index, line in
+            TranslationCandidatePreviewLineEvidence(
+                lineIndex: index,
+                timestamp: isSynchronized ? line.timestamp : nil,
+                originalText: line.originalText,
+                translatedText: translatedByIndex[index] ?? ""
+            )
+        }
+    }
+}
+
+public enum LyricsRecoveryPresentation {
+    public static func primaryWebQuery(track: Track) -> String {
+        [track.title, track.artist]
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+    }
+}
+
 public enum CurrentSongLyricsState: String, Equatable, Sendable {
     case idle
     case loading

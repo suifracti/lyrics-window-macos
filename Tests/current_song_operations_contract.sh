@@ -28,10 +28,16 @@ grep -q 'retryLyrics' "$VIEW"
 grep -q '版本状态' "$VIEW"
 grep -q '已归档' "$VIEW"
 grep -q '锁定' "$VIEW"
+grep -q 'TranslationCandidatePreviewEvidence' "$VIEW"
 if grep -Eq 'SQLite|Timer\(|currentTime\s*=|\.seek\(' "$VIEW"; then
   echo "FAIL: current-song view owns persistence, timers, or implicit seek" >&2
   exit 1
 fi
+
+RECOVERY_VIEW="$ROOT/SpotifyLyrics/Views/Components/ManualLyricsActionsView.swift"
+grep -q 'LyricsDiscoverySite' "$RECOVERY_VIEW"
+grep -q '直接粘贴' "$RECOVERY_VIEW"
+grep -q '复制检索词' "$RECOVERY_VIEW"
 
 SETTINGS="$ROOT/SpotifyLyrics/Views/Settings/SettingsRootView.swift"
 grep -q '随机度（Temperature）' "$SETTINGS"

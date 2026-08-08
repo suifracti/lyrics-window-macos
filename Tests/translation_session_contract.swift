@@ -135,6 +135,37 @@ private final class SlowTranslationService: AITranslationService, @unchecked Sen
     func calls() async -> Int { await counter.value }
 }
 
+private final class SlowAppleTranslationEngine: TranslationEngine, @unchecked Sendable {
+    let metadata = TranslationEngineMetadata(
+        stableID: TranslationEngineID.appleSystem.rawValue,
+        displayName: "Apple 系统翻译",
+        availability: .available,
+        requiresAPIKey: false,
+        supportsModelDirectory: false
+    )
+
+    func translate(
+        context: AITranslationContext,
+        sourceContentHash: String,
+        configuration: AITranslationConfiguration
+    ) async throws -> AITranslationDraft {
+        try await Task.sleep(nanoseconds: 150_000_000)
+        return AITranslationDraft(
+            lines: context.lines.map { AITranslationLine(index: $0.index, translation: "系统译文 \($0.index)") },
+            targetLanguage: configuration.targetLanguage,
+            model: "Apple System Translation",
+            baseURLHost: "",
+            promptHash: "apple-contract",
+            sourceContentHash: sourceContentHash,
+            engineID: TranslationEngineID.appleSystem.rawValue
+        )
+    }
+
+    func testConnection(configuration: AITranslationConfiguration) async throws {
+        _ = configuration
+    }
+}
+
 @main
 struct TranslationSessionContract {
     static func main() async {
@@ -196,6 +227,26 @@ struct TranslationSessionContract {
             ])
             precondition(projected.first?.translationText == nil, "no-selection leaked a translation layer")
             precondition(controller.selectedVersion == nil, "no-selection kept a selected translation")
+        }
+
+        let appleController = await MainActor.run {
+            TranslationSessionController(repository: repository, engine: SlowAppleTranslationEngine())
+        }
+        var appleConfiguration = configuration
+        appleConfiguration.engineID = TranslationEngineID.appleSystem.rawValue
+        await MainActor.run {
+            appleController.synchronize(
+                document: documentA,
+                lyricsVersionID: UUID(uuidString: "00000000-0000-0000-0000-00000000000c")!,
+                sourceContentHash: hashA,
+                configuration: appleConfiguration
+            )
+            appleController.translateCurrentLyrics()
+            precondition(
+                appleController.progressMessage == "正在检查 Apple 语言支持并准备系统翻译…",
+                "Apple translation preparation is invisible to the user"
+            )
+            appleController.cancel()
         }
         print("translation session contracts passed")
     }

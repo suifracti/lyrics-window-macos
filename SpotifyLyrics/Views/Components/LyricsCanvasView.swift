@@ -946,14 +946,31 @@ private struct LyricsCandidatePreviewSheet: View {
             Text("候选预览")
                 .font(.headline)
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 8) {
-                    ForEach(Array(candidate.lines.prefix(8)), id: \.id) { line in
-                        Text(line.originalText.isEmpty ? " " : line.originalText)
+                LazyVStack(alignment: .leading, spacing: 10) {
+                    ForEach(Array(candidate.lines.enumerated()), id: \.element.id) { index, line in
+                        HStack(alignment: .top, spacing: 12) {
+                            Text(candidate.isSynchronized ? previewTimeLabel(line.timestamp) : "#\(index + 1)")
+                                .font(.caption.monospacedDigit())
+                                .foregroundStyle(.secondary)
+                                .frame(width: 48, alignment: .trailing)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(line.originalText.isEmpty ? "（空白原文）" : line.originalText)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                if let translation = line.translationText, !translation.isEmpty {
+                                    Text(translation)
+                                        .font(.callout)
+                                        .foregroundStyle(.secondary)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                            }
                             .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .padding(10)
+                        .background(.quaternary.opacity(0.28), in: RoundedRectangle(cornerRadius: 10))
                     }
                 }
             }
-            .frame(minHeight: 160)
+            .frame(minHeight: 300)
 
             HStack {
                 Spacer()
@@ -963,6 +980,11 @@ private struct LyricsCandidatePreviewSheet: View {
             }
         }
         .padding(22)
-        .frame(width: 460, height: 360)
+        .frame(width: 620, height: 600)
+    }
+
+    private func previewTimeLabel(_ timestamp: TimeInterval) -> String {
+        let seconds = max(0, Int(timestamp.rounded(.down)))
+        return String(format: "%02d:%02d", seconds / 60, seconds % 60)
     }
 }

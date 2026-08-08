@@ -17,3 +17,9 @@ swiftc -parse-as-library \
   -o "$BUILD/ai_translation_contract"
 
 "$BUILD/ai_translation_contract"
+
+SERVICE="$ROOT/SpotifyLyrics/AI/AITranslationService.swift"
+grep -q 'session.prepareTranslation()' "$SERVICE" || {
+  echo 'FAIL: Apple system translation does not prepare or download its language session' >&2
+  exit 1
+}
