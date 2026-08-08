@@ -184,6 +184,17 @@ struct AppleMusicImmersiveV3BackdropView: View {
         return normalizedBlur * 14.0
     }
 
+    private var coverLightCenter: UnitPoint {
+        let position = settings.v3ArtworkPosition
+        if position == "right" {
+            return UnitPoint(x: 0.78, y: 0.42)
+        } else if position == "center" {
+            return UnitPoint(x: 0.50, y: 0.38)
+        } else {
+            return UnitPoint(x: 0.22, y: 0.42)
+        }
+    }
+
     @ViewBuilder
     private func artworkLayers(image: NSImage) -> some View {
         let style = presentationStyle
@@ -193,44 +204,34 @@ struct AppleMusicImmersiveV3BackdropView: View {
         )
 
         // complete artwork plane scaledToFit()
-        // Layer 1: Ambient Multi-Orb Fluid Color Canvas (Extracted from Album Palette)
+        // Layer 1: Restrained Cover Ambient Light Source (Dynamic anchor emitting from physical album cover)
         ZStack {
             color(palette.primary, saturation: saturation)
                 .opacity(0.85)
 
             RadialGradient(
                 colors: [
-                    color(palette.primary, saturation: saturation * 1.25),
+                    color(palette.primary, saturation: saturation * 1.15).opacity(0.14),
                     .clear
                 ],
-                center: UnitPoint(x: 0.12, y: 0.20),
+                center: coverLightCenter,
                 startRadius: 40,
-                endRadius: 700
+                endRadius: 900
             )
 
             RadialGradient(
                 colors: [
-                    color(palette.secondary, saturation: saturation * 1.15),
+                    color(palette.glow, saturation: saturation * 1.10).opacity(0.08),
                     .clear
                 ],
-                center: UnitPoint(x: 0.88, y: 0.82),
-                startRadius: 50,
-                endRadius: 800
-            )
-
-            RadialGradient(
-                colors: [
-                    color(palette.glow, saturation: saturation * 1.25),
-                    .clear
-                ],
-                center: UnitPoint(x: 0.25, y: 0.50),
-                startRadius: 30,
-                endRadius: 650
+                center: coverLightCenter,
+                startRadius: 20,
+                endRadius: 750
             )
         }
         .opacity(0.35 + 0.65 * normalizedBlur)
 
-        // Layer 2: Main Scaled Cover Artwork Background Plane (Directly controlled by slider down to 0pt)
+        // Layer 2: Main Scaled Cover Artwork Background Substrate (100% frozen blur logic)
         Image(nsImage: image)
             .resizable()
             .scaledToFill()
@@ -264,13 +265,13 @@ struct AppleMusicImmersiveV3BackdropView: View {
         )
         .blendMode(.overlay)
 
-        // Layer 5: Lyric Readability Trailing Dark Gradient Scrim
-        let lyricVeilOpacity = min(0.30, max(0.08, palette.luminance * 0.22))
+        // Layer 5: Soft Continuous Spatial Light Falloff towards lyrics reading area
+        let lightDecayOpacity = min(0.18, max(0.05, palette.luminance * 0.15))
         LinearGradient(
             colors: [
                 .clear,
-                Color.black.opacity(lyricVeilOpacity * 0.35),
-                Color.black.opacity(lyricVeilOpacity)
+                Color.black.opacity(lightDecayOpacity * 0.40),
+                Color.black.opacity(lightDecayOpacity)
             ],
             startPoint: .leading,
             endPoint: .trailing
