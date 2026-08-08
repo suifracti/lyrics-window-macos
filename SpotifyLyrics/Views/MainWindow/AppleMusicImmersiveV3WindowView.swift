@@ -1185,7 +1185,13 @@ private struct AppleMusicImmersiveV3LyricsViewport: View {
                     ? max(120, geometry.size.height * 0.47)
                     : 28.0
                 let scroll = ScrollView(.vertical) {
-                    LazyVStack(alignment: .leading, spacing: rowSpacing) {
+                    // The active row and its reading/translation layers have
+                    // variable heights. LazyVStack can enter SwiftUI's anchor
+                    // placement loop when scrollTo is animated during that
+                    // reflow (observed as a permanent 100% CPU hang). A song
+                    // is a small, bounded document, so eager placement is the
+                    // safer tradeoff for this primary reading surface.
+                    VStack(alignment: .leading, spacing: rowSpacing) {
                         ForEach(Array(state.liveLyrics.enumerated()), id: \.element.id) { index, line in
                             row(for: line, index: index)
                                 .id(line.id)
