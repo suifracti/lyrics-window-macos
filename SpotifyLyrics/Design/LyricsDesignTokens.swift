@@ -127,6 +127,9 @@ enum LyricsDesignTokens {
     static let immersiveArtworkSize: CGFloat = 320
     static let immersiveColumnSpacing: CGFloat = 26
     static let immersiveWindowPadding: CGFloat = 28
+    /// Display-only reading measure. Source lyrics and timing remain intact;
+    /// wide windows wrap rows before they become difficult to scan.
+    static let readableLyricLineMaxWidth: CGFloat = 680
 
     // MARK: Shared Phase 2.3 tokens
 

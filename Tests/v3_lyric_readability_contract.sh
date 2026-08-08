@@ -20,6 +20,17 @@ grep -q '\.frame(maxWidth: \.infinity, alignment: \.leading)' "$VIEW" || {
   exit 1
 }
 
+grep -q 'LyricsDesignTokens.readableLyricLineMaxWidth' "$VIEW" || {
+  echo 'FAIL: V3 lyric rows can still grow beyond a comfortable reading measure' >&2
+  exit 1
+}
+
+grep -q 'V3LyricDisplayLineBreaker' "$VIEW" \
+  && grep -q 'semanticDisplayText' "$VIEW" || {
+  echo 'FAIL: long plain lyrics have no display-only semantic line breaker' >&2
+  exit 1
+}
+
 grep -q 'RubyLineView(' "$VIEW" || {
   echo 'FAIL: V3 inline ruby renderer is missing' >&2
   exit 1
