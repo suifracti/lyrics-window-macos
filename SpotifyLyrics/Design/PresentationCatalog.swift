@@ -200,10 +200,10 @@ public struct PresentationCatalog: Sendable {
         // Main window mappings are deliberately separate from the existing
         // persisted layout raw values.  They give those maintainable paths a
         // catalog identity without changing AppSettingsStore.
-        entry("mainWindow.lyricsFocus.v1", "歌词专注", .mainWindow, "1", .classic, .release, true, true, "保持文字层级；Reduce Motion 下不依赖位移动画。", [.mainWindow, .preview]),
-        entry("mainWindow.immersiveSplit.v2", "沉浸分栏（旧）", .mainWindow, "2", .classic, .release, true, true, "旧分栏路径保留；不作为新视觉默认。", [.mainWindow, .preview]),
-        entry("mainWindow.appleMusicImmersiveV3.v3", "Apple Music 沉浸 V3", .mainWindow, "3", .recommended, .release, true, true, "歌词前景必须保持可读；支持 Reduce Transparency 与 Increase Contrast。", [.mainWindow, .preview]),
-        entry("mainWindow.directionD.v4", "Direction D V4", .mainWindow, "4", .experimental, .release, true, true, "新的 Direction D 主窗口；使用共享实时播放和歌词投影。V3 仍为默认。", [.mainWindow, .preview]),
+        entry("mainWindow.lyricsFocus.v1", "歌词专注（已融合）", .mainWindow, "旧", .archived, .archived, true, true, "历史身份仅用于兼容；运行时迁移到经典伴随 V1。", [.mainWindow, .preview]),
+        entry("mainWindow.immersiveSplit.v2", "经典伴随 V1", .mainWindow, "1", .classic, .release, true, true, "宽窗口使用沉浸分栏，窄窗口自动收束为歌词优先，不再作为两个版本暴露。", [.mainWindow, .preview]),
+        entry("mainWindow.appleMusicImmersiveV3.v3", "专辑沉浸 V2", .mainWindow, "2", .recommended, .release, true, true, "歌词前景必须保持可读；支持 Reduce Transparency 与 Increase Contrast。", [.mainWindow, .preview]),
+        entry("mainWindow.directionD.v4", "实验工作台 V0", .mainWindow, "0", .experimental, .release, true, true, "实验主窗口；使用共享实时播放和歌词投影。专辑沉浸 V2 仍为默认。", [.mainWindow, .preview]),
 
         entry("fullscreen.borderlessPanel.v1", "无边框全屏歌词", .fullscreen, "1", .current, .release, true, true, "支持键盘退出和高对比文字；不依赖额外计时器。", [.fullscreen, .preview]),
 

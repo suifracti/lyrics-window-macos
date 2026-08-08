@@ -37,11 +37,11 @@ struct PresentationSelectionStoreContract {
 
         let persistedBeforePreview = defaults.data(forKey: PresentationSelectionStore.storageKey)
         precondition(
-            store.beginPreview(category: .mainWindow, stableID: "mainWindow.lyricsFocus.v1"),
+            store.beginPreview(category: .mainWindow, stableID: "mainWindow.immersiveSplit.v2"),
             "preview should accept a runnable catalog entry"
         )
         precondition(
-            store.effectiveStableID(for: .mainWindow) == "mainWindow.lyricsFocus.v1",
+            store.effectiveStableID(for: .mainWindow) == "mainWindow.immersiveSplit.v2",
             "preview did not change only the effective selection"
         )
         precondition(
@@ -58,11 +58,11 @@ struct PresentationSelectionStoreContract {
             "cancel did not restore the applied selection"
         )
 
-        precondition(store.beginPreview(category: .mainWindow, stableID: "mainWindow.lyricsFocus.v1"))
+        precondition(store.beginPreview(category: .mainWindow, stableID: "mainWindow.immersiveSplit.v2"))
         precondition(store.applyPreview(), "explicit Apply should commit a runnable selection")
         let restarted = PresentationSelectionStore(defaults: defaults)
         precondition(
-            restarted.currentStableID(for: .mainWindow) == "mainWindow.lyricsFocus.v1",
+            restarted.currentStableID(for: .mainWindow) == "mainWindow.immersiveSplit.v2",
             "applied selection did not survive a new store instance"
         )
 

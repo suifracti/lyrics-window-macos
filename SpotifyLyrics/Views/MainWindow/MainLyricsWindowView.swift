@@ -277,7 +277,7 @@ struct MainLyricsWindowView: View {
     private var layoutMenu: some View {
         Menu {
             Section("主窗口布局") {
-                ForEach(MainWindowLayoutStyle.allCases) { style in
+                ForEach(MainWindowLayoutStyle.userSelectableCases) { style in
                     Button {
                         withAnimation(.easeInOut(duration: 0.22)) {
                             _ = settings.applyPresentationSelection(

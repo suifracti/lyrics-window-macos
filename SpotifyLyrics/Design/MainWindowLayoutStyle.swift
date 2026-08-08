@@ -8,16 +8,25 @@ enum MainWindowLayoutStyle: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    /// Maintained product families. The legacy lyrics-focus identity remains
+    /// decodable for migration and historical previews, but the split layout
+    /// already adapts to narrow windows and now owns the combined V1 entry.
+    static let userSelectableCases: [MainWindowLayoutStyle] = [
+        .immersiveSplit,
+        .appleMusicImmersiveV3,
+        .directionDV4
+    ]
+
     var title: String {
         switch self {
         case .lyricsFocus:
-            return "歌词专注"
+            return "歌词专注（已融合）"
         case .immersiveSplit:
-            return "沉浸分栏"
+            return "经典伴随 V1"
         case .appleMusicImmersiveV3:
-            return "Apple Music 沉浸 V3"
+            return "专辑沉浸 V2"
         case .directionDV4:
-            return "Direction D V4"
+            return "实验工作台 V0"
         }
     }
 

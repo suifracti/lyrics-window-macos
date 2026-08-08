@@ -1984,7 +1984,7 @@ private struct V3VisualTuningPopoverView: View {
                 Text("切换主窗口布局")
                     .font(.system(size: 12, weight: .medium))
                 Picker("", selection: $layoutStyleRawValue) {
-                    ForEach(MainWindowLayoutStyle.allCases) { style in
+                    ForEach(MainWindowLayoutStyle.userSelectableCases) { style in
                         Text(style.title).tag(style.rawValue)
                     }
                 }

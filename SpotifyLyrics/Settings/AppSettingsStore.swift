@@ -357,13 +357,26 @@ public final class AppSettingsStore: ObservableObject {
         self.v3ArtworkPosition = defaults.string(forKey: Key.v3ArtworkPosition) ?? "left"
         self.v3ArtworkSizeScale = defaults.object(forKey: Key.v3ArtworkSizeScale) as? Double ?? 1.0
         self.v3InstrumentalPureImmersion = defaults.object(forKey: Key.v3InstrumentalPureImmersion) as? Bool ?? true
+        let storedLayout = defaults.string(forKey: Key.mainWindowLayoutStyle)
+            ?? MainWindowLayoutStyle.appleMusicImmersiveV3.rawValue
+        // The old focus surface is now the narrow projection of the adaptive
+        // classic family. Preserve the maintained split stable ID while
+        // migrating the obsolete raw selection without touching source data.
+        let layout = storedLayout == MainWindowLayoutStyle.lyricsFocus.rawValue
+            ? MainWindowLayoutStyle.immersiveSplit.rawValue
+            : storedLayout
+        if layout != storedLayout {
+            defaults.set(layout, forKey: Key.mainWindowLayoutStyle)
+            defaults.set(
+                MainWindowLayoutStyle.immersiveSplit.presentationStableID,
+                forKey: PresentationSelectionStore.runtimeKey(for: .mainWindow)
+            )
+        }
         self.presentationSelections = PresentationSelectionStore(defaults: defaults)
         self.translationProfiles = TranslationProfileStore(defaults: defaults)
         self.readingUserDictionary = ReadingUserDictionaryStore(defaults: defaults)
         settingsCenterPresentationRawValue = defaults.string(forKey: Key.settingsCenterPresentation)
             ?? SettingsCenterPresentationID.recommended.rawValue
-        let layout = defaults.string(forKey: Key.mainWindowLayoutStyle)
-            ?? MainWindowLayoutStyle.appleMusicImmersiveV3.rawValue
         mainWindowLayoutStyleRawValue = layout
         automaticCompactLyricsFocus = defaults.object(forKey: Key.automaticCompactLyricsFocus) as? Bool ?? false
         connectSpotifyOnLaunch = defaults.object(forKey: Key.connectSpotifyOnLaunch) as? Bool ?? true
