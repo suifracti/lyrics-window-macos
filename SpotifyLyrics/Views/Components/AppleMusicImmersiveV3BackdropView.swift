@@ -204,7 +204,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
     private func artworkLayers(image: NSImage, ambientImage: NSImage?) -> some View {
         switch settings.v3ArtworkPresentation {
         case .ambient:
-            ambientArtworkLayers(ambientImage: ambientImage)
+            ambientArtworkLayers(image: image, ambientImage: ambientImage)
         case .stage:
             stageArtworkLayers(image: image, ambientImage: ambientImage)
         case .classic:
@@ -237,10 +237,10 @@ struct AppleMusicImmersiveV3BackdropView: View {
                 .interpolation(.high)
                 .scaledToFill()
                 .scaleEffect(1.18)
-                .blur(radius: 24 + normalizedBlur * 44, opaque: true)
+                .blur(radius: normalizedBlur * 68, opaque: true)
                 .saturation(saturation)
-                .brightness(-0.12)
-                .opacity(0.42)
+                .brightness(-normalizedBlur * 0.12)
+                .opacity(normalizedBlur * 0.42)
         }
 
         // One recognisable, aspect-fitted artwork plane sits inside the
@@ -263,9 +263,9 @@ struct AppleMusicImmersiveV3BackdropView: View {
                 .frame(width: planeSize, height: planeSize)
                 .position(x: x, y: geometry.size.height * 0.49)
                 .blur(radius: normalizedBlur * 10.0)
-                .saturation(saturation)
-                .brightness(-0.04 - normalizedBlur * 0.04)
-                .opacity(0.96 - normalizedBlur * 0.12)
+                .saturation(1.0 + normalizedBlur * (saturation - 1.0))
+                .brightness(-normalizedBlur * 0.08)
+                .opacity(1.0 - normalizedBlur * 0.12)
                 .shadow(
                     color: Color.black.opacity(0.20 + normalizedBlur * 0.10),
                     radius: 28,
@@ -356,13 +356,13 @@ struct AppleMusicImmersiveV3BackdropView: View {
     }
 
     @ViewBuilder
-    private func ambientArtworkLayers(ambientImage: NSImage?) -> some View {
+    private func ambientArtworkLayers(image: NSImage, ambientImage: NSImage?) -> some View {
         let style = presentationStyle
         let saturation = min(
             1.3,
             style.paletteSaturation * 1.18 + (increaseContrast ? 0.06 : 0)
         )
-        let diffusionRadius = 14.0 + normalizedBlur * 52.0
+        let diffusionRadius = normalizedBlur * 66.0
 
         // A luminance-clamped album field keeps very bright artwork legible
         // without falling back to an unrelated black canvas.
@@ -376,8 +376,21 @@ struct AppleMusicImmersiveV3BackdropView: View {
             endPoint: settings.v3ArtworkPosition == "right" ? .topLeading : .bottomTrailing
         )
 
-        // This is a 48px low-frequency derivative, never the readable cover.
-        // The minimum diffusion remains non-zero even when the slider is at 0.
+        // At 0% the slider means what it says: the high-resolution artwork is
+        // visible without an artificial blur. As diffusion increases it fades
+        // into the low-frequency derivative instead of abruptly becoming a
+        // different composition.
+        Image(nsImage: image)
+            .resizable()
+            .interpolation(.high)
+            .scaledToFill()
+            .scaleEffect(1.02 + normalizedBlur * 0.06)
+            .blur(radius: normalizedBlur * 8.0, opaque: true)
+            .saturation(1.0 + normalizedBlur * (saturation - 1.0))
+            .brightness(-normalizedBlur * 0.10)
+            .opacity(0.52 * (1.0 - normalizedBlur))
+
+        // The 48px derivative owns only the diffused end of the slider.
         if let ambientImage {
             Image(nsImage: ambientImage)
                 .resizable()
@@ -386,8 +399,8 @@ struct AppleMusicImmersiveV3BackdropView: View {
                 .scaleEffect(1.12)
                 .blur(radius: diffusionRadius, opaque: true)
                 .saturation(saturation)
-                .brightness(-0.10)
-                .opacity(0.34 + (1.0 - normalizedBlur) * 0.14)
+                .brightness(-normalizedBlur * 0.10)
+                .opacity(normalizedBlur * 0.46)
         }
 
         RadialGradient(
