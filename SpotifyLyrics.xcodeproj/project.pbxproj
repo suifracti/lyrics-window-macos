@@ -114,6 +114,7 @@
 		110000AB2D83400100000001 /* AIReadingCandidateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000AB2D83400100000000 /* AIReadingCandidateService.swift */; };
 		110000502D83400100000001 /* AppleMusicImmersiveV3WindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000502D83400100000000 /* AppleMusicImmersiveV3WindowView.swift */; };
 		110000512D83400100000001 /* AppleMusicImmersiveV3BackdropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000512D83400100000000 /* AppleMusicImmersiveV3BackdropView.swift */; };
+		110001302D83400100000001 /* V3ResponsiveGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110001302D83400100000000 /* V3ResponsiveGeometry.swift */; };
 		110000522D83400100000001 /* DatabaseModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000522D83400100000000 /* DatabaseModels.swift */; };
 		110000532D83400100000001 /* DatabaseMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000532D83400100000000 /* DatabaseMigrator.swift */; };
 		110000542D83400100000001 /* LyricsRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110000542D83400100000000 /* LyricsRepository.swift */; };
@@ -306,6 +307,7 @@
 		110000AB2D83400100000000 /* AIReadingCandidateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIReadingCandidateService.swift; sourceTree = "<group>"; };
 		110000502D83400100000000 /* AppleMusicImmersiveV3WindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicImmersiveV3WindowView.swift; sourceTree = "<group>"; };
 		110000512D83400100000000 /* AppleMusicImmersiveV3BackdropView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicImmersiveV3BackdropView.swift; sourceTree = "<group>"; };
+		110001302D83400100000000 /* V3ResponsiveGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V3ResponsiveGeometry.swift; sourceTree = "<group>"; };
 		110000522D83400100000000 /* DatabaseModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseModels.swift; sourceTree = "<group>"; };
 		110000532D83400100000000 /* DatabaseMigrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseMigrator.swift; sourceTree = "<group>"; };
 		110000542D83400100000000 /* LyricsRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsRepository.swift; sourceTree = "<group>"; };
@@ -564,6 +566,7 @@
 			isa = PBXGroup;
 			children = (
 				1100000C2D83400100000000 /* LyricsDesignTokens.swift */,
+				110001302D83400100000000 /* V3ResponsiveGeometry.swift */,
 				110000F32D83400100000000 /* PresentationPreviewLiveFactory.swift */,
 				110000F22D83400100000000 /* PresentationPreviewEngine.swift */,
 				110000F12D83400100000000 /* PresentationPreviewContext.swift */,
@@ -891,6 +894,7 @@
 				110000472D83400100000001 /* AlignmentModels.swift in Sources */,
 				110000502D83400100000001 /* AppleMusicImmersiveV3WindowView.swift in Sources */,
 				110000512D83400100000001 /* AppleMusicImmersiveV3BackdropView.swift in Sources */,
+				110001302D83400100000001 /* V3ResponsiveGeometry.swift in Sources */,
 				110000432D83400100000001 /* NetEaseExperimentalLyricsProvider.swift in Sources */,
 				110000452D83400100000001 /* LocalAudioASRService.swift in Sources */,
 				110000442D83400100000001 /* QQExperimentalLyricsProvider.swift in Sources */,

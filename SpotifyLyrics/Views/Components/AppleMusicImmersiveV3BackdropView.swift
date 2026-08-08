@@ -247,21 +247,22 @@ struct AppleMusicImmersiveV3BackdropView: View {
         // colour field. There is no duplicate foreground cover card.
         GeometryReader { geometry in
             let scale = min(1.4, max(0.8, settings.v3ArtworkSizeScale))
-            let planeSize = stageArtworkPlaneSize(
+            let artworkAspectRatio = image.size.width > 0 && image.size.height > 0
+                ? image.size.width / image.size.height
+                : 1.0
+            let artworkRect = stageArtworkPlaneSize(
                 canvas: geometry.size,
+                artworkAspectRatio: artworkAspectRatio,
                 requestedScale: scale
-            )
-            let x = stageArtworkCenterX(
-                canvasWidth: geometry.size.width,
-                planeSize: planeSize
             )
 
             Image(nsImage: image)
                 .resizable()
                 .interpolation(.high)
                 .scaledToFit()
-                .frame(width: planeSize, height: planeSize)
-                .position(x: x, y: geometry.size.height * 0.49)
+                .frame(width: artworkRect.width, height: artworkRect.height)
+                .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                .position(x: artworkRect.midX, y: artworkRect.midY)
                 .blur(radius: normalizedBlur * 10.0)
                 .saturation(1.0 + normalizedBlur * (saturation - 1.0))
                 .brightness(-normalizedBlur * 0.08)
@@ -299,29 +300,15 @@ struct AppleMusicImmersiveV3BackdropView: View {
     /// the available window and silently turn back into a cropped wallpaper.
     private func stageArtworkPlaneSize(
         canvas: CGSize,
+        artworkAspectRatio: CGFloat,
         requestedScale: CGFloat
-    ) -> CGFloat {
-        let maximum = max(1, min(canvas.height * 0.90, canvas.width * 0.90))
-        let normalizedScale = min(1, max(0, (requestedScale - 0.8) / 0.6))
-        return maximum * (0.70 + normalizedScale * 0.30)
-    }
-
-    private func stageArtworkCenterX(
-        canvasWidth: CGFloat,
-        planeSize: CGFloat
-    ) -> CGFloat {
-        let preferred: CGFloat
-        switch settings.v3ArtworkPosition {
-        case "right": preferred = canvasWidth * 0.72
-        case "center": preferred = canvasWidth * 0.50
-        default: preferred = canvasWidth * 0.28
-        }
-
-        let margin: CGFloat = 18
-        let half = planeSize * 0.5
-        let minimum = half + margin
-        let maximum = max(minimum, canvasWidth - half - margin)
-        return min(maximum, max(minimum, preferred))
+    ) -> CGRect {
+        V3ResponsiveGeometry.stageArtworkRect(
+            canvasSize: canvas,
+            artworkAspectRatio: artworkAspectRatio,
+            requestedScale: requestedScale,
+            position: settings.v3ArtworkPosition
+        )
     }
 
     @ViewBuilder
