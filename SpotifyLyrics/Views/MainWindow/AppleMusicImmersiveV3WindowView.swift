@@ -531,7 +531,10 @@ struct AppleMusicImmersiveV3WindowView: View {
         .font(.system(size: 13, weight: .medium))
         .padding(.horizontal, 14)
         .padding(.vertical, 7)
-        .background(.ultraThinMaterial)
+        // Use the regular native material for the toolbar surface. It keeps
+        // controls legible over both bright and dark artwork while retaining
+        // the translucent macOS surface instead of forcing a black panel.
+        .background(.regularMaterial)
         .clipShape(Capsule())
         .overlay(
             Capsule()

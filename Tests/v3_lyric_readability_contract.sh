@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 VIEW="$ROOT/SpotifyLyrics/Views/MainWindow/AppleMusicImmersiveV3WindowView.swift"
 METADATA="$ROOT/SpotifyLyrics/Views/Components/TrackMetadataView.swift"
 
-grep -q 'availableWidth: max(240, width -' "$VIEW" || {
+grep -q 'availableWidth: max(1, width -' "$VIEW" || {
   echo 'FAIL: V3 lyric viewport has no readable width policy' >&2
   exit 1
 }

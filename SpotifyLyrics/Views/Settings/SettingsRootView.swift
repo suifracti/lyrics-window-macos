@@ -43,7 +43,6 @@ struct SettingsRootView: View {
             }
         }
         .frame(minWidth: 780, idealWidth: 860, minHeight: 500, idealHeight: 580)
-        .preferredColorScheme(.dark)
         .background(SettingsWindowBehavior())
     }
 

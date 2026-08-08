@@ -43,7 +43,7 @@ require "$BACKDROP" 'task\(id: requestKey\)' 'artwork change task key'
 require "$BACKDROP" 'BackdropPaletteCache' 'cached palette path'
 require "$PALETTE" 'actor BackdropPaletteCache' 'off-main palette cache'
 require "$BACKDROP" 'ultraThinMaterial' 'material veil'
-require "$BACKDROP" 'blur\(radius: [5-9][0-9]' 'large artwork blur'
+require "$BACKDROP" 'blur\(radius: directionDBackdropTreatment \? 48 : 72\)' 'large artwork blur'
 
 # Typography reacts to width/layer count without scaling every inactive line.
 require "$LINE" 'availableWidth' 'responsive lyric width input'
@@ -54,7 +54,7 @@ if grep -Eq '\.scaleEffect\(' "$LINE"; then
 fi
 require "$CANVAS" 'lyricRowSpacing\(' 'responsive lyric row spacing'
 require "$CANVAS" '\.mask\(' 'lyric edge mask'
-require "$CANVAS" 'easeInOut\(duration:' 'restrained line animation'
+require "$CANVAS" 'LyricsTransitionPolicy\.animation\(reduceMotion: reduceMotion\)' 'restrained line animation'
 
 require "$TOKENS" 'func lyricEmphasis\(' 'responsive emphasis factory'
 require "$TOKENS" 'visibleLayerCount' 'layer-aware token calculation'

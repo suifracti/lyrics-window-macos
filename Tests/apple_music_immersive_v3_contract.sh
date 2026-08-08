@@ -21,7 +21,7 @@ grep -q 'AppleMusicImmersiveV3BackdropView.swift' SpotifyLyrics.xcodeproj/projec
 
 # Responsive V3 remains one canvas with dynamic track/lyrics columns.
 grep -q 'let leftRatio = 0.45 \* scale' "$WINDOW"
-grep -q 'let rightWidth = max(1, contentWidth - leftWidth)' "$WINDOW"
+grep -q 'let rightWidth = max(1, contentWidth - leftWidth - columnGap)' "$WINDOW"
 grep -q 'technicalMinimumSize = LyricsDesignTokens.technicalMinimumMainWindowSize' "$WINDOW"
 grep -q 'comfortableMinimumSize = LyricsDesignTokens.comfortableMainWindowSize' "$WINDOW"
 grep -q 'wideBreakpoint: CGFloat = 1_080' "$WINDOW"

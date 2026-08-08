@@ -117,14 +117,30 @@ struct SettingsWindowBehavior: NSViewRepresentable {
 }
 
 final class SettingsWindowProbeView: NSView {
+    private let visualEffectView = NSVisualEffectView()
+
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
         configureWindow()
     }
 
     func configureWindow() {
-        guard let window else { return }
+        guard let window, let contentView = window.contentView else { return }
         window.collectionBehavior = [.canJoinAllApplications, .moveToActiveSpace]
         window.hidesOnDeactivate = false
+
+        visualEffectView.material = .sidebar
+        visualEffectView.blendingMode = .behindWindow
+        visualEffectView.state = .active
+        visualEffectView.translatesAutoresizingMaskIntoConstraints = false
+        if visualEffectView.superview == nil {
+            contentView.addSubview(visualEffectView, positioned: .below, relativeTo: nil)
+            NSLayoutConstraint.activate([
+                visualEffectView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+                visualEffectView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+                visualEffectView.topAnchor.constraint(equalTo: contentView.topAnchor),
+                visualEffectView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+            ])
+        }
     }
 }
