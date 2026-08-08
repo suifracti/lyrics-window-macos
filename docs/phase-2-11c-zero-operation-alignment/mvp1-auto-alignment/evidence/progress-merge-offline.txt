@@ -1,3 +1,0 @@
-progress_no_downgrade: PASS
-progress_upgrade: PASS
-PROGRESS_OFFLINE PASS

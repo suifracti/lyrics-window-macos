@@ -1,4 +1,0 @@
-windows=1
-buttons=missing valuemissing valuemissing value
-names_count=33
-HIT:纯文本 · 未排轴

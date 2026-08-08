@@ -1,1 +1,0 @@
-/tmp/spotifylyrics-sck-s1-20260804193055.sqlite3

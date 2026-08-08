@@ -1,4 +1,0 @@
-V3 toolBar is opacity=0 and allowsHitTesting=false until onContinuousHover within top 96pt.
-Synthetic CGEvent mouse moves did not reveal tools for AX automation in this environment.
-Popover buttons (边听边排轴) are not in the AX tree until tools reveal + popover open.
-User reported manual V3 entry verification; agent could not complete unattended full UI capture path without harness.

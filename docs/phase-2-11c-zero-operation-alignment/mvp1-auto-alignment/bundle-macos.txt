@@ -1,4 +1,0 @@
-total 50896
-drwxr-xr-x  3 apple  staff        96  8月  5 13:21 .
-drwxr-xr-x  7 apple  staff       224  8月  5 13:21 ..
--rwxr-xr-x  1 apple  staff  26055184  8月  5 13:21 SpotifyLyrics

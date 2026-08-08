@@ -1,1 +1,0 @@
-/tmp/spotifylyrics-assist-closure-20260804211924.sqlite3

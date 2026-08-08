@@ -43,3 +43,4 @@ Also read the latest Craft execution board before deciding the product scope. Fo
 Do not discard user changes or switch to a historical version to satisfy an old report.
 
 See [`docs/DEVELOPMENT_WORKFLOW.md`](docs/DEVELOPMENT_WORKFLOW.md) for build, archive, branch, commit, and release rules.
+Before staging, committing, or pushing, follow [`docs/SUBMISSION_BASELINE.md`](docs/SUBMISSION_BASELINE.md).

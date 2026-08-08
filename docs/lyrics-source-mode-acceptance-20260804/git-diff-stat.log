@@ -1,7 +1,0 @@
- SpotifyLyrics/Services/PlaybackState.swift         | 115 +++++++++-
- SpotifyLyrics/Settings/AppSettingsStore.swift      |  33 +++
- .../Settings/LyricsProviderConfiguration.swift     | 231 ++++++++++++++++++++-
- .../Components/CurrentSongOperationsView.swift     |  13 ++
- .../Views/Settings/SettingsRootView.swift          |  92 +++++++-
- Tests/settings_contract.sh                         |   5 +-
- 6 files changed, 477 insertions(+), 12 deletions(-)
