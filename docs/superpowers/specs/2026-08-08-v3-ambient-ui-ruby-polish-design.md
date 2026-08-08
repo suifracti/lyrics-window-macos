@@ -46,4 +46,3 @@ These decisions follow Apple's guidance to use familiar symbols, reserve materia
 - White, monochrome, portrait, illustration, warm, and cool artwork preserve foreground readability.
 - `手手手手` produces `てててて` and existing ruby contracts remain green.
 - Artist and album remain readable on warm and light backgrounds; progress and transport remain seekable/clickable and keyboard-accessible.
-

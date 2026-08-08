@@ -58,4 +58,3 @@ Expected: all pass.
 git add SpotifyLyrics/Lyrics/JapaneseReadingPipeline.swift Tests/japanese_reading_contract.swift
 git commit -m "fix(reading): normalize repeated kanji suffix readings"
 ```
-

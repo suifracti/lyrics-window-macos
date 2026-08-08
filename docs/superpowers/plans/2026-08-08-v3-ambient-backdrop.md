@@ -62,4 +62,3 @@ Expected: all four pass.
 git add SpotifyLyrics/Settings/AppSettingsStore.swift SpotifyLyrics/Views/MainWindow/AppleMusicImmersiveV3WindowView.swift SpotifyLyrics/Views/Components/AppleMusicImmersiveV3BackdropView.swift Tests/v3_ambient_backdrop_contract.sh
 git commit -m "feat(v3): add album ambient backdrop"
 ```
-

@@ -58,4 +58,3 @@ Expected: the new contract passes; any pre-existing stale contract assertion is 
 git add SpotifyLyrics/Views/MainWindow/AppleMusicImmersiveV3WindowView.swift Tests/v3_track_controls_visual_contract.sh
 git commit -m "refactor(v3): polish track controls"
 ```
-
