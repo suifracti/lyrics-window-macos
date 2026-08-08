@@ -192,7 +192,8 @@ struct AppleMusicImmersiveV3WindowView: View {
                     TrackMetadataView(
                         track: state.currentTrack,
                         titleSize: min(28, max(20, coverSize * 0.075)),
-                        alignment: .center
+                        alignment: .center,
+                        presentation: .v3Immersive
                     )
 
                     AppleMusicImmersiveV3TransportControls(
@@ -381,7 +382,8 @@ struct AppleMusicImmersiveV3WindowView: View {
             TrackMetadataView(
                 track: state.currentTrack,
                 titleSize: min(compact ? 26 : 30, max(compact ? 18 : 22, coverSize * 0.075)),
-                alignment: alignment
+                alignment: alignment,
+                presentation: .v3Immersive
             )
             .frame(maxWidth: width, alignment: alignment == .center ? .center : .leading)
 
@@ -735,7 +737,7 @@ private struct AppleMusicImmersiveV3PlaybackProgress: View {
             let trackHeight = isEmphasized
                 ? LyricsDesignTokens.Progress.hoverTrackHeight
                 : density.trackHeight
-            let activeWidth = max(trackHeight, width * progressFraction)
+            let activeWidth = max(0, width * progressFraction)
 
             ZStack(alignment: .leading) {
                 Capsule()
@@ -761,7 +763,10 @@ private struct AppleMusicImmersiveV3PlaybackProgress: View {
                             width: LyricsDesignTokens.Progress.hoverThumbSize,
                             height: LyricsDesignTokens.Progress.hoverThumbSize
                         )
-                        .offset(x: min(max(activeWidth - LyricsDesignTokens.Progress.hoverThumbSize / 2, 0), width - LyricsDesignTokens.Progress.hoverThumbSize / 2))
+                        .offset(x: min(
+                            max(activeWidth - LyricsDesignTokens.Progress.hoverThumbSize / 2, 0),
+                            max(0, width - LyricsDesignTokens.Progress.hoverThumbSize)
+                        ))
                 }
 
                 // The native control remains the accessibility and input
@@ -836,7 +841,11 @@ private struct AppleMusicImmersiveV3TransportControls: View {
             .padding(.horizontal, 2)
 
             HStack(spacing: LyricsDesignTokens.Spacing.md + 4) {
-                v3TransportButton("backward.fill", label: "上一首", enabled: state.canControlSpotify) {
+                V3TransportIconButton(
+                    systemImage: "backward.fill",
+                    label: "上一首",
+                    enabled: state.canControlSpotify
+                ) {
                     state.previousTrack()
                 }
 
@@ -847,17 +856,24 @@ private struct AppleMusicImmersiveV3TransportControls: View {
                         .font(.system(size: 22, weight: .semibold))
                         .foregroundStyle(.white)
                         .frame(width: 44, height: 44)
-                        .background(
+                        .background(.thinMaterial, in: Circle())
+                        .overlay(
                             Circle()
-                                .fill(Color.white.opacity(0.16))
+                                .stroke(Color.white.opacity(0.18), lineWidth: 0.8)
                         )
+                        .shadow(color: Color.black.opacity(0.18), radius: 10, y: 4)
                 }
                 .buttonStyle(V3BounceButtonStyle())
                 .disabled(!state.canInteractWithPlayback)
                 .opacity(state.canInteractWithPlayback ? 1 : 0.42)
                 .accessibilityLabel(state.isPlaying ? "暂停" : "播放")
+                .help(state.isPlaying ? "暂停" : "播放")
 
-                v3TransportButton("forward.fill", label: "下一首", enabled: state.canControlSpotify) {
+                V3TransportIconButton(
+                    systemImage: "forward.fill",
+                    label: "下一首",
+                    enabled: state.canControlSpotify
+                ) {
                     state.nextTrack()
                 }
             }
@@ -866,28 +882,52 @@ private struct AppleMusicImmersiveV3TransportControls: View {
         .frame(maxWidth: .infinity, alignment: alignment == .center ? .center : .leading)
     }
 
-    private func v3TransportButton(
-        _ systemImage: String,
-        label: String,
-        enabled: Bool,
-        action: @escaping () -> Void
-    ) -> some View {
+    private func formatTime(_ seconds: TimeInterval) -> String {
+        let minutes = Int(seconds) / 60
+        let remainder = Int(seconds) % 60
+        return String(format: "%02d:%02d", minutes, remainder)
+    }
+}
+
+private struct V3TransportIconButton: View {
+    let systemImage: String
+    let label: String
+    let enabled: Bool
+    let action: () -> Void
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isHovered = false
+
+    var body: some View {
         Button(action: action) {
             Image(systemName: systemImage)
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(.white.opacity(enabled ? 0.90 : 0.35))
                 .frame(width: 36, height: 36)
+                .background {
+                    if isHovered && enabled {
+                        Circle()
+                            .fill(.thinMaterial)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.white.opacity(0.12), lineWidth: 0.8)
+                            )
+                    }
+                }
                 .contentShape(Circle())
         }
         .buttonStyle(V3BounceButtonStyle())
         .disabled(!enabled)
         .accessibilityLabel(label)
-    }
-
-    private func formatTime(_ seconds: TimeInterval) -> String {
-        let minutes = Int(seconds) / 60
-        let remainder = Int(seconds) % 60
-        return String(format: "%02d:%02d", minutes, remainder)
+        .help(label)
+        .onHover { hovering in
+            withAnimation(LyricsDesignTokens.Motion.animation(
+                reduceMotion: reduceMotion,
+                duration: 0.14
+            )) {
+                isHovered = hovering
+            }
+        }
     }
 }
 

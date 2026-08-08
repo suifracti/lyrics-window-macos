@@ -1,9 +1,15 @@
 import SwiftUI
 
+enum TrackMetadataPresentation {
+    case standard
+    case v3Immersive
+}
+
 struct TrackMetadataView: View {
     let track: Track
     var titleSize: CGFloat = 20
     var alignment: HorizontalAlignment = .leading
+    var presentation: TrackMetadataPresentation = .standard
 
     private var artistLinks: [TrackArtistLink] {
         track.artistLinks.isEmpty
@@ -24,7 +30,7 @@ struct TrackMetadataView: View {
                     ForEach(Array(artistLinks.enumerated()), id: \.offset) { index, artist in
                         if index > 0 {
                             Text(",")
-                                .foregroundStyle(LyricsDesignTokens.mutedText)
+                                .foregroundStyle(separatorColor)
                         }
                         artistButton(artist)
                     }
@@ -32,11 +38,15 @@ struct TrackMetadataView: View {
 
                 if !track.album.isEmpty {
                     Text("·")
-                        .foregroundStyle(LyricsDesignTokens.mutedText.opacity(0.6))
+                        .foregroundStyle(separatorColor)
                     albumButton
                 }
             }
-            .font(.system(size: max(12, titleSize * 0.58), weight: .medium, design: .rounded))
+            .font(.system(
+                size: max(12, titleSize * 0.58),
+                weight: presentation == .v3Immersive ? .semibold : .medium,
+                design: .rounded
+            ))
             .lineLimit(1)
         }
         .frame(maxWidth: .infinity, alignment: alignment == .center ? .center : .leading)
@@ -51,11 +61,11 @@ struct TrackMetadataView: View {
                 _ = NSWorkspace.shared.open(url)
             }
             .buttonStyle(.plain)
-            .foregroundStyle(LyricsDesignTokens.secondaryText)
+            .foregroundStyle(artistColor)
             .help("在 Spotify 打开艺人：\(artist.name)")
         } else {
             Text(artist.name)
-                .foregroundStyle(LyricsDesignTokens.secondaryText)
+                .foregroundStyle(artistColor)
         }
     }
 
@@ -67,14 +77,32 @@ struct TrackMetadataView: View {
             }
             .buttonStyle(.plain)
             .font(.system(size: max(11, titleSize * 0.52), design: .rounded))
-            .foregroundStyle(LyricsDesignTokens.mutedText)
+            .foregroundStyle(albumColor)
             .lineLimit(1)
             .help("在 Spotify 打开专辑：\(track.album)")
         } else {
             Text(track.album)
                 .font(.system(size: max(11, titleSize * 0.52), design: .rounded))
-                .foregroundStyle(LyricsDesignTokens.mutedText)
+                .foregroundStyle(albumColor)
                 .lineLimit(1)
         }
+    }
+
+    private var artistColor: Color {
+        presentation == .v3Immersive
+            ? Color.white.opacity(0.86)
+            : LyricsDesignTokens.secondaryText
+    }
+
+    private var albumColor: Color {
+        presentation == .v3Immersive
+            ? Color.white.opacity(0.64)
+            : LyricsDesignTokens.mutedText
+    }
+
+    private var separatorColor: Color {
+        presentation == .v3Immersive
+            ? Color.white.opacity(0.38)
+            : LyricsDesignTokens.mutedText.opacity(0.6)
     }
 }
