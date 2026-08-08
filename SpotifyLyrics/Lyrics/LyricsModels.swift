@@ -222,7 +222,7 @@ public enum LyricsFailure: Error, Equatable, Sendable {
     }
 }
 
-public enum LyricsLookupResult {
+public enum LyricsLookupResult: Sendable {
     case match(LyricsDocument)
     case candidates([LyricsCandidate])
     case noLyrics

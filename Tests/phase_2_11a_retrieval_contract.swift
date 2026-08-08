@@ -57,6 +57,46 @@ private final class LocalLaneProvider: LyricsProvider, @unchecked Sendable {
     }
 }
 
+private final class DelayedProvider: LyricsProvider, @unchecked Sendable {
+    let name: String
+    let executionLane: LyricsProviderExecutionLane
+    let timeoutInterval: TimeInterval
+    private let delay: TimeInterval
+    private let result: LyricsLookupResult
+    private let lock = NSLock()
+    private var calls = 0
+
+    init(
+        name: String,
+        lane: LyricsProviderExecutionLane = .network,
+        timeout: TimeInterval = 8,
+        delay: TimeInterval,
+        result: LyricsLookupResult
+    ) {
+        self.name = name
+        self.executionLane = lane
+        self.timeoutInterval = timeout
+        self.delay = delay
+        self.result = result
+    }
+
+    func lookup(track: Track, identity: TrackIdentity) async -> LyricsLookupResult {
+        lock.withLock { calls += 1 }
+        do {
+            try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+        } catch {
+            return .failed(.cancelled)
+        }
+        return result
+    }
+
+    func callCount() -> Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return calls
+    }
+}
+
 @main
 struct Phase211ARetrievalContract {
     static func main() async {
@@ -75,6 +115,113 @@ struct Phase211ARetrievalContract {
             spotifyId: "track-id"
         )
         let liveMetadata = TrackMetadata.bootstrap(from: liveTrack)
+        let liveIdentity = TrackIdentity(track: liveTrack)
+
+        func document(source: LyricsSource, providerID: String) -> LyricsDocument {
+            LyricsDocument(
+                identity: liveIdentity,
+                title: liveTrack.title,
+                artist: liveTrack.artist,
+                album: liveTrack.album,
+                duration: liveTrack.duration,
+                lines: [LyricLine(timestamp: 0, originalText: "fixture")],
+                isSynchronized: true,
+                source: source,
+                confidence: 1,
+                providerSourceID: providerID,
+                spotifyTrackID: liveTrack.spotifyId
+            )
+        }
+
+        let untouchedNetwork = DelayedProvider(
+            name: "must-not-run",
+            delay: 0.01,
+            result: .match(document(source: .lrclib, providerID: "network"))
+        )
+        let localFirstManager = LyricsSearchManager(providers: [
+            DelayedProvider(
+                name: "local",
+                lane: .local,
+                delay: 0,
+                result: .match(document(source: .local, providerID: "local"))
+            ),
+            untouchedNetwork
+        ])
+        guard case .match(let localDocument) = await localFirstManager.lookup(
+            track: liveTrack,
+            identity: liveIdentity
+        ) else {
+            preconditionFailure("local exact match should be adopted")
+        }
+        require(localDocument.source == .local, "local lane wins before network")
+        require(untouchedNetwork.callCount() == 0, "local match must prevent network probes")
+
+        let concurrentManager = LyricsSearchManager(providers: [
+            DelayedProvider(name: "slow miss", delay: 0.20, result: .noMatch),
+            DelayedProvider(
+                name: "slow match",
+                delay: 0.20,
+                result: .match(document(source: .amll, providerID: "concurrent"))
+            )
+        ])
+        let concurrentStart = Date()
+        guard case .match = await concurrentManager.lookup(track: liveTrack, identity: liveIdentity) else {
+            preconditionFailure("concurrent network fallback should match")
+        }
+        require(
+            Date().timeIntervalSince(concurrentStart) < 0.34,
+            "network providers must complete near the slower single delay, not their sum"
+        )
+
+        let timeoutManager = LyricsSearchManager(providers: [
+            DelayedProvider(name: "timeout", timeout: 0.05, delay: 0.30, result: .noMatch),
+            DelayedProvider(
+                name: "match after timeout",
+                delay: 0.03,
+                result: .match(document(source: .qqExperimental, providerID: "timeout-fallback"))
+            )
+        ])
+        let timeoutStart = Date()
+        guard case .match(let timeoutFallback) = await timeoutManager.lookup(
+            track: liveTrack,
+            identity: liveIdentity
+        ) else {
+            preconditionFailure("one provider timeout must not suppress another match")
+        }
+        require(timeoutFallback.source == .qqExperimental, "post-timeout provider match")
+        require(Date().timeIntervalSince(timeoutStart) < 0.18, "provider timeout must bound the variant")
+
+        let orderedManager = LyricsSearchManager(providers: [
+            DelayedProvider(
+                name: "configured first",
+                delay: 0.14,
+                result: .match(document(source: .lrclib, providerID: "first"))
+            ),
+            DelayedProvider(
+                name: "finishes first",
+                delay: 0.01,
+                result: .match(document(source: .amll, providerID: "second"))
+            )
+        ])
+        guard case .match(let orderedDocument) = await orderedManager.lookup(
+            track: liveTrack,
+            identity: liveIdentity
+        ) else {
+            preconditionFailure("configured provider priority should produce a match")
+        }
+        require(orderedDocument.source == .lrclib, "completion order must not replace configured priority")
+
+        let cancellationManager = LyricsSearchManager(providers: [
+            DelayedProvider(name: "cancellable", delay: 1, result: .noMatch)
+        ])
+        let cancelledTask = Task {
+            await cancellationManager.lookup(track: liveTrack, identity: liveIdentity)
+        }
+        try? await Task.sleep(nanoseconds: 20_000_000)
+        cancelledTask.cancel()
+        if case .failed(.cancelled) = await cancelledTask.value {} else {
+            preconditionFailure("cancelled search must return cancelled")
+        }
 
         let versionPlan = LyricsQueryPlanner.plan(for: liveMetadata)
         require(

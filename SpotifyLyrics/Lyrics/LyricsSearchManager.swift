@@ -27,6 +27,18 @@ public final class LyricsSearchManager: @unchecked Sendable {
         }
     }
 
+    private struct IndexedProvider: Sendable {
+        let index: Int
+        let provider: any LyricsProvider
+    }
+
+    private struct ProviderProbeResult: Sendable {
+        let index: Int
+        let provider: any LyricsProvider
+        let result: LyricsLookupResult
+        let duration: TimeInterval
+    }
+
     public init(
         providers: [LyricsProvider],
         name: String = "Lyrics Search",
@@ -56,6 +68,75 @@ public final class LyricsSearchManager: @unchecked Sendable {
         providersLock.lock()
         defer { providersLock.unlock() }
         return providers
+    }
+
+    private static func probe(
+        _ indexedProvider: IndexedProvider,
+        track: Track,
+        identity: TrackIdentity
+    ) async -> ProviderProbeResult {
+        let started = Date()
+        let result = await lookupWithTimeout(
+            provider: indexedProvider.provider,
+            track: track,
+            identity: identity
+        )
+        return ProviderProbeResult(
+            index: indexedProvider.index,
+            provider: indexedProvider.provider,
+            result: result,
+            duration: Date().timeIntervalSince(started)
+        )
+    }
+
+    private static func probeNetworkProviders(
+        track: Track,
+        identity: TrackIdentity,
+        providers: [IndexedProvider]
+    ) async -> [ProviderProbeResult] {
+        await withTaskGroup(of: ProviderProbeResult.self) { group in
+            for indexedProvider in providers {
+                group.addTask {
+                    await probe(indexedProvider, track: track, identity: identity)
+                }
+            }
+            var results: [ProviderProbeResult] = []
+            for await result in group {
+                results.append(result)
+            }
+            return results.sorted { $0.index < $1.index }
+        }
+    }
+
+    private static func lookupWithTimeout(
+        provider: any LyricsProvider,
+        track: Track,
+        identity: TrackIdentity
+    ) async -> LyricsLookupResult {
+        await withTaskGroup(of: LyricsLookupResult.self) { group in
+            group.addTask {
+                await provider.lookup(track: track, identity: identity)
+            }
+            group.addTask {
+                do {
+                    try await Task.sleep(
+                        nanoseconds: UInt64(max(0.01, provider.timeoutInterval) * 1_000_000_000)
+                    )
+                    return .failed(.timedOut)
+                } catch {
+                    return .failed(.cancelled)
+                }
+            }
+
+            guard let first = await group.next() else {
+                return .failed(.unknown("歌词 Provider 未返回结果"))
+            }
+            group.cancelAll()
+            if Task.isCancelled {
+                return .failed(.cancelled)
+            }
+            return first
+        }
     }
 
     public func lookup(
@@ -137,16 +218,42 @@ public final class LyricsSearchManager: @unchecked Sendable {
                 spotifyURL: track.spotifyURL
             )
 
-            for provider in configuredProviders {
+            let indexedProviders = configuredProviders.enumerated().map {
+                IndexedProvider(index: $0.offset, provider: $0.element)
+            }
+            let localProviders = indexedProviders.filter { $0.provider.executionLane == .local }
+            let networkProviders = indexedProviders.filter { $0.provider.executionLane == .network }
+            var localCursor = 0
+            var didProbeNetwork = false
+
+            while localCursor < localProviders.count || !didProbeNetwork {
                 if Task.isCancelled {
                     return SearchOutcome(result: .failed(.cancelled), diagnostics: diagnostics)
                 }
 
-                let started = Date()
-                let result = await provider.lookup(track: probeTrack, identity: identity)
-                let elapsed = Date().timeIntervalSince(started)
+                let probeResults: [ProviderProbeResult]
+                if localCursor < localProviders.count {
+                    probeResults = [await Self.probe(
+                        localProviders[localCursor],
+                        track: probeTrack,
+                        identity: identity
+                    )]
+                    localCursor += 1
+                } else {
+                    didProbeNetwork = true
+                    probeResults = await Self.probeNetworkProviders(
+                        track: probeTrack,
+                        identity: identity,
+                        providers: networkProviders
+                    )
+                }
 
-                switch result {
+                for probe in probeResults {
+                    let provider = probe.provider
+                    let result = probe.result
+                    let elapsed = probe.duration
+
+                    switch result {
                 case .match(let document):
                     guard document.identity == identity else {
                         diagnostics.append(
@@ -298,6 +405,7 @@ public final class LyricsSearchManager: @unchecked Sendable {
                         )
                     )
                     // Isolate: continue other providers/variants
+                    }
                 }
             }
         }
