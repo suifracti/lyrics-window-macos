@@ -164,22 +164,24 @@ struct AppleMusicImmersiveV3BackdropView: View {
         }
     }
 
+    private var normalizedBlur: Double {
+        max(0, min(100, settings.v3BackdropBlurRadius)) / 100.0
+    }
+
     private var effectiveBlurRadius: Double {
         if settings.v3InstrumentalPureImmersion && isInstrumental {
             return 4.0
         }
-        // Map 0...100 slider linearly into the golden aesthetic blur window (0pt...35pt)
-        // so 0% is sharp, 50% is soft Apple Music blur, and 100% is rich ambient glow
-        let normalized = max(0, min(100, settings.v3BackdropBlurRadius)) / 100.0
-        return normalized * 35.0
+        // Direct continuous linear mapping (0% = 0.0pt, 25% = 16.25pt, 60% = 39.0pt, 100% = 65.0pt)
+        // 0% has ZERO minimum blur floor (100% clear artwork image)
+        return normalizedBlur * 65.0
     }
 
     private var effectiveScreenBlurRadius: Double {
         if settings.v3InstrumentalPureImmersion && isInstrumental {
             return 1.2
         }
-        let normalized = max(0, min(100, settings.v3BackdropBlurRadius)) / 100.0
-        return normalized * 9.0
+        return normalizedBlur * 35.0
     }
 
     @ViewBuilder
@@ -194,6 +196,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
         // Layer 1: Ambient Multi-Orb Fluid Color Canvas (Extracted from Album Palette)
         ZStack {
             color(palette.primary, saturation: saturation)
+                .opacity(0.85)
 
             RadialGradient(
                 colors: [
@@ -207,7 +210,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
 
             RadialGradient(
                 colors: [
-                    color(palette.secondary, saturation: saturation * 1.2),
+                    color(palette.secondary, saturation: saturation * 1.15),
                     .clear
                 ],
                 center: UnitPoint(x: 0.88, y: 0.82),
@@ -217,7 +220,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
 
             RadialGradient(
                 colors: [
-                    color(palette.glow, saturation: saturation * 1.3),
+                    color(palette.glow, saturation: saturation * 1.25),
                     .clear
                 ],
                 center: UnitPoint(x: 0.25, y: 0.50),
@@ -225,31 +228,34 @@ struct AppleMusicImmersiveV3BackdropView: View {
                 endRadius: 650
             )
         }
+        .opacity(0.35 + 0.65 * normalizedBlur)
 
-        // Layer 2: Softly Blurred Artwork Texture Plane (Diffuses facial lines into silky color clouds)
+        // Layer 2: Main Scaled Cover Artwork Background Plane (Directly controlled by slider down to 0pt)
         Image(nsImage: image)
             .resizable()
             .scaledToFill()
-            .scaleEffect(style.artworkScale * 1.3)
-            .blur(radius: max(35.0, effectiveBlurRadius * 1.6))
-            .opacity(min(1, style.artworkOpacity * style.textureIntensity * 0.82))
+            .scaleEffect(style.artworkScale * 1.15)
+            .blur(radius: effectiveBlurRadius)
+            .opacity(min(1, style.artworkOpacity * style.textureIntensity))
 
-        // Layer 3: Specular Screen Light Bloom Pass
-        Image(nsImage: image)
-            .resizable()
-            .scaledToFill()
-            .scaleEffect(style.artworkScreenScale * 1.2)
-            .blur(radius: max(45.0, effectiveBlurRadius * 2.0))
-            .blendMode(.screen)
-            .opacity(0.35 * style.textureIntensity)
+        // Layer 3: Specular Screen Light Bloom Pass (Only active when blur > 0 to avoid obscuring 0% clear artwork)
+        if effectiveScreenBlurRadius > 0 {
+            Image(nsImage: image)
+                .resizable()
+                .scaledToFill()
+                .scaleEffect(style.artworkScreenScale * 1.1)
+                .blur(radius: effectiveScreenBlurRadius)
+                .blendMode(.screen)
+                .opacity(0.35 * style.textureIntensity * normalizedBlur)
+        }
 
         // Layer 4: Overlay blend color gradient for vivid color saturation
         LinearGradient(
             colors: [
                 color(palette.primary, saturation: saturation)
-                    .opacity(min(1, 0.32 * style.paletteOpacity)),
+                    .opacity(min(1, 0.28 * style.paletteOpacity)),
                 color(palette.secondary, saturation: saturation)
-                    .opacity(min(1, 0.25 * style.paletteOpacity)),
+                    .opacity(min(1, 0.22 * style.paletteOpacity)),
                 color(palette.glow, saturation: saturation)
                     .opacity(min(1, 0.18 * style.paletteOpacity))
             ],
@@ -263,7 +269,7 @@ struct AppleMusicImmersiveV3BackdropView: View {
         LinearGradient(
             colors: [
                 .clear,
-                Color.black.opacity(lyricVeilOpacity * 0.3),
+                Color.black.opacity(lyricVeilOpacity * 0.35),
                 Color.black.opacity(lyricVeilOpacity)
             ],
             startPoint: .leading,
@@ -281,12 +287,12 @@ struct AppleMusicImmersiveV3BackdropView: View {
             endRadius: 950
         )
 
-        // noise layer
+        // Procedural Grain Noise Overlay (防断层极轻微感)
         if let noiseImage {
             Image(nsImage: noiseImage)
                 .resizable(resizingMode: .tile)
                 .blendMode(.overlay)
-                .opacity(style.noiseIntensity)
+                .opacity(style.noiseIntensity * 0.8)
         }
     }
 
