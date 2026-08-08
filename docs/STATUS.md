@@ -1,13 +1,14 @@
 # Project Status
 
-Status snapshot: 2026-08-08.
+Status snapshot: 2026-08-09.
 
 This file describes what is present in the repository and how mature it is. It is not a release promise. Product direction and priority still come from the latest top-level Craft execution board; Git identifies the exact source.
 
 ## Source baseline
 
 - `main` is the confirmed default baseline.
-- Active development may live on a feature branch ahead of `main`. At this snapshot, `codex/v3-ambient-ui-ruby-polish` contains additional UI, reading, and lyrics-source work that has been pushed but not merged into `main`.
+- The current V3, lyrics-source, reading, and responsive-layout work is included in the baseline after explicit build/test verification.
+- Task branches may still contain newer or experimental work; they are not the source of truth unless explicitly selected for a task.
 - Always verify the current branch, `HEAD`, upstream, and worktree status instead of treating this date or a document as the exact version.
 
 ## Implemented in the repository
@@ -21,7 +22,7 @@ This file describes what is present in the repository and how mature it is. It i
 - Optional Spotify Web Catalog integration with credentials stored outside the repository.
 - Focused shell/Swift contract tests for major UI, persistence, provider, reading, and alignment boundaries.
 
-## Present on the active development branch
+## Current implementation
 
 - Distinct ambient, artwork-stage, and classic enlarged-artwork backdrop treatments, including honest zero-blur behavior.
 - Consolidated user-facing main-window layout families: Classic Companion V1, Album Immersion V2, and Experimental Workbench V0.
@@ -29,7 +30,7 @@ This file describes what is present in the repository and how mature it is. It i
 - Concurrent network-provider execution with bounded timeouts and result deduplication.
 - Improved translation/romanization preservation, long-line wrapping, lyric transitions, and scoped Japanese reading corrections.
 
-These items have code and contracts, but remain development work until intentionally merged into `main` and accepted in real playback.
+These items have code and contracts, but remain development work until accepted in real playback.
 
 ## Partial, experimental, or unreliable
 
