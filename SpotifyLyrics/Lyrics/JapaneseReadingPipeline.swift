@@ -350,9 +350,9 @@ public enum JapaneseReadingPipeline {
             )
         }
 
-        let morphology: [JapaneseMorphologyToken]
+        let rawMorphology: [JapaneseMorphologyToken]
         do {
-            morphology = try engine.tokenize(originalText)
+            rawMorphology = try engine.tokenize(originalText)
         } catch {
             // Literal-only text is safe to preserve even when MeCab is absent;
             // kana containing ambiguous particles is not.
@@ -362,10 +362,12 @@ public enum JapaneseReadingPipeline {
             return Self.unknownResult(originalText)
         }
 
-        guard !morphology.isEmpty,
-              morphology.map(\.originalText).joined() == originalText else {
+        guard !rawMorphology.isEmpty,
+              rawMorphology.map(\.originalText).joined() == originalText else {
             return Self.unknownResult(originalText)
         }
+
+        let morphology = normalizeRepeatedSuffixReadings(rawMorphology)
 
         var offset = 0
         let tokens = morphology.enumerated().map { index, token in
@@ -505,6 +507,55 @@ public enum JapaneseReadingPipeline {
         case "を": return "お"
         default: return kana
         }
+    }
+
+    /// IPADIC may reinterpret the second and later glyph in an unseparated
+    /// repeated-kanji lyric as a suffix noun (for example 手手手手 becomes
+    /// テ・シュ・シュ・シュ). Inherit the lexical head reading only for that
+    /// narrow morphology pattern; ordinary compounds and separated tokens
+    /// keep their dictionary readings.
+    private static func normalizeRepeatedSuffixReadings(
+        _ tokens: [JapaneseMorphologyToken]
+    ) -> [JapaneseMorphologyToken] {
+        guard tokens.count > 1 else { return tokens }
+        var normalized = tokens
+
+        for index in tokens.indices.dropFirst() {
+            let token = tokens[index]
+            guard token.originalText.count == 1,
+                  containsHan(token.originalText),
+                  token.partOfSpeech?.contains("接尾") == true,
+                  tokens[index - 1].originalText == token.originalText else {
+                continue
+            }
+
+            var headIndex = index - 1
+            while headIndex > tokens.startIndex,
+                  tokens[headIndex - 1].originalText == token.originalText {
+                headIndex -= 1
+            }
+
+            let head = tokens[headIndex]
+            guard head.partOfSpeech?.contains("接尾") != true,
+                  let headReading = head.readingKatakana,
+                  !headReading.isEmpty,
+                  headReading != "*",
+                  head.lemma != nil,
+                  head.lemma == token.lemma else {
+                continue
+            }
+
+            normalized[index] = JapaneseMorphologyToken(
+                originalText: token.originalText,
+                readingKatakana: headReading,
+                lemma: token.lemma,
+                partOfSpeech: token.partOfSpeech,
+                conjugationType: token.conjugationType,
+                conjugationForm: token.conjugationForm
+            )
+        }
+
+        return normalized
     }
 
     private static func buildRomajiText(from tokens: [JapaneseReadingToken]) -> String {

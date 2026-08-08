@@ -48,6 +48,19 @@ struct JapaneseReadingContract {
         let particles = JapaneseReadingPipeline.analyze(originalText: "私は学校へ行く水を飲む")
         precondition(particles.kanaText == "わたしわがっこうえいくみずおのむ", "particle readings were not morphology-aware")
 
+        // IPADIC classifies the later glyphs in a repeated kanji run as
+        // suffix nouns. They still represent the same repeated lyric sound.
+        let repeatedHand = JapaneseReadingPipeline.analyze(originalText: "手手手手")
+        precondition(
+            repeatedHand.kanaText == "てててて",
+            "repeated kanji suffix readings were not normalized: \(repeatedHand.kanaText ?? "<nil>")"
+        )
+        let repeatedHandRuby = repeatedHand.tokens.flatMap {
+            JapaneseReadingPipeline.rubyTokens(for: $0)
+        }
+        precondition(repeatedHandRuby.map(\.surface) == ["手", "手", "手", "手"])
+        precondition(repeatedHandRuby.map(\.ruby) == ["て", "て", "て", "て"])
+
         // These are the exact lines that previously lost ruby in the V3
         // screenshots.  A line-level reading must be complete enough for the
         // view to derive per-kanji ruby tokens, not merely return a partial
