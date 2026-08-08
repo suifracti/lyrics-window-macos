@@ -5,11 +5,13 @@ import Foundation
 /// Catalog hit ≠ lyrics body (e.g. あやふや id may return empty lrc).
 public final class NetEaseExperimentalLyricsProvider: LyricsProvider, @unchecked Sendable {
     public let name = "NetEase Experimental"
+    public let timeoutInterval: TimeInterval
 
     private let session: URLSession
     private let timeout: TimeInterval
 
-    public init(session: URLSession? = nil, timeout: TimeInterval = 8) {
+    public init(session: URLSession? = nil, timeout: TimeInterval = 6) {
+        self.timeoutInterval = timeout
         if let session {
             self.session = session
         } else {

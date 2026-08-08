@@ -7,11 +7,13 @@ import Foundation
 /// Still experimental: undocumented endpoints; failures isolated.
 public final class QQExperimentalLyricsProvider: LyricsProvider, @unchecked Sendable {
     public let name = "QQ Music Experimental"
+    public let timeoutInterval: TimeInterval
 
     private let session: URLSession
     private let timeout: TimeInterval
 
-    public init(session: URLSession? = nil, timeout: TimeInterval = 8) {
+    public init(session: URLSession? = nil, timeout: TimeInterval = 6) {
+        self.timeoutInterval = timeout
         if let session {
             self.session = session
         } else {

@@ -25,3 +25,8 @@ swiftc -parse-as-library \
   -o "$TMP_DIR/phase-2-11a-retrieval-contract"
 
 "$TMP_DIR/phase-2-11a-retrieval-contract"
+
+rg -q 'executionLane: LyricsProviderExecutionLane = \.local' "$ROOT_DIR/SpotifyLyrics/Lyrics/LocalLyricsProvider.swift"
+rg -q 'timeoutInterval: TimeInterval = 2' "$ROOT_DIR/SpotifyLyrics/Lyrics/LocalLyricsProvider.swift"
+rg -q 'init\(session: URLSession\? = nil, timeout: TimeInterval = 6\)' "$ROOT_DIR/SpotifyLyrics/Providers/NetEaseExperimentalLyricsProvider.swift"
+rg -q 'init\(session: URLSession\? = nil, timeout: TimeInterval = 6\)' "$ROOT_DIR/SpotifyLyrics/Providers/QQExperimentalLyricsProvider.swift"

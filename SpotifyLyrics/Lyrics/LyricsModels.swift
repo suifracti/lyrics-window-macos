@@ -230,9 +230,21 @@ public enum LyricsLookupResult {
     case failed(LyricsFailure)
 }
 
+public enum LyricsProviderExecutionLane: Equatable, Sendable {
+    case local
+    case network
+}
+
 public protocol LyricsProvider: Sendable {
     var name: String { get }
+    var executionLane: LyricsProviderExecutionLane { get }
+    var timeoutInterval: TimeInterval { get }
     func lookup(track: Track, identity: TrackIdentity) async -> LyricsLookupResult
+}
+
+public extension LyricsProvider {
+    var executionLane: LyricsProviderExecutionLane { .network }
+    var timeoutInterval: TimeInterval { 8 }
 }
 
 public enum LyricsLoadState: Equatable {

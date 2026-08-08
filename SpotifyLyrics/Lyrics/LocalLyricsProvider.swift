@@ -5,6 +5,8 @@ public final class LocalLyricsProvider: LyricsProvider, @unchecked Sendable {
     // ~/Music/SpotifyLyrics/Lyrics
     // ~/Library/Application Support/SpotifyLyrics/Lyrics
     public let name = "Local LRC"
+    public let executionLane: LyricsProviderExecutionLane = .local
+    public let timeoutInterval: TimeInterval = 2
 
     private let index: LocalLyricsIndex
 

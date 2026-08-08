@@ -47,9 +47,26 @@ private final class FallbackProvider: LyricsProvider, @unchecked Sendable {
     }
 }
 
+private final class LocalLaneProvider: LyricsProvider, @unchecked Sendable {
+    let name = "Local fixture"
+    let executionLane: LyricsProviderExecutionLane = .local
+    let timeoutInterval: TimeInterval = 2
+
+    func lookup(track: Track, identity: TrackIdentity) async -> LyricsLookupResult {
+        .noMatch
+    }
+}
+
 @main
 struct Phase211ARetrievalContract {
     static func main() async {
+        let defaultNetworkProvider = FallbackProvider(name: "Network fixture", result: .noMatch)
+        require(defaultNetworkProvider.executionLane == .network, "providers default to the network lane")
+        require(defaultNetworkProvider.timeoutInterval == 8, "network timeout default")
+        let localLaneProvider = LocalLaneProvider()
+        require(localLaneProvider.executionLane == .local, "local provider lane")
+        require(localLaneProvider.timeoutInterval == 2, "local provider timeout")
+
         let liveTrack = Track(
             title: "春を告げる - From THE FIRST TAKE",
             artist: "yama",
