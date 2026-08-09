@@ -55,6 +55,30 @@ enum MainWindowLayoutStyle: String, CaseIterable, Identifiable {
     }
 }
 
+/// The two maintained classic surfaces share one product family and playback
+/// state. Automatic selects the split canvas for comfortable windows and the
+/// lyrics-first surface when horizontal space is constrained.
+enum ClassicCompanionPresentation: String, CaseIterable, Identifiable {
+    case automatic
+    case split
+    case lyricsFocus
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .automatic: return "自适应"
+        case .split: return "沉浸分栏"
+        case .lyricsFocus: return "歌词专注"
+        }
+    }
+
+    func resolved(forWidth width: CGFloat) -> ClassicCompanionPresentation {
+        guard self == .automatic else { return self }
+        return width >= LyricsDesignTokens.immersiveSplitBreakpoint ? .split : .lyricsFocus
+    }
+}
+
 /// Pure size projection for the Apple Music V3 canvas. This describes the
 /// temporary presentation chosen by the available window geometry; it does
 /// not replace the user's persisted layout family.

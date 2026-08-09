@@ -55,7 +55,7 @@ if grep -Eq 'automaticCompactLyricsFocus' "$MAIN" SpotifyLyrics/Views/MainWindow
   exit 1
 fi
 
-compact_layout="$(sed -n '/^    private func compactLyricsFocusLayout(in geometry: GeometryProxy)/,/^    private func wideLayout/p' "$V3")"
+compact_layout="$(sed -n '/^    private func compactLyricsFocusLayout(in geometry: GeometryProxy)/,/^    private func adaptiveSplitLayout/p' "$V3")"
 if printf '%s\n' "$compact_layout" | grep -Eq '(mainWindow)?layoutStyleRawValue[[:space:]]*='; then
   echo 'FAIL: automatic compact focus must not mutate the selected layout family' >&2
   exit 1

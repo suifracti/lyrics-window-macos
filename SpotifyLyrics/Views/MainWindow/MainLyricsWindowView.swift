@@ -107,23 +107,27 @@ struct MainLyricsWindowView: View {
 
     private var legacyWindowBody: some View {
         GeometryReader { geometry in
-            let topBarHeight: CGFloat = layoutStyle == .lyricsFocus ? 116 : 64
+            let classicPresentation = resolvedClassicPresentation(width: geometry.size.width)
+            let usesLyricsFocus = layoutStyle == .lyricsFocus
+                || (layoutStyle == .immersiveSplit && classicPresentation == .lyricsFocus)
+            let topBarHeight: CGFloat = usesLyricsFocus ? 116 : 64
             let contentHeight = max(0, geometry.size.height - topBarHeight)
 
             ZStack(alignment: .top) {
                 ArtworkBackgroundView(state: state)
 
-                layoutBody
+                layoutBody(classicPresentation: classicPresentation)
                     .animation(.easeInOut(duration: 0.24), value: layoutStyle)
+                    .animation(.easeInOut(duration: 0.24), value: classicPresentation)
                     .frame(maxWidth: .infinity)
                     .frame(height: contentHeight, alignment: .top)
                     .offset(y: topBarHeight)
 
                 VStack(spacing: 0) {
-                    topBar
+                    topBar(usesLyricsFocus: usesLyricsFocus)
                         .padding(.horizontal, LyricsDesignTokens.immersiveWindowPadding)
-                        .padding(.top, layoutStyle == .lyricsFocus ? 18 : 8)
-                        .padding(.bottom, layoutStyle == .lyricsFocus ? 14 : 8)
+                        .padding(.top, usesLyricsFocus ? 18 : 8)
+                        .padding(.bottom, usesLyricsFocus ? 14 : 8)
 
                     Divider()
                         .overlay(LyricsDesignTokens.controlBorder)
@@ -133,24 +137,34 @@ struct MainLyricsWindowView: View {
                 .background {
                     Rectangle()
                         .fill(.ultraThinMaterial)
-                        .opacity(layoutStyle == .lyricsFocus ? 0.22 : 0.14)
+                        .opacity(usesLyricsFocus ? 0.22 : 0.14)
                 }
             }
         }
     }
 
     @ViewBuilder
-    private var layoutBody: some View {
+    private func layoutBody(
+        classicPresentation: ClassicCompanionPresentation
+    ) -> some View {
         switch layoutStyle {
         case .lyricsFocus:
             lyricsFocusLayout
         case .immersiveSplit:
-            ImmersiveSplitWindowView(state: state)
+            if classicPresentation == .lyricsFocus {
+                lyricsFocusLayout
+            } else {
+                ImmersiveSplitWindowView(state: state)
+            }
         case .appleMusicImmersiveV3:
             EmptyView()
         case .directionDV4:
             EmptyView()
         }
+    }
+
+    private func resolvedClassicPresentation(width: CGFloat) -> ClassicCompanionPresentation {
+        settings.classicCompanionPresentation.resolved(forWidth: width)
     }
 
     /// Direction D V4 is a layout projection only.  All commands still route
@@ -182,18 +196,18 @@ struct MainLyricsWindowView: View {
         )
     }
 
-    private var topBar: some View {
+    private func topBar(usesLyricsFocus: Bool) -> some View {
         HStack(spacing: LyricsDesignTokens.headerSpacing) {
             windowModeMenu
 
-            if layoutStyle == .lyricsFocus {
+            if usesLyricsFocus {
                 TrackHeaderView(track: state.currentTrack)
             } else {
                 Image(systemName: MainWindowLayoutStyle.immersiveSplit.systemImage)
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(LyricsDesignTokens.accent)
                 .accessibilityElement(children: .combine)
-                .accessibilityLabel("当前主窗口布局：沉浸分栏")
+                .accessibilityLabel("当前主窗口布局：经典伴随沉浸分栏")
             }
 
             Spacer(minLength: 20)
@@ -287,6 +301,23 @@ struct MainLyricsWindowView: View {
                         }
                     } label: {
                         Label(style.title, systemImage: style.systemImage)
+                    }
+                }
+            }
+            if layoutStyle == .immersiveSplit {
+                Section("经典伴随呈现") {
+                    ForEach(ClassicCompanionPresentation.allCases) { presentation in
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.22)) {
+                                settings.classicCompanionPresentation = presentation
+                            }
+                        } label: {
+                            if settings.classicCompanionPresentation == presentation {
+                                Label(presentation.title, systemImage: "checkmark")
+                            } else {
+                                Text(presentation.title)
+                            }
+                        }
                     }
                 }
             }

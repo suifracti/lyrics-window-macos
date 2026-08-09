@@ -63,13 +63,21 @@ public protocol JapaneseMorphologyEngine: Sendable {
     func tokenize(_ text: String) throws -> [JapaneseMorphologyToken]
 }
 
+/// Optional capability used only for morphology patterns known to be
+/// ambiguous in the best IPADIC path. Most lyric lines still execute one
+/// analysis; callers request alternatives only when a context rule can rank
+/// them deterministically.
+public protocol JapaneseNBestMorphologyEngine: JapaneseMorphologyEngine {
+    func tokenizations(_ text: String, maximumCount: Int) throws -> [[JapaneseMorphologyToken]]
+}
+
 /// Real local Japanese morphology/dictionary reader.
 ///
 /// The app invokes the installed MeCab binary with its configured IPADIC
 /// dictionary. It does not depend on a project-root resource at runtime. If
 /// MeCab cannot resolve a Han token, the pipeline returns `unknown` instead of
 /// falling back to a single-character or Chinese reading.
-public struct JapaneseMeCabEngine: JapaneseMorphologyEngine, Sendable {
+public struct JapaneseMeCabEngine: JapaneseNBestMorphologyEngine, Sendable {
     public let executableURL: URL?
     public let timeout: TimeInterval
 
@@ -80,13 +88,38 @@ public struct JapaneseMeCabEngine: JapaneseMorphologyEngine, Sendable {
 
     public func tokenize(_ text: String) throws -> [JapaneseMorphologyToken] {
         guard !text.isEmpty else { return [] }
+        let output = try run(text: text, arguments: ["-Ochasen"])
+        let parsedTokens = Self.parseOchaSen(output)
+        guard !parsedTokens.isEmpty else {
+            throw JapaneseMorphologyError.malformedOutput
+        }
+        return Self.restoreIgnoredGaps(parsedTokens, in: text)
+    }
+
+    public func tokenizations(
+        _ text: String,
+        maximumCount: Int
+    ) throws -> [[JapaneseMorphologyToken]] {
+        guard !text.isEmpty else { return [] }
+        let count = max(1, min(12, maximumCount))
+        let output = try run(text: text, arguments: ["-N", String(count), "-Ochasen"])
+        let candidates = Self.parseOchaSenCandidates(output)
+            .map { Self.restoreIgnoredGaps($0, in: text) }
+            .filter { $0.map(\.originalText).joined() == text }
+        guard !candidates.isEmpty else {
+            throw JapaneseMorphologyError.malformedOutput
+        }
+        return candidates
+    }
+
+    private func run(text: String, arguments: [String]) throws -> String {
         guard let executableURL = executableURL ?? Self.resolveExecutable() else {
             throw JapaneseMorphologyError.executableUnavailable
         }
 
         let process = Process()
         process.executableURL = executableURL
-        process.arguments = ["-Ochasen"]
+        process.arguments = arguments
 
         let input = Pipe()
         let output = Pipe()
@@ -126,12 +159,7 @@ public struct JapaneseMeCabEngine: JapaneseMorphologyEngine, Sendable {
         guard let textOutput = String(data: outputData, encoding: .utf8) else {
             throw JapaneseMorphologyError.malformedOutput
         }
-
-        let parsedTokens = Self.parseOchaSen(textOutput)
-        guard !parsedTokens.isEmpty else {
-            throw JapaneseMorphologyError.malformedOutput
-        }
-        return Self.restoreIgnoredGaps(parsedTokens, in: text)
+        return textOutput
     }
 
     public static func resolveExecutable() -> URL? {
@@ -178,6 +206,27 @@ public struct JapaneseMeCabEngine: JapaneseMorphologyEngine, Sendable {
                 conjugationForm: optionalColumn(5)
             )
         }
+    }
+
+    public static func parseOchaSenCandidates(_ output: String) -> [[JapaneseMorphologyToken]] {
+        var candidates: [[JapaneseMorphologyToken]] = []
+        var current: [String] = []
+
+        for rawLine in output.split(whereSeparator: \.isNewline) {
+            let line = String(rawLine).trimmingCharacters(in: .whitespacesAndNewlines)
+            if line == "EOS" {
+                let parsed = parseOchaSen(current.joined(separator: "\n"))
+                if !parsed.isEmpty { candidates.append(parsed) }
+                current.removeAll(keepingCapacity: true)
+            } else if !line.isEmpty {
+                current.append(line)
+            }
+        }
+        if !current.isEmpty {
+            let parsed = parseOchaSen(current.joined(separator: "\n"))
+            if !parsed.isEmpty { candidates.append(parsed) }
+        }
+        return candidates
     }
 
     /// MeCab ignores some whitespace while tokenizing. Reinsert those spans so
@@ -400,9 +449,17 @@ public enum JapaneseReadingPipeline {
         }
 
         let repeatedNormalized = normalizeRepeatedSuffixReadings(rawMorphology)
-        let morphology = contextual
-            ? applyContextualPhraseReadings(repeatedNormalized)
-            : repeatedNormalized
+        let morphology: [JapaneseMorphologyToken]
+        if contextual {
+            let ranked = rankContextualCandidate(
+                originalText: originalText,
+                baseline: repeatedNormalized,
+                engine: engine
+            )
+            morphology = applyContextualPhraseReadings(ranked)
+        } else {
+            morphology = repeatedNormalized
+        }
 
         var offset = 0
         let tokens = morphology.enumerated().map { index, token in
@@ -605,8 +662,105 @@ public enum JapaneseReadingPipeline {
         ContextualPhraseRule(
             surfaces: ["満", "を", "持", "し", "て"],
             replacementReadings: [0: "マン"]
+        ),
+        // IPADIC contains only the Sino-Japanese noun reading ホウコウ for
+        // this spelling in this context. Keep the visible okurigana in its
+        // own token and replace only the Han stem.
+        ContextualPhraseRule(
+            surfaces: ["彷徨", "って"],
+            replacementReadings: [0: "サマヨ"]
         )
     ]
+
+    private struct ContextualCandidateRule {
+        let surfaces: [String]
+        let expectedReadings: [Int: String]
+    }
+
+    /// These rules do not invent a reading. They select an alternative that
+    /// MeCab already returned for a semantically fixed compound family.
+    private static let contextualCandidateRules: [ContextualCandidateRule] = [
+        ContextualCandidateRule(surfaces: ["過去", "形"], expectedReadings: [1: "ケイ"]),
+        ContextualCandidateRule(surfaces: ["現在", "形"], expectedReadings: [1: "ケイ"]),
+        ContextualCandidateRule(surfaces: ["未来", "形"], expectedReadings: [1: "ケイ"]),
+        ContextualCandidateRule(surfaces: ["基本", "形"], expectedReadings: [1: "ケイ"]),
+        ContextualCandidateRule(surfaces: ["連用", "形"], expectedReadings: [1: "ケイ"]),
+        ContextualCandidateRule(surfaces: ["終止", "形"], expectedReadings: [1: "ケイ"]),
+        ContextualCandidateRule(surfaces: ["命令", "形"], expectedReadings: [1: "ケイ"]),
+        ContextualCandidateRule(surfaces: ["仮定", "形"], expectedReadings: [1: "ケイ"]),
+        ContextualCandidateRule(surfaces: ["未然", "形"], expectedReadings: [1: "ケイ"])
+    ]
+
+    private static func rankContextualCandidate(
+        originalText: String,
+        baseline: [JapaneseMorphologyToken],
+        engine: any JapaneseMorphologyEngine
+    ) -> [JapaneseMorphologyToken] {
+        let matchingRules = contextualCandidateRules.filter { rule in
+            containsSurfaceSequence(rule.surfaces, in: baseline)
+        }
+        guard !matchingRules.isEmpty,
+              let nBestEngine = engine as? any JapaneseNBestMorphologyEngine,
+              let candidates = try? nBestEngine.tokenizations(originalText, maximumCount: 8) else {
+            return baseline
+        }
+
+        for rule in matchingRules {
+            guard let baselineStart = surfaceSequenceStart(rule.surfaces, in: baseline) else {
+                continue
+            }
+            for candidate in candidates {
+                guard let start = surfaceSequenceStart(rule.surfaces, in: candidate) else { continue }
+                let matches = rule.expectedReadings.allSatisfy { relativeIndex, expected in
+                    let index = start + relativeIndex
+                    return candidate.indices.contains(index)
+                        && candidate[index].readingKatakana == expected
+                }
+                if matches {
+                    // Keep the best-path tokenization for the rest of the
+                    // lyric line. N-best is consulted only to resolve the
+                    // reading of the explicitly matched ambiguous token.
+                    var resolved = baseline
+                    for (relativeIndex, _) in rule.expectedReadings {
+                        let baselineIndex = baselineStart + relativeIndex
+                        let candidateIndex = start + relativeIndex
+                        let source = resolved[baselineIndex]
+                        resolved[baselineIndex] = JapaneseMorphologyToken(
+                            originalText: source.originalText,
+                            readingKatakana: candidate[candidateIndex].readingKatakana,
+                            lemma: source.lemma,
+                            partOfSpeech: source.partOfSpeech,
+                            conjugationType: source.conjugationType,
+                            conjugationForm: source.conjugationForm
+                        )
+                    }
+                    return resolved
+                }
+            }
+        }
+        return baseline
+    }
+
+    private static func containsSurfaceSequence(
+        _ surfaces: [String],
+        in tokens: [JapaneseMorphologyToken]
+    ) -> Bool {
+        surfaceSequenceStart(surfaces, in: tokens) != nil
+    }
+
+    private static func surfaceSequenceStart(
+        _ surfaces: [String],
+        in tokens: [JapaneseMorphologyToken]
+    ) -> Int? {
+        guard !surfaces.isEmpty, tokens.count >= surfaces.count else { return nil }
+        for start in 0...(tokens.count - surfaces.count) {
+            let end = start + surfaces.count
+            if tokens[start..<end].map(\.originalText) == surfaces {
+                return start
+            }
+        }
+        return nil
+    }
 
     private static func applyContextualPhraseReadings(
         _ tokens: [JapaneseMorphologyToken]

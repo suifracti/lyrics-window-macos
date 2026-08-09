@@ -16,6 +16,32 @@ grep -q 'return "经典伴随 V1"' "$STYLE" || {
   echo 'FAIL: legacy focus/split family has not been merged under V1' >&2
   exit 1
 }
+grep -q 'enum ClassicCompanionPresentation' "$STYLE" || {
+  echo 'FAIL: classic companion has no maintained presentation selector' >&2
+  exit 1
+}
+for mode in automatic split lyricsFocus; do
+  grep -q "case $mode" "$STYLE" || {
+    echo "FAIL: classic companion mode is missing: $mode" >&2
+    exit 1
+  }
+done
+grep -q 'classicCompanionPresentation' "$SETTINGS" || {
+  echo 'FAIL: classic companion presentation is not persisted' >&2
+  exit 1
+}
+grep -q 'PresentationSelectionStore.storageKey' "$SETTINGS" || {
+  echo 'FAIL: the already-migrated legacy focus catalog choice is not recovered' >&2
+  exit 1
+}
+grep -q 'migratedClassicCompanionPresentation' "$SETTINGS" || {
+  echo 'FAIL: classic companion migration is not centralized' >&2
+  exit 1
+}
+grep -q '经典伴随呈现' "$MAIN" || {
+  echo 'FAIL: classic companion presentation is not switchable from the main window' >&2
+  exit 1
+}
 grep -q 'return "专辑沉浸 V2"' "$STYLE" || {
   echo 'FAIL: maintained immersive layout still exposes the engineering V3 name' >&2
   exit 1

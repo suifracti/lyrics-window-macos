@@ -15,6 +15,38 @@ struct JapaneseReadingContract {
         let romaji: String
     }
 
+    struct CandidateIsolationEngine: JapaneseNBestMorphologyEngine {
+        func tokenize(_ text: String) throws -> [JapaneseMorphologyToken] {
+            [
+                token("前", "マエ"),
+                token("過去", "カコ"),
+                token("形", "カタ")
+            ]
+        }
+
+        func tokenizations(
+            _ text: String,
+            maximumCount: Int
+        ) throws -> [[JapaneseMorphologyToken]] {
+            [[
+                // This deliberately differs from the baseline. Context
+                // ranking must not leak it into an unrelated token.
+                token("前", "ゼン"),
+                token("過去", "カコ"),
+                token("形", "ケイ")
+            ]]
+        }
+
+        private func token(_ original: String, _ reading: String) -> JapaneseMorphologyToken {
+            JapaneseMorphologyToken(
+                originalText: original,
+                readingKatakana: reading,
+                lemma: original,
+                partOfSpeech: "fixture"
+            )
+        }
+    }
+
     static func main() {
         let fixtures = [
             Fixture(text: "言われた", surfaces: ["言わ", "れ", "た"], lemmas: ["言う", "れる", "た"], kana: "いわれた", romaji: "iwareta"),
@@ -81,6 +113,50 @@ struct JapaneseReadingContract {
             contextualMixedLine.tokens.first(where: { $0.originalText == "満" })?.kana == "まん",
             "context phrase stopped working when followed by mixed-script lyrics"
         )
+
+        // Context v2 must resolve lyric-specific inflections and compound
+        // suffix readings without moving okurigana into the kanji ruby.
+        let wandering = JapaneseReadingPipeline.analyzeContextually(
+            originalText: "しるべもなく彷徨って"
+        )
+        precondition(
+            wandering.kanaText == "しるべもなくさまよって",
+            "context v2 did not resolve 彷徨って: \(wandering.kanaText ?? "<nil>")"
+        )
+        let wanderingRuby = wandering.tokens.flatMap {
+            JapaneseReadingPipeline.rubyTokens(for: $0)
+        }
+        precondition(wanderingRuby.first(where: { $0.surface == "彷徨" })?.ruby == "さまよ")
+        precondition(wanderingRuby.first(where: { $0.surface == "って" })?.ruby == nil)
+
+        let pastTense = JapaneseReadingPipeline.analyzeContextually(
+            originalText: "過去形にならない"
+        )
+        precondition(
+            pastTense.kanaText == "かこけいにならない",
+            "context v2 did not rank the grammatical 形 reading: \(pastTense.kanaText ?? "<nil>")"
+        )
+        precondition(pastTense.tokens.first(where: { $0.originalText == "形" })?.kana == "けい")
+        let isolatedCandidate = JapaneseReadingPipeline.analyzeContextually(
+            originalText: "前過去形",
+            engine: CandidateIsolationEngine()
+        )
+        precondition(
+            isolatedCandidate.kanaText == "まえかこけい",
+            "N-best candidate leaked into an unrelated token: \(isolatedCandidate.kanaText ?? "<nil>")"
+        )
+
+        // 探る is already read correctly by morphology. Ruby excludes the
+        // visible okurigana, so the combined display remains さぐ + る.
+        let searchFeeling = JapaneseReadingPipeline.analyzeContextually(
+            originalText: "探る感覚に似てる"
+        )
+        precondition(searchFeeling.kanaText == "さぐるかんかくににてる")
+        let searchRuby = searchFeeling.tokens.flatMap {
+            JapaneseReadingPipeline.rubyTokens(for: $0)
+        }
+        precondition(searchRuby.first(where: { $0.surface == "探" })?.ruby == "さぐ")
+        precondition(searchRuby.first(where: { $0.surface == "る" })?.ruby == nil)
 
         // These are the exact lines that previously lost ruby in the V3
         // screenshots.  A line-level reading must be complete enough for the

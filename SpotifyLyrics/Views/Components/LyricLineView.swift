@@ -479,6 +479,8 @@ struct RubyLineView: View {
     var body: some View {
         RubyTokenFlowLayout(horizontalSpacing: 0, verticalSpacing: tokenVerticalSpacing) {
             ForEach(Array(displayTokenGroups.enumerated()), id: \.offset) { _, group in
+                let groupEdgeReserve: CGFloat = group.count > 1
+                    && group.filter(\.hasRuby).count == 1 ? 5 : 0
                 HStack(alignment: .lastTextBaseline, spacing: 0) {
                     ForEach(group) { token in
                         RubyTokenBlock(
@@ -487,10 +489,16 @@ struct RubyLineView: View {
                             rubyFont: rubyFont,
                             baseColor: baseColor,
                             rubyColor: rubyColor,
-                            rubySpacing: rubySpacing
+                            rubySpacing: rubySpacing,
+                            annotationOverhang: token.hasRuby ? groupEdgeReserve : 0
                         )
                     }
                 }
+                // The reserved outer edges exactly contain the visual
+                // overhang borrowed inside a kanji + okurigana group. This
+                // keeps the baseline text attached without letting ruby
+                // collide with the neighbouring morphology group.
+                .padding(.horizontal, groupEdgeReserve)
             }
         }
         .accessibilityElement(children: .combine)
@@ -525,12 +533,25 @@ private struct RubyTokenBlock: View {
     let baseColor: Color
     let rubyColor: Color
     let rubySpacing: CGFloat
+    let annotationOverhang: CGFloat
+
+    private let katakanaAnnotationTracking: CGFloat = 0.35
+
+    private var isKatakanaAnnotation: Bool {
+        !token.hasRuby && token.surface.unicodeScalars.contains { scalar in
+            (0x30A1...0x30FA).contains(scalar.value)
+        }
+    }
 
     var body: some View {
-        RubyTokenBlockLayout(rubySpacing: rubySpacing) {
+        RubyTokenBlockLayout(
+            rubySpacing: rubySpacing,
+            annotationOverhang: annotationOverhang
+        ) {
             if let ruby = token.displayRubyText {
                 Text(ruby)
                     .font(rubyFont)
+                    .tracking(isKatakanaAnnotation ? katakanaAnnotationTracking : 0)
                     .foregroundStyle(rubyColor)
                     .lineLimit(1)
                     // A long reading must overhang its base, not be squeezed.
@@ -579,6 +600,10 @@ extension LyricRubyToken {
 /// baseline is explicitly exported to its parent.
 private struct RubyTokenBlockLayout: Layout {
     let rubySpacing: CGFloat
+    /// Lets a long kanji reading extend a few points beyond its base advance.
+    /// This keeps visible okurigana attached to the kanji while retaining
+    /// enough width to prevent adjacent annotations from colliding.
+    let annotationOverhang: CGFloat
 
     func sizeThatFits(
         proposal: ProposedViewSize,
@@ -588,7 +613,10 @@ private struct RubyTokenBlockLayout: Layout {
         guard let base = subviews.last else { return .zero }
         let baseSize = baseSize(for: base)
         let rubySize = subviews.dropLast().first.map { readingSize(for: $0) } ?? .zero
-        let contentWidth = max(baseSize.width, rubySize.width)
+        let contentWidth = max(
+            baseSize.width,
+            rubySize.width - max(0, annotationOverhang * 2)
+        )
         let rubyHeight = rubySize.height
         let height = rubyHeight > 0
             ? rubyHeight + rubySpacing + baseSize.height
@@ -606,13 +634,16 @@ private struct RubyTokenBlockLayout: Layout {
         let baseSize = baseSize(for: base)
         let ruby = subviews.dropLast().first
         let rubyDimensions: CGSize = ruby.map { readingSize(for: $0) } ?? CGSize.zero
-        let contentWidth = max(baseSize.width, rubyDimensions.width)
+        let contentWidth = max(
+            baseSize.width,
+            rubyDimensions.width - max(0, annotationOverhang * 2)
+        )
         let baseY = ruby == nil ? bounds.minY : bounds.minY + rubyDimensions.height + rubySpacing
 
         if let ruby {
             ruby.place(
                 at: CGPoint(
-                    x: bounds.midX - rubyDimensions.width / 2,
+                    x: bounds.minX + contentWidth / 2 - rubyDimensions.width / 2,
                     y: bounds.minY
                 ),
                 anchor: .topLeading,

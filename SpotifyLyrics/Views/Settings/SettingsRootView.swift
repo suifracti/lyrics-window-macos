@@ -131,15 +131,16 @@ private struct GeneralSettingsView: View {
 
             Section("主窗口") {
                 Picker("默认主窗口布局", selection: mainWindowLayoutSelection) {
-                    ForEach(MainWindowLayoutStyle.allCases) { layout in
-                        Text(layout == .immersiveSplit ? "\(layout.title)（deprecated candidate）" : layout.title)
-                            .tag(layout.rawValue)
+                    ForEach(MainWindowLayoutStyle.userSelectableCases) { layout in
+                        Text(layout.title).tag(layout.rawValue)
                     }
                 }
-                Text("沉浸分栏仅保留兼容入口，不作为推荐默认布局。")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Text("V3 仍是默认布局；Direction D V4 作为独立可选版本保留。")
+                Picker("经典伴随呈现", selection: $settings.classicCompanionPresentationRawValue) {
+                    ForEach(ClassicCompanionPresentation.allCases) { presentation in
+                        Text(presentation.title).tag(presentation.rawValue)
+                    }
+                }
+                Text("经典伴随 V1 可按窗口宽度自适应，也可固定为沉浸分栏或歌词专注。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Toggle("小窗口自动进入歌词专注", isOn: $settings.automaticCompactLyricsFocus)
