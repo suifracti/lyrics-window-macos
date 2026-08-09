@@ -1,31 +1,47 @@
 # Lyrics Window for macOS
 
-一个个人使用的原生 macOS SwiftUI 歌词窗口，主要配合 Spotify Desktop 显示和管理歌词。
+一个仍在开发中的原生 macOS 歌词窗口，主要用于配合 Spotify Desktop 显示、查找和整理歌词。
 
-项目仍在开发中，不是 Spotify 或 Apple 的官方产品；歌词覆盖率、翻译和排轴效果会因歌曲与来源而异。
+当前仓库是源码开发现场，不是已经发布的成品：没有正式 Release、签名安装包或稳定版本，需要使用 Xcode 自行构建。项目不隶属于 Spotify、Apple 或任何歌词服务。
 
-## 主要功能
+## 当前包含的内容
 
-- 从 Spotify Desktop 读取当前歌曲，并提供基础播放与进度控制。
-- 提供经典伴随、专辑沉浸、歌词专注、悬浮、全屏和胶囊等显示方式。
-- 支持导入本地 LRC/TXT、直接粘贴、编辑歌词，并保存到本地 SQLite。
-- 支持本地歌词、LRCLIB，以及实验性的 AMLL、网易云和 QQ 来源查询，并可选择候选版本。
-- 支持同步歌词、翻译/伴随层，以及日语上下文读音、假名和罗马音显示。
-- 专辑沉浸窗口提供环境光、舞台封面和经典放大三种背景构图；模糊、封面尺寸和位置可以分别调整。
+- 读取 Spotify Desktop 的当前歌曲和播放状态，并提供基础播放与进度控制。
+- 提供主窗口、悬浮歌词、全屏歌词和顶部胶囊等显示界面。
+- 导入本地 LRC/TXT、直接粘贴和编辑歌词，并将用户版本保存在本地 SQLite 数据库。
+- 查询本地版本、AMLL 和 LRCLIB；网易云与 QQ 查询属于可选的实验来源。
+- 显示同步歌词、翻译伴随层，以及日语假名、罗马音和上下文读音。
+- 包含翻译、歌词候选、读音纠错和自动排轴的开发中实现。
 
-## 当前状态
+这些条目只表示当前源码中存在相应实现，不表示它们已经达到发布质量。
 
-核心窗口、歌词导入与保存、本地和在线查询及基础播放控制已经可用；歌词来源覆盖率、日语读音、翻译、自动排轴和视觉细节仍在持续打磨。更细的实现边界、当前开发分支和未完成项见 [`docs/STATUS.md`](docs/STATUS.md)。
+## 已知限制
 
-这里列出的功能表示仓库中已有相应实现，不等于已经达到发布质量。
+- 在线歌词的命中率、时间轴和翻译内容取决于歌曲元数据与第三方来源，不能保证正确或完整。
+- 网易云和 QQ 使用非官方实验接口，可能随时失效，也不作为正式发行能力承诺。
+- 日语读音仍可能在姓名、罕见词和多音词上出错。
+- 自动排轴仍是实验功能，不能视为可靠的零操作歌词时间轴方案。
+- 实验工作台和部分界面仍在验收；性能、长期运行稳定性、打包、签名和发布流程尚未完成。
 
-## 环境
+更细的实现状态见 [`docs/STATUS.md`](docs/STATUS.md)。
+
+## 数据与网络
+
+- 歌词、编辑版本和相关索引默认保存在 `~/Library/Application Support/SpotifyLyrics/SpotifyLyrics.sqlite3`。
+- Spotify 授权令牌和用户填写的 AI API Key 使用 macOS Keychain；仓库不包含可用凭据。
+- 启用在线歌词来源时，应用会把匹配所需的歌曲标题、歌手、专辑、时长或曲目 ID 发送给相应服务。
+- 使用用户自行配置的 AI 翻译服务时，歌词文本和翻译请求会发送到该服务端点。
+- 实验性自动排轴可能请求 macOS 的屏幕录制/系统音频权限，以读取 Spotify 进程音频并生成时间轴；所选语音识别后端可能另有权限与数据处理规则。
+
+请先了解并接受相应第三方服务的条款与隐私规则，再启用在线能力。
+
+## 环境要求
 
 - macOS 14 或更高版本
 - Xcode
 - Spotify Desktop
 
-## Debug build
+## Debug 构建
 
 ```sh
 xcodebuild -project SpotifyLyrics.xcodeproj \
@@ -35,26 +51,27 @@ xcodebuild -project SpotifyLyrics.xcodeproj \
   CODE_SIGNING_ALLOWED=NO build
 ```
 
-## 核心合同测试
+涉及 ScreenCaptureKit 或本机权限的调试可能需要本地开发签名；个人 Team ID 与证书不应提交到仓库。
 
-仓库使用 `Tests/` 下的聚焦合同脚本，没有一个可以替代全部验证的万能命令。文档入口为：
+## 测试
+
+仓库在 `Tests/` 下使用按模块划分的合同脚本，没有一个命令能替代全部验证。文档中的基础入口是：
 
 ```sh
 bash Tests/v3_lyric_readability_contract.sh
 ```
 
-修改特定模块时还需要运行相应的测试脚本。
+修改特定模块时，还需要运行对应的聚焦合同和 Debug 构建。
 
-## 协作与版本
+## 项目边界
 
-- AI 与协作者先读 [`AGENTS.md`](AGENTS.md)。
-- 开发、分支、构建与归档规则见 [`docs/DEVELOPMENT_WORKFLOW.md`](docs/DEVELOPMENT_WORKFLOW.md)。
-- 提交前后的统一基准见 [`docs/SUBMISSION_BASELINE.md`](docs/SUBMISSION_BASELINE.md)。
-- 检查精确源码版本：`git status`、`git branch --show-current`、`git rev-parse HEAD`。
-- `main` 是已确认的默认基线；功能分支可能包含尚未合并的开发进展。
 - 当前没有正式 Release 或 SemVer tag。
+- Git `main` 是默认源码基线；精确状态应以当前提交和工作区差异为准。
+- `.local/`、DerivedData、数据库、凭据、本地签名文件、参考仓库和普通构建产物不属于可发布源码。
+- 歌词、专辑封面、音乐平台名称、商标和第三方服务均归各自权利人所有。本项目不授予这些内容的任何权利。
 
-## 许可证
+开发与构建边界见 [`docs/DEVELOPMENT_WORKFLOW.md`](docs/DEVELOPMENT_WORKFLOW.md)。
 
-本仓库公开源码，但不是 OSI 定义的开源软件。原创代码采用
-[PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0)：允许个人和其他非商业目的使用、修改与再分发，禁止商业使用。第三方组件、服务、商标和素材仍按各自适用的许可执行，完整条款见 [`LICENSE`](LICENSE)。
+## 版权与使用
+
+本仓库不是开源软件。原创源码、文档和设计内容保留全部权利；仓库公开可见不代表获得使用、复制、修改或再分发许可。第三方内容仍按各自条款处理，详见 [`LICENSE`](LICENSE)。
