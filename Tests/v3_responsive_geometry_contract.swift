@@ -22,6 +22,51 @@ struct V3ResponsiveGeometryContract {
         precondition(split.artwork >= 0 && split.lyrics >= 0 && split.gap >= 0, "columns must never be negative")
         precondition(split.lyrics >= 300 - 0.001, "lyrics must retain a readable minimum when the container allows it")
 
+        // A one-point resize across the former 1080pt breakpoint must not
+        // replace the split composition with a poster or suddenly reallocate
+        // a large part of the canvas to artwork. These expectations are
+        // deliberately derived from continuity and containment, not from the
+        // implementation's interpolation formula.
+        let beforeWideBoundary = V3ResponsiveGeometry.adaptiveSplitMetrics(
+            canvasSize: CGSize(width: 1_079, height: 720),
+            artworkScale: 1.4
+        )
+        let afterWideBoundary = V3ResponsiveGeometry.adaptiveSplitMetrics(
+            canvasSize: CGSize(width: 1_081, height: 720),
+            artworkScale: 1.4
+        )
+        precondition(
+            abs(beforeWideBoundary.artworkWidth - afterWideBoundary.artworkWidth) < 4,
+            "artwork column must change continuously across the former wide breakpoint"
+        )
+        precondition(
+            abs(beforeWideBoundary.coverSize - afterWideBoundary.coverSize) < 4,
+            "cover size must change continuously across the former wide breakpoint"
+        )
+
+        for size in [
+            CGSize(width: 800, height: 600),
+            CGSize(width: 1_080, height: 720),
+            CGSize(width: 1_760, height: 732)
+        ] {
+            let metrics = V3ResponsiveGeometry.adaptiveSplitMetrics(
+                canvasSize: size,
+                artworkScale: 1.4
+            )
+            precondition(
+                abs(metrics.artworkWidth + metrics.lyricsWidth + metrics.gap - metrics.contentWidth) < 0.001,
+                "adaptive split columns must fill the available width exactly"
+            )
+            precondition(
+                metrics.coverSize <= metrics.artworkWidth - 12 + 0.001,
+                "cover must remain inside its artwork column at 140 percent"
+            )
+            precondition(
+                metrics.coverSize + metrics.reservedTrackChromeHeight <= metrics.availableHeight + 0.001,
+                "cover, metadata and transport must remain inside the visible height"
+            )
+        }
+
         let portrait = V3ResponsiveGeometry.stageArtworkRect(
             canvasSize: CGSize(width: 800, height: 500),
             artworkAspectRatio: 0.65,

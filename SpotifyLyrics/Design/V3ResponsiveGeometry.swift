@@ -11,6 +11,70 @@ enum V3ResponsiveGeometry {
         let gap: CGFloat
     }
 
+    struct AdaptiveSplitMetrics: Equatable {
+        let horizontalPadding: CGFloat
+        let verticalPadding: CGFloat
+        let contentWidth: CGFloat
+        let availableHeight: CGFloat
+        let artworkWidth: CGFloat
+        let lyricsWidth: CGFloat
+        let gap: CGFloat
+        let coverSize: CGFloat
+        let reservedTrackChromeHeight: CGFloat
+    }
+
+    /// One continuous geometry model for every horizontal V3 layout. The old
+    /// wide/medium implementations used unrelated ratios and let artwork scale
+    /// resize the entire column, so crossing 1080pt could move the cover by
+    /// hundreds of points. Here only the cover occupancy responds to the user
+    /// scale; column allocation and padding interpolate with the canvas.
+    static func adaptiveSplitMetrics(
+        canvasSize: CGSize,
+        artworkScale: CGFloat
+    ) -> AdaptiveSplitMetrics {
+        let width = finitePositive(canvasSize.width)
+        let height = finitePositive(canvasSize.height)
+        let interpolation = min(1, max(0, (width - 800) / 560))
+        let horizontalPadding = interpolate(from: 32, to: 64, progress: interpolation)
+        let verticalPadding = interpolate(from: 28, to: 34, progress: interpolation)
+        let gap = interpolate(from: 24, to: 28, progress: interpolation)
+        let contentWidth = max(1, width - horizontalPadding * 2)
+        let availableHeight = max(1, height - verticalPadding * 2)
+        let artworkRatio = interpolate(from: 0.40, to: 0.43, progress: interpolation)
+        let split = splitColumns(
+            containerWidth: contentWidth,
+            requestedArtworkRatio: artworkRatio,
+            gap: gap,
+            minimumArtworkWidth: min(220, contentWidth * 0.30),
+            minimumLyricsWidth: min(280, contentWidth * 0.36)
+        )
+
+        // Metadata, progress, time labels, playback buttons and their spacing
+        // keep a fixed vertical budget. This is what prevents a 140% cover
+        // from pushing transport controls below a short wide window.
+        let reservedTrackChromeHeight = min(196, max(0, availableHeight - 1))
+        let maximumCover = min(
+            max(1, split.artwork - 12),
+            max(1, availableHeight - reservedTrackChromeHeight),
+            620
+        )
+        let normalizedScale = min(1, max(0, (finiteValue(artworkScale) - 0.8) / 0.6))
+        let coverOccupancy = interpolate(from: 0.70, to: 1.0, progress: normalizedScale)
+        let coverSize = max(1, maximumCover * coverOccupancy)
+
+        return AdaptiveSplitMetrics(
+            horizontalPadding: horizontalPadding,
+            verticalPadding: verticalPadding,
+            contentWidth: contentWidth,
+            availableHeight: availableHeight,
+            artworkWidth: split.artwork,
+            lyricsWidth: split.lyrics,
+            gap: split.gap,
+            coverSize: coverSize,
+            reservedTrackChromeHeight: reservedTrackChromeHeight
+        )
+    }
+
     static func boundedCoverSize(
         availableWidth: CGFloat,
         availableHeight: CGFloat,
@@ -146,5 +210,9 @@ enum V3ResponsiveGeometry {
     private static func finiteNonNegative(_ value: CGFloat) -> CGFloat {
         guard value.isFinite else { return 0 }
         return max(0, value)
+    }
+
+    private static func interpolate(from start: CGFloat, to end: CGFloat, progress: CGFloat) -> CGFloat {
+        start + (end - start) * min(1, max(0, progress))
     }
 }

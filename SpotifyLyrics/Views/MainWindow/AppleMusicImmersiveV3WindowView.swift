@@ -69,6 +69,7 @@ struct AppleMusicImmersiveV3WindowView: View {
                         value: toolsVisible || isVisualTuningPresented
                     )
             }
+            .clipped()
             .contentShape(Rectangle())
             .onContinuousHover(coordinateSpace: .local) { phase in
                 switch phase {
@@ -116,10 +117,8 @@ struct AppleMusicImmersiveV3WindowView: View {
             compactFocusWidth: MainWindowResponsiveThresholds.compactLyricsFocusWidth,
             compactFocusHeight: MainWindowResponsiveThresholds.compactLyricsFocusHeight
         ) {
-        case .wide:
-            wideLayout(in: geometry)
-        case .medium:
-            mediumLayout(in: geometry)
+        case .wide, .medium:
+            adaptiveSplitLayout(in: geometry)
         case .small:
             smallLayout(in: geometry)
         case .lyricsFocus:
@@ -177,108 +176,47 @@ struct AppleMusicImmersiveV3WindowView: View {
         }
     }
 
-    private func wideLayout(in geometry: GeometryProxy) -> some View {
-        let horizontalPadding = LyricsDesignTokens.Spacing.windowWide
-        let verticalPadding = LyricsDesignTokens.Spacing.xl + LyricsDesignTokens.Spacing.sm
-        let contentWidth = max(1, geometry.size.width - horizontalPadding * 2)
-        let availableHeight = max(1, geometry.size.height - verticalPadding * 2)
-
-        let position = settings.v3ArtworkPosition // "left", "center", "right"
-        let scale = foregroundArtworkScale
-
-        if position == "center" && showsForegroundArtwork {
-            let baseSize = min(contentWidth * 0.38, availableHeight * 0.48)
-            let coverSize = V3ResponsiveGeometry.boundedCoverSize(
-                availableWidth: contentWidth,
-                availableHeight: max(1, availableHeight - 120),
-                desiredSize: baseSize * scale,
-                minimum: min(180, contentWidth)
-            )
-
-            return AnyView(
-                VStack(alignment: .center, spacing: 14) {
-                    Spacer(minLength: 8)
-
-                    ArtworkView(
-                        track: state.currentTrack,
-                        size: coverSize,
-                        showsAlbumLabel: false,
-                        cornerRadiusRatio: 0.06
-                    )
-                    .shadow(color: Color.black.opacity(0.32), radius: 20, x: 0, y: 8)
-
-                    TrackMetadataView(
-                        track: state.currentTrack,
-                        titleSize: min(28, max(20, coverSize * 0.075)),
-                        alignment: .center,
-                        presentation: .v3Immersive
-                    )
-
-                    AppleMusicImmersiveV3TransportControls(
-                        state: state,
-                        alignment: .center,
-                        progressDensity: .wide,
-                        progressMaxWidth: min(420, contentWidth * 0.60)
-                    )
-
-                    Spacer(minLength: 8)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                .padding(.horizontal, horizontalPadding)
-                .padding(.vertical, verticalPadding)
-            )
-        }
-
-        let leftRatio = 0.45 * scale
-        let columnGap: CGFloat = 28
-        let columnSplit = V3ResponsiveGeometry.splitColumns(
-            containerWidth: contentWidth,
-            requestedArtworkRatio: leftRatio / (1.0 + leftRatio * 0.3),
-            gap: columnGap,
-            minimumArtworkWidth: min(260, contentWidth * 0.30),
-            minimumLyricsWidth: min(360, contentWidth * 0.34)
+    private func adaptiveSplitLayout(in geometry: GeometryProxy) -> some View {
+        let metrics = V3ResponsiveGeometry.adaptiveSplitMetrics(
+            canvasSize: geometry.size,
+            artworkScale: foregroundArtworkScale
         )
-        let leftWidth = columnSplit.artwork
-        let rightWidth = max(1, contentWidth - leftWidth - columnGap)
-        let baseCoverSize = min(leftWidth * 0.86, availableHeight * 0.58)
-        let coverSize = V3ResponsiveGeometry.boundedCoverSize(
-            availableWidth: max(1, leftWidth - 12),
-            availableHeight: max(1, availableHeight * 0.68),
-            desiredSize: baseCoverSize * (scale / 1.1),
-            minimum: min(180, max(1, leftWidth - 12))
-        )
+        let position = settings.v3ArtworkPosition
+        let trackAlignment: HorizontalAlignment = position == "center" ? .center : .leading
 
         let trackCol = trackColumn(
-            width: leftWidth,
-            availableHeight: availableHeight,
-            coverSize: coverSize,
-            alignment: .leading,
+            width: metrics.artworkWidth,
+            availableHeight: metrics.availableHeight,
+            coverSize: metrics.coverSize,
+            alignment: trackAlignment,
             compact: false,
             progressDensity: .wide
         )
-        .frame(width: leftWidth)
+        .frame(width: metrics.artworkWidth)
         .frame(maxHeight: .infinity)
 
-        let lyricsCol = lyricsColumn(width: rightWidth, compact: false)
-            .frame(width: rightWidth)
+        let lyricsCol = lyricsColumn(width: metrics.lyricsWidth, compact: false)
+            .frame(width: metrics.lyricsWidth)
             .frame(maxHeight: .infinity)
 
-        return AnyView(
-            HStack(spacing: 0) {
-                if position == "right" {
-                    lyricsCol
-                    Spacer().frame(width: columnGap)
-                    trackCol
-                } else {
-                    trackCol
-                    Spacer().frame(width: columnGap)
-                    lyricsCol
-                }
+        return HStack(spacing: 0) {
+            if position == "right" {
+                lyricsCol
+                Spacer().frame(width: metrics.gap)
+                trackCol
+            } else {
+                trackCol
+                Spacer().frame(width: metrics.gap)
+                lyricsCol
             }
-            .frame(width: contentWidth, height: availableHeight, alignment: .center)
-            .padding(.horizontal, horizontalPadding)
-            .padding(.vertical, verticalPadding)
+        }
+        .frame(
+            width: metrics.contentWidth,
+            height: metrics.availableHeight,
+            alignment: .center
         )
+        .padding(.horizontal, metrics.horizontalPadding)
+        .padding(.vertical, metrics.verticalPadding)
     }
 
     private func instrumentalPosterLayout(in geometry: GeometryProxy) -> some View {
@@ -325,65 +263,6 @@ struct AppleMusicImmersiveV3WindowView: View {
         }
         .scrollIndicators(.hidden)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private func mediumLayout(in geometry: GeometryProxy) -> some View {
-        let horizontalPadding = LyricsDesignTokens.Spacing.windowMedium
-        let verticalPadding = LyricsDesignTokens.Spacing.xl + LyricsDesignTokens.Spacing.xxs
-        let contentWidth = max(1, geometry.size.width - horizontalPadding * 2)
-        let columnGap: CGFloat = 24
-        let columnSplit = V3ResponsiveGeometry.splitColumns(
-            containerWidth: contentWidth,
-            requestedArtworkRatio: 0.40,
-            gap: columnGap,
-            minimumArtworkWidth: min(220, contentWidth * 0.30),
-            minimumLyricsWidth: min(280, contentWidth * 0.36)
-        )
-        let leftWidth = columnSplit.artwork
-        let rightWidth = max(1, contentWidth - leftWidth - columnGap)
-        let position = settings.v3ArtworkPosition
-        let scale = foregroundArtworkScale
-        let baseCoverSize = min(leftWidth * 0.76, geometry.size.height * 0.42)
-        let coverSize = V3ResponsiveGeometry.boundedCoverSize(
-            availableWidth: max(1, leftWidth - 12),
-            availableHeight: max(1, (geometry.size.height - verticalPadding * 2) * 0.68),
-            desiredSize: baseCoverSize * scale,
-            minimum: min(180, max(1, leftWidth - 12))
-        )
-
-        let trackCol = trackColumn(
-            width: leftWidth,
-            availableHeight: geometry.size.height - verticalPadding * 2,
-            coverSize: coverSize,
-            alignment: position == "center" ? .center : .leading,
-            compact: true,
-            progressDensity: .medium
-        )
-        .frame(width: leftWidth)
-        .frame(maxHeight: .infinity)
-
-        let lyricsCol = lyricsColumn(width: rightWidth, compact: true)
-            .frame(width: rightWidth)
-            .frame(maxHeight: .infinity)
-
-        return HStack(spacing: 0) {
-            if position == "right" {
-                lyricsCol
-                Spacer().frame(width: columnGap)
-                trackCol
-            } else {
-                trackCol
-                Spacer().frame(width: columnGap)
-                lyricsCol
-            }
-        }
-        .frame(
-            width: contentWidth,
-            height: max(1, geometry.size.height - verticalPadding * 2),
-            alignment: .center
-        )
-        .padding(.horizontal, horizontalPadding)
-        .padding(.vertical, verticalPadding)
     }
 
     private func smallLayout(in geometry: GeometryProxy) -> some View {
