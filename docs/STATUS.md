@@ -1,6 +1,6 @@
 # Project Status
 
-Status snapshot: 2026-08-09.
+Status snapshot: 2026-08-13.
 
 This file describes what is present in the repository and how mature it is. It is not a release promise. Product direction and priority still come from the latest top-level Craft execution board; Git identifies the exact source.
 
@@ -29,6 +29,7 @@ This file describes what is present in the repository and how mature it is. It i
 - AMLL lookup and broader personal-source defaults.
 - Concurrent network-provider execution with bounded timeouts and result deduplication.
 - Improved translation/romanization preservation, long-line wrapping, lyric transitions, and scoped Japanese reading corrections.
+- V3 lower-boundary resizing now keeps one bounded split composition when automatic Lyrics Focus is disabled; metadata, playback seeking, and the current-song operation surface also have adaptive UI fallbacks.
 
 These items have code and contracts, but remain development work until accepted in real playback.
 
@@ -40,7 +41,7 @@ These items have code and contracts, but remain development work until accepted 
 - Translation UI and persistence exist, but Apple/system and AI-backed translation paths still need broader real-machine acceptance.
 - Automatic alignment has models, controls, experiments, and contracts, but is not a dependable zero-operation product feature.
 - Direction D / Experimental Workbench is a development surface, not the recommended stable interface.
-- UI polish, performance soak testing, and app-hang investigation remain ongoing.
+- UI polish, performance soak testing, and app-hang investigation remain ongoing; the latest responsive V3 checkpoint has passed a Debug build and a live resize smoke check but still needs longer real-playback soak testing.
 
 ## Planned or not implemented
 

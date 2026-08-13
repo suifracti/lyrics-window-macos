@@ -26,33 +26,66 @@ struct TrackMetadataView: View {
                 .multilineTextAlignment(alignment == .center ? .center : .leading)
                 .shadow(color: Color.black.opacity(presentation == .v3Immersive ? 0.22 : 0), radius: 7, y: 2)
 
-            HStack(spacing: 6) {
-                HStack(spacing: 4) {
-                    ForEach(Array(artistLinks.enumerated()), id: \.offset) { index, artist in
-                        if index > 0 {
-                            Text(",")
-                                .foregroundStyle(separatorColor)
-                        }
-                        artistButton(artist)
-                    }
-                }
+            ViewThatFits(in: .horizontal) {
+                metadataSingleLine
+                metadataStacked
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: alignment == .center ? .center : .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(track.title)，\(track.artist)，\(track.album)")
+    }
 
-                if !track.album.isEmpty {
+    private var metadataSingleLine: some View {
+        HStack(spacing: 6) {
+            artistGroup
+            if !track.album.isEmpty {
+                Text("·")
+                    .foregroundStyle(separatorColor)
+                albumButton
+            }
+        }
+        .font(metadataFont)
+        .lineLimit(1)
+        .fixedSize(horizontal: true, vertical: false)
+    }
+
+    private var metadataStacked: some View {
+        VStack(alignment: alignment, spacing: 2) {
+            artistGroup
+            if !track.album.isEmpty {
+                HStack(spacing: 4) {
                     Text("·")
                         .foregroundStyle(separatorColor)
                     albumButton
                 }
             }
-            .font(.system(
-                size: max(12, titleSize * 0.58),
-                weight: presentation == .v3Immersive ? .semibold : .medium,
-                design: .rounded
-            ))
-            .lineLimit(1)
         }
+        .font(metadataFont)
+        .lineLimit(1)
         .frame(maxWidth: .infinity, alignment: alignment == .center ? .center : .leading)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(track.title)，\(track.artist)，\(track.album)")
+    }
+
+    private var metadataFont: Font {
+        .system(
+            size: max(12, titleSize * 0.58),
+            weight: presentation == .v3Immersive ? .semibold : .medium,
+            design: .rounded
+        )
+    }
+
+    private var artistGroup: some View {
+        HStack(spacing: 4) {
+            ForEach(Array(artistLinks.enumerated()), id: \.offset) { index, artist in
+                if index > 0 {
+                    Text(",")
+                        .foregroundStyle(separatorColor)
+                }
+                artistButton(artist)
+            }
+        }
+        .lineLimit(1)
+        .truncationMode(.middle)
     }
 
     @ViewBuilder

@@ -622,7 +622,7 @@ struct AppleMusicImmersiveV3WindowView: View {
         Button {
             isVisualTuningPresented.toggle()
         } label: {
-            iconLabel("slider.horizontal.3", description: "V3 视觉与布局调节")
+            iconLabel("rectangle.3.group", description: "V3 视觉与布局调节")
         }
         .buttonStyle(.plain)
         .popover(isPresented: $isVisualTuningPresented, arrowEdge: .top) {
@@ -636,7 +636,7 @@ struct AppleMusicImmersiveV3WindowView: View {
 
     private var preferencesButton: some View {
         SettingsLink {
-            iconLabel("slider.horizontal.3", description: "显示设置")
+            iconLabel("gearshape", description: "显示设置")
         }
         .accessibilityLabel("显示设置")
     }
@@ -668,12 +668,18 @@ private enum AppleMusicImmersiveV3ProgressDensity: Equatable {
 
     var containerHeight: CGFloat {
         switch self {
-        case .wide: return 12
-        case .medium: return 11
-        case .small: return 9
-        case .focus: return 8
+        case .wide: return 24
+        case .medium: return 22
+        case .small: return 20
+        case .focus: return 20
         }
     }
+
+    /// The visible rail stays thin; this is the stable pointer and keyboard
+    /// target used while the window is being resized or the pointer is near
+    /// the controls. Keeping the hit target independent from rail thickness
+    /// prevents tiny controls from changing the surrounding composition.
+    var interactionHeight: CGFloat { containerHeight }
 
     var trackHeight: CGFloat {
         switch self {
@@ -786,7 +792,7 @@ private struct AppleMusicImmersiveV3PlaybackProgress: View {
         }
         .frame(
             width: density.isFocus ? LyricsDesignTokens.Progress.focusWidth : nil,
-            height: density.containerHeight
+            height: density.interactionHeight
         )
         .frame(maxWidth: density.isFocus ? nil : (maxWidth ?? .infinity))
         .animation(
@@ -1829,7 +1835,7 @@ private struct V3VisualTuningPopoverView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("V3 视觉与布局调节调参面板")
+            Text("V3 视觉与布局")
                 .font(.system(size: 13, weight: .bold, design: .rounded))
                 .foregroundStyle(.primary)
 
