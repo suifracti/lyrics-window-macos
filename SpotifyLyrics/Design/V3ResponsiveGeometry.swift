@@ -5,6 +5,30 @@ import Foundation
 /// intentionally responsible only for rendering these already-safe values;
 /// this keeps window resizing from turning a readable layout into an overflow.
 enum V3ResponsiveGeometry {
+    enum ForegroundLayout: Equatable {
+        case adaptiveSplit
+        case lyricsFocus
+    }
+
+    /// Resolves the foreground composition without an implicit poster mode.
+    /// A compact lyrics focus is an explicit preference; otherwise the split
+    /// canvas remains the same composition all the way down to the technical
+    /// window minimum and only its metrics shrink continuously.
+    static func foregroundLayout(
+        canvasSize: CGSize,
+        automaticLyricsFocus: Bool,
+        compactFocusWidth: CGFloat = 900,
+        compactFocusHeight: CGFloat = 640
+    ) -> ForegroundLayout {
+        let width = finitePositive(canvasSize.width)
+        let height = finitePositive(canvasSize.height)
+        if automaticLyricsFocus,
+           width <= compactFocusWidth || height <= compactFocusHeight {
+            return .lyricsFocus
+        }
+        return .adaptiveSplit
+    }
+
     struct ColumnSplit: Equatable {
         let artwork: CGFloat
         let lyrics: CGFloat

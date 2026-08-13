@@ -120,7 +120,11 @@ struct AppleMusicImmersiveV3WindowView: View {
         case .wide, .medium:
             adaptiveSplitLayout(in: geometry)
         case .small:
-            smallLayout(in: geometry)
+            // Keep the legacy enum value decodable for saved preview state,
+            // but render it through the same bounded split geometry. A second
+            // vertical poster composition makes live window resizing jump
+            // between unrelated coordinate systems.
+            adaptiveSplitLayout(in: geometry)
         case .lyricsFocus:
             compactLyricsFocusLayout(in: geometry)
         }

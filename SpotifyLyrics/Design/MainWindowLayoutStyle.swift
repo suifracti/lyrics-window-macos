@@ -118,11 +118,13 @@ enum MainWindowResponsiveMode: String, Equatable, Sendable {
             return .wide
         }
 
-        if width >= comfortableSize.width,
-           height >= comfortableSize.height {
-            return .medium
-        }
-
-        return .small
+        // V3 keeps the same adaptive split below the comfort floor. Its
+        // metrics already clamp the cover and reserve transport chrome, so
+        // switching to a separate vertical poster here causes the visible
+        // one-point resize jump users experience while dragging the window.
+        // `small` remains a decodable compatibility value for forced runtime
+        // previews, but normal resolution intentionally stays continuous.
+        _ = comfortableSize
+        return .medium
     }
 }

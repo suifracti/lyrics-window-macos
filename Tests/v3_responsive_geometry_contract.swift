@@ -3,6 +3,36 @@ import Foundation
 @main
 struct V3ResponsiveGeometryContract {
     static func main() {
+        // A user who leaves automatic lyrics focus disabled expects one
+        // continuously resizing V3 composition. The former small-window
+        // poster replaced the entire split layout at 800x600 and made a
+        // one-point drag look like uncontrolled zooming.
+        for size in [
+            CGSize(width: 760, height: 520),
+            CGSize(width: 799, height: 599),
+            CGSize(width: 800, height: 599),
+            CGSize(width: 800, height: 600),
+            CGSize(width: 1_079, height: 599),
+            CGSize(width: 1_080, height: 599),
+            CGSize(width: 1_760, height: 1_174)
+        ] {
+            precondition(
+                V3ResponsiveGeometry.foregroundLayout(
+                    canvasSize: size,
+                    automaticLyricsFocus: false
+                ) == .adaptiveSplit,
+                "manual V3 must keep one continuous split composition at \(size)"
+            )
+        }
+
+        precondition(
+            V3ResponsiveGeometry.foregroundLayout(
+                canvasSize: CGSize(width: 860, height: 620),
+                automaticLyricsFocus: true
+            ) == .lyricsFocus,
+            "automatic lyrics focus remains an explicit compact-window behavior"
+        )
+
         let narrowCover = V3ResponsiveGeometry.boundedCoverSize(
             availableWidth: 170,
             availableHeight: 120,
