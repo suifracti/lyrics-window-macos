@@ -37,7 +37,10 @@ struct SpotifyLyricsApp: App {
     }
 
     var body: some Scene {
-        WindowGroup {
+        // The player is a single stateful surface. A WindowGroup can create
+        // duplicate main windows, which makes shared playback/layout state
+        // race while the user is resizing one of them.
+        Window("Lyric Island", id: "main-window") {
             MainLyricsWindowView()
                 .environmentObject(playbackState)
                 .environmentObject(appSettings)
