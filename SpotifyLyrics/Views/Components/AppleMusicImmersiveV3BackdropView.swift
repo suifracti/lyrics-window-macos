@@ -769,7 +769,11 @@ public actor AppleMusicImmersiveV3BackdropCache {
         artworkData: Data,
         seed: UInt64
     ) -> AppleMusicImmersiveV3BackdropSnapshot {
-        let reducedArtwork = thumbnailData(from: artworkData, maxPixel: 640)
+        // The visible artwork is also used by the zero-blur ambient and
+        // stage presentations. 640px makes a large window look soft even
+        // when the user explicitly selects 0%; keep the derivative small,
+        // but retain enough resolution for the actual artwork plane.
+        let reducedArtwork = thumbnailData(from: artworkData, maxPixel: 1280)
         let ambientArtwork = thumbnailData(from: artworkData, maxPixel: 48)
         let palette = BackdropPalette.from(imageData: reducedArtwork)
         let noise = makeNoiseData(seed: seed)
