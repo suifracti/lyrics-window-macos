@@ -290,6 +290,10 @@ struct KanaReplacementLineView: View {
     let annotationFont: Font
     let baseColor: Color
     let annotationColor: Color
+    /// Optional readable measure supplied by V3. Legacy callers keep the
+    /// intrinsic-width behavior, while the main window can force the flow
+    /// layout to reflow before a narrow resize clips the line.
+    var maxWidth: CGFloat? = nil
 
     private var displayTokens: [LyricRubyToken] {
         guard let tokens, !tokens.isEmpty else {
@@ -313,7 +317,7 @@ struct KanaReplacementLineView: View {
     }
 
     var body: some View {
-        RubyTokenFlowLayout(horizontalSpacing: 0, verticalSpacing: 5) {
+        RubyTokenFlowLayout(horizontalSpacing: 0, verticalSpacing: 5, maxWidth: maxWidth) {
             ForEach(Array(displayTokenGroups.enumerated()), id: \.offset) { _, group in
                 HStack(alignment: .lastTextBaseline, spacing: 0) {
                     ForEach(group) { token in
@@ -329,6 +333,7 @@ struct KanaReplacementLineView: View {
                 }
             }
         }
+        .frame(maxWidth: maxWidth ?? .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(originalText)
     }
@@ -458,6 +463,9 @@ struct RubyLineView: View {
     /// changing the established V2/focus presentation defaults.
     var rubySpacing: CGFloat = 2
     var tokenVerticalSpacing: CGFloat = 5
+    /// Optional readable measure supplied by V3. The token flow remains
+    /// intrinsic for legacy/focus callers when this is nil.
+    var maxWidth: CGFloat? = nil
 
     private var displayTokens: [LyricRubyToken] {
         guard let tokens, !tokens.isEmpty else {
@@ -477,7 +485,7 @@ struct RubyLineView: View {
     }
 
     var body: some View {
-        RubyTokenFlowLayout(horizontalSpacing: 0, verticalSpacing: tokenVerticalSpacing) {
+        RubyTokenFlowLayout(horizontalSpacing: 0, verticalSpacing: tokenVerticalSpacing, maxWidth: maxWidth) {
             ForEach(Array(displayTokenGroups.enumerated()), id: \.offset) { _, group in
                 let groupEdgeReserve: CGFloat = group.count > 1
                     && group.filter(\.hasRuby).count == 1 ? 5 : 0
@@ -501,6 +509,7 @@ struct RubyLineView: View {
                 .padding(.horizontal, groupEdgeReserve)
             }
         }
+        .frame(maxWidth: maxWidth ?? .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(originalText)
     }
@@ -693,6 +702,7 @@ private struct RubyTokenBlockLayout: Layout {
 private struct RubyTokenFlowLayout: Layout {
     let horizontalSpacing: CGFloat
     let verticalSpacing: CGFloat
+    let maxWidth: CGFloat?
 
     private struct Item {
         let index: Int
@@ -720,7 +730,7 @@ private struct RubyTokenFlowLayout: Layout {
     ) -> CGSize {
         let width = proposedWidth(proposal, subviews: subviews)
         let rows = makeRows(width: width, subviews: subviews)
-        let contentWidth = proposal.width ?? rows.map(\.width).max() ?? 0
+        let contentWidth = width > 0 ? width : rows.map(\.width).max() ?? 0
         let contentHeight = rows.reduce(0) { partial, row in
             partial + row.height
         } + CGFloat(max(0, rows.count - 1)) * verticalSpacing
@@ -752,8 +762,20 @@ private struct RubyTokenFlowLayout: Layout {
     }
 
     private func proposedWidth(_ proposal: ProposedViewSize, subviews: Subviews) -> CGFloat {
-        if let width = proposal.width, width.isFinite, width > 0 {
-            return width
+        let proposalWidth = proposal.width.flatMap { width in
+            width.isFinite && width > 0 ? width : nil
+        }
+        let explicitWidth = maxWidth.flatMap { width in
+            width.isFinite && width > 0 ? width : nil
+        }
+        if let proposalWidth, let explicitWidth {
+            return min(proposalWidth, explicitWidth)
+        }
+        if let proposalWidth {
+            return proposalWidth
+        }
+        if let explicitWidth {
+            return explicitWidth
         }
         return subviews.reduce(0) { partial, subview in
             partial + subview.sizeThatFits(.unspecified).width

@@ -20,7 +20,8 @@ require() {
 
 require "$MODELS" 'struct LyricRubyToken' 'line-level ruby token model'
 require "$MODELS" 'rubyTokens' 'ruby token storage on lyric lines'
-require "$ENRICHER" 'reading\?\.tokens' 'ruby tokens come from morphology'
+require "$ENRICHER" 'reading\.tokens' 'ruby tokens come from morphology'
+require "$ENRICHER" 'reading\.isTokenAligned' 'line-only readings cannot become whole-line ruby'
 require "$ENRICHER" 'rubyTokens:' 'enrichment preserves/generated ruby tokens'
 require "$ALIGN" 'rubyTokens' 'alignment preserves ruby tokens'
 

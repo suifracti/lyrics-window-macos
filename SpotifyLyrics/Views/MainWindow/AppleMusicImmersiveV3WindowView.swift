@@ -1573,7 +1573,7 @@ private struct AppleMusicImmersiveV3LyricRow: View {
     }
 
     private var reliableRubyTokens: [LyricRubyToken]? {
-        guard let tokens = line.rubyTokens,
+        guard storedKanaText == nil, let tokens = line.rubyTokens,
               tokens.contains(where: { $0.hasDisplayRuby }) else {
             return nil
         }
@@ -1586,21 +1586,30 @@ private struct AppleMusicImmersiveV3LyricRow: View {
             originalText: effectiveOriginalText,
             providerKana: kana
         )
+        guard reading.isTokenAligned else {
+            // Keep the provider kana available to the independent/replacement
+            // modes, but never turn an unbounded line reading into one ruby
+            // annotation spanning the whole sentence.
+            return nil
+        }
         let tokens = reading.tokens.flatMap { JapaneseReadingPipeline.rubyTokens(for: $0) }
         return tokens.contains(where: { $0.hasDisplayRuby }) ? tokens : nil
     }
 
     private var automaticRubyTokens: [LyricRubyToken]? {
-        guard let reading = automaticReading else { return nil }
+        guard storedKanaText == nil, let reading = automaticReading, reading.isTokenAligned else { return nil }
         let tokens = reading.tokens.flatMap { JapaneseReadingPipeline.rubyTokens(for: $0) }
         return tokens.contains(where: { $0.hasDisplayRuby }) ? tokens : nil
     }
 
     private var inlineRubyTokens: [LyricRubyToken]? {
-        // Prefer the local morphology result for the visual mapping. Provider
-        // kana can be line-level or carry a wrong particle reading; it remains
-        // a fallback for names and lines the local engine cannot resolve.
-        automaticRubyTokens ?? providerRubyTokens ?? reliableRubyTokens
+        // A provider reading that has been proven against the local morphology
+        // boundaries is authoritative for the visible ruby. This matters for
+        // ambiguous kanji such as 満, where isolated MeCab may choose a name
+        // reading while the lyric source provides the phrase reading まん.
+        // Unprojectable provider and automatic line readings return nil above;
+        // they remain available only as independent line-level kana.
+        providerRubyTokens ?? automaticRubyTokens ?? reliableRubyTokens
     }
 
     private var shouldRenderInlineRuby: Bool {
@@ -1746,7 +1755,8 @@ private struct AppleMusicImmersiveV3LyricRow: View {
                     baseColor: .white,
                     rubyColor: .white.opacity(rubyOpacity),
                     rubySpacing: 1,
-                    tokenVerticalSpacing: 3
+                    tokenVerticalSpacing: 3,
+                    maxWidth: readableLineWidth
                 )
             } else if preferences.showOriginal, preferences.kanaDisplayMode == .kanaReplacement, shouldShowKana,
                       let kana = displayKanaText {
@@ -1758,7 +1768,8 @@ private struct AppleMusicImmersiveV3LyricRow: View {
                     baseFont: .system(size: baseSize, weight: rowWeight, design: .rounded),
                     annotationFont: .system(size: rubySize, weight: .regular, design: .rounded),
                     baseColor: .white,
-                    annotationColor: .white.opacity(rubyOpacity)
+                    annotationColor: .white.opacity(rubyOpacity),
+                    maxWidth: readableLineWidth
                 )
             } else if preferences.showOriginal {
                 Text(semanticDisplayText)

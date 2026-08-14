@@ -72,6 +72,17 @@ struct RubyTokenContract {
         precondition(iterationRuby.map(\.ruby) == ["ひ", nil])
         precondition(iterationRuby.map(\.kanaSurface) == ["ひ", "び"])
 
+        let katakana = JapaneseReadingPipeline.analyze(
+            originalText: "イマジネーション",
+            engine: FixtureJapaneseEngine()
+        )
+        let katakanaRuby = katakana.tokens.flatMap {
+            JapaneseReadingPipeline.rubyTokens(for: $0, engine: FixtureJapaneseEngine())
+        }
+        precondition(katakanaRuby.map(\.surface) == ["イマジネーション"])
+        precondition(katakanaRuby.map(\.ruby) == [nil])
+        precondition(katakanaRuby.map(\.kanaSurface) == ["いまじねーしょん"])
+
         print("ruby token contract passed: okurigana excluded from ruby and kana replacement preserved")
     }
 }

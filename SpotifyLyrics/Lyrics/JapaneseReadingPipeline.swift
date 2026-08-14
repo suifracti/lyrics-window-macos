@@ -316,6 +316,11 @@ public struct JapaneseReadingResult: Equatable, Sendable {
     public let romajiText: String?
     public let source: JapaneseReadingSource
     public let confidence: Double
+    /// True only when each reading token is safe to project onto the original
+    /// surface. A provider can still supply a useful line-level kana string
+    /// when its token boundaries cannot be proven, but that result must not be
+    /// rendered as one giant ruby annotation above the whole lyric line.
+    public let isTokenAligned: Bool
 
     public var containsUnknown: Bool {
         tokens.contains(where: \.isUnknown)
@@ -335,7 +340,8 @@ public struct JapaneseReadingResult: Equatable, Sendable {
         kanaText: String?,
         romajiText: String?,
         source: JapaneseReadingSource,
-        confidence: Double
+        confidence: Double,
+        isTokenAligned: Bool = true
     ) {
         self.originalText = originalText
         self.tokens = tokens
@@ -343,6 +349,7 @@ public struct JapaneseReadingResult: Equatable, Sendable {
         self.romajiText = romajiText
         self.source = source
         self.confidence = confidence
+        self.isTokenAligned = isTokenAligned
     }
 }
 
@@ -399,6 +406,40 @@ public enum JapaneseReadingPipeline {
         let provider = providerKana?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let provider, !provider.isEmpty, isValidProviderKana(provider) {
             let kana = JapaneseRomanizer.toHiraganaPreservingLatin(provider)
+            if let morphology = try? engine.tokenize(originalText),
+               morphology.map(\.originalText).joined() == originalText,
+               let projectedKana = projectProviderKana(kana, onto: morphology) {
+                var offset = 0
+                let tokens = morphology.enumerated().map { index, token in
+                    let start = offset
+                    offset += token.originalText.count
+                    let tokenKana = projectedKana[index]
+                    return JapaneseReadingToken(
+                        id: index,
+                        originalText: token.originalText,
+                        lemma: token.lemma,
+                        kana: tokenKana,
+                        romaji: JapaneseRomanizer.romanizeConfirmedKana(tokenKana),
+                        source: .providerOfficial,
+                        confidence: 1.0,
+                        partOfSpeech: token.partOfSpeech,
+                        startOffset: start,
+                        endOffset: offset
+                    )
+                }
+                return JapaneseReadingResult(
+                    originalText: originalText,
+                    tokens: tokens,
+                    kanaText: kana,
+                    romajiText: JapaneseRomanizer.romanizeConfirmedKana(kana),
+                    source: .providerOfficial,
+                    confidence: 1.0
+                )
+            }
+
+            // Keep the authoritative line layer even when the local analyzer
+            // cannot prove a token-by-token projection. Callers must treat
+            // this one-token result as a line reading, not as per-token ruby.
             let token = JapaneseReadingToken(
                 id: 0,
                 originalText: originalText,
@@ -416,7 +457,8 @@ public enum JapaneseReadingPipeline {
                 kanaText: kana,
                 romajiText: token.romaji,
                 source: .providerOfficial,
-                confidence: 1.0
+                confidence: 1.0,
+                isTokenAligned: false
             )
         }
 
@@ -484,6 +526,123 @@ public enum JapaneseReadingPipeline {
             source: source,
             confidence: confidence
         )
+    }
+
+    /// Projects an authoritative provider line reading onto local morphology
+    /// tokens only when the boundaries can be proven from the provider text.
+    /// A local dictionary reading is used as an anchor, never as a replacement
+    /// for provider kana. If an ambiguous span cannot be bounded, the caller
+    /// keeps the line-level reading and the UI can fail closed for ruby.
+    private static func projectProviderKana(
+        _ providerKana: String,
+        onto morphology: [JapaneseMorphologyToken]
+    ) -> [String]? {
+        guard !morphology.isEmpty else { return nil }
+        let characters = Array(JapaneseRomanizer.toHiraganaPreservingLatin(providerKana))
+        var cursor = 0
+        var projected: [String] = []
+
+        for index in morphology.indices {
+            let token = morphology[index]
+            let isWhitespace = token.originalText.unicodeScalars.allSatisfy {
+                CharacterSet.whitespacesAndNewlines.contains($0)
+            }
+
+            if isWhitespace {
+                let expected = Array(token.originalText)
+                if prefix(expected, in: characters, at: cursor) {
+                    projected.append(String(expected))
+                    cursor += expected.count
+                } else {
+                    // Some providers normalize lyric spacing away. Keep the
+                    // surface token for ruby grouping without consuming a
+                    // character that is not present in the provider layer.
+                    projected.append(token.originalText)
+                }
+                continue
+            }
+
+            if !containsHan(token.originalText) {
+                let expected = Array(JapaneseRomanizer.toHiraganaPreservingLatin(token.originalText))
+                guard !expected.isEmpty,
+                      prefix(expected, in: characters, at: cursor) else {
+                    return nil
+                }
+                projected.append(String(expected))
+                cursor += expected.count
+                continue
+            }
+
+            let localAnchor = token.readingKatakana
+                .map(JapaneseRomanizer.toHiraganaPreservingLatin)
+                .map(Array.init) ?? []
+            if !localAnchor.isEmpty,
+               prefix(localAnchor, in: characters, at: cursor) {
+                projected.append(String(localAnchor))
+                cursor += localAnchor.count
+                continue
+            }
+
+            if let nextAnchor = nextProviderAnchor(
+                after: index,
+                morphology: morphology,
+                providerCharacters: characters,
+                from: cursor
+            ) {
+                guard nextAnchor > cursor else { return nil }
+                projected.append(String(characters[cursor..<nextAnchor]))
+                cursor = nextAnchor
+                continue
+            }
+
+            guard index == morphology.index(before: morphology.endIndex),
+                  cursor < characters.count else {
+                return nil
+            }
+            projected.append(String(characters[cursor...]))
+            cursor = characters.count
+        }
+
+        guard cursor == characters.count,
+              projected.count == morphology.count,
+              projected.allSatisfy({ !$0.isEmpty && !containsHan($0) }) else {
+            return nil
+        }
+        return projected
+    }
+
+    private static func nextProviderAnchor(
+        after index: Int,
+        morphology: [JapaneseMorphologyToken],
+        providerCharacters: [Character],
+        from cursor: Int
+    ) -> Int? {
+        guard index + 1 < morphology.count else { return nil }
+        for nextIndex in (index + 1)..<morphology.count {
+            let token = morphology[nextIndex]
+            let anchor: [Character]
+            if !containsHan(token.originalText) {
+                anchor = Array(JapaneseRomanizer.toHiraganaPreservingLatin(token.originalText))
+            } else if let raw = token.readingKatakana, raw != "*", !raw.isEmpty {
+                anchor = Array(JapaneseRomanizer.toHiraganaPreservingLatin(raw))
+            } else {
+                continue
+            }
+            guard !anchor.isEmpty else { continue }
+            if let position = providerCharacters[cursor...].firstRange(of: anchor)?.lowerBound {
+                return position
+            }
+        }
+        return nil
+    }
+
+    private static func prefix(
+        _ expected: [Character],
+        in actual: [Character],
+        at offset: Int
+    ) -> Bool {
+        guard offset >= 0, offset + expected.count <= actual.count else { return false }
+        return Array(actual[offset..<(offset + expected.count)]) == expected
     }
 
     /// Provider kana is authoritative only when it is actually Japanese
@@ -1099,7 +1258,11 @@ fileprivate enum JapaneseRubyTokenBuilder {
             let ruby = rubyByRun[index]
             let kanaSurface = kanaSurfaceByRun[index]
                 ?? ruby
-                ?? (run.kind == .han ? nil : run.text)
+                ?? (run.kind == .han
+                    ? nil
+                    : run.kind == .kana
+                        ? JapaneseRomanizer.displayKana(run.text)
+                        : run.text)
             return LyricRubyToken(
                 id: readingToken.id * 10_000 + index,
                 surface: run.text,
@@ -1119,7 +1282,9 @@ fileprivate enum JapaneseRubyTokenBuilder {
             id: readingToken.id * 10_000 + segment,
             surface: readingToken.originalText,
             ruby: nil,
-            kanaSurface: nil,
+            kanaSurface: containsKatakana(readingToken.originalText)
+                ? JapaneseRomanizer.displayKana(readingToken.kana ?? readingToken.originalText)
+                : nil,
             romaji: nil,
             confidence: readingToken.confidence
         )
@@ -1225,6 +1390,12 @@ fileprivate enum JapaneseRubyTokenBuilder {
     private static func isKana(_ character: Character) -> Bool {
         character.unicodeScalars.contains { scalar in
             (0x3040...0x30FF).contains(scalar.value)
+        }
+    }
+
+    private static func containsKatakana(_ text: String) -> Bool {
+        text.unicodeScalars.contains { scalar in
+            (0x30A1...0x30FA).contains(scalar.value)
         }
     }
 

@@ -202,9 +202,41 @@ struct JapaneseReadingContract {
         precondition(official.originalText == "言われた")
         precondition(official.kanaText == "いわれた")
         precondition(official.romajiText == "iwareta")
-        precondition(official.tokens.count == 1)
+        precondition(official.tokens.map(\.originalText) == ["言わ", "れ", "た"])
         precondition(official.tokens[0].source == .providerOfficial)
         precondition(official.tokens[0].confidence == 1.0)
+
+        // Provider kana is authoritative for the full line, but ruby still
+        // needs morphology-sized tokens. A source line must never become one
+        // detached whole-line annotation merely because its kana came from a
+        // provider.
+        let officialRuby = official.tokens.flatMap {
+            JapaneseReadingPipeline.rubyTokens(for: $0)
+        }
+        precondition(
+            officialRuby.map(\.surface) == ["言", "わ", "れ", "た"],
+            "provider kana collapsed ruby into a whole-line token: \(officialRuby.map(\.surface))"
+        )
+        precondition(officialRuby.map(\.ruby) == ["い", nil, nil, nil])
+
+        // A provider may intentionally disagree with IPADIC for a name-like
+        // token. The projection must still use the provider span without
+        // assigning that span to the following particle or verb.
+        let providerMan = JapaneseReadingPipeline.analyze(
+            originalText: "満を持して",
+            providerKana: "マンヲジシテ"
+        )
+        precondition(providerMan.tokens.first(where: { $0.originalText == "満" })?.kana == "まん")
+        precondition(providerMan.tokens.first(where: { $0.originalText == "持" })?.kana == "じ")
+
+        let lineOnlyProvider = JapaneseReadingPipeline.analyze(
+            originalText: "言われた",
+            providerKana: "あいうえお"
+        )
+        precondition(
+            !lineOnlyProvider.isTokenAligned,
+            "unprovable provider boundaries must not be offered to ruby rendering"
+        )
 
         // A romaji value in a provider's kana field is not a confirmed kana
         // layer. It must fail closed rather than being rendered as ruby.
@@ -221,6 +253,15 @@ struct JapaneseReadingContract {
         )
         precondition(symbolProvider.source != .providerOfficial)
         precondition(symbolProvider.kanaText == "いわれた")
+
+        let katakana = JapaneseReadingPipeline.analyze(originalText: "イマジネーション")
+        let katakanaRuby = katakana.tokens.flatMap {
+            JapaneseReadingPipeline.rubyTokens(for: $0)
+        }
+        precondition(
+            katakanaRuby.map(\.kanaSurface) == ["いまじねーしょん"],
+            "katakana did not retain a hiragana display surface"
+        )
 
         // An unresolvable Han token fails closed.  It must never receive a
         // Chinese/Unicode fallback reading and must not enter alignment.

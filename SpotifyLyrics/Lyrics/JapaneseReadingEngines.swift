@@ -279,7 +279,8 @@ private enum JapaneseReadingSupport {
             kanaText: kana,
             romajiText: token.romaji,
             source: source,
-            confidence: confidence
+            confidence: confidence,
+            isTokenAligned: false
         )
     }
 
@@ -325,7 +326,8 @@ private enum JapaneseReadingSupport {
             kanaText: kanaText,
             romajiText: romajiText,
             source: source,
-            confidence: tokens.map(\.confidence).min() ?? 0
+            confidence: tokens.map(\.confidence).min() ?? 0,
+            isTokenAligned: result.isTokenAligned
         )
     }
 }
